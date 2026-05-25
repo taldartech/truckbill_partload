@@ -1,0 +1,179 @@
+<template>
+    <AdminLayout title="User Management">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Users List</h3>
+                        <div class="card-tools">
+                            <button v-if="can('create users')" class="btn btn-primary btn-sm" @click="openModal()">
+                                <i class="fas fa-plus"></i> Add New User
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Company</th>
+                                    <th>Role</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="user in users.data" :key="user.id">
+                                    <td>{{ user.id }}</td>
+                                    <td>{{ user.name }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.company ? user.company.name : 'System/Global' }}</td>
+                                    <td>
+                                        <span v-for="role in user.roles" :key="role.id" class="badge bg-info me-1">
+                                            {{ role.name }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button v-if="can('edit users')" class="btn btn-warning btn-sm me-2" @click="editUser(user)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button v-if="can('delete users')" class="btn btn-danger btn-sm" @click="deleteUser(user.id)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ editMode ? 'Edit User' : 'Add New User' }}</h5>
+                        <button type="button" class="btn-close" @click="closeModal"></button>
+                    </div>
+                    <form @submit.prevent="submit">
+                        <div class="modal-body">
+                            <div class="form-group mb-3">
+                                <label>Name</label>
+                                <input type="text" class="form-control" v-model="form.name" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Email</label>
+                                <input type="email" class="form-control" v-model="form.email" required>
+                                <div v-if="form.errors.email" class="text-danger small">{{ form.errors.email }}</div>
+                            </div>
+                            <div class="form-group mb-3" v-if="$page.props.auth.is_admin">
+                                <label>Company</label>
+                                <select class="form-control" v-model="form.company_id">
+                                    <option value="">Global/System (No Company)</option>
+                                    <option v-for="company in companies" :key="company.id" :value="company.id">
+                                        {{ company.name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Role</label>
+                                <select class="form-control" v-model="form.role" required>
+                                    <option value="">Select Role</option>
+                                    <option v-for="role in roles" :key="role.id" :value="role.name">
+                                        {{ role.name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>{{ editMode ? 'New Password (Leave blank to keep current)' : 'Password' }}</label>
+                                <input type="password" class="form-control" v-model="form.password" :required="!editMode">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @click="closeModal">Close</button>
+                            <button type="submit" class="btn btn-primary" :disabled="form.processing">
+                                {{ editMode ? 'Update' : 'Save' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </AdminLayout>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import {  useForm, router , usePage } from '@inertiajs/vue3';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
+
+
+const page = usePage();
+const can = (permission) => {
+    return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
+};
+
+const props = defineProps({
+    users: Object,
+    roles: Array,
+    companies: Array
+});
+
+const form = useForm({
+    id: null,
+    name: '',
+    email: '',
+    company_id: '',
+    role: '',
+    password: ''
+});
+
+const editMode = ref(false);
+let modal = null;
+
+onMounted(() => {
+    modal = new bootstrap.Modal(document.getElementById('userModal'));
+});
+
+const openModal = () => {
+    editMode.value = false;
+    form.reset();
+    modal.show();
+};
+
+const editUser = (user) => {
+    editMode.value = true;
+    form.id = user.id;
+    form.name = user.name;
+    form.email = user.email;
+    form.company_id = user.company_id || '';
+    form.role = user.roles.length > 0 ? user.roles[0].name : '';
+    form.password = '';
+    modal.show();
+};
+
+const closeModal = () => {
+    modal.hide();
+};
+
+const submit = () => {
+    if (editMode.value) {
+        form.put(`/users/${form.id}`, {
+            onSuccess: () => closeModal()
+        });
+    } else {
+        form.post('/users', {
+            onSuccess: () => closeModal()
+        });
+    }
+};
+
+const deleteUser = (id) => {
+    if (confirm('Are you sure you want to delete this user?')) {
+        router.delete(`/users/${id}`);
+    }
+};
+</script>

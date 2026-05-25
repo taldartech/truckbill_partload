@@ -1,0 +1,185 @@
+/* Custom button styles for consistent look throughout the app */
+.btn,
+button.btn,
+a.btn {
+    background-color: var(--brand-primary);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-weight: 400;
+    font-size: 1rem;
+    padding: 0.4em 0.8em;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    box-shadow: 0 1px 4px rgba(47, 179, 111, 0.07);
+    outline: none;
+}
+
+.btn i,
+button.btn i,
+a.btn i {
+    color: inherit;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn:hover,
+button.btn:hover,
+a.btn:hover,
+.btn:focus,
+button.btn:focus,
+a.btn:focus {
+    background-color: var(--brand-primary-dark);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(47, 179, 111, 0.12);
+}
+
+.btn-secondary,
+button.btn-secondary,
+a.btn-secondary {
+    background-color: var(--brand-active-bg);
+    color: var(--brand-primary) !important;
+    border: 1px solid var(--brand-primary);
+}
+
+.btn-secondary:hover,
+button.btn-secondary:hover,
+a.btn-secondary:hover {
+    background-color: #d1fae5;
+    color: var(--brand-primary-dark) !important;
+    border-color: var(--brand-primary-dark);
+}
+
+.btn-outline-secondary,
+button.btn-outline-secondary,
+a.btn-outline-secondary {
+    background: transparent;
+    color: var(--brand-text-muted) !important;
+    border: 1.5px solid var(--brand-border);
+}
+
+.btn-outline-secondary:hover,
+button.btn-outline-secondary:hover,
+a.btn-outline-secondary:hover {
+    background: var(--brand-active-bg);
+    color: var(--brand-primary) !important;
+    border-color: var(--brand-primary);
+}
+
+.btn-info {
+    --bs-btn-color: #ffffff;
+    --bs-btn-bg: var(--brand-secondary);
+    --bs-btn-border-color: var(--brand-secondary);
+    --bs-btn-hover-color: #ffffff;
+    --bs-btn-hover-bg: var(--brand-secondary-dark);
+    --bs-btn-hover-border-color: var(--brand-secondary-dark);
+    --bs-btn-focus-shadow-rgb: 45, 140, 255;
+    --bs-btn-active-color: #ffffff;
+    --bs-btn-active-bg: var(--brand-secondary-dark);
+    --bs-btn-active-border-color: var(--brand-secondary-dark);
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #ffffff;
+    --bs-btn-disabled-bg: var(--brand-secondary);
+    --bs-btn-disabled-border-color: var(--brand-secondary);
+}
+
+
+
+
+
+a.btn-info:hover {
+    background-color: #1a73e8;
+    color: #fff !important;
+}
+
+.btn-primary,
+button.btn-primary,
+a.btn-primary {
+    background-color: var(--brand-primary);
+    color: #fff;
+    border: none;
+}
+
+.btn-primary:hover,
+button.btn-primary:hover,
+a.btn-primary:hover {
+    background-color: var(--brand-primary-dark);
+    color: #fff !important;
+}
+
+.btn-danger,
+button.btn-danger,
+a.btn-danger {
+    background-color: var(--brand-danger);
+    color: #fff;
+    border: none;
+}
+
+.btn-danger:hover,
+button.btn-danger:hover,
+a.btn-danger:hover {
+    background-color: #ab1c1a;
+    color: #fff !important;
+}
+
+.btn-warning,
+button.btn-warning,
+a.btn-warning {
+    background-color: var(--brand-warning);
+    color: #fff;
+    border: none;
+}
+
+.btn-warning:hover,
+button.btn-warning:hover,
+a.btn-warning:hover {
+    background-color: var(--brand-warning-dark);
+    color: #fff !important;
+}
+
+.btn-success,
+button.btn-success,
+a.btn-success {
+    background-color: var(--brand-primary);
+    color: #fff;
+    border: none;
+}
+
+.btn-success:hover,
+button.btn-success:hover,
+a.btn-success:hover {
+    background-color: var(--brand-primary-dark);
+    color: #fff !important;
+}
+
+.btn-sm {
+    font-size: 0.875rem !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 0.25rem !important;
+}
+
+.btn-lg {
+    font-size: 1.2rem;
+    padding: 1em 2.5em;
+    border-radius: 14px;
+}
+
+/* Force .btn-info text to white, override all */
+.btn-info,
+.btn-info i,
+.btn-info svg,
+.btn-info span {
+    color: #fff !important;
+}
+
+.btn-light {
+    background-color: #f8f9fa;
+    color: var(--brand-text-primary) !important;
+    border: 1px solid var(--brand-border);
+}
+
+.btn-light:hover {
+    background-color: #e2e6ea;
+    color: var(--brand-text-primary) !important;
+}

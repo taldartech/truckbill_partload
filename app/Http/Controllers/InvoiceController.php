@@ -1,0 +1,113 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Invoice;
+use App\Models\InvoiceDetail;
+use App\Models\Party;
+use App\Models\Bilty;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class InvoiceController extends Controller
+{
+    public function index()
+    {
+        $invoices = Invoice::with('party')->orderBy('id', 'desc')->paginate(10);
+        return Inertia::render('Invoices/Index', [
+            'invoices' => $invoices
+        ]);
+    }
+
+    public function create()
+    {
+        $invoicedBiltyIds = InvoiceDetail::pluck('bilty_id')->toArray();
+        $pendingBilties = Bilty::whereNotIn('id', $invoicedBiltyIds)->with(['fromStation', 'toStation'])->get();
+        
+        return Inertia::render('Invoices/Create', [
+            'parties' => Party::all(),
+            'bilties' => $pendingBilties
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'invoice_no' => 'required|string|unique:invoices',
+            'date' => 'required|date',
+            'party_id' => 'required|exists:parties,id',
+            'status' => 'required|string',
+            'remark' => 'nullable|string',
+            'bilty_ids' => 'required|array',
+            'bilty_ids.*' => 'exists:bilties,id'
+        ]);
+
+        $company_id = auth()->check() && auth()->user()->company_id ? auth()->user()->company_id : 1;
+
+        $bilties = Bilty::whereIn('id', $request->bilty_ids)->get();
+        $totalAmount = $bilties->sum('amount');
+        
+        $invoice = Invoice::create([
+            'company_id' => $company_id,
+            'invoice_no' => $validated['invoice_no'],
+            'date' => $validated['date'],
+            'party_id' => $validated['party_id'],
+            'status' => $validated['status'],
+            'remark' => $validated['remark'],
+            'total_amount' => $totalAmount,
+            'gst_amount' => 0,
+            'net_amount' => $totalAmount,
+        ]);
+
+        foreach ($bilties as $bilty) {
+            InvoiceDetail::create([
+                'invoice_id' => $invoice->id,
+                'bilty_id' => $bilty->id,
+                'amount' => $bilty->amount
+            ]);
+        }
+
+        return redirect()->route('invoices.index')->with('success', 'Invoice created successfully.');
+    }
+
+    public function show(Invoice $invoice)
+    {
+        //
+    }
+
+    public function edit(Invoice $invoice)
+    {
+        $invoice->load(['party', 'details.bilty.fromStation', 'details.bilty.toStation']);
+        return Inertia::render('Invoices/Edit', [
+            'invoice' => $invoice,
+            'parties' => Party::all()
+        ]);
+    }
+
+    public function update(Request $request, Invoice $invoice)
+    {
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'party_id' => 'required|exists:parties,id',
+            'status' => 'required|string',
+            'remark' => 'nullable|string'
+        ]);
+
+        $invoice->update($validated);
+        return redirect()->route('invoices.index')->with('success', 'Invoice updated successfully.');
+    }
+
+    public function destroy(Invoice $invoice)
+    {
+        $invoice->delete();
+        return redirect()->route('invoices.index')->with('success', 'Invoice deleted successfully.');
+    }
+    
+    public function print(Invoice $invoice)
+    {
+        $invoice->load(['party', 'details.bilty.fromStation', 'details.bilty.toStation']);
+        $company = \App\Models\Company::find($invoice->company_id);
+        
+        return view('prints.invoice', compact('invoice', 'company'));
+    }
+}
