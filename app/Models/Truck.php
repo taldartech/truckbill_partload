@@ -27,4 +27,19 @@ class Truck extends Model
     {
         return $this->belongsTo(TruckType::class, 'truck_type_id');
     }
+
+    public function currentState()
+    {
+        return $this->belongsTo(State::class, 'current_state_id');
+    }
+
+    public function currentCity()
+    {
+        return $this->belongsTo(City::class, 'current_city_id');
+    }
+
+    public function currentStation()
+    {
+        return $this->belongsTo(Station::class, 'current_station_id');
+    }
 }

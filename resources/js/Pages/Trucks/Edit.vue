@@ -44,9 +44,45 @@
                                         </option>
                                     </select>
                                 </div>
-                                <div class="col-md-4 form-group mb-3">
+                                <div class="col-md-3 form-group mb-3">
                                     <label>Capacity (in Tons)</label>
                                     <input type="text" class="form-control" v-model="form.capacity" placeholder="e.g. 15">
+                                </div>
+                                <div class="col-md-3 form-group mb-3">
+                                    <label>Status</label>
+                                    <select class="form-control" v-model="form.status">
+                                        <option value="Available">Available</option>
+                                        <option value="Booked">Booked</option>
+                                        <option value="In Transit">In Transit</option>
+                                        <option value="Maintenance">Maintenance</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Current Location Details -->
+                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Current Location</h5>
+                            <div class="row">
+                                <div class="col-md-4 form-group mb-3">
+                                    <label>Current State</label>
+                                    <SearchableSelect v-model="form.current_state_id" :options="states" placeholder="Select State" />
+                                </div>
+                                <div class="col-md-4 form-group mb-3">
+                                    <label>Current City</label>
+                                    <select class="form-control" v-model="form.current_city_id">
+                                        <option value="">Select City</option>
+                                        <option v-for="city in filteredCities" :key="city.id" :value="city.id">
+                                            {{ city.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 form-group mb-3">
+                                    <label>Current Station</label>
+                                    <select class="form-control" v-model="form.current_station_id">
+                                        <option value="">Select Station</option>
+                                        <option v-for="station in filteredStations" :key="station.id" :value="station.id">
+                                            {{ station.name }}
+                                        </option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -143,14 +179,19 @@
 </template>
 
 <script setup>
+import { computed, watch } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import SearchableSelect from '@/Components/SearchableSelect.vue';
 
 const props = defineProps({
     truck: Object,
     companies: Array,
     transporters: Array,
-    truckTypes: Array
+    truckTypes: Array,
+    states: Array,
+    cities: Array,
+    stations: Array
 });
 
 const form = useForm({
@@ -158,6 +199,10 @@ const form = useForm({
     transporter_id: props.truck.transporter_id || '',
     truck_number: props.truck.truck_number || '',
     truck_type_id: props.truck.truck_type_id || '',
+    status: props.truck.status || 'Available',
+    current_state_id: props.truck.current_state_id || '',
+    current_city_id: props.truck.current_city_id || '',
+    current_station_id: props.truck.current_station_id || '',
     capacity: props.truck.capacity || '',
     owner_name: props.truck.owner_name || '',
     owner_mobile: props.truck.owner_mobile || '',
@@ -175,6 +220,29 @@ const form = useForm({
     pollution_expiry_date: props.truck.pollution_expiry_date || '',
     permit_no: props.truck.permit_no || '',
     permit_expiry_date: props.truck.permit_expiry_date || ''
+});
+
+const filteredCities = computed(() => {
+    if (!form.current_state_id) return [];
+    return props.cities.filter(c => String(c.state_id) === String(form.current_state_id));
+});
+
+const filteredStations = computed(() => {
+    if (!form.current_city_id) return [];
+    return props.stations.filter(s => String(s.city_id) === String(form.current_city_id));
+});
+
+watch(() => form.current_state_id, (newVal, oldVal) => {
+    if(oldVal) {
+        form.current_city_id = '';
+        form.current_station_id = '';
+    }
+});
+
+watch(() => form.current_city_id, (newVal, oldVal) => {
+    if(oldVal) {
+        form.current_station_id = '';
+    }
 });
 
 const submit = () => {

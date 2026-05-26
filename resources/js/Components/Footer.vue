@@ -5,7 +5,7 @@
                 <strong>Copyright All Rights Reserved &copy; 2026</strong>
             </div>
             <div class="text-muted small">
-                Developed & Consulted by <a href="#" class="text-success fw-bold text-decoration-none">Taldar Tech Consultancy.</a>
+                Developed & Consulted by <a href="https://taldartechconsultancy.com" target="_blank" class="text-success fw-bold text-decoration-none">Taldar Tech Consultancy.</a>
             </div>
         </div>
     </footer>

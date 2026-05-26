@@ -20,13 +20,13 @@
                 <!-- small box -->
                 <div class="small-box bg-success">
                     <div class="inner">
-                        <h3>₹{{ formatCurrency(stats.total_freight) }}</h3>
-                        <p>Total Booked Freight</p>
+                        <h3>{{ stats.available_trucks }}</h3>
+                        <p>Available Trucks</p>
                     </div>
                     <div class="icon">
-                        <i class="fas fa-rupee-sign"></i>
+                        <i class="fas fa-truck-loading"></i>
                     </div>
-                    <Link href="/bilties" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></Link>
+                    <Link href="/trucks" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></Link>
                 </div>
             </div>
             
@@ -48,13 +48,13 @@
                 <!-- small box -->
                 <div class="small-box bg-danger">
                     <div class="inner">
-                        <h3>{{ stats.active_trucks }}</h3>
-                        <p>Registered Trucks</p>
+                        <h3>{{ stats.pending_bilties }}</h3>
+                        <p>Pending Bilties</p>
                     </div>
                     <div class="icon">
-                        <i class="fas fa-truck"></i>
+                        <i class="fas fa-clock"></i>
                     </div>
-                    <Link href="/trucks" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></Link>
+                    <Link href="/bilties" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></Link>
                 </div>
             </div>
         </div>

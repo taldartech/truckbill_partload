@@ -194,6 +194,10 @@
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-WayBill No</label></div>
                                         <div class="col-7"><input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.eway_bill_no"></div>
                                     </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-WayBill Expiry</label></div>
+                                        <div class="col-7"><input type="date" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.eway_bill_expiry_date"></div>
+                                    </div>
                                 </div>
 
                                 <!-- Middle Column: Cartage, Marka, Delivery -->
@@ -329,6 +333,7 @@ const form = useForm({
     private_marka: props.bilty.private_marka || '',
     delivery_at: props.bilty.delivery_at || '',
     eway_bill_no: props.bilty.eway_bill_no || '',
+    eway_bill_expiry_date: props.bilty.eway_bill_expiry_date || '',
     weight_actual: props.bilty.weight_actual || '',
     declared_value: props.bilty.declared_value || '',
     gst: props.bilty.gst || '',

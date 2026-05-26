@@ -72,6 +72,9 @@ class LoadingReportController extends Controller
                 $item['company_id'] = $validated['company_id'];
                 $report->details()->create($item);
             }
+
+            // Update Truck Status
+            Truck::where('id', $validated['truck_id'])->update(['status' => 'Booked']);
         });
 
         return redirect()->route('loading-reports.index')->with('success', 'Loading Report created successfully.');

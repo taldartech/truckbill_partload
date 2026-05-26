@@ -23,11 +23,11 @@
                                 <div class="col-md-3 d-flex align-items-center" v-if="$page.props.auth.is_admin">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Company</label>
                                     <SearchableSelect
-    :small="true"
-    v-model="form.company_id"
-    :options="companies"
-    placeholder="Select Company"
-/>
+                                        :small="true"
+                                        v-model="form.company_id"
+                                        :options="companies"
+                                        placeholder="Select Company"
+                                    />
                                 </div>
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Payment</label>
@@ -44,20 +44,20 @@
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">From St.</label>
                                     <SearchableSelect
-    :small="true"
-    v-model="form.from_station_id"
-    :options="stations"
-    placeholder="Select Station"
-/>
+                                        :small="true"
+                                        v-model="form.from_station_id"
+                                        :options="stations"
+                                        placeholder="Select Station"
+                                    />
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignor</label>
                                     <SearchableSelect
-    :small="true"
-    v-model="form.consignor_id"
-    :options="parties"
-    placeholder="Select Consignor"
-/>
+                                        :small="true"
+                                        v-model="form.consignor_id"
+                                        :options="parties"
+                                        placeholder="Select Consignor"
+                                    />
                                 </div>
                             </div>
 
@@ -65,20 +65,20 @@
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">To St.</label>
                                     <SearchableSelect
-    :small="true"
-    v-model="form.to_station_id"
-    :options="stations"
-    placeholder="Select Station"
-/>
+                                        :small="true"
+                                        v-model="form.to_station_id"
+                                        :options="stations"
+                                        placeholder="Select Station"
+                                    />
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignee</label>
                                     <SearchableSelect
-    :small="true"
-    v-model="form.consignee_id"
-    :options="parties"
-    placeholder="Select Consignee"
-/>
+                                        :small="true"
+                                        v-model="form.consignee_id"
+                                        :options="parties"
+                                        placeholder="Select Consignee"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -104,19 +104,19 @@
                                             <td class="text-center align-middle">{{ index + 1 }}</td>
                                             <td>
                                                 <SearchableSelect
-    :small="true"
-    v-model="detail.good_id"
-    :options="goods"
-    placeholder="Select Good"
-/>
+                                                    :small="true"
+                                                    v-model="detail.good_id"
+                                                    :options="goods"
+                                                    placeholder="Select Good"
+                                                />
                                             </td>
                                             <td>
                                                 <SearchableSelect
-    :small="true"
-    v-model="detail.package_type_id"
-    :options="package_types"
-    placeholder="Select Packing"
-/>
+                                                :small="true"
+                                                v-model="detail.package_type_id"
+                                                :options="package_types"
+                                                placeholder="Select Packing"
+                                            />
                                             </td>
                                             <td>
                                                 <input type="number" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" v-model="detail.no_of_packages">
@@ -193,6 +193,10 @@
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-WayBill No</label></div>
                                         <div class="col-7"><input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.eway_bill_no"></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-WayBill Expiry</label></div>
+                                        <div class="col-7"><input type="date" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.eway_bill_expiry_date"></div>
                                     </div>
                                 </div>
 
@@ -321,6 +325,7 @@ const form = useForm({
     private_marka: '',
     delivery_at: '',
     eway_bill_no: '',
+    eway_bill_expiry_date: '',
     weight_actual: '',
     declared_value: '',
     gst: '',

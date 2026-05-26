@@ -41,6 +41,20 @@ class HandleInertiaRequests extends Middleware
                 'roles' => $request->user() ? $request->user()->getRoleNames() : [],
                 'permissions' => $request->user() ? $request->user()->getAllPermissions()->pluck('name') : [],
                 'is_admin' => $request->user() ? $request->user()->hasRole(['master_admin', 'super_admin']) : false,
+                'company_name' => $request->user() && $request->user()->company ? $request->user()->company->name : 'Demo Company',
+                'subscription_ends_at' => function () use ($request) {
+                    if ($request->user() && $request->user()->company_id) {
+                        $sub = \Illuminate\Support\Facades\DB::table('subscriptions')
+                            ->where('company_id', $request->user()->company_id)
+                            ->where('status', 'active')
+                            ->orderBy('ends_at', 'desc')
+                            ->first();
+                        if ($sub) {
+                            return \Carbon\Carbon::parse($sub->ends_at)->format('d M, Y');
+                        }
+                    }
+                    return null;
+                },
             ],
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),

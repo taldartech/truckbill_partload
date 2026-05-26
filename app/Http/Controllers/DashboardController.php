@@ -20,12 +20,12 @@ class DashboardController extends Controller
         $stats = [
             'total_bilties' => Bilty::count(),
             'today_bilties' => Bilty::whereDate('date', $today)->count(),
-            'total_freight' => Bilty::sum('amount') ?? 0,
+            'available_trucks' => Truck::where('status', 'Available')->count(),
             
             'total_challans' => Challan::count(),
             'today_challans' => Challan::whereDate('date', $today)->count(),
             
-            'active_trucks' => Truck::count(),
+            'pending_bilties' => Bilty::where('status', 'Pending')->count(),
             
             'total_vouchers' => Voucher::count(),
             

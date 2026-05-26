@@ -6,6 +6,9 @@ use App\Models\Truck;
 use App\Models\Company;
 use App\Models\Transporter;
 use App\Models\TruckType;
+use App\Models\State;
+use App\Models\City;
+use App\Models\Station;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -25,9 +28,12 @@ class TruckController extends Controller implements HasMiddleware
 
     public function index()
     {
-        $trucks = Truck::with(['company', 'transporter', 'truckType'])->latest()->paginate(10);
+        $trucks = Truck::with(['company', 'transporter', 'truckType', 'currentState', 'currentCity', 'currentStation'])->latest()->paginate(10);
         return Inertia::render('Trucks/Index', [
-            'trucks' => $trucks
+            'trucks' => $trucks,
+            'states' => State::all(),
+            'cities' => City::all(),
+            'stations' => Station::all(),
         ]);
     }
 
@@ -37,6 +43,9 @@ class TruckController extends Controller implements HasMiddleware
             'companies' => Company::all(),
             'transporters' => Transporter::all(),
             'truckTypes' => TruckType::all(),
+            'states' => State::all(),
+            'cities' => City::all(),
+            'stations' => Station::all(),
         ]);
     }
 
@@ -47,6 +56,10 @@ class TruckController extends Controller implements HasMiddleware
             'transporter_id' => 'nullable|exists:transporters,id',
             'truck_number' => 'nullable|string',
             'truck_type_id' => 'nullable|exists:truck_types,id',
+            'status' => 'nullable|string',
+            'current_state_id' => 'nullable|exists:states,id',
+            'current_city_id' => 'nullable|exists:cities,id',
+            'current_station_id' => 'nullable|exists:stations,id',
             'capacity' => 'nullable|string',
             'owner_name' => 'nullable|string',
             'owner_mobile' => 'nullable|string',
@@ -77,6 +90,9 @@ class TruckController extends Controller implements HasMiddleware
             'companies' => Company::all(),
             'transporters' => Transporter::all(),
             'truckTypes' => TruckType::all(),
+            'states' => State::all(),
+            'cities' => City::all(),
+            'stations' => Station::all(),
         ]);
     }
 
@@ -87,6 +103,10 @@ class TruckController extends Controller implements HasMiddleware
             'transporter_id' => 'nullable|exists:transporters,id',
             'truck_number' => 'nullable|string',
             'truck_type_id' => 'nullable|exists:truck_types,id',
+            'status' => 'nullable|string',
+            'current_state_id' => 'nullable|exists:states,id',
+            'current_city_id' => 'nullable|exists:cities,id',
+            'current_station_id' => 'nullable|exists:stations,id',
             'capacity' => 'nullable|string',
             'owner_name' => 'nullable|string',
             'owner_mobile' => 'nullable|string',
@@ -114,5 +134,24 @@ class TruckController extends Controller implements HasMiddleware
     {
         $truck->delete();
         return redirect()->route('trucks.index')->with('success', 'Truck deleted successfully.');
+    }
+
+    public function completeTour(Request $request, Truck $truck)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string',
+            'current_state_id' => 'required|exists:states,id',
+            'current_city_id' => 'required|exists:cities,id',
+            'current_station_id' => 'nullable|exists:stations,id',
+        ]);
+
+        $truck->update([
+            'status' => $validated['status'],
+            'current_state_id' => $validated['current_state_id'],
+            'current_city_id' => $validated['current_city_id'],
+            'current_station_id' => $validated['current_station_id'],
+        ]);
+
+        return redirect()->back()->with('success', 'Truck status and location updated successfully.');
     }
 }

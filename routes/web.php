@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('companies', CompanyController::class);
     Route::resource('branches', BranchController::class);
     Route::resource('transporters', TransporterController::class);
+    Route::put('trucks/{truck}/complete-tour', [TruckController::class, 'completeTour'])->name('trucks.complete-tour');
     Route::resource('trucks', TruckController::class);
     Route::resource('drivers', DriverController::class);
     Route::resource('stations', StationController::class);

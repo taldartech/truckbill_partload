@@ -85,6 +85,7 @@ class BiltyController extends Controller implements HasMiddleware
             'private_marka' => 'nullable|string',
             'delivery_at' => 'nullable|string',
             'eway_bill_no' => 'nullable|string',
+            'eway_bill_expiry_date' => 'nullable|date',
             'declared_value' => 'nullable|numeric',
             'payment_type' => 'nullable|string',
             'advance_payment_received' => 'nullable|numeric',
@@ -103,7 +104,7 @@ class BiltyController extends Controller implements HasMiddleware
             foreach ($details as $item) {
                 if (!empty($item['good_id'])) {
                     $bilty->biltyDetails()->create([
-                        'company_id' => $validated['company_id'],
+                        'company_id' => $bilty->company_id,
                         'good_id' => $item['good_id'],
                         'package_type_id' => $item['package_type_id'],
                         'no_of_packages' => $item['no_of_packages'],
@@ -165,6 +166,7 @@ class BiltyController extends Controller implements HasMiddleware
             'private_marka' => 'nullable|string',
             'delivery_at' => 'nullable|string',
             'eway_bill_no' => 'nullable|string',
+            'eway_bill_expiry_date' => 'nullable|date',
             'declared_value' => 'nullable|numeric',
             'payment_type' => 'nullable|string',
             'advance_payment_received' => 'nullable|numeric',
@@ -184,7 +186,7 @@ class BiltyController extends Controller implements HasMiddleware
             foreach ($details as $item) {
                 if (!empty($item['good_id'])) {
                     $bilty->biltyDetails()->create([
-                        'company_id' => $validated['company_id'],
+                        'company_id' => $bilty->company_id,
                         'good_id' => $item['good_id'],
                         'package_type_id' => $item['package_type_id'],
                         'no_of_packages' => $item['no_of_packages'],
