@@ -209,7 +209,7 @@ class BiltyController extends Controller implements HasMiddleware
 
     public function print(Bilty $bilty)
     {
-        $bilty->load(['fromStation', 'toStation', 'truck', 'driver', 'consignor', 'consignee', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills']);
+        $bilty->load(['fromStation', 'toStation', 'consignor', 'consignee', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills']);
         $company = \App\Models\Company::find($bilty->company_id);
         
         return view('prints.bilty', compact('bilty', 'company'));

@@ -48,8 +48,8 @@
             </div>
             <div class="col-6">
                 <div class="box">
-                    <strong>Truck No:</strong> {{ $bilty->truck->truck_no ?? '____' }}<br>
                     <strong>E-Way Bill:</strong> {{ $bilty->ewayBills->pluck('eway_bill_no')->implode(', ') ?: 'N/A' }}<br>
+                    <strong>E-Way Bill Expiry Date:</strong> {{ $bilty->ewayBills->pluck('expiry_date')->implode(', ') ?: 'N/A' }}<br>
                     <strong>Payment Type:</strong> {{ $bilty->payment_type }}
                 </div>
             </div>

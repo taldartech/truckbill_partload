@@ -17,21 +17,21 @@
                                 <div class="col-md-4 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Truck No.</label>
                                     <SearchableSelect
-    :small="true"
-    v-model="form.truck_id"
-    :options="trucks"
-    labelKey="truck_no"
-    placeholder="Select Truck"
-/>
+                                        :small="true"
+                                        v-model="form.truck_id"
+                                        :options="trucks"
+                                        labelKey="truck_number"
+                                        placeholder="Select Truck"
+                                    />
                                 </div>
                                 <div class="col-md-4 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Driver</label>
                                     <SearchableSelect
-    :small="true"
-    v-model="form.driver_id"
-    :options="drivers"
-    placeholder="Select Driver"
-/>
+                                        :small="true"
+                                        v-model="form.driver_id"
+                                        :options="drivers"
+                                        placeholder="Select Driver"
+                                    />
                                 </div>
                             </div>
                             
@@ -39,20 +39,20 @@
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">From St.</label>
                                     <SearchableSelect
-    :small="true"
-    v-model="form.from_station_id"
-    :options="stations"
-    placeholder="Select Station"
-/>
+                                        :small="true"
+                                        v-model="form.from_station_id"
+                                        :options="stations"
+                                        placeholder="Select Station"
+                                    />
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">To St.</label>
                                     <SearchableSelect
-    :small="true"
-    v-model="form.to_station_id"
-    :options="stations"
-    placeholder="Select Station"
-/>
+                                        :small="true"
+                                        v-model="form.to_station_id"
+                                        :options="stations"
+                                        placeholder="Select Station"
+                                    />
                                 </div>
                             </div>
                         </div>
