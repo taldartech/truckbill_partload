@@ -219,8 +219,12 @@
                                         <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.weight_actual"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Declared Value</label></div>
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Declared Value <span class="text-muted fw-normal">(Optional)</span></label></div>
                                         <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.declared_value"></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Invoice No. <span class="text-muted fw-normal">(Optional)</span></label></div>
+                                        <div class="col-7"><input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.invoice_number"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-WayBill No</label></div>
@@ -373,6 +377,7 @@ const form = useForm({
     eway_bill_expiry_date: props.bilty.eway_bill_expiry_date || '',
     weight_actual: props.bilty.weight_actual || '',
     declared_value: props.bilty.declared_value || '',
+    invoice_number: props.bilty.invoice_number || '',
     gst: props.bilty.gst || '',
     gst_liability_by: props.bilty.gst_liability_by || '',
     

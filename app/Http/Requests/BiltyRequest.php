@@ -56,6 +56,7 @@ class BiltyRequest extends FormRequest
             'eway_bill_no' => 'nullable|string|max:50',
             'eway_bill_expiry_date' => 'nullable|date|required_with:eway_bill_no',
             'declared_value' => 'nullable|numeric|min:0',
+            'invoice_number' => 'nullable|string|max:50',
             'payment_type' => 'nullable|string|in:To Pay,Paid,TBB,FOC',
             'advance_payment_received' => 'nullable|numeric|min:0',
             'payment_mode' => 'nullable|string|max:50',

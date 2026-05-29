@@ -219,8 +219,12 @@
                                         <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.weight_actual"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Declared Value</label></div>
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Declared Value <span class="text-muted fw-normal">(Optional)</span></label></div>
                                         <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.declared_value"></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Invoice No. <span class="text-muted fw-normal">(Optional)</span></label></div>
+                                        <div class="col-7"><input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.invoice_number"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-WayBill No</label></div>
@@ -356,6 +360,7 @@ const form = useForm({
     eway_bill_expiry_date: '',
     weight_actual: '',
     declared_value: '',
+    invoice_number: '',
     gst: gstForCompany(page.props.auth.user?.company_id),
     gst_liability_by: '',
     
