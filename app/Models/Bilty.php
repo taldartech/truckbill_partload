@@ -13,6 +13,10 @@ class Bilty extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'addon_charges' => 'array',
+    ];
+
     public function company()
     {
         return $this->belongsTo(Company::class);

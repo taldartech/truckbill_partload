@@ -12,6 +12,26 @@ class BiltyRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $addonCharges = collect($this->input('addon_charges', []))
+            ->filter(function ($charge) {
+                return !empty($charge['particulars']) || !empty($charge['description']) || (isset($charge['amount']) && $charge['amount'] !== '' && $charge['amount'] !== null);
+            })
+            ->map(function ($charge) {
+                return [
+                    'particulars' => $charge['particulars'] ?? $charge['description'] ?? null,
+                    'amount' => $charge['amount'] ?? null,
+                ];
+            })
+            ->values()
+            ->all();
+
+        $this->merge([
+            'addon_charges' => empty($addonCharges) ? null : $addonCharges,
+        ]);
+    }
+
     public function rules(): array
     {
         $biltyId = $this->route('bilty')?->id ?? $this->route('bilty');
@@ -39,6 +59,9 @@ class BiltyRequest extends FormRequest
             'handling_charge' => 'nullable|numeric|min:0',
             'risk_dd_charge' => 'nullable|numeric|min:0',
             'cartage' => 'nullable|numeric|min:0',
+            'addon_charges' => 'nullable|array',
+            'addon_charges.*.particulars' => 'nullable|string|max:255|required_with:addon_charges.*.amount',
+            'addon_charges.*.amount' => 'nullable|numeric|min:0',
             'cartage_type' => 'nullable|string|max:50',
             'cartage_due_with_whom' => 'nullable|string|max:100',
             'less_advance_received' => 'nullable|numeric|min:0',

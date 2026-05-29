@@ -274,6 +274,29 @@
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">RISK/DD</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.risk_dd_charge" @input="calculateFinalTotal"></div>
                                     </div>
+                                    <div class="mb-2">
+                                        <div class="row align-items-center mb-1">
+                                            <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Addon Charges</label></div>
+                                            <div class="col-6 text-end">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addAddonCharge">
+                                                    <i class="fas fa-plus"></i> Add
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div v-for="(charge, index) in form.addon_charges" :key="index" class="row mb-1 align-items-center">
+                                            <div class="col-1 text-end">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeAddonCharge(index)">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                            <div class="col-5">
+                                                <input type="text" class="form-control form-control-sm border-secondary shadow-none" v-model="charge.particulars" placeholder="Particulars" @input="calculateFinalTotal">
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none" v-model="charge.amount" placeholder="Amount" @input="calculateFinalTotal">
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Less Adv.Rec</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.less_advance_received" @input="calculateFinalTotal"></div>
@@ -361,6 +384,7 @@ const form = useForm({
     handling_charge: 0,
     risk_dd_charge: 0,
     cartage: 0,
+    addon_charges: [],
     less_advance_received: 0,
     amount: 0,
     status: 'Pending'
@@ -393,6 +417,19 @@ watch(() => form.company_id, applyCompanyGst);
 watch(() => form.gst_liability_by, applyCompanyGst);
 
 onMounted(() => calculateFinalTotal());
+
+const addAddonCharge = () => {
+    form.addon_charges.push({ particulars: '', amount: '' });
+};
+
+const removeAddonCharge = (index) => {
+    form.addon_charges.splice(index, 1);
+    calculateFinalTotal();
+};
+
+const totalAddonCharges = () => {
+    return form.addon_charges.reduce((sum, charge) => sum + (parseFloat(charge.amount) || 0), 0);
+};
 
 const addRow = () => {
     form.details.push({ good_id: '', package_type_id: '', no_of_packages: '', gross_weight: '', charged_weight: '', rate_type: 'Fixed', rate: '', amount: 0 });
@@ -444,7 +481,8 @@ const calculateFinalTotal = () => {
         parseFloat(form.surcharge || 0) +
         parseFloat(form.handling_charge || 0) +
         parseFloat(form.risk_dd_charge || 0) +
-        parseFloat(form.cartage || 0) -
+        parseFloat(form.cartage || 0) +
+        totalAddonCharges() -
         parseFloat(form.less_advance_received || 0);
 
     const gstRate = form.gst_liability_by === 'Exempted' ? 0 : (parseFloat(form.gst) || 0);

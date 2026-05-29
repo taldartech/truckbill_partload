@@ -284,6 +284,29 @@
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">RISK/DD</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.risk_dd_charge" @input="calculateFinalTotal"></div>
                                     </div>
+                                    <div class="mb-2">
+                                        <div class="row align-items-center mb-1">
+                                            <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Addon Charges</label></div>
+                                            <div class="col-6 text-end">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addAddonCharge">
+                                                    <i class="fas fa-plus"></i> Add
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div v-for="(charge, index) in form.addon_charges" :key="index" class="row mb-1 align-items-center">
+                                            <div class="col-1 text-end">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeAddonCharge(index)">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                            <div class="col-5">
+                                                <input type="text" class="form-control form-control-sm border-secondary shadow-none" v-model="charge.particulars" placeholder="Particulars" @input="calculateFinalTotal">
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none" v-model="charge.amount" placeholder="Amount" @input="calculateFinalTotal">
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Less Adv.Rec</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.less_advance_received" @input="calculateFinalTotal"></div>
@@ -335,9 +358,29 @@ const props = defineProps({
     company_gst_rates: Object,
 });
 
-// Map existing details to the array format
-const initialDetails = (props.bilty.bilty_details && props.bilty.bilty_details.length > 0) 
-    ? props.bilty.bilty_details.map(d => ({
+const rowAmountFromDetail = (d) => {
+    const weight = parseFloat(d.gross_weight) || 0;
+    const chargedWeight = parseFloat(d.charged_weight) || 0;
+    const packages = parseFloat(d.no_of_packages) || 0;
+    const rate = parseFloat(d.rate) || 0;
+    const rateType = d.rate_type || 'Fixed';
+
+    if (rateType === 'Per Actual Weight' || rateType === 'Per KG') {
+        return (rate * weight).toFixed(2);
+    }
+    if (rateType === 'Per Charged Weight') {
+        return (rate * chargedWeight).toFixed(2);
+    }
+    if (rateType === 'Per Package') {
+        return (rate * packages).toFixed(2);
+    }
+    return rate.toFixed(2);
+};
+
+const savedDetails = props.bilty.bilty_details ?? props.bilty.biltyDetails ?? [];
+
+const initialDetails = savedDetails.length > 0
+    ? savedDetails.map((d) => ({
         good_id: d.good_id || '',
         package_type_id: d.package_type_id || '',
         no_of_packages: d.no_of_packages || '',
@@ -345,17 +388,18 @@ const initialDetails = (props.bilty.bilty_details && props.bilty.bilty_details.l
         charged_weight: d.charged_weight || '',
         rate_type: d.rate_type || 'Fixed',
         rate: d.rate || '',
-        amount: (
-            (d.rate_type === 'Per Charged Weight'
-                ? (d.rate || 0) * (d.charged_weight || 0)
-                : (d.rate_type === 'Per Actual Weight' || d.rate_type === 'Per KG')
-                ? (d.rate || 0) * (d.gross_weight || 0)
-                : d.rate_type === 'Per Package'
-                    ? (d.rate || 0) * (d.no_of_packages || 0)
-                    : (d.rate || 0))
-        ).toFixed(2) || 0
-      }))
+        amount: rowAmountFromDetail(d),
+    }))
     : [{ good_id: '', package_type_id: '', no_of_packages: '', gross_weight: '', charged_weight: '', rate_type: 'Fixed', rate: '', amount: 0 }];
+
+const savedAddonCharges = Array.isArray(props.bilty.addon_charges) ? props.bilty.addon_charges : [];
+
+const initialAddonCharges = savedAddonCharges.length > 0
+    ? savedAddonCharges.map((charge) => ({
+        particulars: charge.particulars || charge.description || '',
+        amount: charge.amount ?? '',
+    }))
+    : [];
 
 const form = useForm({
     company_id: props.bilty.company_id || '',
@@ -388,6 +432,7 @@ const form = useForm({
     handling_charge: props.bilty.handling_charge || 0,
     risk_dd_charge: props.bilty.risk_dd_charge || 0,
     cartage: props.bilty.cartage || 0,
+    addon_charges: initialAddonCharges,
     less_advance_received: props.bilty.less_advance_received || 0,
     amount: props.bilty.amount || 0,
     status: props.bilty.status || 'Pending'
@@ -422,6 +467,19 @@ watch(() => form.company_id, applyCompanyGst);
 watch(() => form.gst_liability_by, applyCompanyGst);
 
 onMounted(() => calculateFinalTotal());
+
+const addAddonCharge = () => {
+    form.addon_charges.push({ particulars: '', amount: '' });
+};
+
+const removeAddonCharge = (index) => {
+    form.addon_charges.splice(index, 1);
+    calculateFinalTotal();
+};
+
+const totalAddonCharges = () => {
+    return form.addon_charges.reduce((sum, charge) => sum + (parseFloat(charge.amount) || 0), 0);
+};
 
 const addRow = () => {
     form.details.push({ good_id: '', package_type_id: '', no_of_packages: '', gross_weight: '', charged_weight: '', rate_type: 'Fixed', rate: '', amount: 0 });
@@ -473,7 +531,8 @@ const calculateFinalTotal = () => {
         parseFloat(form.surcharge || 0) +
         parseFloat(form.handling_charge || 0) +
         parseFloat(form.risk_dd_charge || 0) +
-        parseFloat(form.cartage || 0) -
+        parseFloat(form.cartage || 0) +
+        totalAddonCharges() -
         parseFloat(form.less_advance_received || 0);
 
     const gstRate = form.gst_liability_by === 'Exempted' ? 0 : (parseFloat(form.gst) || 0);
