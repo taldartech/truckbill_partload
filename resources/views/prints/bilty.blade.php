@@ -79,7 +79,8 @@
                     <th>Articles/Goods</th>
                     <th>Pkg Type</th>
                     <th>Packages</th>
-                    <th>Weight (Kg)</th>
+                    <th>Actual Wt (Kg)</th>
+                    <th>Charged Wt (Kg)</th>
                 </tr>
             </thead>
             <tbody>
@@ -90,6 +91,7 @@
                     <td>{{ $detail->packageType->name ?? 'Pkg' }}</td>
                     <td>{{ $detail->no_of_packages }}</td>
                     <td>{{ $detail->gross_weight }}</td>
+                    <td>{{ $detail->charged_weight ?? '-' }}</td>
                 </tr>
                 @endforeach
             </tbody>

@@ -14,11 +14,17 @@
                             <div class="row align-items-center mb-2">
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Bilty No.</label>
-                                    <input type="text" class="form-control form-control-sm border-secondary shadow-none" v-model="form.bilty_number">
+                                    <div class="w-100">
+                                        <input type="text" class="form-control form-control-sm border-secondary shadow-none" :class="{ 'is-invalid': form.errors.bilty_number }" v-model="form.bilty_number">
+                                        <div v-if="form.errors.bilty_number" class="text-danger small mt-1">{{ form.errors.bilty_number }}</div>
+                                    </div>
                                 </div>
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Date</label>
-                                    <input type="date" class="form-control form-control-sm border-secondary shadow-none" v-model="form.date">
+                                    <div class="w-100">
+                                        <input type="date" class="form-control form-control-sm border-secondary shadow-none" :class="{ 'is-invalid': form.errors.date }" v-model="form.date">
+                                        <div v-if="form.errors.date" class="invalid-feedback d-block">{{ form.errors.date }}</div>
+                                    </div>
                                 </div>
                                 <div class="col-md-3 d-flex align-items-center" v-if="$page.props.auth.is_admin">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Company</label>
@@ -49,6 +55,7 @@
                                         :options="stations"
                                         placeholder="Select Station"
                                     />
+                                    <div v-if="form.errors.from_station_id" class="text-danger small ms-2">{{ form.errors.from_station_id }}</div>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignor</label>
@@ -58,6 +65,7 @@
                                         :options="parties"
                                         placeholder="Select Consignor"
                                     />
+                                    <div v-if="form.errors.consignor_id" class="text-danger small ms-2">{{ form.errors.consignor_id }}</div>
                                 </div>
                             </div>
 
@@ -70,6 +78,7 @@
                                         :options="stations"
                                         placeholder="Select Station"
                                     />
+                                    <div v-if="form.errors.to_station_id" class="text-danger small ms-2">{{ form.errors.to_station_id }}</div>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignee</label>
@@ -79,6 +88,7 @@
                                         :options="parties"
                                         placeholder="Select Consignee"
                                     />
+                                    <div v-if="form.errors.consignee_id" class="text-danger small ms-2">{{ form.errors.consignee_id }}</div>
                                 </div>
                             </div>
                         </div>
@@ -93,7 +103,9 @@
                                             <th width="30%">Goods Name</th>
                                             <th width="20%">Packing</th>
                                             <th width="10%" class="text-center">No.Of Pkg</th>
-                                            <th width="10%" class="text-center">Weight(Kg)</th>
+                                            <th width="10%" class="text-center">Actual Wt(Kg)</th>
+                                            <th width="10%" class="text-center">Charged Wt(Kg)</th>
+                                            <th width="10%" class="text-center">Frt.Type</th>
                                             <th width="10%" class="text-center">Frt.Rate</th>
                                             <th width="10%" class="text-center">Goods Frt</th>
                                             <th width="5%" class="text-center"><i class="fas fa-cog"></i></th>
@@ -109,6 +121,7 @@
                                                     :options="goods"
                                                     placeholder="Select Good"
                                                 />
+                                                <div v-if="detailError(index, 'good_id')" class="text-danger small">{{ detailError(index, 'good_id') }}</div>
                                             </td>
                                             <td>
                                                 <SearchableSelect
@@ -117,15 +130,32 @@
                                                 :options="package_types"
                                                 placeholder="Select Packing"
                                             />
+                                                <div v-if="detailError(index, 'package_type_id')" class="text-danger small">{{ detailError(index, 'package_type_id') }}</div>
                                             </td>
                                             <td>
-                                                <input type="number" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" v-model="detail.no_of_packages">
+                                                <input type="number" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" :class="{ 'is-invalid': detailError(index, 'no_of_packages') }" v-model="detail.no_of_packages" @input="calculateGridRow(index)">
+                                                <div v-if="detailError(index, 'no_of_packages')" class="text-danger small">{{ detailError(index, 'no_of_packages') }}</div>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" v-model="detail.gross_weight" @input="calculateGridRow(index)">
+                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" :class="{ 'is-invalid': detailError(index, 'gross_weight') }" v-model="detail.gross_weight" @input="calculateGridRow(index)">
+                                                <div v-if="detailError(index, 'gross_weight')" class="text-danger small">{{ detailError(index, 'gross_weight') }}</div>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" v-model="detail.rate" @input="calculateGridRow(index)">
+                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" :class="{ 'is-invalid': detailError(index, 'charged_weight') }" v-model="detail.charged_weight" @input="calculateGridRow(index)">
+                                                <div v-if="detailError(index, 'charged_weight')" class="text-danger small">{{ detailError(index, 'charged_weight') }}</div>
+                                            </td>
+                                            <td>
+                                                <select class="form-select form-select-sm border-0 shadow-none text-center bg-transparent" :class="{ 'is-invalid': detailError(index, 'rate_type') }" v-model="detail.rate_type" @change="calculateGridRow(index)">
+                                                    <option value="Fixed">Fixed</option>
+                                                    <option value="Per Actual Weight">Per Actual Weight</option>
+                                                    <option value="Per Charged Weight">Per Charged Weight</option>
+                                                    <option value="Per Package">Per Package</option>
+                                                </select>
+                                                <div v-if="detailError(index, 'rate_type')" class="text-danger small">{{ detailError(index, 'rate_type') }}</div>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" :class="{ 'is-invalid': detailError(index, 'rate') }" v-model="detail.rate" @input="calculateGridRow(index)">
+                                                <div v-if="detailError(index, 'rate')" class="text-danger small">{{ detailError(index, 'rate') }}</div>
                                             </td>
                                             <td class="text-center align-middle fw-bold">
                                                 {{ detail.amount || '0.00' }}
@@ -137,10 +167,11 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="8" class="bg-light p-1 text-center">
+                                            <td colspan="10" class="bg-light p-1 text-center">
                                                 <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addRow">
                                                     <i class="fas fa-plus"></i> Add Row
                                                 </button>
+                                                <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -166,7 +197,7 @@
                                     
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">GST Tax (%)</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none" v-model="form.gst"></div>
+                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-light" v-model="form.gst" readonly></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Liabilities By</label></div>
@@ -176,6 +207,7 @@
                                                 <option value="Consignor">Consignor</option>
                                                 <option value="Consignee">Consignee</option>
                                                 <option value="Transporter">Transporter</option>
+                                                <option value="Exempted">Exempted</option>
                                             </select>
                                         </div>
                                     </div>
@@ -229,20 +261,6 @@
                                 <!-- Right Column: Freight & Totals -->
                                 <div class="col-md-4">
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Freight Type</label></div>
-                                        <div class="col-6">
-                                            <select class="form-select form-select-sm border-secondary shadow-none bg-white" v-model="form.freight_type" @change="calculateTotalFreight">
-                                                <option value="Fixed">Fixed Amount</option>
-                                                <option value="Per Package">Per Package</option>
-                                                <option value="Per KG">Per KG</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Freight Rate</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.freight_rate" @input="calculateTotalFreight"></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Total Freight</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-light fw-bold" v-model="form.freight" readonly></div>
                                     </div>
@@ -265,6 +283,10 @@
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Less Adv.Rec</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.less_advance_received" @input="calculateFinalTotal"></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">GST Amount</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-light" :value="gstAmount" readonly></div>
                                     </div>
                                     
                                     <hr class="my-2 border-secondary">
@@ -293,9 +315,12 @@
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
-import { useForm, Link } from '@inertiajs/vue3';
+import { useForm, Link, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { watch } from 'vue';
+import { watch, ref, onMounted } from 'vue';
+
+const page = usePage();
+const gstAmount = ref('0.00');
 
 const props = defineProps({
     companies: Array,
@@ -303,8 +328,11 @@ const props = defineProps({
     stations: Array,
     goods: Array,
     package_types: Array,
-    next_bilty_number: String
+    next_bilty_number: String,
+    company_gst_rates: Object,
 });
+
+const gstForCompany = (companyId) => props.company_gst_rates?.[companyId] ?? 18;
 
 const form = useForm({
     company_id: '',
@@ -318,7 +346,7 @@ const form = useForm({
     
     // Details Grid
     details: [
-        { good_id: '', package_type_id: '', no_of_packages: '', gross_weight: '', rate: '', amount: 0 }
+        { good_id: '', package_type_id: '', no_of_packages: '', gross_weight: '', charged_weight: '', rate_type: 'Fixed', rate: '', amount: 0 }
     ],
     
     // Middle section
@@ -328,12 +356,10 @@ const form = useForm({
     eway_bill_expiry_date: '',
     weight_actual: '',
     declared_value: '',
-    gst: '',
+    gst: gstForCompany(page.props.auth.user?.company_id),
     gst_liability_by: '',
     
     // Totals
-    freight_rate: '',
-    freight_type: 'Fixed',
     freight: 0,
     bilty_charge: 0,
     surcharge: 0,
@@ -357,8 +383,24 @@ const getConsigneeGST = () => {
     return party ? party.gst_number : '';
 };
 
+const resolveCompanyId = () => form.company_id || page.props.auth.user?.company_id;
+
+const applyCompanyGst = () => {
+    if (form.gst_liability_by === 'Exempted') {
+        form.gst = 0;
+    } else {
+        form.gst = gstForCompany(resolveCompanyId());
+    }
+    calculateFinalTotal();
+};
+
+watch(() => form.company_id, applyCompanyGst);
+watch(() => form.gst_liability_by, applyCompanyGst);
+
+onMounted(() => calculateFinalTotal());
+
 const addRow = () => {
-    form.details.push({ good_id: '', package_type_id: '', no_of_packages: '', gross_weight: '', rate: '', amount: 0 });
+    form.details.push({ good_id: '', package_type_id: '', no_of_packages: '', gross_weight: '', charged_weight: '', rate_type: 'Fixed', rate: '', amount: 0 });
 };
 
 const removeRow = (index) => {
@@ -369,53 +411,59 @@ const removeRow = (index) => {
 const calculateGridRow = (index) => {
     const row = form.details[index];
     const weight = parseFloat(row.gross_weight) || 0;
+    const chargedWeight = parseFloat(row.charged_weight) || 0;
+    const packages = parseFloat(row.no_of_packages) || 0;
     const rate = parseFloat(row.rate) || 0;
     
-    // Assume rate is per Kg, could be per package based on business logic. Defaulting to Rate * Weight
-    // For manual entry, let's just do Rate * Weight for now.
-    row.amount = (weight > 0 ? weight * rate : rate).toFixed(2);
+    if (row.rate_type === 'Per Actual Weight' || row.rate_type === 'Per KG') {
+        row.amount = (rate * weight).toFixed(2);
+    } else if (row.rate_type === 'Per Charged Weight') {
+        row.amount = (rate * chargedWeight).toFixed(2);
+    } else if (row.rate_type === 'Per Package') {
+        row.amount = (rate * packages).toFixed(2);
+    } else {
+        row.amount = rate.toFixed(2);
+    }
     calculateTotalFreight();
 };
 
 const calculateTotalFreight = () => {
     let totalWeight = 0;
-    let totalPackages = 0;
+    let totalFreight = 0;
     
     form.details.forEach(row => {
         totalWeight += parseFloat(row.gross_weight || 0);
-        totalPackages += parseFloat(row.no_of_packages || 0);
+        totalFreight += parseFloat(row.amount || 0);
     });
     
     form.weight_actual = totalWeight.toFixed(2);
-
-    let frtRate = parseFloat(form.freight_rate || 0);
-    if (form.freight_type === 'Per KG') {
-        form.freight = (frtRate * totalWeight).toFixed(2);
-    } else if (form.freight_type === 'Per Package') {
-        form.freight = (frtRate * totalPackages).toFixed(2);
-    } else {
-        form.freight = frtRate.toFixed(2);
-    }
+    form.freight = totalFreight.toFixed(2);
     
     calculateFinalTotal();
 };
 
 const calculateFinalTotal = () => {
-    const sum = 
-        parseFloat(form.freight || 0) + 
-        parseFloat(form.bilty_charge || 0) + 
-        parseFloat(form.surcharge || 0) + 
-        parseFloat(form.handling_charge || 0) + 
-        parseFloat(form.risk_dd_charge || 0) + 
+    const subtotal =
+        parseFloat(form.freight || 0) +
+        parseFloat(form.bilty_charge || 0) +
+        parseFloat(form.surcharge || 0) +
+        parseFloat(form.handling_charge || 0) +
+        parseFloat(form.risk_dd_charge || 0) +
         parseFloat(form.cartage || 0) -
         parseFloat(form.less_advance_received || 0);
 
-    form.amount = sum.toFixed(2);
+    const gstRate = form.gst_liability_by === 'Exempted' ? 0 : (parseFloat(form.gst) || 0);
+    const gstValue = subtotal * (gstRate / 100);
+
+    gstAmount.value = gstValue.toFixed(2);
+    form.amount = (subtotal + gstValue).toFixed(2);
 };
 
 const submit = () => {
     form.post('/bilties');
 };
+
+const detailError = (index, field) => form.errors[`details.${index}.${field}`];
 </script>
 
 <style scoped>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BiltyRequest;
 use App\Models\Bilty;
 use App\Models\Company;
 use App\Models\Party;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Str;
 
 class BiltyController extends Controller implements HasMiddleware
 {
@@ -37,9 +39,15 @@ class BiltyController extends Controller implements HasMiddleware
     {
         $company_id = auth()->check() && auth()->user()->company_id ? auth()->user()->company_id : 1;
         $initial = \App\Models\Setting::where('company_id', $company_id)->where('key', 'bilty_initial')->value('value') ?? 'BLT-';
-        $lastBilty = \App\Models\Bilty::where('company_id', $company_id)->orderBy('id', 'desc')->first();
-        $nextId = $lastBilty ? $lastBilty->id + 1 : 1;
-        $nextNumber = $initial . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+        $prefixLength = Str::length($initial);
+        $maxSequence = \App\Models\Bilty::where('company_id', $company_id)
+            ->where('bilty_number', 'like', $initial . '%')
+            ->whereRaw('SUBSTRING(bilty_number, ?) REGEXP "^[0-9]+$"', [$prefixLength + 1])
+            ->selectRaw('MAX(CAST(SUBSTRING(bilty_number, ?) AS UNSIGNED)) as max_seq', [$prefixLength + 1])
+            ->value('max_seq') ?? 0;
+
+        $nextNumber = $initial . str_pad($maxSequence + 1, 4, '0', STR_PAD_LEFT);
+        $companyGstRates = $this->companyGstRates();
 
         return Inertia::render('Bilties/Create', [
             'companies' => Company::all(),
@@ -47,53 +55,14 @@ class BiltyController extends Controller implements HasMiddleware
             'stations' => Station::all(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
-            'next_bilty_number' => $nextNumber
+            'next_bilty_number' => $nextNumber,
+            'company_gst_rates' => $companyGstRates,
         ]);
     }
 
-    public function store(Request $request)
+    public function store(BiltyRequest $request)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
-            'consignor_id' => 'required|exists:parties,id',
-            'consignee_id' => 'required|exists:parties,id',
-            'from_station_id' => 'required|exists:stations,id',
-            'to_station_id' => 'required|exists:stations,id',
-            'bilty_number' => 'nullable|string',
-            'date' => 'nullable|date',
-            'freight' => 'nullable|numeric',
-            'freight_rate' => 'nullable|numeric',
-            'freight_type' => 'nullable|string|in:Fixed,Per Package,Per KG',
-            'bilty_charge' => 'nullable|numeric',
-            'surcharge' => 'nullable|numeric',
-            'other_charge' => 'nullable|numeric',
-            'handling_charge' => 'nullable|numeric',
-            'risk_dd_charge' => 'nullable|numeric',
-            'cartage' => 'nullable|numeric',
-            'cartage_type' => 'nullable|string',
-            'cartage_due_with_whom' => 'nullable|string',
-            'less_advance_received' => 'nullable|numeric',
-            'previous_freight' => 'nullable|numeric',
-            'previous_freight_no' => 'nullable|string',
-            'gst' => 'nullable|numeric',
-            'cgst' => 'nullable|numeric',
-            'sgst' => 'nullable|numeric',
-            'igst' => 'nullable|numeric',
-            'gst_liability_by' => 'nullable|string',
-            'weight_actual' => 'nullable|numeric',
-            'remark' => 'nullable|string',
-            'private_marka' => 'nullable|string',
-            'delivery_at' => 'nullable|string',
-            'eway_bill_no' => 'nullable|string',
-            'eway_bill_expiry_date' => 'nullable|date',
-            'declared_value' => 'nullable|numeric',
-            'payment_type' => 'nullable|string',
-            'advance_payment_received' => 'nullable|numeric',
-            'payment_mode' => 'nullable|string',
-            'amount' => 'nullable|numeric',
-            'status' => 'nullable|string',
-            'details' => 'nullable|array'
-        ]);
+        $validated = $request->validated();
 
         DB::transaction(function () use ($validated) {
             $details = $validated['details'] ?? [];
@@ -109,6 +78,7 @@ class BiltyController extends Controller implements HasMiddleware
                         'package_type_id' => $item['package_type_id'],
                         'no_of_packages' => $item['no_of_packages'],
                         'gross_weight' => $item['gross_weight'],
+                        'charged_weight' => $item['charged_weight'] ?? null,
                         'rate' => $item['rate'],
                         'rate_type' => $item['rate_type'] ?? 'Fixed'
                     ]);
@@ -128,53 +98,14 @@ class BiltyController extends Controller implements HasMiddleware
             'parties' => Party::all(),
             'stations' => Station::all(),
             'goods' => Good::all(),
-            'package_types' => PackageType::all()
+            'package_types' => PackageType::all(),
+            'company_gst_rates' => $this->companyGstRates(),
         ]);
     }
 
-    public function update(Request $request, Bilty $bilty)
+    public function update(BiltyRequest $request, Bilty $bilty)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
-            'consignor_id' => 'required|exists:parties,id',
-            'consignee_id' => 'required|exists:parties,id',
-            'from_station_id' => 'required|exists:stations,id',
-            'to_station_id' => 'required|exists:stations,id',
-            'bilty_number' => 'nullable|string',
-            'date' => 'nullable|date',
-            'freight' => 'nullable|numeric',
-            'freight_rate' => 'nullable|numeric',
-            'freight_type' => 'nullable|string|in:Fixed,Per Package,Per KG',
-            'bilty_charge' => 'nullable|numeric',
-            'surcharge' => 'nullable|numeric',
-            'other_charge' => 'nullable|numeric',
-            'handling_charge' => 'nullable|numeric',
-            'risk_dd_charge' => 'nullable|numeric',
-            'cartage' => 'nullable|numeric',
-            'cartage_type' => 'nullable|string',
-            'cartage_due_with_whom' => 'nullable|string',
-            'less_advance_received' => 'nullable|numeric',
-            'previous_freight' => 'nullable|numeric',
-            'previous_freight_no' => 'nullable|string',
-            'gst' => 'nullable|numeric',
-            'cgst' => 'nullable|numeric',
-            'sgst' => 'nullable|numeric',
-            'igst' => 'nullable|numeric',
-            'gst_liability_by' => 'nullable|string',
-            'weight_actual' => 'nullable|numeric',
-            'remark' => 'nullable|string',
-            'private_marka' => 'nullable|string',
-            'delivery_at' => 'nullable|string',
-            'eway_bill_no' => 'nullable|string',
-            'eway_bill_expiry_date' => 'nullable|date',
-            'declared_value' => 'nullable|numeric',
-            'payment_type' => 'nullable|string',
-            'advance_payment_received' => 'nullable|numeric',
-            'payment_mode' => 'nullable|string',
-            'amount' => 'nullable|numeric',
-            'status' => 'nullable|string',
-            'details' => 'nullable|array'
-        ]);
+        $validated = $request->validated();
 
         DB::transaction(function () use ($validated, $bilty) {
             $details = $validated['details'] ?? [];
@@ -191,6 +122,7 @@ class BiltyController extends Controller implements HasMiddleware
                         'package_type_id' => $item['package_type_id'],
                         'no_of_packages' => $item['no_of_packages'],
                         'gross_weight' => $item['gross_weight'],
+                        'charged_weight' => $item['charged_weight'] ?? null,
                         'rate' => $item['rate'],
                         'rate_type' => $item['rate_type'] ?? 'Fixed'
                     ]);
@@ -213,5 +145,13 @@ class BiltyController extends Controller implements HasMiddleware
         $company = \App\Models\Company::find($bilty->company_id);
         
         return view('prints.bilty', compact('bilty', 'company'));
+    }
+
+    private function companyGstRates(): array
+    {
+        return \App\Models\Setting::where('key', 'default_gst_percent')
+            ->pluck('value', 'company_id')
+            ->map(fn ($value) => (float) $value)
+            ->toArray();
     }
 }
