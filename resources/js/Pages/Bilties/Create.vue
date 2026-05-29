@@ -250,16 +250,6 @@
                                         <div class="col-12"><label class="mb-0 fw-bold small text-dark">Delivery At</label></div>
                                         <div class="col-12"><input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.delivery_at"></div>
                                     </div>
-                                    <div class="row mb-1 mt-3">
-                                        <div class="col-12"><label class="mb-0 fw-bold small text-dark">Status</label></div>
-                                        <div class="col-12">
-                                            <select class="form-select form-select-sm border-secondary shadow-none bg-white" v-model="form.status">
-                                                <option value="Pending">Pending</option>
-                                                <option value="In Transit">In Transit</option>
-                                                <option value="Delivered">Delivered</option>
-                                            </select>
-                                        </div>
-                                    </div>
                                 </div>
 
                                 <!-- Right Column: Freight & Totals -->

@@ -63,6 +63,7 @@ class BiltyController extends Controller implements HasMiddleware
     public function store(BiltyRequest $request)
     {
         $validated = $request->validated();
+        $validated['status'] = $validated['status'] ?? 'Pending';
 
         DB::transaction(function () use ($validated) {
             $details = $validated['details'] ?? [];
