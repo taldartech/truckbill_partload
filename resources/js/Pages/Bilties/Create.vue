@@ -49,21 +49,25 @@
                             <div class="row align-items-center mb-2">
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">From St.</label>
-                                    <SearchableSelect
+                                    <SelectWithActions
                                         :small="true"
                                         v-model="form.from_station_id"
-                                        :options="stations"
+                                        :options="stationOptions"
                                         placeholder="Select Station"
+                                        @view="entityModals?.viewStation(form.from_station_id)"
+                                        @add="entityModals?.openStationAdd({ targetField: 'from_station_id' })"
                                     />
                                     <div v-if="form.errors.from_station_id" class="text-danger small ms-2">{{ form.errors.from_station_id }}</div>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignor</label>
-                                    <SearchableSelect
+                                    <SelectWithActions
                                         :small="true"
                                         v-model="form.consignor_id"
-                                        :options="parties"
+                                        :options="partyOptions"
                                         placeholder="Select Consignor"
+                                        @view="entityModals?.viewParty(form.consignor_id)"
+                                        @add="entityModals?.openPartyAdd({ targetField: 'consignor_id' })"
                                     />
                                     <div v-if="form.errors.consignor_id" class="text-danger small ms-2">{{ form.errors.consignor_id }}</div>
                                 </div>
@@ -72,21 +76,25 @@
                             <div class="row align-items-center mb-2">
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">To St.</label>
-                                    <SearchableSelect
+                                    <SelectWithActions
                                         :small="true"
                                         v-model="form.to_station_id"
-                                        :options="stations"
+                                        :options="stationOptions"
                                         placeholder="Select Station"
+                                        @view="entityModals?.viewStation(form.to_station_id)"
+                                        @add="entityModals?.openStationAdd({ targetField: 'to_station_id' })"
                                     />
                                     <div v-if="form.errors.to_station_id" class="text-danger small ms-2">{{ form.errors.to_station_id }}</div>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignee</label>
-                                    <SearchableSelect
+                                    <SelectWithActions
                                         :small="true"
                                         v-model="form.consignee_id"
-                                        :options="parties"
+                                        :options="partyOptions"
                                         placeholder="Select Consignee"
+                                        @view="entityModals?.viewParty(form.consignee_id)"
+                                        @add="entityModals?.openPartyAdd({ targetField: 'consignee_id' })"
                                     />
                                     <div v-if="form.errors.consignee_id" class="text-danger small ms-2">{{ form.errors.consignee_id }}</div>
                                 </div>
@@ -344,17 +352,29 @@
                 </div>
             </div>
         </div>
+
+        <BiltyEntityModals
+            ref="entityModals"
+            :default-company-id="form.company_id"
+            @party-created="onPartyCreated"
+            @station-created="onStationCreated"
+        />
     </AdminLayout>
 </template>
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import SelectWithActions from '@/Components/SelectWithActions.vue';
+import BiltyEntityModals from '@/Components/Bilty/BiltyEntityModals.vue';
 import { useForm, Link, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { watch, ref, onMounted } from 'vue';
 
 const page = usePage();
 const gstAmount = ref('0.00');
+const entityModals = ref(null);
+const partyOptions = ref([]);
+const stationOptions = ref([]);
 
 const props = defineProps({
     companies: Array,
@@ -365,6 +385,9 @@ const props = defineProps({
     next_bilty_number: String,
     company_gst_rates: Object,
 });
+
+partyOptions.value = [...props.parties];
+stationOptions.value = [...props.stations];
 
 const gstForCompany = (companyId) => props.company_gst_rates?.[companyId] ?? 18;
 
@@ -408,14 +431,32 @@ const form = useForm({
 
 const getConsignorGST = () => {
     if(!form.consignor_id) return '';
-    const party = props.parties.find(p => p.id === form.consignor_id);
+    const party = partyOptions.value.find(p => p.id === form.consignor_id);
     return party ? party.gst_number : '';
 };
 
 const getConsigneeGST = () => {
     if(!form.consignee_id) return '';
-    const party = props.parties.find(p => p.id === form.consignee_id);
+    const party = partyOptions.value.find(p => p.id === form.consignee_id);
     return party ? party.gst_number : '';
+};
+
+const onPartyCreated = ({ party, targetField }) => {
+    if (!partyOptions.value.some((item) => item.id === party.id)) {
+        partyOptions.value.push(party);
+    }
+    if (targetField) {
+        form[targetField] = party.id;
+    }
+};
+
+const onStationCreated = ({ station, targetField }) => {
+    if (!stationOptions.value.some((item) => item.id === station.id)) {
+        stationOptions.value.push(station);
+    }
+    if (targetField) {
+        form[targetField] = station.id;
+    }
 };
 
 const resolveCompanyId = () => form.company_id || page.props.auth.user?.company_id;

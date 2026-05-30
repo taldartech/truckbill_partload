@@ -8,6 +8,7 @@ use App\Http\Controllers\TransporterController;
 use App\Http\Controllers\TruckController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\StationController;
+use App\Http\Controllers\CityController;
 use App\Http\Controllers\InwardRegisterController;
 use App\Http\Controllers\DeliveryReceiptController;
 use App\Http\Controllers\PartyController;
@@ -40,8 +41,15 @@ Route::middleware('auth')->group(function () {
     Route::put('trucks/{truck}/complete-tour', [TruckController::class, 'completeTour'])->name('trucks.complete-tour');
     Route::resource('trucks', TruckController::class);
     Route::resource('drivers', DriverController::class);
-    Route::resource('stations', StationController::class);
+    Route::get('cities/by-state/{state}', [CityController::class, 'byState'])->name('cities.by-state');
+    Route::get('parties/quick/form-data', [PartyController::class, 'quickFormData'])->name('parties.quick-form-data');
+    Route::get('parties/{party}/quick', [PartyController::class, 'quickShow'])->name('parties.quick');
+    Route::post('parties/quick', [PartyController::class, 'quickStore'])->name('parties.quick-store');
     Route::resource('parties', PartyController::class);
+    Route::get('stations/quick/form-data', [StationController::class, 'quickFormData'])->name('stations.quick-form-data');
+    Route::get('stations/{station}/quick', [StationController::class, 'quickShow'])->name('stations.quick');
+    Route::post('stations/quick', [StationController::class, 'quickStore'])->name('stations.quick-store');
+    Route::resource('stations', StationController::class);
     Route::get('bilties/{bilty}/print', [BiltyController::class, 'print'])->name('bilties.print');
     Route::resource('bilties', BiltyController::class);
     
