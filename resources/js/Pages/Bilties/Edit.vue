@@ -226,13 +226,30 @@
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Invoice No. <span class="text-muted fw-normal">(Optional)</span></label></div>
                                         <div class="col-7"><input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.invoice_number"></div>
                                     </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-WayBill No</label></div>
-                                        <div class="col-7"><input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.eway_bill_no"></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-WayBill Expiry</label></div>
-                                        <div class="col-7"><input type="date" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.eway_bill_expiry_date"></div>
+                                    <div class="mb-2">
+                                        <div class="row align-items-center mb-1">
+                                            <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-Way Bills</label></div>
+                                            <div class="col-7 text-end">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addEwayBill">
+                                                    <i class="fas fa-plus"></i> Add
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div v-for="(eway, index) in form.eway_bills" :key="eway.id ?? `new-${index}`" class="row mb-1 align-items-center">
+                                            <div class="col-1 text-end">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeEwayBill(index)">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                            <div class="col-4">
+                                                <input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" :class="{ 'is-invalid': ewayError(index, 'eway_bill_no') }" v-model="eway.eway_bill_no" placeholder="E-Way Bill No">
+                                                <div v-if="ewayError(index, 'eway_bill_no')" class="text-danger small">{{ ewayError(index, 'eway_bill_no') }}</div>
+                                            </div>
+                                            <div class="col-7">
+                                                <input type="date" class="form-control form-control-sm border-secondary shadow-none bg-white" :class="{ 'is-invalid': ewayError(index, 'eway_bill_valid_till') }" v-model="eway.eway_bill_valid_till" placeholder="Valid Till">
+                                                <div v-if="ewayError(index, 'eway_bill_valid_till')" class="text-danger small">{{ ewayError(index, 'eway_bill_valid_till') }}</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -401,6 +418,23 @@ const initialAddonCharges = savedAddonCharges.length > 0
     }))
     : [];
 
+const savedEwayBills = props.bilty.eway_bills ?? props.bilty.ewayBills ?? [];
+
+const formatDateInput = (value) => (value ? String(value).substr(0, 10) : '');
+
+const initialEwayBills = savedEwayBills.length > 0
+    ? savedEwayBills.map((eway) => ({
+        id: eway.id ?? null,
+        eway_bill_no: eway.eway_bill_no || '',
+        eway_bill_valid_till: formatDateInput(eway.eway_bill_valid_till),
+    }))
+    : (props.bilty.eway_bill_no
+        ? [{
+            eway_bill_no: props.bilty.eway_bill_no,
+            eway_bill_valid_till: formatDateInput(props.bilty.eway_bill_expiry_date),
+        }]
+        : []);
+
 const form = useForm({
     company_id: props.bilty.company_id || '',
     consignor_id: props.bilty.consignor_id || '',
@@ -417,8 +451,7 @@ const form = useForm({
     // Middle section
     private_marka: props.bilty.private_marka || '',
     delivery_at: props.bilty.delivery_at || '',
-    eway_bill_no: props.bilty.eway_bill_no || '',
-    eway_bill_expiry_date: props.bilty.eway_bill_expiry_date || '',
+    eway_bills: initialEwayBills,
     weight_actual: props.bilty.weight_actual || '',
     declared_value: props.bilty.declared_value || '',
     invoice_number: props.bilty.invoice_number || '',
@@ -467,6 +500,16 @@ watch(() => form.company_id, applyCompanyGst);
 watch(() => form.gst_liability_by, applyCompanyGst);
 
 onMounted(() => calculateFinalTotal());
+
+const addEwayBill = () => {
+    form.eway_bills.push({ eway_bill_no: '', eway_bill_valid_till: '' });
+};
+
+const removeEwayBill = (index) => {
+    form.eway_bills.splice(index, 1);
+};
+
+const ewayError = (index, field) => form.errors[`eway_bills.${index}.${field}`];
 
 const addAddonCharge = () => {
     form.addon_charges.push({ particulars: '', amount: '' });

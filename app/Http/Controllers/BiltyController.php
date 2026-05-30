@@ -67,7 +67,8 @@ class BiltyController extends Controller implements HasMiddleware
 
         DB::transaction(function () use ($validated) {
             $details = $validated['details'] ?? [];
-            unset($validated['details']);
+            $ewayBills = $validated['eway_bills'] ?? [];
+            unset($validated['details'], $validated['eway_bills'], $validated['eway_bill_no'], $validated['eway_bill_expiry_date']);
 
             $bilty = Bilty::create($validated);
 
@@ -85,6 +86,8 @@ class BiltyController extends Controller implements HasMiddleware
                     ]);
                 }
             }
+
+            $this->syncEwayBills($bilty, $ewayBills);
         });
 
         return redirect()->route('bilties.index')->with('success', 'Bilty created successfully.');
@@ -92,7 +95,7 @@ class BiltyController extends Controller implements HasMiddleware
 
     public function edit(Bilty $bilty)
     {
-        $bilty->load('biltyDetails');
+        $bilty->load(['biltyDetails', 'ewayBills']);
         return Inertia::render('Bilties/Edit', [
             'bilty' => $bilty,
             'companies' => Company::all(),
@@ -110,7 +113,8 @@ class BiltyController extends Controller implements HasMiddleware
 
         DB::transaction(function () use ($validated, $bilty) {
             $details = $validated['details'] ?? [];
-            unset($validated['details']);
+            $ewayBills = $validated['eway_bills'] ?? [];
+            unset($validated['details'], $validated['eway_bills'], $validated['eway_bill_no'], $validated['eway_bill_expiry_date']);
 
             $bilty->update($validated);
             $bilty->biltyDetails()->delete();
@@ -129,6 +133,8 @@ class BiltyController extends Controller implements HasMiddleware
                     ]);
                 }
             }
+
+            $this->syncEwayBills($bilty, $ewayBills);
         });
 
         return redirect()->route('bilties.index')->with('success', 'Bilty updated successfully.');
@@ -154,5 +160,41 @@ class BiltyController extends Controller implements HasMiddleware
             ->pluck('value', 'company_id')
             ->map(fn ($value) => (float) $value)
             ->toArray();
+    }
+
+    private function syncEwayBills(Bilty $bilty, array $ewayBills): void
+    {
+        $keptIds = [];
+
+        foreach ($ewayBills as $item) {
+            if (empty($item['eway_bill_no'])) {
+                continue;
+            }
+
+            $payload = [
+                'company_id' => $bilty->company_id,
+                'eway_bill_no' => $item['eway_bill_no'],
+                'eway_bill_date' => null,
+                'eway_bill_valid_till' => $item['eway_bill_valid_till'] ?? null,
+            ];
+
+            if (!empty($item['id'])) {
+                $existing = $bilty->ewayBills()->whereKey($item['id'])->first();
+                if ($existing) {
+                    $existing->update($payload);
+                    $keptIds[] = $existing->id;
+                    continue;
+                }
+            }
+
+            $created = $bilty->ewayBills()->create($payload);
+            $keptIds[] = $created->id;
+        }
+
+        if (empty($keptIds)) {
+            $bilty->ewayBills()->delete();
+        } else {
+            $bilty->ewayBills()->whereNotIn('id', $keptIds)->delete();
+        }
     }
 }

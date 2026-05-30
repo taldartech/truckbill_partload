@@ -48,8 +48,22 @@
             </div>
             <div class="col-6">
                 <div class="box">
-                    <strong>E-Way Bill:</strong> {{ $bilty->ewayBills->pluck('eway_bill_no')->implode(', ') ?: 'N/A' }}<br>
-                    <strong>E-Way Bill Expiry Date:</strong> {{ $bilty->ewayBills->pluck('expiry_date')->implode(', ') ?: 'N/A' }}<br>
+                    @if($bilty->ewayBills->isNotEmpty())
+                        @foreach($bilty->ewayBills as $eway)
+                            <strong>E-Way Bill:</strong> {{ $eway->eway_bill_no ?? 'N/A' }}
+                            @if($eway->eway_bill_valid_till)
+                                | <strong>Valid Till:</strong> {{ date('d-M-Y', strtotime($eway->eway_bill_valid_till)) }}
+                            @endif
+                            <br>
+                        @endforeach
+                    @elseif($bilty->eway_bill_no)
+                        <strong>E-Way Bill:</strong> {{ $bilty->eway_bill_no }}<br>
+                        @if($bilty->eway_bill_expiry_date)
+                            <strong>Valid Till:</strong> {{ date('d-M-Y', strtotime($bilty->eway_bill_expiry_date)) }}<br>
+                        @endif
+                    @else
+                        <strong>E-Way Bill:</strong> N/A<br>
+                    @endif
                     <strong>Payment Type:</strong> {{ $bilty->payment_type }}
                 </div>
             </div>

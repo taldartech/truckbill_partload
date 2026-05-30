@@ -27,15 +27,43 @@ class BiltyRequest extends FormRequest
             ->values()
             ->all();
 
+        $ewayBills = collect($this->input('eway_bills', []))
+            ->filter(function ($row) {
+                return !empty($row['eway_bill_no']) || !empty($row['eway_bill_valid_till']);
+            })
+            ->map(function ($row) {
+                return [
+                    'id' => !empty($row['id']) ? (int) $row['id'] : null,
+                    'eway_bill_no' => $row['eway_bill_no'] ?? null,
+                    'eway_bill_valid_till' => $row['eway_bill_valid_till'] ?? null,
+                ];
+            })
+            ->values()
+            ->all();
+
         $this->merge([
             'addon_charges' => empty($addonCharges) ? null : $addonCharges,
+            'eway_bills' => empty($ewayBills) ? null : $ewayBills,
         ]);
     }
 
     public function rules(): array
     {
-        $biltyId = $this->route('bilty')?->id ?? $this->route('bilty');
+        $bilty = $this->route('bilty');
+        $biltyId = $bilty?->id ?? $bilty;
         $effectiveCompanyId = $this->input('company_id') ?: auth()->user()?->company_id;
+
+        $ewayBillIdRule = $biltyId
+            ? [
+                'eway_bills.*.id' => [
+                    'nullable',
+                    'integer',
+                    Rule::exists('bilty_eway_bills', 'id')->where(
+                        fn ($query) => $query->where('bilty_id', $biltyId)
+                    ),
+                ],
+            ]
+            : [];
 
         return [
             'company_id' => 'nullable|exists:companies,id',
@@ -76,8 +104,10 @@ class BiltyRequest extends FormRequest
             'remark' => 'nullable|string|max:1000',
             'private_marka' => 'nullable|string|max:255',
             'delivery_at' => 'nullable|string|max:255',
-            'eway_bill_no' => 'nullable|string|max:50',
-            'eway_bill_expiry_date' => 'nullable|date|required_with:eway_bill_no',
+            'eway_bills' => 'nullable|array',
+            ...$ewayBillIdRule,
+            'eway_bills.*.eway_bill_no' => 'nullable|string|max:50|required_with:eway_bills.*.eway_bill_valid_till',
+            'eway_bills.*.eway_bill_valid_till' => 'nullable|date|required_with:eway_bills.*.eway_bill_no',
             'declared_value' => 'nullable|numeric|min:0',
             'invoice_number' => 'nullable|string|max:50',
             'payment_type' => 'nullable|string|in:To Pay,Paid,TBB,FOC',
@@ -126,7 +156,9 @@ class BiltyRequest extends FormRequest
             'cgst.max' => 'CGST cannot be more than 100%.',
             'sgst.max' => 'SGST cannot be more than 100%.',
             'igst.max' => 'IGST cannot be more than 100%.',
-            'eway_bill_expiry_date.required_with' => 'Please select E-Way Bill expiry date.',
+            'eway_bills.*.id.exists' => 'One or more E-Way Bill rows are invalid.',
+            'eway_bills.*.eway_bill_no.required_with' => 'Please enter E-Way Bill number.',
+            'eway_bills.*.eway_bill_valid_till.required_with' => 'Please select E-Way Bill valid till date.',
 
             'details.required' => 'Please add at least one detail row.',
             'details.array' => 'Details must be a valid row list.',
