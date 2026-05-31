@@ -6,6 +6,7 @@ use App\Http\Requests\BiltyRequest;
 use App\Models\Bilty;
 use App\Models\Company;
 use App\Models\Party;
+use App\Models\Vendor;
 use App\Models\Station;
 use App\Models\Good;
 use App\Models\PackageType;
@@ -52,6 +53,7 @@ class BiltyController extends Controller implements HasMiddleware
         return Inertia::render('Bilties/Create', [
             'companies' => Company::all(),
             'parties' => Party::all(),
+            'vendors' => Vendor::all(),
             'stations' => Station::all(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
@@ -100,6 +102,7 @@ class BiltyController extends Controller implements HasMiddleware
             'bilty' => $bilty,
             'companies' => Company::all(),
             'parties' => Party::all(),
+            'vendors' => Vendor::all(),
             'stations' => Station::all(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
@@ -148,7 +151,7 @@ class BiltyController extends Controller implements HasMiddleware
 
     public function print(Bilty $bilty)
     {
-        $bilty->load(['fromStation', 'toStation', 'consignor', 'consignee', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills']);
+        $bilty->load(['fromStation', 'toStation', 'consignor', 'consignee', 'vendor', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills']);
         $company = \App\Models\Company::find($bilty->company_id);
         $printData = $this->buildPrintData($bilty);
 
@@ -179,7 +182,6 @@ class BiltyController extends Controller implements HasMiddleware
             (float) ($bilty->handling_charge ?? 0) +
             (float) ($bilty->risk_dd_charge ?? 0) +
             (float) ($bilty->cartage ?? 0) +
-            (float) ($bilty->cartage_cash ?? 0) +
             (float) ($bilty->other_charge ?? 0) +
             $addonTotal -
             (float) ($bilty->less_advance_received ?? 0);
@@ -204,8 +206,12 @@ class BiltyController extends Controller implements HasMiddleware
         $addCharge('Surcharge', $bilty->surcharge);
         $addCharge('Handling Charge', $bilty->handling_charge);
         $addCharge('Risk / DD Charge', $bilty->risk_dd_charge);
-        $addCharge('Cartage', $bilty->cartage);
-        $addCharge('Cartage Cash', $bilty->cartage_cash);
+        $cartageLabel = 'Cartage';
+        if ((float) ($bilty->cartage ?? 0) != 0 && !empty($bilty->cartage_type)) {
+            $cartageType = in_array(strtolower((string) $bilty->cartage_type), ['due'], true) ? 'Due' : 'Paid';
+            $cartageLabel = 'Cartage (' . $cartageType . ')';
+        }
+        $addCharge($cartageLabel, $bilty->cartage);
         $addCharge('Other Charge', $bilty->other_charge);
 
         foreach ($bilty->addon_charges ?? [] as $addon) {

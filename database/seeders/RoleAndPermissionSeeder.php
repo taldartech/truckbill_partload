@@ -32,7 +32,7 @@ class RoleAndPermissionSeeder extends Seeder
         // Define modules
         $modules = [
             'companies', 'branches', 'transporters', 'trucks', 
-            'drivers', 'stations', 'parties', 'agents', 'groups',
+            'drivers', 'stations', 'parties', 'vendors', 'agents', 'groups',
             'goods', 'package_types', 'truck_types',
             // Transactions
             'bilties', 'challans', 'delivery_receipts', 'invoices', 
@@ -58,7 +58,7 @@ class RoleAndPermissionSeeder extends Seeder
         $adminRole = Role::firstOrCreate(['name' => 'Admin']);
         $adminRole->givePermissionTo([
             'view branches', 'view transporters', 'view trucks', 
-            'view drivers', 'view stations', 'view parties', 'view agents', 'view groups',
+            'view drivers', 'view stations', 'view parties', 'view vendors', 'view agents', 'view groups',
             'view goods', 'view package_types', 'view truck_types',
             // Transactions
             'view bilties', 'view challans', 'view delivery_receipts', 'view invoices', 
@@ -68,7 +68,7 @@ class RoleAndPermissionSeeder extends Seeder
             'view settings', 'view reports',
 
             'create branches', 'create transporters', 'create trucks', 
-            'create drivers', 'create stations', 'create parties', 'create agents', 'create groups',
+            'create drivers', 'create stations', 'create parties', 'create vendors', 'create agents', 'create groups',
             'create goods', 'create package_types', 'create truck_types',
             // Transactions
             'create bilties', 'create challans', 'create delivery_receipts', 'create invoices', 
@@ -78,7 +78,7 @@ class RoleAndPermissionSeeder extends Seeder
             'create settings', 'create reports',
 
             'edit branches', 'edit transporters', 'edit trucks', 
-            'edit drivers', 'edit stations', 'edit parties', 'edit agents', 'edit groups',
+            'edit drivers', 'edit stations', 'edit parties', 'edit vendors', 'edit agents', 'edit groups',
             'edit goods', 'edit package_types', 'edit truck_types',
             // Transactions
             'edit bilties', 'edit challans', 'edit delivery_receipts', 'edit invoices', 
@@ -88,7 +88,7 @@ class RoleAndPermissionSeeder extends Seeder
             'edit settings', 'edit reports',
 
             'delete branches', 'delete transporters', 'delete trucks', 
-            'delete drivers', 'delete stations', 'delete parties', 'delete agents', 'delete groups',
+            'delete drivers', 'delete stations', 'delete parties', 'delete vendors', 'delete agents', 'delete groups',
             'delete goods', 'delete package_types', 'delete truck_types',
             // Transactions
             'delete bilties', 'delete challans', 'delete delivery_receipts', 'delete invoices', 
@@ -101,7 +101,7 @@ class RoleAndPermissionSeeder extends Seeder
         $moderatorRole = Role::firstOrCreate(['name' => 'Moderator']);
         $moderatorRole->givePermissionTo([
             'view branches', 'view transporters', 'view trucks', 
-            'view drivers', 'view stations', 'view parties', 'view agents', 'view groups',
+            'view drivers', 'view stations', 'view parties', 'view vendors', 'view agents', 'view groups',
             'view goods', 'view package_types', 'view truck_types',
             // Transactions
             'view bilties', 'view challans', 'view delivery_receipts', 'view invoices', 
@@ -111,7 +111,7 @@ class RoleAndPermissionSeeder extends Seeder
             'view settings', 'view reports',
 
             'create branches', 'create transporters', 'create trucks', 
-            'create drivers', 'create stations', 'create parties', 'create agents', 'create groups',
+            'create drivers', 'create stations', 'create parties', 'create vendors', 'create agents', 'create groups',
             'create goods', 'create package_types', 'create truck_types',
             // Transactions
             'create bilties', 'create challans', 'create delivery_receipts', 'create invoices', 

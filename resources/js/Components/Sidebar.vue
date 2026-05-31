@@ -55,6 +55,14 @@
                         </Link>
                     </li>
 
+                    <li class="nav-item" v-if="can('view vendors')">
+                        <Link href="/vendors" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/vendors') }">
+                            <i class="nav-icon fas fa-store me-3"></i>
+                            <p class="mb-0 fw-medium">Vendors</p>
+                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
+                        </Link>
+                    </li>
+
                     <li class="nav-item" v-if="can('view bilties')">
                         <Link href="/bilties" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/bilties') }">
                             <i class="nav-icon fas fa-file-invoice me-3"></i>

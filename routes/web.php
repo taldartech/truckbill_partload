@@ -22,6 +22,7 @@ use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\TruckTypeController;
 use App\Http\Controllers\LoadingReportController;
 use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\VendorController;
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
@@ -62,6 +63,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('goods', App\Http\Controllers\GoodController::class);
     Route::resource('package-types', App\Http\Controllers\PackageTypeController::class);
     Route::resource('agents', App\Http\Controllers\AgentController::class);
+    Route::resource('vendors', VendorController::class);
 
     // Administration
     Route::resource('users', UserController::class);

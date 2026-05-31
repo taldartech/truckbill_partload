@@ -44,15 +44,6 @@
                                         <option value="FOC">FOC</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Vendor Acc</label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="form.vendor_id"
-                                        :options="parties"
-                                        placeholder="Select Vendor"
-                                    />
-                                </div>
                             </div>
                             
                             <div class="row align-items-center mb-2">
@@ -274,11 +265,30 @@
                                 <div class="col-md-3 border-start border-end border-secondary">
                                     <div class="row mb-1">
                                         <div class="col-12"><label class="mb-0 fw-bold small text-dark">Cartage</label></div>
-                                        <div class="col-12"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none" v-model="form.cartage" @input="calculateFinalTotal"></div>
+                                        <div class="col-12"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none" v-model="form.cartage" @input="onCartageChange"></div>
                                     </div>
-                                    <div class="row mb-1">
-                                        <div class="col-12"><label class="mb-0 fw-bold small text-dark">Cartage Cash</label></div>
-                                        <div class="col-12"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none" v-model="form.cartage_cash" @input="calculateFinalTotal"></div>
+                                    <div v-if="showCartageOptions" class="row mb-1">
+                                        <div class="col-12"><label class="mb-0 fw-bold small text-dark">Cartage Type</label></div>
+                                        <div class="col-12">
+                                            <select class="form-select form-select-sm border-secondary shadow-none" v-model="form.cartage_type" @change="onCartageTypeChange">
+                                                <option value="">Select</option>
+                                                <option value="Paid">Paid</option>
+                                                <option value="Due">Due</option>
+                                            </select>
+                                            <div v-if="form.errors.cartage_type" class="text-danger small">{{ form.errors.cartage_type }}</div>
+                                        </div>
+                                    </div>
+                                    <div v-if="showCartageOptions && form.cartage_type === 'Due'" class="row mb-1">
+                                        <div class="col-12"><label class="mb-0 fw-bold small text-dark">Vendor</label></div>
+                                        <div class="col-12">
+                                            <SearchableSelect
+                                                :small="true"
+                                                v-model="form.vendor_id"
+                                                :options="vendors"
+                                                placeholder="Select Vendor"
+                                            />
+                                            <div v-if="form.errors.vendor_id" class="text-danger small">{{ form.errors.vendor_id }}</div>
+                                        </div>
                                     </div>
                                     <div class="row mb-1">
                                         <div class="col-12"><label class="mb-0 fw-bold small text-dark">Private Marka</label></div>
@@ -381,7 +391,7 @@ import SelectWithActions from '@/Components/SelectWithActions.vue';
 import BiltyEntityModals from '@/Components/Bilty/BiltyEntityModals.vue';
 import { useForm, Link, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { watch, ref, onMounted } from 'vue';
+import { watch, ref, onMounted, computed } from 'vue';
 
 const page = usePage();
 const gstAmount = ref('0.00');
@@ -392,6 +402,7 @@ const stationOptions = ref([]);
 const props = defineProps({
     companies: Array,
     parties: Array,
+    vendors: Array,
     stations: Array,
     goods: Array,
     package_types: Array,
@@ -428,7 +439,6 @@ const form = useForm({
     invoice_number: '',
     gst: gstForCompany(page.props.auth.user?.company_id),
     gst_liability_by: '',
-    vendor_id: '',
     
     // Totals
     freight: 0,
@@ -437,7 +447,8 @@ const form = useForm({
     handling_charge: 0,
     risk_dd_charge: 0,
     cartage: 0,
-    cartage_cash: 0,
+    cartage_type: '',
+    vendor_id: '',
     addon_charges: [],
     less_advance_received: 0,
     amount: 0,
@@ -475,6 +486,22 @@ const onStationCreated = ({ station, targetField }) => {
 };
 
 const resolveCompanyId = () => form.company_id || page.props.auth.user?.company_id;
+
+const showCartageOptions = computed(() => parseFloat(form.cartage || 0) > 0);
+
+const onCartageChange = () => {
+    if (!showCartageOptions.value) {
+        form.cartage_type = '';
+        form.vendor_id = '';
+    }
+    calculateFinalTotal();
+};
+
+const onCartageTypeChange = () => {
+    if (form.cartage_type !== 'Due') {
+        form.vendor_id = '';
+    }
+};
 
 const applyCompanyGst = () => {
     if (form.gst_liability_by === 'Exempted') {
@@ -564,7 +591,6 @@ const calculateFinalTotal = () => {
         parseFloat(form.handling_charge || 0) +
         parseFloat(form.risk_dd_charge || 0) +
         parseFloat(form.cartage || 0) +
-        parseFloat(form.cartage_cash || 0) +
         totalAddonCharges() -
         parseFloat(form.less_advance_received || 0);
 

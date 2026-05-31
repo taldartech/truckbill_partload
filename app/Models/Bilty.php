@@ -29,7 +29,7 @@ class Bilty extends Model
 
     public function vendor()
     {
-        return $this->belongsTo(Party::class, 'vendor_id');
+        return $this->belongsTo(Vendor::class);
     }
 
     public function consignee()
