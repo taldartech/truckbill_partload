@@ -179,6 +179,7 @@ class BiltyController extends Controller implements HasMiddleware
             (float) ($bilty->handling_charge ?? 0) +
             (float) ($bilty->risk_dd_charge ?? 0) +
             (float) ($bilty->cartage ?? 0) +
+            (float) ($bilty->cartage_cash ?? 0) +
             (float) ($bilty->other_charge ?? 0) +
             $addonTotal -
             (float) ($bilty->less_advance_received ?? 0);
@@ -204,6 +205,7 @@ class BiltyController extends Controller implements HasMiddleware
         $addCharge('Handling Charge', $bilty->handling_charge);
         $addCharge('Risk / DD Charge', $bilty->risk_dd_charge);
         $addCharge('Cartage', $bilty->cartage);
+        $addCharge('Cartage Cash', $bilty->cartage_cash);
         $addCharge('Other Charge', $bilty->other_charge);
 
         foreach ($bilty->addon_charges ?? [] as $addon) {

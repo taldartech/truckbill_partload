@@ -9,50 +9,89 @@
 
                     <form @submit.prevent="submit" class="bilty-form">
                         <div class="card-body pt-3 pb-2 border-bottom">
-                            <div class="row align-items-center mb-2">
-                                <div class="col-md-4 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Date</label>
-                                    <input type="date" class="form-control form-control-sm border-secondary shadow-none" v-model="form.date">
+                            <div class="row align-items-start mb-2">
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Date<span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control form-control-sm border-secondary shadow-none" v-model="form.date">
+                                    </div>
+                                    <div v-if="form.errors.date" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.date }}</div>
                                 </div>
-                                <div class="col-md-4 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Truck No.</label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="form.truck_id"
-                                        :options="trucks"
-                                        labelKey="truck_number"
-                                        placeholder="Select Truck"
-                                    />
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Truck No.<span class="text-danger">*</span></label>
+                                        <div class="flex-grow-1">
+                                            <SearchableSelect
+                                                :small="true"
+                                                v-model="form.truck_id"
+                                                :options="trucks"
+                                                labelKey="truck_number"
+                                                placeholder="Select Truck"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div v-if="form.errors.truck_id" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.truck_id }}</div>
                                 </div>
-                                <div class="col-md-4 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Driver</label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="form.driver_id"
-                                        :options="drivers"
-                                        placeholder="Select Driver"
-                                    />
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Driver<span class="text-danger">*</span></label>
+                                        <div class="flex-grow-1">
+                                            <SearchableSelect
+                                                :small="true"
+                                                v-model="form.driver_id"
+                                                :options="drivers"
+                                                placeholder="Select Driver"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div v-if="form.errors.driver_id" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.driver_id }}</div>
                                 </div>
                             </div>
                             
-                            <div class="row align-items-center mb-2">
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">From St.</label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="form.from_station_id"
-                                        :options="stations"
-                                        placeholder="Select Station"
-                                    />
+                            <div class="row align-items-start mb-2">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">From St.<span class="text-danger">*</span></label>
+                                        <div class="flex-grow-1">
+                                            <SearchableSelect
+                                                :small="true"
+                                                v-model="form.from_station_id"
+                                                :options="stations"
+                                                placeholder="Select Station"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div v-if="form.errors.from_station_id" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.from_station_id }}</div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">To St.<span class="text-danger">*</span></label>
+                                        <div class="flex-grow-1">
+                                            <SearchableSelect
+                                                :small="true"
+                                                v-model="form.to_station_id"
+                                                :options="stations"
+                                                placeholder="Select Station"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div v-if="form.errors.to_station_id" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.to_station_id }}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Fetch Bilties by Destination Station -->
+                            <div class="row align-items-center mt-3 mb-1">
                                 <div class="col-md-6 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">To St.</label>
+                                    <label class="me-2 mb-0 fw-bold text-primary" style="min-width: 90px;">Add Bilties For:</label>
                                     <SearchableSelect
                                         :small="true"
-                                        v-model="form.to_station_id"
+                                        v-model="fetch_station_id"
                                         :options="stations"
-                                        placeholder="Select Station"
+                                        placeholder="Select Destination Station"
                                     />
+                                    <button type="button" class="btn btn-sm btn-primary ms-3 text-nowrap shadow-sm" @click="fetchBiltiesByStation" :disabled="!fetch_station_id">
+                                        <i class="fas fa-magic"></i> Add All
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -64,7 +103,7 @@
                                     <thead class="bg-light">
                                         <tr>
                                             <th width="5%" class="text-center">Sr.No.</th>
-                                            <th width="20%">Bilty No.</th>
+                                            <th width="20%">Bilty No.<span class="text-danger">*</span></th>
                                             <th width="15%">Consignee</th>
                                             <th width="20%">Goods</th>
                                             <th width="15%" class="text-center">Packages</th>
@@ -84,6 +123,7 @@
     labelKey="bilty_number"
     placeholder="Select Bilty"
 />
+                                                <div v-if="form.errors['details.' + index + '.bilty_id']" class="text-danger small mt-1 text-start">{{ form.errors['details.' + index + '.bilty_id'] }}</div>
                                             </td>
                                             <td class="align-middle">
                                                 {{ detail.consignee_name || '--' }}
@@ -108,6 +148,7 @@
                                                 <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addRow">
                                                     <i class="fas fa-plus"></i> Add Bilty
                                                 </button>
+                                                <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -148,7 +189,9 @@
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+
+const fetch_station_id = ref('');
 
 const props = defineProps({
     stations: Array,
@@ -170,6 +213,40 @@ const form = useForm({
         { bilty_id: '', good_id: '', package_type_id: '', consignee_id: '', consignee_name: '', goods_name: '', no_of_packages: '', gross_weight: '' }
     ]
 });
+
+const fetchBiltiesByStation = () => {
+    if (!fetch_station_id.value) return;
+    
+    const matchingBilties = props.bilties.filter(b => b.to_station_id === fetch_station_id.value);
+    
+    if (matchingBilties.length === 0) {
+        alert('No pending bilties found headed to this station.');
+        return;
+    }
+    
+    if (form.details.length === 1 && !form.details[0].bilty_id) {
+        form.details.splice(0, 1);
+    }
+    
+    let addedCount = 0;
+    matchingBilties.forEach(bilty => {
+        if (form.details.some(d => d.bilty_id === bilty.id)) return;
+        
+        form.details.push({ bilty_id: bilty.id, good_id: '', package_type_id: '', consignee_id: '', consignee_name: '', goods_name: '', no_of_packages: '', gross_weight: '' });
+        fetchBiltyDetails(form.details.length - 1);
+        addedCount++;
+    });
+    
+    if (form.details.length === 0) {
+        addRow();
+    }
+    
+    if (addedCount > 0) {
+        fetch_station_id.value = ''; // Reset after adding
+    } else {
+        alert('All bilties for this station are already added to the grid.');
+    }
+};
 
 const addRow = () => {
     form.details.push({ bilty_id: '', good_id: '', package_type_id: '', consignee_id: '', consignee_name: '', goods_name: '', no_of_packages: '', gross_weight: '' });

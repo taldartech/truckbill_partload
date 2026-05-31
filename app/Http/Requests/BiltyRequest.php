@@ -42,6 +42,7 @@ class BiltyRequest extends FormRequest
             ->all();
 
         $this->merge([
+            'company_id' => $this->input('company_id') ?: auth()->user()?->company_id,
             'addon_charges' => empty($addonCharges) ? null : $addonCharges,
             'eway_bills' => empty($ewayBills) ? null : $ewayBills,
         ]);
@@ -87,6 +88,7 @@ class BiltyRequest extends FormRequest
             'handling_charge' => 'nullable|numeric|min:0',
             'risk_dd_charge' => 'nullable|numeric|min:0',
             'cartage' => 'nullable|numeric|min:0',
+            'cartage_cash' => 'nullable|numeric|min:0',
             'addon_charges' => 'nullable|array',
             'addon_charges.*.particulars' => 'nullable|string|max:255|required_with:addon_charges.*.amount',
             'addon_charges.*.amount' => 'nullable|numeric|min:0',
@@ -111,6 +113,7 @@ class BiltyRequest extends FormRequest
             'declared_value' => 'nullable|numeric|min:0',
             'invoice_number' => 'nullable|string|max:50',
             'payment_type' => 'nullable|string|in:To Pay,Paid,TBB,FOC',
+            'vendor_id' => 'nullable|exists:parties,id',
             'advance_payment_received' => 'nullable|numeric|min:0',
             'payment_mode' => 'nullable|string|max:50',
             'amount' => 'nullable|numeric|min:0',

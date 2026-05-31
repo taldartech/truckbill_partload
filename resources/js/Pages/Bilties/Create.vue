@@ -44,6 +44,15 @@
                                         <option value="FOC">FOC</option>
                                     </select>
                                 </div>
+                                <div class="col-md-3 d-flex align-items-center">
+                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Vendor Acc</label>
+                                    <SearchableSelect
+                                        :small="true"
+                                        v-model="form.vendor_id"
+                                        :options="parties"
+                                        placeholder="Select Vendor"
+                                    />
+                                </div>
                             </div>
                             
                             <div class="row align-items-center mb-2">
@@ -268,6 +277,10 @@
                                         <div class="col-12"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none" v-model="form.cartage" @input="calculateFinalTotal"></div>
                                     </div>
                                     <div class="row mb-1">
+                                        <div class="col-12"><label class="mb-0 fw-bold small text-dark">Cartage Cash</label></div>
+                                        <div class="col-12"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none" v-model="form.cartage_cash" @input="calculateFinalTotal"></div>
+                                    </div>
+                                    <div class="row mb-1">
                                         <div class="col-12"><label class="mb-0 fw-bold small text-dark">Private Marka</label></div>
                                         <div class="col-12"><input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.private_marka"></div>
                                     </div>
@@ -415,6 +428,7 @@ const form = useForm({
     invoice_number: '',
     gst: gstForCompany(page.props.auth.user?.company_id),
     gst_liability_by: '',
+    vendor_id: '',
     
     // Totals
     freight: 0,
@@ -423,6 +437,7 @@ const form = useForm({
     handling_charge: 0,
     risk_dd_charge: 0,
     cartage: 0,
+    cartage_cash: 0,
     addon_charges: [],
     less_advance_received: 0,
     amount: 0,
@@ -549,6 +564,7 @@ const calculateFinalTotal = () => {
         parseFloat(form.handling_charge || 0) +
         parseFloat(form.risk_dd_charge || 0) +
         parseFloat(form.cartage || 0) +
+        parseFloat(form.cartage_cash || 0) +
         totalAddonCharges() -
         parseFloat(form.less_advance_received || 0);
 

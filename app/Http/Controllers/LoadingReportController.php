@@ -69,7 +69,7 @@ class LoadingReportController extends Controller
             $report = LoadingReport::create($validated);
 
             foreach ($details as $item) {
-                $item['company_id'] = $validated['company_id'];
+                $item['company_id'] = $report->company_id;
                 $report->details()->create($item);
             }
 

@@ -37,4 +37,9 @@ class Challan extends Model
     {
         return $this->belongsTo(Truck::class);
     }
+
+    public function details()
+    {
+        return $this->hasMany(ChallanDetail::class);
+    }
 }

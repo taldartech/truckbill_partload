@@ -47,6 +47,9 @@
             <div class="col-6">
                 <div class="box">
                     <div class="info-line"><strong>Payment Type:</strong> {{ $bilty->payment_type ?? '—' }}</div>
+                    @if($bilty->vendor)
+                        <div class="info-line"><strong>Vendor Acc:</strong> {{ $bilty->vendor->name }}</div>
+                    @endif
                     @if($bilty->ewayBills->isNotEmpty())
                         @foreach($bilty->ewayBills as $eway)
                             <div class="info-line">
