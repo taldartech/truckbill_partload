@@ -15541,7 +15541,7 @@ fieldset:disabled .btn {
   }
 
   .sidebar-expand-sm.layout-fixed .app-sidebar .sidebar-wrapper {
-    height: calc(100vh - (calc(3.5rem + 1px)));
+    height: calc(100vh - (calc(2rem + 100px)));
   }
 
   .sidebar-expand-sm.sidebar-open .nav-link>.nav-badge,
@@ -15576,7 +15576,7 @@ fieldset:disabled .btn {
   }
 
   .sidebar-expand-sm .app-sidebar .sidebar-wrapper {
-    height: calc(100vh - (calc(3.5rem + 1px)));
+    height: calc(100vh - (calc(2rem + 100px)));
   }
 
   .sidebar-expand-sm.sidebar-open .app-sidebar {
@@ -15622,7 +15622,7 @@ fieldset:disabled .btn {
   }
 
   .sidebar-expand-md.layout-fixed .app-sidebar .sidebar-wrapper {
-    height: calc(100vh - (calc(3.5rem + 1px)));
+    height: calc(100vh - (calc(2rem + 100px)));
   }
 
   .sidebar-expand-md.sidebar-open .nav-link>.nav-badge,
@@ -15657,7 +15657,7 @@ fieldset:disabled .btn {
   }
 
   .sidebar-expand-md .app-sidebar .sidebar-wrapper {
-    height: calc(100vh - (calc(3.5rem + 1px)));
+    height: calc(100vh - (calc(2rem + 100px)));
   }
 
   .sidebar-expand-md.sidebar-open .app-sidebar {
@@ -15703,7 +15703,7 @@ fieldset:disabled .btn {
   }
 
   .sidebar-expand-lg.layout-fixed .app-sidebar .sidebar-wrapper {
-    height: calc(100vh - (calc(3.5rem + 1px)));
+    height: calc(100vh - (calc(2rem + 100px)));
   }
 
   .sidebar-expand-lg.sidebar-open .nav-link>.nav-badge,
@@ -15738,7 +15738,7 @@ fieldset:disabled .btn {
   }
 
   .sidebar-expand-lg .app-sidebar .sidebar-wrapper {
-    height: calc(100vh - (calc(3.5rem + 1px)));
+    height: calc(100vh - (calc(2rem + 100px)));
   }
 
   .sidebar-expand-lg.sidebar-open .app-sidebar {
@@ -15784,7 +15784,7 @@ fieldset:disabled .btn {
   }
 
   .sidebar-expand-xl.layout-fixed .app-sidebar .sidebar-wrapper {
-    height: calc(100vh - (calc(3.5rem + 1px)));
+    height: calc(100vh - (calc(2rem + 100px)));
   }
 
   .sidebar-expand-xl.sidebar-open .nav-link>.nav-badge,
@@ -15819,7 +15819,7 @@ fieldset:disabled .btn {
   }
 
   .sidebar-expand-xl .app-sidebar .sidebar-wrapper {
-    height: calc(100vh - (calc(3.5rem + 1px)));
+    height: calc(100vh - (calc(2rem + 100px)));
   }
 
   .sidebar-expand-xl.sidebar-open .app-sidebar {
@@ -15865,7 +15865,7 @@ fieldset:disabled .btn {
   }
 
   .sidebar-expand-xxl.layout-fixed .app-sidebar .sidebar-wrapper {
-    height: calc(100vh - (calc(3.5rem + 1px)));
+    height: calc(100vh - (calc(2rem + 100px)));
   }
 
   .sidebar-expand-xxl.sidebar-open .nav-link>.nav-badge,
@@ -15900,7 +15900,7 @@ fieldset:disabled .btn {
   }
 
   .sidebar-expand-xxl .app-sidebar .sidebar-wrapper {
-    height: calc(100vh - (calc(3.5rem + 1px)));
+    height: calc(100vh - (calc(2rem + 100px)));
   }
 
   .sidebar-expand-xxl.sidebar-open .app-sidebar {
@@ -15945,7 +15945,7 @@ fieldset:disabled .btn {
 }
 
 .sidebar-expand.layout-fixed .app-sidebar .sidebar-wrapper {
-  height: calc(100vh - (calc(3.5rem + 1px)));
+  height: calc(100vh - (calc(2rem + 100px)));
 }
 
 .sidebar-expand.sidebar-open .nav-link>.nav-badge,
@@ -15978,7 +15978,7 @@ fieldset:disabled .btn {
 }
 
 .sidebar-expand .app-sidebar .sidebar-wrapper {
-  height: calc(100vh - (calc(3.5rem + 1px)));
+  height: calc(100vh - (calc(2rem + 100px)));
 }
 
 .sidebar-expand.sidebar-open .app-sidebar {
