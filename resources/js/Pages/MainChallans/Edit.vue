@@ -237,9 +237,9 @@
                             <button type="submit" class="btn btn-sm btn-outline-dark px-4 fw-bold shadow-sm" style="background-color: #a7c5c9;" :disabled="form.processing">
                                 Save
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-dark px-4 fw-bold shadow-sm" style="background-color: #a7c5c9;" onclick="window.print()">
+                            <a :href="`/main-challans/${main_challan.id}/print`" target="_blank" class="btn btn-sm btn-outline-dark px-4 fw-bold shadow-sm" style="background-color: #a7c5c9;">
                                 Print
-                            </button>
+                            </a>
                             <Link href="/main-challans" class="btn btn-sm btn-outline-dark px-4 fw-bold shadow-sm" style="background-color: #a7c5c9;">
                                 Exit
                             </Link>

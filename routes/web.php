@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::get('challans/{challan}/print', [ChallanController::class, 'print'])->name('challans.print');
     Route::resource('challans', ChallanController::class);
     
+    Route::get('main-challans/{main_challan}/print', [MainChallanController::class, 'print'])->name('main-challans.print');
     Route::resource('main-challans', MainChallanController::class);
 
     // Master Configuration

@@ -38,6 +38,9 @@
                                     </td>
                                     <td>{{ challan.total_amount || '0.00' }}</td>
                                     <td class="text-end">
+                                        <a :href="`/main-challans/${challan.id}/print`" target="_blank" class="btn btn-sm btn-outline-info me-2" title="Print Main Challan">
+                                            <i class="fas fa-print"></i>
+                                        </a>
                                         <Link :href="`/main-challans/${challan.id}/edit`" class="btn btn-sm btn-info text-white me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>

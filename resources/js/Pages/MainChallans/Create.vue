@@ -237,9 +237,6 @@
                             <button type="submit" class="btn btn-sm btn-outline-dark px-4 fw-bold shadow-sm" style="background-color: #a7c5c9;" :disabled="form.processing">
                                 Save
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-dark px-4 fw-bold shadow-sm" style="background-color: #a7c5c9;" onclick="window.print()">
-                                Print
-                            </button>
                             <button type="button" class="btn btn-sm btn-outline-dark px-4 fw-bold shadow-sm" style="background-color: #a7c5c9;" @click="form.reset()">
                                 Clear
                             </button>

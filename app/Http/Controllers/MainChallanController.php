@@ -18,7 +18,7 @@ class MainChallanController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view challans', only: ['index', 'show']),
+            new Middleware('permission:view challans', only: ['index', 'show', 'print']),
             new Middleware('permission:create challans', only: ['create', 'store']),
             new Middleware('permission:edit challans', only: ['edit', 'update']),
             new Middleware('permission:delete challans', only: ['destroy']),
@@ -193,5 +193,73 @@ class MainChallanController extends Controller implements HasMiddleware
     {
         $main_challan->delete();
         return redirect()->route('main-challans.index')->with('success', 'Main Challan deleted successfully.');
+    }
+
+    public function print(MainChallan $main_challan)
+    {
+        $main_challan->load([
+            'fromStation',
+            'toStation',
+            'truck',
+            'driver',
+            'details.challan.toStation',
+            'details.challan.details.bilty.biltyDetails',
+        ]);
+
+        $company = Company::find($main_challan->company_id);
+        $printData = $this->buildPrintData($main_challan);
+
+        return view('prints.main_challan', compact('main_challan', 'company', 'printData'));
+    }
+
+    private function buildPrintData(MainChallan $mainChallan): array
+    {
+        $rows = $mainChallan->details->map(function ($detail) {
+            $challan = $detail->challan;
+            if (!$challan) {
+                return null;
+            }
+
+            $totalNugs = (float) ($challan->total_packages ?? 0);
+            $totalWeight = (float) ($challan->total_weight ?? 0);
+
+            if ($totalNugs == 0 && $challan->details) {
+                foreach ($challan->details as $challanDetail) {
+                    $bilty = $challanDetail->bilty;
+                    if (!$bilty?->biltyDetails) {
+                        continue;
+                    }
+                    foreach ($bilty->biltyDetails as $biltyDetail) {
+                        $totalNugs += (float) ($biltyDetail->no_of_packages ?? 0);
+                        $totalWeight += (float) ($biltyDetail->gross_weight ?? 0);
+                    }
+                }
+            }
+
+            return [
+                'challan_number' => $challan->challan_number ?? '—',
+                'to_station' => $challan->toStation?->name ?? '—',
+                'nugs' => $totalNugs,
+                'weight' => $totalWeight,
+                'to_pay' => (float) ($challan->to_pay_amount ?? 0),
+                'paid_amount' => (float) ($challan->paid_amount ?? 0),
+                'crossing' => (float) ($challan->crossing_freight ?? 0),
+                'cartage' => (float) ($challan->cartage_dalali_pf ?? 0),
+                'labour' => (float) ($challan->labour_charge ?? 0),
+            ];
+        })->filter()->values();
+
+        return [
+            'rows' => $rows,
+            'totals' => [
+                'nugs' => $rows->sum('nugs'),
+                'weight' => $rows->sum('weight'),
+                'to_pay' => $rows->sum('to_pay'),
+                'paid_amount' => $rows->sum('paid_amount'),
+                'crossing' => $rows->sum('crossing'),
+                'cartage' => $rows->sum('cartage'),
+                'labour' => $rows->sum('labour'),
+            ],
+        ];
     }
 }
