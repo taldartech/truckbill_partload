@@ -22,6 +22,13 @@
                             <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
                         </Link>
                     </li>
+                    
+                    <li class="nav-item">
+                        <Link href="/loading-reports" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/loading-reports') }">
+                            <i class="nav-icon fas fa-truck-loading me-3"></i>
+                            <p class="mb-0 fw-medium">Loading Reports</p>
+                        </Link>
+                    </li>
 
                     <li class="nav-item" v-if="can('view challans')">
                         <Link href="/challans" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/challans') }">
@@ -40,13 +47,6 @@
                     </li>
 
                     <li class="nav-header mt-3 px-3 py-2 text-muted fw-bold small">TRANSACTIONS</li>
-
-                    <li class="nav-item">
-                        <Link href="/loading-reports" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/loading-reports') }">
-                            <i class="nav-icon fas fa-truck-loading me-3"></i>
-                            <p class="mb-0 fw-medium">Loading Reports</p>
-                        </Link>
-                    </li>
 
                     <li class="nav-item">
                         <Link href="/vouchers" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/vouchers') }">
