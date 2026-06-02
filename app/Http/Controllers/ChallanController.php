@@ -45,6 +45,7 @@ class ChallanController extends Controller implements HasMiddleware
             'stations' => Station::all(),
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
+            'bilties' => \App\Models\Bilty::with(['biltyDetails.good', 'consignee'])->where('status', '!=', 'Delivered')->get(),
             'next_challan_number' => $nextNumber
         ]);
     }
@@ -78,21 +79,51 @@ class ChallanController extends Controller implements HasMiddleware
             'cartage_dalali_pf' => 'nullable|numeric',
             'gst' => 'nullable|numeric',
             'remark' => 'nullable|string',
-            'status' => 'nullable|string'
+            'status' => 'nullable|string',
+            'details' => 'required|array|min:1',
+            'details.*.bilty_id' => 'required|exists:bilties,id',
         ]);
 
-        Challan::create($validated);
+        $company_id = auth()->check() && auth()->user()->company_id ? auth()->user()->company_id : 1;
+        $validated['company_id'] = $validated['company_id'] ?? $company_id;
+        
+        $details = $validated['details'] ?? [];
+        unset($validated['details']);
+
+        $challan = Challan::create($validated);
+
+        foreach ($details as $detail) {
+            $bilty = \App\Models\Bilty::find($detail['bilty_id']);
+            if ($bilty) {
+                $challan->details()->create([
+                    'company_id' => $challan->company_id,
+                    'bilty_id' => $bilty->id,
+                    'to_station_id' => $bilty->to_station_id,
+                ]);
+            }
+        }
+
         return redirect()->route('challans.index')->with('success', 'Challan created successfully.');
     }
 
     public function edit(Challan $challan)
     {
+        $challan->load('details.bilty.biltyDetails.good', 'details.bilty.consignee');
+        
+        // Fetch all bilties that are not delivered OR already in this challan
+        $existingBiltyIds = $challan->details->pluck('bilty_id')->toArray();
+        $bilties = \App\Models\Bilty::with(['biltyDetails.good', 'consignee'])
+            ->where('status', '!=', 'Delivered')
+            ->orWhereIn('id', $existingBiltyIds)
+            ->get();
+
         return Inertia::render('Challans/Edit', [
             'challan' => $challan,
             'companies' => Company::all(),
             'stations' => Station::all(),
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
+            'bilties' => $bilties,
         ]);
     }
 
@@ -125,10 +156,28 @@ class ChallanController extends Controller implements HasMiddleware
             'cartage_dalali_pf' => 'nullable|numeric',
             'gst' => 'nullable|numeric',
             'remark' => 'nullable|string',
-            'status' => 'nullable|string'
+            'status' => 'nullable|string',
+            'details' => 'required|array|min:1',
+            'details.*.bilty_id' => 'required|exists:bilties,id',
         ]);
 
+        $details = $validated['details'] ?? [];
+        unset($validated['details']);
+
         $challan->update($validated);
+        
+        $challan->details()->delete(); // Clear old details
+        foreach ($details as $detail) {
+            $bilty = \App\Models\Bilty::find($detail['bilty_id']);
+            if ($bilty) {
+                $challan->details()->create([
+                    'company_id' => $challan->company_id,
+                    'bilty_id' => $bilty->id,
+                    'to_station_id' => $bilty->to_station_id,
+                ]);
+            }
+        }
+
         return redirect()->route('challans.index')->with('success', 'Challan updated successfully.');
     }
 

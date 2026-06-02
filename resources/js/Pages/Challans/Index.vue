@@ -1,5 +1,5 @@
 <template>
-    <AdminLayout title="Challans">
+    <AdminLayout title="Challan">
         <div class="row">
             <div class="col-12">
                 <div class="card">

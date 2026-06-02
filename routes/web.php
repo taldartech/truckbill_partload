@@ -14,6 +14,7 @@ use App\Http\Controllers\DeliveryReceiptController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\BiltyController;
 use App\Http\Controllers\ChallanController;
+use App\Http\Controllers\MainChallanController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
@@ -56,6 +57,8 @@ Route::middleware('auth')->group(function () {
     
     Route::get('challans/{challan}/print', [ChallanController::class, 'print'])->name('challans.print');
     Route::resource('challans', ChallanController::class);
+    
+    Route::resource('main-challans', MainChallanController::class);
 
     // Master Configuration
     Route::resource('truck-types', TruckTypeController::class);

@@ -15,58 +15,10 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item" v-if="can('view transporters')">
-                        <Link href="/transporters" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/transporters') }">
-                            <i class="nav-icon fas fa-truck-loading me-3"></i>
-                            <p class="mb-0 fw-medium">Transporter</p>
-                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
-                        </Link>
-                    </li>
-
-                    <li class="nav-item" v-if="can('view drivers')">
-                        <Link href="/drivers" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/drivers') }">
-                            <i class="nav-icon fas fa-id-card me-3"></i>
-                            <p class="mb-0 fw-medium">Drivers</p>
-                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
-                        </Link>
-                    </li>
-
-                    <li class="nav-item" v-if="can('view stations')">
-                        <Link href="/stations" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/stations') }">
-                            <i class="nav-icon fas fa-map-marker-alt me-3"></i>
-                            <p class="mb-0 fw-medium">Stations</p>
-                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
-                        </Link>
-                    </li>
-
-                    <li class="nav-item" v-if="can('view trucks')">
-                        <Link href="/trucks" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/trucks') }">
-                            <i class="nav-icon fas fa-truck me-3"></i>
-                            <p class="mb-0 fw-medium">Truck</p>
-                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
-                        </Link>
-                    </li>
-
-                    <li class="nav-item" v-if="can('view parties')">
-                        <Link href="/parties" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/parties') }">
-                            <i class="nav-icon fas fa-user-friends me-3"></i>
-                            <p class="mb-0 fw-medium">Consignee/Customer</p>
-                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
-                        </Link>
-                    </li>
-
-                    <li class="nav-item" v-if="can('view vendors')">
-                        <Link href="/vendors" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/vendors') }">
-                            <i class="nav-icon fas fa-store me-3"></i>
-                            <p class="mb-0 fw-medium">Vendors</p>
-                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
-                        </Link>
-                    </li>
-
                     <li class="nav-item" v-if="can('view bilties')">
                         <Link href="/bilties" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/bilties') }">
                             <i class="nav-icon fas fa-file-invoice me-3"></i>
-                            <p class="mb-0 fw-medium">Good Receipts (Bilty)</p>
+                            <p class="mb-0 fw-medium">Bilty (Good Receipts)</p>
                             <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
                         </Link>
                     </li>
@@ -74,24 +26,16 @@
                     <li class="nav-item" v-if="can('view challans')">
                         <Link href="/challans" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/challans') }">
                             <i class="nav-icon fas fa-file-contract me-3"></i>
-                            <p class="mb-0 fw-medium">Good Hires (Lorry Hire)</p>
+                            <p class="mb-0 fw-medium">Challan</p>
                             <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
                         </Link>
                     </li>
 
-                    <li class="nav-header mt-3 px-3 py-2 text-muted fw-bold small">MASTER DATA</li>
-
-                    <li class="nav-item">
-                        <Link href="/truck-types" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/truck-types') }">
-                            <i class="nav-icon fas fa-truck-moving me-3"></i>
-                            <p class="mb-0 fw-medium">Truck Types</p>
-                        </Link>
-                    </li>
-
-                    <li class="nav-item">
-                        <Link href="/agents" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/agents') }">
-                            <i class="nav-icon fas fa-user-secret me-3"></i>
-                            <p class="mb-0 fw-medium">Agents</p>
+                    <li class="nav-item" v-if="can('view challans')">
+                        <Link href="/main-challans" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/main-challans') }">
+                            <i class="nav-icon fas fa-file-alt me-3"></i>
+                            <p class="mb-0 fw-medium">Main Challan</p>
+                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
                         </Link>
                     </li>
 
@@ -131,6 +75,91 @@
                             <p class="mb-0 fw-medium">Tax Invoices</p>
                         </Link>
                     </li>
+
+                    <li class="nav-header mt-3 px-3 py-2 text-muted fw-bold small">MASTER DATA</li>
+
+                    <li class="nav-item" v-if="can('view vendors')">
+                        <Link href="/vendors" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/vendors') }">
+                            <i class="nav-icon fas fa-store me-3"></i>
+                            <p class="mb-0 fw-medium">Vendors</p>
+                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item" v-if="can('view transporters')">
+                        <Link href="/transporters" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/transporters') }">
+                            <i class="nav-icon fas fa-truck-loading me-3"></i>
+                            <p class="mb-0 fw-medium">Transporter</p>
+                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item" v-if="can('view drivers')">
+                        <Link href="/drivers" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/drivers') }">
+                            <i class="nav-icon fas fa-id-card me-3"></i>
+                            <p class="mb-0 fw-medium">Drivers</p>
+                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item" v-if="can('view stations')">
+                        <Link href="/stations" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/stations') }">
+                            <i class="nav-icon fas fa-map-marker-alt me-3"></i>
+                            <p class="mb-0 fw-medium">Stations</p>
+                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item">
+                        <Link href="/groups" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/groups') }">
+                            <i class="nav-icon fas fa-users me-3"></i>
+                            <p class="mb-0 fw-medium">Groups</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item">
+                        <Link href="/goods" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/goods') }">
+                            <i class="nav-icon fas fa-box me-3"></i>
+                            <p class="mb-0 fw-medium">Goods</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item">
+                        <Link href="/package-types" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/package-types') }">
+                            <i class="nav-icon fas fa-boxes me-3"></i>
+                            <p class="mb-0 fw-medium">Package Types</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item" v-if="can('view trucks')">
+                        <Link href="/trucks" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/trucks') }">
+                            <i class="nav-icon fas fa-truck me-3"></i>
+                            <p class="mb-0 fw-medium">Truck</p>
+                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item" v-if="can('view parties')">
+                        <Link href="/parties" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/parties') }">
+                            <i class="nav-icon fas fa-user-friends me-3"></i>
+                            <p class="mb-0 fw-medium">Consignee/Customer</p>
+                            <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item">
+                        <Link href="/truck-types" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/truck-types') }">
+                            <i class="nav-icon fas fa-truck-moving me-3"></i>
+                            <p class="mb-0 fw-medium">Truck Types</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item">
+                        <Link href="/agents" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/agents') }">
+                            <i class="nav-icon fas fa-user-secret me-3"></i>
+                            <p class="mb-0 fw-medium">Agents</p>
+                        </Link>
+                    </li>
                     <li class="nav-header text-uppercase text-muted fs-7 fw-bold mt-4 mb-2 px-3">Reports</li>
                     
                     <li class="nav-item">
@@ -151,28 +180,6 @@
                         <Link href="/reports/party-ledger" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/reports/party-ledger') }">
                             <i class="nav-icon fas fa-book me-3"></i>
                             <p class="mb-0 fw-medium">Party Ledger</p>
-                        </Link>
-                    </li>
-
-                    <li class="nav-header text-uppercase text-muted fs-7 fw-bold mt-4 mb-2 px-3">Administration</li>
-                    <li class="nav-item">
-                        <Link href="/groups" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/groups') }">
-                            <i class="nav-icon fas fa-users me-3"></i>
-                            <p class="mb-0 fw-medium">Groups</p>
-                        </Link>
-                    </li>
-
-                    <li class="nav-item">
-                        <Link href="/goods" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/goods') }">
-                            <i class="nav-icon fas fa-box me-3"></i>
-                            <p class="mb-0 fw-medium">Goods</p>
-                        </Link>
-                    </li>
-
-                    <li class="nav-item">
-                        <Link href="/package-types" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/package-types') }">
-                            <i class="nav-icon fas fa-boxes me-3"></i>
-                            <p class="mb-0 fw-medium">Package Types</p>
                         </Link>
                     </li>
 
