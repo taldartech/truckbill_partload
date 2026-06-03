@@ -1,71 +1,74 @@
 <template>
-    <AdminLayout title="Loading Reports">
-        <div class="row mb-3">
-            <div class="col-12 d-flex justify-content-between align-items-center">
-                <h4 class="m-0 text-dark">Loading Reports</h4>
-                <Link href="/loading-reports/create" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i> Add Loading Report
-                </Link>
-            </div>
-        </div>
-
-        <div class="card shadow-sm">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped m-0 text-sm">
-                        <thead class="bg-light">
-                            <tr>
-                                <th># ID</th>
-                                <th>Date</th>
-                                <th>From Station</th>
-                                <th>To Station</th>
-                                <th>Truck No.</th>
-                                <th>Driver</th>
-                                <th>Total Weight (Kg)</th>
-                                <th>Packages</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="report in reports.data" :key="report.id">
-                                <td>{{ report.id }}</td>
-                                <td>{{ report.date }}</td>
-                                <td>{{ report.from_station?.name }}</td>
-                                <td>{{ report.to_station?.name }}</td>
-                                <td>{{ report.truck?.truck_no }}</td>
-                                <td>{{ report.driver?.name }}</td>
-                                <td>{{ report.gross_weight }}</td>
-                                <td>{{ report.no_of_packages }}</td>
-                                <td class="text-end">
-                                    <a :href="`/loading-reports/${report.id}/print`" target="_blank" class="btn btn-sm btn-outline-info me-1" title="Print Loading Report">
-                                        <i class="fas fa-print"></i>
-                                    </a>
-                                    <Link :href="`/loading-reports/${report.id}/edit`" class="btn btn-sm btn-outline-primary me-1">
-                                        <i class="fas fa-edit"></i>
-                                    </Link>
-                                    <button class="btn btn-sm btn-outline-danger" @click="deleteReport(report.id)">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr v-if="reports.data.length === 0">
-                                <td colspan="9" class="text-center py-4 text-muted">No loading reports found.</td>
-                            </tr>
-                        </tbody>
-                    </table>
+    <AdminLayout title="Loading Report">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="card-title">Manage Loading Reports</h3>
+                        <Link v-if="can('create loading_reports')" href="/loading-reports/create" class="btn btn-primary btn-sm ms-auto">
+                            <i class="fas fa-plus"></i> Add New Loading Report
+                        </Link>
+                    </div>
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>From Station</th>
+                                    <th>To Station</th>
+                                    <th>Truck No.</th>
+                                    <th>Driver</th>
+                                    <th>Total Weight (Kg)</th>
+                                    <th>Packages</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="report in reports.data" :key="report.id">
+                                    <td>{{ report.id }}</td>
+                                    <td>{{ report.date }}</td>
+                                    <td>{{ report.from_station?.name }}</td>
+                                    <td>{{ report.to_station?.name }}</td>
+                                    <td>{{ report.truck?.truck_number }}</td>
+                                    <td>{{ report.driver?.name }}</td>
+                                    <td>{{ report.gross_weight }}</td>
+                                    <td>{{ report.no_of_packages }}</td>
+                                    <td class="text-end">
+                                        <a :href="`/loading-reports/${report.id}/print`" target="_blank" class="btn btn-sm btn-outline-info me-2" title="Print Loading Report">
+                                            <i class="fas fa-print"></i>
+                                        </a>
+                                        <Link :href="`/loading-reports/${report.id}/edit`" class="btn btn-sm btn-info text-white me-2">
+                                            <i class="fas fa-edit"></i>
+                                        </Link>
+                                        <button class="btn btn-sm btn-danger" @click="deleteReport(report.id)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr v-if="reports.data.length === 0">
+                                    <td colspan="9" class="text-center py-4">No loading reports found.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <!-- Pagination could go here -->
         </div>
     </AdminLayout>
 </template>
 
 <script setup>
-import { Link, useForm } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
-const props = defineProps({
-    reports: Object
+const page = usePage();
+const can = (permission) => {
+    return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
+};
+
+defineProps({
+    reports: Object,
 });
 
 const deleteForm = useForm({});
