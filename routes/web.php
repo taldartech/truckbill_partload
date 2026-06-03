@@ -71,6 +71,7 @@ Route::middleware('auth')->group(function () {
 
     // Administration
     Route::resource('users', UserController::class);
+    Route::get('loading-reports/{loading_report}/print', [LoadingReportController::class, 'print'])->name('loading-reports.print');
     Route::resource('loading-reports', LoadingReportController::class);
     Route::resource('vouchers', VoucherController::class);
     Route::resource('inward-registers', InwardRegisterController::class);

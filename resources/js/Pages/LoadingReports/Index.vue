@@ -37,6 +37,9 @@
                                 <td>{{ report.gross_weight }}</td>
                                 <td>{{ report.no_of_packages }}</td>
                                 <td class="text-end">
+                                    <a :href="`/loading-reports/${report.id}/print`" target="_blank" class="btn btn-sm btn-outline-info me-1" title="Print Loading Report">
+                                        <i class="fas fa-print"></i>
+                                    </a>
                                     <Link :href="`/loading-reports/${report.id}/edit`" class="btn btn-sm btn-outline-primary me-1">
                                         <i class="fas fa-edit"></i>
                                     </Link>

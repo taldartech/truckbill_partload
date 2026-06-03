@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LoadingReport;
+use App\Models\Company;
 use App\Models\Station;
 use App\Models\Truck;
 use App\Models\Driver;
@@ -138,5 +139,81 @@ class LoadingReportController extends Controller
     {
         $loadingReport->delete();
         return redirect()->route('loading-reports.index')->with('success', 'Loading Report deleted successfully.');
+    }
+
+    public function print(LoadingReport $loading_report)
+    {
+        $loading_report->load([
+            'fromStation',
+            'toStation',
+            'truck',
+            'driver',
+            'details.bilty.toStation',
+            'details.bilty.biltyDetails.good',
+            'details.good',
+            'details.consignee',
+        ]);
+
+        $company = Company::find($loading_report->company_id);
+        $printData = $this->buildPrintData($loading_report);
+
+        return view('prints.loading_report', compact('loading_report', 'company', 'printData'));
+    }
+
+    private function buildPrintData(LoadingReport $report): array
+    {
+        $rows = $report->details->map(function ($detail) {
+            $bilty = $detail->bilty;
+            $goodsName = $detail->good?->name;
+
+            if (!$goodsName && $bilty?->biltyDetails) {
+                $goodsName = $bilty->biltyDetails
+                    ->map(fn ($bd) => $bd->good?->name)
+                    ->filter()
+                    ->unique()
+                    ->implode(', ');
+            }
+
+            return [
+                'to_station_id' => $bilty?->to_station_id ?? 0,
+                'to_station' => $bilty?->toStation?->name ?? '—',
+                'bilty_number' => $bilty?->bilty_number ?? '—',
+                'private_marka' => $bilty?->private_marka ?? '',
+                'nugs' => (float) ($detail->no_of_packages ?? 0),
+                'goods_name' => $goodsName ?: '—',
+                'consignee_name' => $detail->consignee?->name ?? '—',
+                'weight' => (float) ($detail->gross_weight ?? 0),
+            ];
+        });
+
+        $groups = $rows
+            ->groupBy('to_station_id')
+            ->sortBy(fn ($group) => $group->first()['to_station'] ?? '')
+            ->map(function ($groupRows, $stationId) {
+                $stationName = $groupRows->first()['to_station'] ?? '—';
+                $items = $groupRows->values()->map(function ($row, $index) {
+                    $row['serial'] = $index + 1;
+
+                    return $row;
+                });
+
+                return [
+                    'station_name' => $stationName,
+                    'rows' => $items,
+                    'subtotal' => [
+                        'nugs' => $items->sum('nugs'),
+                        'weight' => $items->sum('weight'),
+                    ],
+                ];
+            })
+            ->values();
+
+        return [
+            'groups' => $groups,
+            'grand_total' => [
+                'nugs' => $rows->sum('nugs'),
+                'weight' => $rows->sum('weight'),
+            ],
+        ];
     }
 }
