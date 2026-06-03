@@ -296,7 +296,7 @@ const form = useForm({
     delivery_at: props.challan.delivery_at || '',
     add_to_main_challan: props.challan.add_to_main_challan || false,
     remark: props.challan.remark || '',
-    status: props.challan.status || 'Draft'
+    status: props.challan.status || 'Created'
 });
 
 onMounted(() => {

@@ -301,7 +301,7 @@ const form = useForm({
     delivery_at: '',
     add_to_main_challan: false,
     remark: '',
-    status: 'Draft'
+    status: 'Created'
 });
 
 const addRow = () => {
