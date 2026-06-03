@@ -86,7 +86,7 @@
                                     <SearchableSelect
                                         :small="true"
                                         v-model="fetch_station_id"
-                                        :options="stations"
+                                        :options="destinationStationOptions"
                                         placeholder="Select Destination Station"
                                     />
                                     <button type="button" class="btn btn-sm btn-primary ms-3 text-nowrap shadow-sm" @click="fetchBiltiesByStation" :disabled="!fetch_station_id">
@@ -116,13 +116,13 @@
                                             <td class="text-center align-middle">{{ index + 1 }}</td>
                                             <td>
                                                 <SearchableSelect
-    :small="true"
-    @change="fetchBiltyDetails(index)"
-    v-model="detail.bilty_id"
-    :options="bilties"
-    labelKey="bilty_number"
-    placeholder="Select Bilty"
-/>
+                                                    :small="true"
+                                                    @change="fetchBiltyDetails(index)"
+                                                    v-model="detail.bilty_id"
+                                                    :options="bilties"
+                                                    labelKey="bilty_number"
+                                                    placeholder="Select Bilty"
+                                                />
                                                 <div v-if="form.errors['details.' + index + '.bilty_id']" class="text-danger small mt-1 text-start">{{ form.errors['details.' + index + '.bilty_id'] }}</div>
                                             </td>
                                             <td class="align-middle">
@@ -196,6 +196,8 @@ import { computed, ref, onMounted } from 'vue';
 
 const fetch_station_id = ref('');
 
+const ALL_STATIONS_VALUE = 'all';
+
 const props = defineProps({
     report: Object,
     stations: Array,
@@ -203,6 +205,11 @@ const props = defineProps({
     drivers: Array,
     bilties: Array
 });
+
+const destinationStationOptions = computed(() => [
+    { id: ALL_STATIONS_VALUE, name: 'ALL' },
+    ...props.stations,
+]);
 
 const initialDetails = (props.report.details && props.report.details.length > 0)
     ? props.report.details.map(d => ({
@@ -230,11 +237,15 @@ const form = useForm({
 
 const fetchBiltiesByStation = () => {
     if (!fetch_station_id.value) return;
-    
-    const matchingBilties = props.bilties.filter(b => b.to_station_id === fetch_station_id.value);
-    
+
+    const matchingBilties = fetch_station_id.value === ALL_STATIONS_VALUE
+        ? props.bilties
+        : props.bilties.filter(b => b.to_station_id === fetch_station_id.value);
+
     if (matchingBilties.length === 0) {
-        alert('No pending bilties found headed to this station.');
+        alert(fetch_station_id.value === ALL_STATIONS_VALUE
+            ? 'No pending bilties found.'
+            : 'No pending bilties found headed to this station.');
         return;
     }
     
@@ -258,7 +269,9 @@ const fetchBiltiesByStation = () => {
     if (addedCount > 0) {
         fetch_station_id.value = ''; // Reset after adding
     } else {
-        alert('All bilties for this station are already added to the grid.');
+        alert(fetch_station_id.value === ALL_STATIONS_VALUE
+            ? 'All pending bilties are already added to the grid.'
+            : 'All bilties for this station are already added to the grid.');
     }
 };
 

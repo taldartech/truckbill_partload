@@ -86,7 +86,7 @@
                                     <SearchableSelect
                                         :small="true"
                                         v-model="fetch_station_id"
-                                        :options="stations"
+                                        :options="destinationStationOptions"
                                         placeholder="Select Destination Station"
                                     />
                                     <button type="button" class="btn btn-sm btn-primary ms-3 text-nowrap shadow-sm" @click="fetchBiltiesByStation" :disabled="!fetch_station_id">
@@ -193,12 +193,19 @@ import { computed, ref } from 'vue';
 
 const fetch_station_id = ref('');
 
+const ALL_STATIONS_VALUE = 'all';
+
 const props = defineProps({
     stations: Array,
     trucks: Array,
     drivers: Array,
     bilties: Array
 });
+
+const destinationStationOptions = computed(() => [
+    { id: ALL_STATIONS_VALUE, name: 'ALL' },
+    ...props.stations,
+]);
 
 const form = useForm({
     from_station_id: '',
@@ -216,11 +223,15 @@ const form = useForm({
 
 const fetchBiltiesByStation = () => {
     if (!fetch_station_id.value) return;
-    
-    const matchingBilties = props.bilties.filter(b => b.to_station_id === fetch_station_id.value);
-    
+
+    const matchingBilties = fetch_station_id.value === ALL_STATIONS_VALUE
+        ? props.bilties
+        : props.bilties.filter(b => b.to_station_id === fetch_station_id.value);
+
     if (matchingBilties.length === 0) {
-        alert('No pending bilties found headed to this station.');
+        alert(fetch_station_id.value === ALL_STATIONS_VALUE
+            ? 'No pending bilties found.'
+            : 'No pending bilties found headed to this station.');
         return;
     }
     
@@ -244,7 +255,9 @@ const fetchBiltiesByStation = () => {
     if (addedCount > 0) {
         fetch_station_id.value = ''; // Reset after adding
     } else {
-        alert('All bilties for this station are already added to the grid.');
+        alert(fetch_station_id.value === ALL_STATIONS_VALUE
+            ? 'All pending bilties are already added to the grid.'
+            : 'All bilties for this station are already added to the grid.');
     }
 };
 
