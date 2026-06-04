@@ -71,8 +71,8 @@ class ChallanController extends Controller implements HasMiddleware
             'cash_received' => 'nullable|numeric',
             'cash_payment' => 'nullable|numeric',
             'total_amount' => 'nullable|numeric',
-            'pay_by' => 'nullable|string',
-            'delivery_at' => 'nullable|string',
+            'pay_by_agent_id' => 'nullable|exists:agents,id',
+            'delivery_at_agent_id' => 'nullable|exists:agents,id',
             'total_weight' => 'nullable|numeric',
             'total_packages' => 'nullable|numeric',
             'to_pay_amount' => 'nullable|numeric',
@@ -91,6 +91,8 @@ class ChallanController extends Controller implements HasMiddleware
         
         $details = $validated['details'] ?? [];
         unset($validated['details']);
+
+        $this->syncChallanAgentFields($validated);
 
         $challan = Challan::create($validated);
 
@@ -149,8 +151,8 @@ class ChallanController extends Controller implements HasMiddleware
             'cash_received' => 'nullable|numeric',
             'cash_payment' => 'nullable|numeric',
             'total_amount' => 'nullable|numeric',
-            'pay_by' => 'nullable|string',
-            'delivery_at' => 'nullable|string',
+            'pay_by_agent_id' => 'nullable|exists:agents,id',
+            'delivery_at_agent_id' => 'nullable|exists:agents,id',
             'total_weight' => 'nullable|numeric',
             'total_packages' => 'nullable|numeric',
             'to_pay_amount' => 'nullable|numeric',
@@ -166,6 +168,8 @@ class ChallanController extends Controller implements HasMiddleware
 
         $details = $validated['details'] ?? [];
         unset($validated['details']);
+
+        $this->syncChallanAgentFields($validated);
 
         $challan->update($validated);
         
@@ -196,5 +200,24 @@ class ChallanController extends Controller implements HasMiddleware
         $company = \App\Models\Company::find($challan->company_id);
         
         return view('prints.challan', compact('challan', 'company'));
+    }
+
+    private function syncChallanAgentFields(array &$validated): void
+    {
+        if (!empty($validated['pay_by_agent_id'])) {
+            $agent = Agent::find($validated['pay_by_agent_id']);
+            $validated['pay_by'] = $agent?->name;
+        } else {
+            $validated['pay_by_agent_id'] = null;
+            $validated['pay_by'] = null;
+        }
+
+        if (!empty($validated['delivery_at_agent_id'])) {
+            $agent = Agent::find($validated['delivery_at_agent_id']);
+            $validated['delivery_at'] = $agent?->name;
+        } else {
+            $validated['delivery_at_agent_id'] = null;
+            $validated['delivery_at'] = null;
+        }
     }
 }

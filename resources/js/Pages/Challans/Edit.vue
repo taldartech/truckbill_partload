@@ -216,10 +216,8 @@
                                         <div class="w-50">
                                             <SearchableSelect
                                                 :small="true"
-                                                v-model="form.pay_by"
+                                                v-model="form.pay_by_agent_id"
                                                 :options="agents"
-                                                valueKey="name"
-                                                labelKey="name"
                                                 placeholder="Select Agent"
                                             />
                                         </div>
@@ -229,10 +227,8 @@
                                         <div class="w-50">
                                             <SearchableSelect
                                                 :small="true"
-                                                v-model="form.delivery_at"
+                                                v-model="form.delivery_at_agent_id"
                                                 :options="agents"
-                                                valueKey="name"
-                                                labelKey="name"
                                                 placeholder="Select Agent"
                                             />
                                         </div>
@@ -286,6 +282,18 @@ const props = defineProps({
     agents: Array
 });
 
+const resolveAgentId = (agentId, agentName) => {
+    if (agentId) {
+        return agentId;
+    }
+    if (!agentName) {
+        return '';
+    }
+    const agent = props.agents.find((item) => item.name === agentName);
+
+    return agent?.id ?? '';
+};
+
 const form = useForm({
     company_id: props.challan.company_id || '',
     challan_number: props.challan.challan_number || '',
@@ -311,8 +319,8 @@ const form = useForm({
     total_weight: props.challan.total_weight || 0,
     total_packages: props.challan.total_packages || 0,
     total_balance_type: 'Cr',
-    pay_by: props.challan.pay_by || '',
-    delivery_at: props.challan.delivery_at || '',
+    pay_by_agent_id: resolveAgentId(props.challan.pay_by_agent_id, props.challan.pay_by),
+    delivery_at_agent_id: resolveAgentId(props.challan.delivery_at_agent_id, props.challan.delivery_at),
     add_to_main_challan: props.challan.add_to_main_challan || false,
     remark: props.challan.remark || '',
     status: props.challan.status || 'Created'

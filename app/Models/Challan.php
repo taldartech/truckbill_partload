@@ -42,4 +42,14 @@ class Challan extends Model
     {
         return $this->hasMany(ChallanDetail::class);
     }
+
+    public function payByAgent()
+    {
+        return $this->belongsTo(Agent::class, 'pay_by_agent_id');
+    }
+
+    public function deliveryAtAgent()
+    {
+        return $this->belongsTo(Agent::class, 'delivery_at_agent_id');
+    }
 }

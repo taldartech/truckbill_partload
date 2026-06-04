@@ -216,10 +216,8 @@
                                         <div class="w-50">
                                             <SearchableSelect
                                                 :small="true"
-                                                v-model="form.pay_by"
+                                                v-model="form.pay_by_agent_id"
                                                 :options="agents"
-                                                valueKey="name"
-                                                labelKey="name"
                                                 placeholder="Select Agent"
                                             />
                                         </div>
@@ -229,10 +227,8 @@
                                         <div class="w-50">
                                             <SearchableSelect
                                                 :small="true"
-                                                v-model="form.delivery_at"
+                                                v-model="form.delivery_at_agent_id"
                                                 :options="agents"
-                                                valueKey="name"
-                                                labelKey="name"
                                                 placeholder="Select Agent"
                                             />
                                         </div>
@@ -316,8 +312,8 @@ const form = useForm({
     total_weight: 0,
     total_packages: 0,
     total_balance_type: 'Cr',
-    pay_by: '',
-    delivery_at: '',
+    pay_by_agent_id: '',
+    delivery_at_agent_id: '',
     add_to_main_challan: false,
     remark: '',
     status: 'Created'
