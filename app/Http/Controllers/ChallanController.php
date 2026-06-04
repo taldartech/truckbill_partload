@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\Station;
 use App\Models\Driver;
 use App\Models\Truck;
+use App\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -46,6 +47,7 @@ class ChallanController extends Controller implements HasMiddleware
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
             'bilties' => \App\Models\Bilty::with(['biltyDetails.good', 'consignee'])->where('status', '!=', 'Delivered')->get(),
+            'agents' => Agent::orderBy('name')->get(['id', 'name']),
             'next_challan_number' => $nextNumber
         ]);
     }
@@ -124,6 +126,7 @@ class ChallanController extends Controller implements HasMiddleware
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
             'bilties' => $bilties,
+            'agents' => Agent::orderBy('name')->get(['id', 'name']),
         ]);
     }
 

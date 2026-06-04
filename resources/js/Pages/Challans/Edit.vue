@@ -213,7 +213,16 @@
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="mb-0 fw-bold small text-dark">To (Account)</label>
-                                        <input type="text" class="form-control form-control-sm w-50 p-1" v-model="form.pay_by">
+                                        <div class="w-50">
+                                            <SearchableSelect
+                                                :small="true"
+                                                v-model="form.pay_by"
+                                                :options="agents"
+                                                valueKey="name"
+                                                labelKey="name"
+                                                placeholder="Select Agent"
+                                            />
+                                        </div>
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="mb-0 fw-bold small text-dark">Delivery At</label>
@@ -264,7 +273,8 @@ const props = defineProps({
     stations: Array,
     drivers: Array,
     trucks: Array,
-    bilties: Array
+    bilties: Array,
+    agents: Array
 });
 
 const form = useForm({
