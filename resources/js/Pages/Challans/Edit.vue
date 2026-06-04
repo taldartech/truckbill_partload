@@ -226,7 +226,16 @@
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="mb-0 fw-bold small text-dark">Delivery At</label>
-                                        <input type="text" class="form-control form-control-sm w-50 p-1" v-model="form.delivery_at">
+                                        <div class="w-50">
+                                            <SearchableSelect
+                                                :small="true"
+                                                v-model="form.delivery_at"
+                                                :options="agents"
+                                                valueKey="name"
+                                                labelKey="name"
+                                                placeholder="Select Agent"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
