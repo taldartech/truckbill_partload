@@ -25,11 +25,6 @@ class InwardRegister extends Model
         return $this->belongsTo(Station::class, 'to_station_id');
     }
 
-    public function challan()
-    {
-        return $this->belongsTo(Challan::class);
-    }
-
     public function driver()
     {
         return $this->belongsTo(Driver::class);
@@ -40,8 +35,8 @@ class InwardRegister extends Model
         return $this->belongsTo(Truck::class);
     }
 
-    public function good()
+    public function details()
     {
-        return $this->belongsTo(Good::class);
+        return $this->hasMany(InwardRegisterDetail::class);
     }
 }

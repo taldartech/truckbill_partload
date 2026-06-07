@@ -4,7 +4,7 @@
         <div 
             class="form-select border-secondary shadow-none d-flex align-items-center justify-content-between" 
             :class="{ 'is-invalid': error, 'form-select-sm': small, 'bg-light text-muted': disabled }"
-            @click="toggleDropdown"
+            @click.stop="toggleDropdown"
             :style="{ cursor: disabled ? 'not-allowed' : 'pointer', backgroundColor: disabled ? '#e9ecef' : '#fff' }"
         >
             <span v-if="selectedItem" class="text-truncate">{{ selectedItem[labelKey] }}</span>
@@ -30,7 +30,7 @@
                 <li 
                     v-for="option in filteredOptions" 
                     :key="option[valueKey]"
-                    @click="selectOption(option)"
+                    @click.stop="selectOption(option)"
                     class="p-2 dropdown-item small"
                     :class="{ 'active bg-primary text-white': modelValue === option[valueKey] }"
                     style="cursor: pointer;"

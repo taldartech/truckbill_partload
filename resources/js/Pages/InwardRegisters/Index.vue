@@ -19,7 +19,9 @@
                                     <th>From → To</th>
                                     <th>Challan No.</th>
                                     <th>Truck No.</th>
-                                    <th>Goods</th>
+                                    <th>Total Pkg.</th>
+                                    <th>Delivery Freight</th>
+                                    <th>Crossing Freight</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
@@ -33,9 +35,11 @@
                                         <i class="fas fa-arrow-right mx-1 text-muted small"></i>
                                         {{ register.to_station?.name }}
                                     </td>
-                                    <td>{{ register.challan?.challan_number }} ({{ register.challan_date }})</td>
+                                    <td>{{ register.challan_number || '—' }} ({{ register.challan_date }})</td>
                                     <td>{{ register.truck?.truck_number }}</td>
-                                    <td>{{ register.good?.name }}</td>
+                                    <td>{{ register.total_packages ?? register.details?.length ?? 0 }}</td>
+                                    <td>{{ register.total_delivery_freight ?? '0.00' }}</td>
+                                    <td>{{ register.total_crossing_freight ?? '0.00' }}</td>
                                     <td class="text-end">
                                         <Link :href="`/inward-registers/${register.id}/edit`" class="btn btn-sm btn-info text-white me-2">
                                             <i class="fas fa-edit"></i>
@@ -46,7 +50,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="registers.data.length === 0">
-                                    <td colspan="8" class="text-center py-4">No inward registers found.</td>
+                                    <td colspan="10" class="text-center py-4">No inward registers found.</td>
                                 </tr>
                             </tbody>
                         </table>
