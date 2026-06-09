@@ -19,11 +19,11 @@
                     <li class="nav-item" v-if="can('view bilties')">
                         <Link href="/bilties" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/bilties') }">
                             <i class="nav-icon fas fa-file-invoice me-3"></i>
-                            <p class="mb-0 fw-medium">Bilty (Good Receipts)</p>
+                            <p class="mb-0 fw-medium">Bilty</p>
                             <i class="fas fa-chevron-right ms-auto small opacity-50"></i>
                         </Link>
                     </li>
-                    
+
                     <li class="nav-item">
                         <Link href="/loading-reports" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/loading-reports') }">
                             <i class="nav-icon fas fa-truck-loading me-3"></i>
@@ -69,7 +69,7 @@
                             <p class="mb-0 fw-medium">Delivery Receipts</p>
                         </Link>
                     </li>
-                    
+
                     <li class="nav-item">
                         <Link href="/invoices" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/invoices') }">
                             <i class="nav-icon fas fa-file-invoice-dollar me-3"></i>
@@ -162,21 +162,21 @@
                         </Link>
                     </li>
                     <li class="nav-header text-uppercase text-muted fs-7 fw-bold mt-4 mb-2 px-3">Reports</li>
-                    
+
                     <li class="nav-item">
                         <Link href="/reports/bilty-register" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/reports/bilty-register') }">
                             <i class="nav-icon fas fa-list-alt me-3"></i>
                             <p class="mb-0 fw-medium">Bilty Register</p>
                         </Link>
                     </li>
-                    
+
                     <li class="nav-item">
                         <Link href="/reports/challan-register" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/reports/challan-register') }">
                             <i class="nav-icon fas fa-list me-3"></i>
                             <p class="mb-0 fw-medium">Challan Register</p>
                         </Link>
                     </li>
-                    
+
                     <li class="nav-item">
                         <Link href="/reports/party-ledger" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/reports/party-ledger') }">
                             <i class="nav-icon fas fa-book me-3"></i>
@@ -211,7 +211,7 @@
                         </Link>
                     </li>
                     </template>
-                    
+
                     <template v-if="showSetupMenu">
                     <li class="nav-item" v-if="can('view companies')">
                         <Link href="/companies" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/companies') }">
