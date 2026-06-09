@@ -40,7 +40,7 @@
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-primary text-nowrap" style="min-width: 90px;">Add Bilties For</label>
                                     <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="fetch_station_id" :options="stations" placeholder="Station Wise" />
+                                        <SearchableSelect :small="true" v-model="fetch_station_id" :options="destinationStationOptions" placeholder="Station Wise" />
                                     </div>
                                 </div>
                                 <div class="col-md-1 d-flex align-items-center">
@@ -275,6 +275,8 @@ import { computed, ref, watch } from 'vue';
 
 const fetch_station_id = ref('');
 
+const ALL_STATIONS_VALUE = 'all';
+
 const props = defineProps({
     stations: Array,
     drivers: Array,
@@ -283,6 +285,11 @@ const props = defineProps({
     agents: Array,
     next_challan_number: String
 });
+
+const destinationStationOptions = computed(() => [
+    { id: ALL_STATIONS_VALUE, name: 'ALL' },
+    ...props.stations,
+]);
 
 const form = useForm({
     challan_number: props.next_challan_number || '',
@@ -369,29 +376,39 @@ const fetchBiltyDetails = (index) => {
 
 const fetchBiltiesByStation = () => {
     if (!fetch_station_id.value) return;
-    
-    // Clear out empty rows
-    form.details = form.details.filter(d => d.bilty_id !== '');
-    
-    // Find all bilties for this destination station that are not already in the grid
-    const existingBiltyIds = form.details.map(d => d.bilty_id);
-    const biltiesToAdd = props.bilties.filter(b => 
-        b.to_station_id === fetch_station_id.value && 
-        !existingBiltyIds.includes(b.id)
-    );
-    
-    if (biltiesToAdd.length === 0) {
-        alert('No pending bilties found for this station, or they are already added.');
-        if (form.details.length === 0) addRow(); // Ensure at least one row
+
+    const existingBiltyIds = form.details.filter(d => d.bilty_id).map(d => d.bilty_id);
+
+    const matchingBilties = fetch_station_id.value === ALL_STATIONS_VALUE
+        ? props.bilties
+        : props.bilties.filter(b => b.to_station_id === fetch_station_id.value);
+
+    if (matchingBilties.length === 0) {
+        alert(fetch_station_id.value === ALL_STATIONS_VALUE
+            ? 'No pending bilties found.'
+            : 'No pending bilties found headed to this station.');
         return;
     }
-    
-    // Add each bilty to the grid
+
+    if (form.details.length === 1 && !form.details[0].bilty_id) {
+        form.details.splice(0, 1);
+    }
+
+    const biltiesToAdd = matchingBilties.filter(b => !existingBiltyIds.includes(b.id));
+
+    if (biltiesToAdd.length === 0) {
+        alert(fetch_station_id.value === ALL_STATIONS_VALUE
+            ? 'All pending bilties are already added to the grid.'
+            : 'All bilties for this station are already added to the grid.');
+        if (form.details.length === 0) addRow();
+        return;
+    }
+
     biltiesToAdd.forEach(bilty => {
         let totalNugs = 0;
         let totalWeight = 0;
         let goodName = '--';
-        
+
         if (bilty.bilty_details && bilty.bilty_details.length > 0) {
             bilty.bilty_details.forEach(bd => {
                 totalNugs += parseFloat(bd.no_of_packages || 0);
@@ -399,9 +416,9 @@ const fetchBiltiesByStation = () => {
             });
             goodName = bilty.bilty_details[0].good ? bilty.bilty_details[0].good.name : '--';
         }
-        
+
         const toStation = props.stations.find(s => s.id === bilty.to_station_id);
-        
+
         form.details.push({
             bilty_id: bilty.id,
             to_station_name: toStation ? toStation.name : '--',
@@ -412,8 +429,9 @@ const fetchBiltiesByStation = () => {
             bob: bilty.payment_type || '--'
         });
     });
-    
+
     calculateTotal();
+    fetch_station_id.value = '';
 };
 
 const totalPackages = computed(() => {
