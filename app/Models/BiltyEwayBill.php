@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class BiltyEwayBill extends Model
 {
+    use \App\Traits\BelongsToCompany;
+    use \App\Traits\BelongsToBranch;
     protected $guarded = [];
 
     public function bilty()

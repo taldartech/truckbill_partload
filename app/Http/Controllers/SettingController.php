@@ -4,14 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 
-class SettingController extends Controller
+class SettingController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view settings', only: ['index']),
+            new Middleware('permission:edit settings', only: ['store']),
+        ];
+    }
+
     public function index()
     {
-        $company_id = auth()->check() && auth()->user()->company_id ? auth()->user()->company_id : 1;
-        $settings = Setting::where('company_id', $company_id)->get()->pluck('value', 'key')->toArray();
+        $companyId = $this->companyId();
+        $branchId = $this->branchId();
+
+        $settings = Setting::query()
+            ->where('company_id', $companyId)
+            ->where('branch_id', $branchId)
+            ->pluck('value', 'key')
+            ->toArray();
 
         $defaultSettings = [
             'invoice_prefix' => $settings['invoice_prefix'] ?? 'INV-',
@@ -21,18 +37,19 @@ class SettingController extends Controller
             'logo' => $settings['logo'] ?? null,
             'bilty_initial' => $settings['bilty_initial'] ?? '',
             'challan_initial' => $settings['challan_initial'] ?? '',
-            'main_challan_initial' => $settings['main_challan_initial'] ?? ''
+            'main_challan_initial' => $settings['main_challan_initial'] ?? '',
         ];
 
         return Inertia::render('Settings/Index', [
-            'settings' => $defaultSettings
+            'settings' => $defaultSettings,
         ]);
     }
 
     public function store(Request $request)
     {
-        $company_id = auth()->check() && auth()->user()->company_id ? auth()->user()->company_id : 1;
-        
+        $companyId = $this->companyId();
+        $branchId = $this->branchId();
+
         $validated = $request->validate([
             'invoice_prefix' => 'nullable|string',
             'default_gst_percent' => 'nullable|numeric',
@@ -41,22 +58,25 @@ class SettingController extends Controller
             'bilty_initial' => 'nullable|string',
             'challan_initial' => 'nullable|string',
             'main_challan_initial' => 'nullable|string',
-            'logo' => 'nullable|image|max:2048' // max 2MB
+            'logo' => 'nullable|image|max:2048',
         ]);
 
-        // Handle file upload
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('company_logos', 'public');
-            $validated['logo'] = '/storage/' . $path;
+            $validated['logo'] = '/storage/'.$path;
         }
 
         foreach ($validated as $key => $value) {
-            if ($value !== null || $key === 'logo' && !isset($validated['logo'])) {
-                 if ($key === 'logo' && !isset($validated['logo'])) {
-                     continue; // Skip if no new logo was uploaded
-                 }
+            if ($value !== null || ($key === 'logo' && ! isset($validated['logo']))) {
+                if ($key === 'logo' && ! isset($validated['logo'])) {
+                    continue;
+                }
                 Setting::updateOrCreate(
-                    ['company_id' => $company_id, 'key' => $key],
+                    [
+                        'company_id' => $companyId,
+                        'branch_id' => $branchId,
+                        'key' => $key,
+                    ],
                     ['value' => $value]
                 );
             }

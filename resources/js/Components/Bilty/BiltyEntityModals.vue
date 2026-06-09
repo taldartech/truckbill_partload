@@ -36,17 +36,7 @@
                             <div v-if="partyFormLoading" class="text-center text-muted py-3">Loading...</div>
                             <div v-else-if="partyFormLoadError" class="text-danger small">{{ partyFormLoadError }}</div>
                             <template v-else>
-                            <div v-if="isAdmin" class="row mb-2">
-                                <div class="col-md-6">
-                                    <label class="form-label small mb-1">Company</label>
-                                    <select class="form-select form-select-sm" v-model="partyForm.company_id">
-                                        <option value="">Select Company</option>
-                                        <option v-for="company in partyFormData.companies" :key="company.id" :value="company.id">
-                                            {{ company.name }}
-                                        </option>
-                                    </select>
-                                    <div v-if="partyFieldError('company_id')" class="text-danger small">{{ partyFieldError('company_id') }}</div>
-                                </div>
+                            <div class="row mb-2">
                                 <div class="col-md-6">
                                     <label class="form-label small mb-1">Group</label>
                                     <select class="form-select form-select-sm" v-model="partyForm.group_id">
@@ -135,16 +125,6 @@
                             <div v-if="stationFormLoading" class="text-center text-muted py-3">Loading...</div>
                             <div v-else-if="stationFormLoadError" class="text-danger small">{{ stationFormLoadError }}</div>
                             <template v-else>
-                            <div v-if="isAdmin" class="mb-2">
-                                <label class="form-label small mb-1">Company</label>
-                                <select class="form-select form-select-sm" v-model="stationForm.company_id">
-                                    <option value="">Select Company</option>
-                                    <option v-for="company in stationFormData.companies" :key="company.id" :value="company.id">
-                                        {{ company.name }}
-                                    </option>
-                                </select>
-                                <div v-if="stationFieldError('company_id')" class="text-danger small">{{ stationFieldError('company_id') }}</div>
-                            </div>
                             <div class="mb-2">
                                 <label class="form-label small mb-1">Station Name *</label>
                                 <input type="text" class="form-control form-control-sm" v-model="stationForm.name" required>
@@ -185,29 +165,19 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { onMounted, reactive, ref, watch } from 'vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import http from '@/utils/http';
 
-const props = defineProps({
-    defaultCompanyId: { type: [String, Number], default: '' },
-});
-
 const emit = defineEmits(['party-created', 'station-created']);
-
-const page = usePage();
-const isAdmin = computed(() => page.props.auth?.is_admin);
 
 const partyFormData = ref({
     loaded: false,
-    companies: [],
     groups: [],
     states: [],
 });
 const stationFormData = ref({
     loaded: false,
-    companies: [],
     states: [],
 });
 const partyCities = ref([]);
@@ -239,7 +209,6 @@ const partyErrors = ref({});
 const stationErrors = ref({});
 
 const partyForm = reactive({
-    company_id: '',
     group_id: '',
     name: '',
     type: 'Both',
@@ -252,7 +221,6 @@ const partyForm = reactive({
 });
 
 const stationForm = reactive({
-    company_id: '',
     name: '',
     state_id: '',
     city_id: '',
@@ -315,8 +283,6 @@ onMounted(() => {
     }
 });
 
-const resolveCompanyId = () => props.defaultCompanyId || page.props.auth.user?.company_id || '';
-
 const loadPartyFormData = async () => {
     if (partyFormData.value.loaded) return;
 
@@ -327,7 +293,6 @@ const loadPartyFormData = async () => {
         const { data } = await http.get('/parties/quick/form-data');
         partyFormData.value = {
             loaded: true,
-            companies: data.companies || [],
             groups: data.groups || [],
             states: data.states || [],
         };
@@ -348,7 +313,6 @@ const loadStationFormData = async () => {
         const { data } = await http.get('/stations/quick/form-data');
         stationFormData.value = {
             loaded: true,
-            companies: data.companies || [],
             states: data.states || [],
         };
     } catch (error) {
@@ -362,7 +326,6 @@ const resetPartyForm = () => {
     partyErrors.value = {};
     partyCities.value = [];
     Object.assign(partyForm, {
-        company_id: resolveCompanyId(),
         group_id: '',
         name: '',
         type: 'Both',
@@ -379,7 +342,6 @@ const resetStationForm = () => {
     stationErrors.value = {};
     stationCities.value = [];
     Object.assign(stationForm, {
-        company_id: resolveCompanyId(),
         name: '',
         state_id: '',
         city_id: '',

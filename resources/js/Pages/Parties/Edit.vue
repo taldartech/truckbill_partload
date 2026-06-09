@@ -9,16 +9,6 @@
                     <form @submit.prevent="submit">
                         <div class="card-body">
                             <div class="row">
-                                <div v-if="$page.props.auth.is_admin" class="col-md-6 form-group mb-3">
-                                    <label>Company *</label>
-                                    <select class="form-control" v-model="form.company_id" >
-                                        <option value="">Select Company</option>
-                                        <option v-for="company in companies" :key="company.id" :value="company.id">
-                                            {{ company.name }}
-                                        </option>
-                                    </select>
-                                    <div v-if="form.errors.company_id" class="text-danger small">{{ form.errors.company_id }}</div>
-                                </div>
                                 <div class="col-md-6 form-group mb-3">
                                     <label>Group</label>
                                     <select class="form-control" v-model="form.group_id">
@@ -116,14 +106,12 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 const props = defineProps({
     party: Object,
-    companies: Array,
     groups: Array,
     cities: Array,
     states: Array
 });
 
 const form = useForm({
-    company_id: props.party.company_id || '',
     group_id: props.party.group_id || '',
     name: props.party.name || '',
     type: props.party.type || 'Both',

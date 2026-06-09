@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -56,8 +57,11 @@ class BiltyRequest extends FormRequest
             $vendorId = null;
         }
 
+        $context = app(TenantContext::class);
+
         $this->merge([
-            'company_id' => $this->input('company_id') ?: auth()->user()?->company_id,
+            'company_id' => $context->requireCompanyId(),
+            'branch_id' => $context->requireBranchId(),
             'cartage_type' => $cartageType,
             'vendor_id' => $vendorId,
             'addon_charges' => empty($addonCharges) ? null : $addonCharges,
@@ -69,7 +73,7 @@ class BiltyRequest extends FormRequest
     {
         $bilty = $this->route('bilty');
         $biltyId = $bilty?->id ?? $bilty;
-        $effectiveCompanyId = $this->input('company_id') ?: auth()->user()?->company_id;
+        $effectiveBranchId = $this->input('branch_id');
 
         $ewayBillIdRule = $biltyId
             ? [
@@ -84,7 +88,6 @@ class BiltyRequest extends FormRequest
             : [];
 
         return [
-            'company_id' => 'nullable|exists:companies,id',
             'consignor_id' => 'required|exists:parties,id',
             'consignee_id' => 'required|exists:parties,id',
             'from_station_id' => 'required|exists:stations,id',
@@ -94,7 +97,7 @@ class BiltyRequest extends FormRequest
                 'string',
                 'max:50',
                 Rule::unique('bilties', 'bilty_number')
-                    ->where(fn ($query) => $query->where('company_id', $effectiveCompanyId))
+                    ->where(fn ($query) => $query->where('branch_id', $effectiveBranchId))
                     ->ignore($biltyId),
             ],
             'date' => 'required|date',

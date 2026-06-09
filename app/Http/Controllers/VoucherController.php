@@ -4,10 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Voucher;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 
-class VoucherController extends Controller
+class VoucherController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view vouchers', only: ['index', 'show']),
+            new Middleware('permission:create vouchers', only: ['create', 'store']),
+            new Middleware('permission:edit vouchers', only: ['edit', 'update']),
+            new Middleware('permission:delete vouchers', only: ['destroy']),
+        ];
+    }
     /**
      * Display a listing of the resource.
      */
@@ -34,12 +45,6 @@ class VoucherController extends Controller
             'amount' => 'required|numeric|min:0',
             'remark' => 'nullable|string'
         ]);
-
-        if (auth()->check() && auth()->user()->company_id) {
-            $validated['company_id'] = auth()->user()->company_id;
-        } else {
-            $validated['company_id'] = 1;
-        }
 
         Voucher::create($validated);
 

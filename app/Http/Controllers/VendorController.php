@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vendor;
-use App\Models\Company;
 use App\Models\City;
 use App\Models\State;
 use Illuminate\Http\Request;
@@ -35,7 +34,6 @@ class VendorController extends Controller implements HasMiddleware
     public function create()
     {
         return Inertia::render('Vendors/Create', [
-            'companies' => Company::all(),
             'cities' => City::all(),
             'states' => State::all(),
         ]);
@@ -43,8 +41,7 @@ class VendorController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',
             'city_id' => 'nullable|exists:cities,id',
@@ -52,11 +49,7 @@ class VendorController extends Controller implements HasMiddleware
             'mobile' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'gst_number' => 'nullable|string|max:50',
-        ]);
-
-        if (empty($validated['company_id']) && auth()->user()?->company_id) {
-            $validated['company_id'] = auth()->user()->company_id;
-        }
+        ]));
 
         Vendor::create($validated);
 
@@ -67,7 +60,6 @@ class VendorController extends Controller implements HasMiddleware
     {
         return Inertia::render('Vendors/Edit', [
             'vendor' => $vendor,
-            'companies' => Company::all(),
             'cities' => City::all(),
             'states' => State::all(),
         ]);
@@ -75,8 +67,7 @@ class VendorController extends Controller implements HasMiddleware
 
     public function update(Request $request, Vendor $vendor)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',
             'city_id' => 'nullable|exists:cities,id',
@@ -84,7 +75,7 @@ class VendorController extends Controller implements HasMiddleware
             'mobile' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'gst_number' => 'nullable|string|max:50',
-        ]);
+        ]));
 
         $vendor->update($validated);
 

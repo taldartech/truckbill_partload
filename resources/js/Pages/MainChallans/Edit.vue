@@ -261,7 +261,6 @@ const fetch_challan_id = ref('');
 
 const props = defineProps({
     main_challan: Object,
-    companies: Array,
     stations: Array,
     drivers: Array,
     trucks: Array,
@@ -269,7 +268,6 @@ const props = defineProps({
 });
 
 const form = useForm({
-    company_id: props.main_challan.company_id || '',
     main_challan_number: props.main_challan.main_challan_number || '',
     date: props.main_challan.date || new Date().toISOString().substr(0, 10),
     from_station_id: props.main_challan.from_station_id || '',

@@ -276,7 +276,6 @@ import { computed, ref, watch } from 'vue';
 const fetch_station_id = ref('');
 
 const props = defineProps({
-    companies: Array,
     stations: Array,
     drivers: Array,
     trucks: Array,
@@ -286,7 +285,6 @@ const props = defineProps({
 });
 
 const form = useForm({
-    company_id: '',
     challan_number: props.next_challan_number || '',
     date: new Date().toISOString().substr(0, 10),
     from_station_id: '',

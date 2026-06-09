@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Challan;
-use App\Models\Company;
 use App\Models\Station;
 use App\Models\Driver;
 use App\Models\Truck;
@@ -35,14 +34,12 @@ class ChallanController extends Controller implements HasMiddleware
 
     public function create()
     {
-        $company_id = auth()->check() && auth()->user()->company_id ? auth()->user()->company_id : 1;
-        $initial = \App\Models\Setting::where('company_id', $company_id)->where('key', 'challan_initial')->value('value') ?? 'CHL-';
-        $lastChallan = \App\Models\Challan::where('company_id', $company_id)->orderBy('id', 'desc')->first();
+        $initial = $this->branchSetting('challan_initial', 'CHL-');
+        $lastChallan = Challan::orderBy('id', 'desc')->first();
         $nextId = $lastChallan ? $lastChallan->id + 1 : 1;
-        $nextNumber = $initial . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+        $nextNumber = $initial.str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
         return Inertia::render('Challans/Create', [
-            'companies' => Company::all(),
             'stations' => Station::all(),
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
@@ -54,8 +51,7 @@ class ChallanController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'from_station_id' => 'required|exists:stations,id',
             'to_station_id' => 'required|exists:stations,id',
             'driver_id' => 'required|exists:drivers,id',
@@ -84,11 +80,8 @@ class ChallanController extends Controller implements HasMiddleware
             'status' => 'nullable|string',
             'details' => 'required|array|min:1',
             'details.*.bilty_id' => 'required|exists:bilties,id',
-        ]);
+        ]));
 
-        $company_id = auth()->check() && auth()->user()->company_id ? auth()->user()->company_id : 1;
-        $validated['company_id'] = $validated['company_id'] ?? $company_id;
-        
         $details = $validated['details'] ?? [];
         unset($validated['details']);
 
@@ -100,7 +93,6 @@ class ChallanController extends Controller implements HasMiddleware
             $bilty = \App\Models\Bilty::find($detail['bilty_id']);
             if ($bilty) {
                 $challan->details()->create([
-                    'company_id' => $challan->company_id,
                     'bilty_id' => $bilty->id,
                     'to_station_id' => $bilty->to_station_id,
                 ]);
@@ -123,7 +115,6 @@ class ChallanController extends Controller implements HasMiddleware
 
         return Inertia::render('Challans/Edit', [
             'challan' => $challan,
-            'companies' => Company::all(),
             'stations' => Station::all(),
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
@@ -134,8 +125,7 @@ class ChallanController extends Controller implements HasMiddleware
 
     public function update(Request $request, Challan $challan)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'from_station_id' => 'required|exists:stations,id',
             'to_station_id' => 'required|exists:stations,id',
             'driver_id' => 'required|exists:drivers,id',
@@ -164,7 +154,7 @@ class ChallanController extends Controller implements HasMiddleware
             'status' => 'nullable|string',
             'details' => 'required|array|min:1',
             'details.*.bilty_id' => 'required|exists:bilties,id',
-        ]);
+        ]));
 
         $details = $validated['details'] ?? [];
         unset($validated['details']);
@@ -178,7 +168,6 @@ class ChallanController extends Controller implements HasMiddleware
             $bilty = \App\Models\Bilty::find($detail['bilty_id']);
             if ($bilty) {
                 $challan->details()->create([
-                    'company_id' => $challan->company_id,
                     'bilty_id' => $bilty->id,
                     'to_station_id' => $bilty->to_station_id,
                 ]);

@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\Country;
 use App\Models\State;
 use App\Models\City;
+use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -25,9 +26,15 @@ class CompanyController extends Controller implements HasMiddleware
 
     public function index()
     {
-        $companies = Company::latest()->paginate(10);
+        $context = app(TenantContext::class);
+        $query = Company::query()->latest();
+
+        if ($context->isSuperAdmin()) {
+            $query->where('user_id', auth()->id());
+        }
+
         return Inertia::render('Companies/Index', [
-            'companies' => $companies
+            'companies' => $query->paginate(10),
         ]);
     }
 
@@ -36,7 +43,7 @@ class CompanyController extends Controller implements HasMiddleware
         return Inertia::render('Companies/Create', [
             'countries' => Country::all(),
             'states' => State::all(),
-            'cities' => City::all()
+            'cities' => City::all(),
         ]);
     }
 
@@ -69,27 +76,36 @@ class CompanyController extends Controller implements HasMiddleware
             'status' => 'boolean',
         ]);
 
+        if (auth()->user()?->isSuperAdmin()) {
+            $validated['user_id'] = auth()->id();
+        }
+
         Company::create($validated);
+
         return redirect()->route('companies.index')->with('success', 'Company created successfully.');
     }
 
     public function edit(Company $company)
     {
+        $this->authorizeCompany($company);
+
         return Inertia::render('Companies/Edit', [
             'company' => $company,
             'countries' => Country::all(),
             'states' => State::all(),
-            'cities' => City::all()
+            'cities' => City::all(),
         ]);
     }
 
     public function update(Request $request, Company $company)
     {
+        $this->authorizeCompany($company);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'short_name' => 'nullable|string|max:100',
             'company_type' => 'nullable|string|max:100',
-            'email' => 'nullable|email|unique:companies,email,' . $company->id,
+            'email' => 'nullable|email|unique:companies,email,'.$company->id,
             'phone' => 'nullable|string|max:20',
             'mobile' => 'nullable|string|max:20',
             'contact_person' => 'nullable|string|max:100',
@@ -113,12 +129,22 @@ class CompanyController extends Controller implements HasMiddleware
         ]);
 
         $company->update($validated);
+
         return redirect()->route('companies.index')->with('success', 'Company updated successfully.');
     }
 
     public function destroy(Company $company)
     {
+        $this->authorizeCompany($company);
         $company->delete();
+
         return redirect()->route('companies.index')->with('success', 'Company deleted successfully.');
+    }
+
+    private function authorizeCompany(Company $company): void
+    {
+        if (auth()->user()?->isSuperAdmin() && (int) $company->user_id !== (int) auth()->id()) {
+            abort(403);
+        }
     }
 }

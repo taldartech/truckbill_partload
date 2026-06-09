@@ -4,10 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Group;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 
-class GroupController extends Controller
+class GroupController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view groups', only: ['index', 'show']),
+            new Middleware('permission:create groups', only: ['create', 'store']),
+            new Middleware('permission:edit groups', only: ['edit', 'update']),
+            new Middleware('permission:delete groups', only: ['destroy']),
+        ];
+    }
     public function index()
     {
         return Inertia::render('Groups/Index', [
@@ -20,10 +31,6 @@ class GroupController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
         ]);
-
-        if (auth()->check() && auth()->user()->company_id) {
-            $validated['company_id'] = auth()->user()->company_id;
-        }
 
         Group::create($validated);
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Bilty extends Model
 {
     use \App\Traits\BelongsToCompany;
+    use \App\Traits\BelongsToBranch;
 
     use SoftDeletes;
 

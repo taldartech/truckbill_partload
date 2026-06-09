@@ -4,10 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Good;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 
-class GoodController extends Controller
+class GoodController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view goods', only: ['index', 'show']),
+            new Middleware('permission:create goods', only: ['create', 'store']),
+            new Middleware('permission:edit goods', only: ['edit', 'update']),
+            new Middleware('permission:delete goods', only: ['destroy']),
+        ];
+    }
     public function index()
     {
         return Inertia::render('Goods/Index', [
@@ -20,10 +31,6 @@ class GoodController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
         ]);
-
-        if (auth()->check() && auth()->user()->company_id) {
-            $validated['company_id'] = auth()->user()->company_id;
-        }
 
         Good::create($validated);
 

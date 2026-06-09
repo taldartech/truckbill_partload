@@ -15,4 +15,14 @@ class Company extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function branches()
+    {
+        return $this->hasMany(Branch::class);
+    }
 }

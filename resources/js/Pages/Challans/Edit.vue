@@ -274,7 +274,6 @@ const fetch_station_id = ref('');
 
 const props = defineProps({
     challan: Object,
-    companies: Array,
     stations: Array,
     drivers: Array,
     trucks: Array,
@@ -295,7 +294,6 @@ const resolveAgentId = (agentId, agentName) => {
 };
 
 const form = useForm({
-    company_id: props.challan.company_id || '',
     challan_number: props.challan.challan_number || '',
     date: props.challan.date || new Date().toISOString().substr(0, 10),
     from_station_id: props.challan.from_station_id || '',

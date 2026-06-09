@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Truck;
-use App\Models\Company;
 use App\Models\Transporter;
 use App\Models\TruckType;
 use App\Models\State;
@@ -40,7 +39,6 @@ class TruckController extends Controller implements HasMiddleware
     public function create()
     {
         return Inertia::render('Trucks/Create', [
-            'companies' => Company::all(),
             'transporters' => Transporter::all(),
             'truckTypes' => TruckType::all(),
             'states' => State::all(),
@@ -51,8 +49,7 @@ class TruckController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'transporter_id' => 'nullable|exists:transporters,id',
             'truck_number' => 'nullable|string',
             'truck_type_id' => 'nullable|exists:truck_types,id',
@@ -77,7 +74,7 @@ class TruckController extends Controller implements HasMiddleware
             'pollution_expiry_date' => 'nullable|date',
             'permit_no' => 'nullable|string',
             'permit_expiry_date' => 'nullable|date',
-        ]);
+        ]));
 
         Truck::create($validated);
         return redirect()->route('trucks.index')->with('success', 'Truck created successfully.');
@@ -87,7 +84,6 @@ class TruckController extends Controller implements HasMiddleware
     {
         return Inertia::render('Trucks/Edit', [
             'truck' => $truck,
-            'companies' => Company::all(),
             'transporters' => Transporter::all(),
             'truckTypes' => TruckType::all(),
             'states' => State::all(),
@@ -98,8 +94,7 @@ class TruckController extends Controller implements HasMiddleware
 
     public function update(Request $request, Truck $truck)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'transporter_id' => 'nullable|exists:transporters,id',
             'truck_number' => 'nullable|string',
             'truck_type_id' => 'nullable|exists:truck_types,id',
@@ -124,7 +119,7 @@ class TruckController extends Controller implements HasMiddleware
             'pollution_expiry_date' => 'nullable|date',
             'permit_no' => 'nullable|string',
             'permit_expiry_date' => 'nullable|date',
-        ]);
+        ]));
 
         $truck->update($validated);
         return redirect()->route('trucks.index')->with('success', 'Truck updated successfully.');

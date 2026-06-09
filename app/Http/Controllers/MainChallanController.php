@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\MainChallan;
 use App\Models\Challan;
-use App\Models\Company;
 use App\Models\Station;
 use App\Models\Driver;
 use App\Models\Truck;
@@ -35,9 +34,8 @@ class MainChallanController extends Controller implements HasMiddleware
 
     public function create()
     {
-        $company_id = auth()->check() && auth()->user()->company_id ? auth()->user()->company_id : 1;
-        $initial = \App\Models\Setting::where('company_id', $company_id)->where('key', 'main_challan_initial')->value('value') ?? 'MCH-';
-        $lastChallan = \App\Models\MainChallan::where('company_id', $company_id)->orderBy('id', 'desc')->first();
+        $initial = $this->branchSetting('main_challan_initial', 'MCH-');
+        $lastChallan = MainChallan::orderBy('id', 'desc')->first();
         $nextId = $lastChallan ? $lastChallan->id + 1 : 1;
         $nextNumber = $initial . str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
@@ -53,7 +51,6 @@ class MainChallanController extends Controller implements HasMiddleware
             ->get();
 
         return Inertia::render('MainChallans/Create', [
-            'companies' => Company::all(),
             'stations' => Station::all(),
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
@@ -64,8 +61,7 @@ class MainChallanController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'from_station_id' => 'required|exists:stations,id',
             'to_station_id' => 'required|exists:stations,id',
             'driver_id' => 'required|exists:drivers,id',
@@ -93,11 +89,8 @@ class MainChallanController extends Controller implements HasMiddleware
             'remark' => 'nullable|string',
             'details' => 'required|array|min:1',
             'details.*.challan_id' => 'required|exists:challans,id',
-        ]);
+        ]));
 
-        $company_id = auth()->check() && auth()->user()->company_id ? auth()->user()->company_id : 1;
-        $validated['company_id'] = $validated['company_id'] ?? $company_id;
-        
         $details = $validated['details'] ?? [];
         unset($validated['details']);
 
@@ -107,7 +100,6 @@ class MainChallanController extends Controller implements HasMiddleware
             $challan = Challan::find($detail['challan_id']);
             if ($challan) {
                 $main_challan->details()->create([
-                    'company_id' => $main_challan->company_id,
                     'challan_id' => $challan->id,
                 ]);
             }
@@ -129,7 +121,6 @@ class MainChallanController extends Controller implements HasMiddleware
 
         return Inertia::render('MainChallans/Edit', [
             'main_challan' => $main_challan,
-            'companies' => Company::all(),
             'stations' => Station::all(),
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
@@ -139,8 +130,7 @@ class MainChallanController extends Controller implements HasMiddleware
 
     public function update(Request $request, MainChallan $main_challan)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'from_station_id' => 'required|exists:stations,id',
             'to_station_id' => 'required|exists:stations,id',
             'driver_id' => 'required|exists:drivers,id',
@@ -168,7 +158,7 @@ class MainChallanController extends Controller implements HasMiddleware
             'remark' => 'nullable|string',
             'details' => 'required|array|min:1',
             'details.*.challan_id' => 'required|exists:challans,id',
-        ]);
+        ]));
 
         $details = $validated['details'] ?? [];
         unset($validated['details']);
@@ -180,7 +170,6 @@ class MainChallanController extends Controller implements HasMiddleware
             $challan = Challan::find($detail['challan_id']);
             if ($challan) {
                 $main_challan->details()->create([
-                    'company_id' => $main_challan->company_id,
                     'challan_id' => $challan->id,
                 ]);
             }
@@ -206,7 +195,7 @@ class MainChallanController extends Controller implements HasMiddleware
             'details.challan.details.bilty.biltyDetails',
         ]);
 
-        $company = Company::find($main_challan->company_id);
+        $company = \App\Models\Company::find($main_challan->company_id);
         $printData = $this->buildPrintData($main_challan);
 
         return view('prints.main_challan', compact('main_challan', 'company', 'printData'));

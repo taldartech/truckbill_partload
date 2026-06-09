@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -23,17 +24,25 @@ class RoleController extends Controller implements HasMiddleware
 
     public function index()
     {
+        if (! auth()->user()?->isMasterAdmin()) {
+            abort(403, 'Only Master Admin can manage roles.');
+        }
+
         return Inertia::render('Roles/Index', [
             'roles' => Role::with('permissions')->get(),
-            'permissions' => Permission::all()
+            'permissions' => Permission::all(),
         ]);
     }
 
     public function store(Request $request)
     {
+        if (! auth()->user()?->isMasterAdmin()) {
+            abort(403);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|unique:roles,name',
-            'permissions' => 'array'
+            'permissions' => 'array',
         ]);
 
         $role = Role::create(['name' => $validated['name']]);
@@ -46,10 +55,18 @@ class RoleController extends Controller implements HasMiddleware
 
     public function update(Request $request, Role $role)
     {
+        if (! auth()->user()?->isMasterAdmin()) {
+            abort(403);
+        }
+
         $validated = $request->validate([
-            'name' => 'required|string|unique:roles,name,' . $role->id,
-            'permissions' => 'array'
+            'name' => 'required|string|unique:roles,name,'.$role->id,
+            'permissions' => 'array',
         ]);
+
+        if (in_array($role->name, UserRole::all(), true) && $validated['name'] !== $role->name) {
+            return back()->with('error', 'System role names cannot be changed.');
+        }
 
         $role->update(['name' => $validated['name']]);
         $role->syncPermissions($validated['permissions'] ?? []);
@@ -59,10 +76,16 @@ class RoleController extends Controller implements HasMiddleware
 
     public function destroy(Role $role)
     {
-        if ($role->name === 'Admin') {
-            return back()->with('error', 'Cannot delete the Admin role.');
+        if (! auth()->user()?->isMasterAdmin()) {
+            abort(403);
         }
+
+        if (in_array($role->name, UserRole::all(), true)) {
+            return back()->with('error', 'System roles cannot be deleted.');
+        }
+
         $role->delete();
+
         return redirect()->route('roles.index')->with('success', 'Role deleted successfully.');
     }
 }

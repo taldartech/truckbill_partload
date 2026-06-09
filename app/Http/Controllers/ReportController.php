@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 use App\Models\Bilty;
 use App\Models\Challan;
@@ -12,8 +14,15 @@ use App\Models\Voucher;
 use App\Models\Invoice;
 use Carbon\Carbon;
 
-class ReportController extends Controller
+class ReportController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view reports', only: ['biltyRegister', 'challanRegister', 'partyLedger']),
+        ];
+    }
+
     public function biltyRegister(Request $request)
     {
         $query = Bilty::with(['fromStation', 'toStation', 'consignor', 'consignee', 'truck']);

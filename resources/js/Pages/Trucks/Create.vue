@@ -11,16 +11,6 @@
                             <!-- Core Info -->
                             <h5 class="text-primary border-bottom pb-2 mb-3">Core Information</h5>
                             <div class="row">
-                                <div v-if="$page.props.auth.is_admin" class="col-md-6 form-group mb-3">
-                                    <label>Company *</label>
-                                    <select class="form-control" v-model="form.company_id" >
-                                        <option value="">Select Company</option>
-                                        <option v-for="company in companies" :key="company.id" :value="company.id">
-                                            {{ company.name }}
-                                        </option>
-                                    </select>
-                                    <div v-if="form.errors.company_id" class="text-danger small">{{ form.errors.company_id }}</div>
-                                </div>
                                 <div class="col-md-6 form-group mb-3">
                                     <label>Transporter (Optional)</label>
                                     <select class="form-control" v-model="form.transporter_id">
@@ -185,7 +175,6 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 
 const props = defineProps({
-    companies: Array,
     transporters: Array,
     truckTypes: Array,
     states: Array,
@@ -194,7 +183,6 @@ const props = defineProps({
 });
 
 const form = useForm({
-    company_id: '',
     transporter_id: '',
     truck_number: '',
     truck_type_id: '',

@@ -15,6 +15,7 @@
                         </Link>
                     </li>
 
+                    <template v-if="showOperationsMenu">
                     <li class="nav-item" v-if="can('view bilties')">
                         <Link href="/bilties" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/bilties') }">
                             <i class="nav-icon fas fa-file-invoice me-3"></i>
@@ -182,9 +183,36 @@
                             <p class="mb-0 fw-medium">Party Ledger</p>
                         </Link>
                     </li>
+                    </template>
 
-                    <li class="nav-header mt-3 px-3 py-2 text-muted fw-bold small">ADMINISTRATION</li>
+                    <li class="nav-header mt-3 px-3 py-2 text-muted fw-bold small" v-if="showPortalMenu">PORTAL</li>
+                    <li class="nav-header mt-3 px-3 py-2 text-muted fw-bold small" v-else-if="showSetupMenu">SETUP</li>
+                    <li class="nav-header mt-3 px-3 py-2 text-muted fw-bold small" v-else-if="showOperationsMenu">ADMINISTRATION</li>
+
+                    <template v-if="showPortalMenu">
+                    <li class="nav-item" v-if="can('view users')">
+                        <Link href="/users" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/users') }">
+                            <i class="nav-icon fas fa-users-cog me-3"></i>
+                            <p class="mb-0 fw-medium">Manage Super Admins</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item" v-if="can('view roles')">
+                        <Link href="/roles" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/roles') }">
+                            <i class="nav-icon fas fa-user-shield me-3"></i>
+                            <p class="mb-0 fw-medium">Roles & Permissions</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item" v-if="can('view subscriptions')">
+                        <Link href="/subscriptions" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/subscriptions') }">
+                            <i class="nav-icon fas fa-credit-card me-3"></i>
+                            <p class="mb-0 fw-medium">Subscriptions</p>
+                        </Link>
+                    </li>
+                    </template>
                     
+                    <template v-if="showSetupMenu">
                     <li class="nav-item" v-if="can('view companies')">
                         <Link href="/companies" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/companies') }">
                             <i class="nav-icon fas fa-building me-3"></i>
@@ -206,21 +234,15 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item" v-if="can('view roles')">
-                        <Link href="/roles" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/roles') }">
-                            <i class="nav-icon fas fa-user-shield me-3"></i>
-                            <p class="mb-0 fw-medium">Roles & Permissions</p>
-                        </Link>
-                    </li>
-
                     <li class="nav-item" v-if="can('view subscriptions')">
                         <Link href="/subscriptions" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/subscriptions') }">
                             <i class="nav-icon fas fa-credit-card me-3"></i>
                             <p class="mb-0 fw-medium">Subscriptions</p>
                         </Link>
                     </li>
+                    </template>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="showOperationsMenu && can('view settings')">
                         <Link href="/settings" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/settings') }">
                             <i class="nav-icon fas fa-cog me-3"></i>
                             <p class="mb-0 fw-medium">Global Settings</p>
@@ -233,12 +255,10 @@
 </template>
 
 <script setup>
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
+import { usePermissions } from '@/composables/usePermissions';
 
-const page = usePage();
-const can = (permission) => {
-    return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
-};
+const { can, showPortalMenu, showSetupMenu, showOperationsMenu } = usePermissions();
 </script>
 
 <style scoped>

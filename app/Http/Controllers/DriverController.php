@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Driver;
-use App\Models\Company;
 use App\Models\City;
 use App\Models\State;
 use Illuminate\Http\Request;
@@ -26,24 +25,23 @@ class DriverController extends Controller implements HasMiddleware
     public function index()
     {
         $drivers = Driver::with('company')->latest()->paginate(10);
+
         return Inertia::render('Drivers/Index', [
-            'drivers' => $drivers
+            'drivers' => $drivers,
         ]);
     }
 
     public function create()
     {
         return Inertia::render('Drivers/Create', [
-            'companies' => Company::all()
-        ,
             'cities' => City::all(),
-            'states' => State::all()]);
+            'states' => State::all(),
+        ]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'name' => 'nullable|string',
             'father_name' => 'nullable|string',
             'mobile' => 'nullable|string',
@@ -57,10 +55,11 @@ class DriverController extends Controller implements HasMiddleware
             'pan_no' => 'nullable|string',
             'rto_name' => 'nullable|string',
             'rto_state' => 'nullable|string',
-            'license_verification' => 'nullable|string'
-        ]);
+            'license_verification' => 'nullable|string',
+        ]));
 
         Driver::create($validated);
+
         return redirect()->route('drivers.index')->with('success', 'Driver created successfully.');
     }
 
@@ -68,16 +67,14 @@ class DriverController extends Controller implements HasMiddleware
     {
         return Inertia::render('Drivers/Edit', [
             'driver' => $driver,
-            'companies' => Company::all()
-        ,
             'cities' => City::all(),
-            'states' => State::all()]);
+            'states' => State::all(),
+        ]);
     }
 
     public function update(Request $request, Driver $driver)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'name' => 'nullable|string',
             'father_name' => 'nullable|string',
             'mobile' => 'nullable|string',
@@ -91,16 +88,18 @@ class DriverController extends Controller implements HasMiddleware
             'pan_no' => 'nullable|string',
             'rto_name' => 'nullable|string',
             'rto_state' => 'nullable|string',
-            'license_verification' => 'nullable|string'
-        ]);
+            'license_verification' => 'nullable|string',
+        ]));
 
         $driver->update($validated);
+
         return redirect()->route('drivers.index')->with('success', 'Driver updated successfully.');
     }
 
     public function destroy(Driver $driver)
     {
         $driver->delete();
+
         return redirect()->route('drivers.index')->with('success', 'Driver deleted successfully.');
     }
 }

@@ -2,27 +2,27 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Services\TenantContext;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
+        $this->app->singleton(TenantContext::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        // Implicitly grant "master_admin" role all permissions
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('master_admin') ? true : null;
+            $context = app(TenantContext::class);
+
+            if ($context->isActingAsAdmin() && $context->can($ability)) {
+                return true;
+            }
+
+            return null;
         });
     }
 }

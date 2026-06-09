@@ -23,6 +23,7 @@ use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\TruckTypeController;
 use App\Http\Controllers\LoadingReportController;
 use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\BranchContextController;
 use App\Http\Controllers\VendorController;
 
 // Guest Routes
@@ -34,6 +35,10 @@ Route::middleware('guest')->group(function () {
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+
+    Route::get('select-branch', [BranchContextController::class, 'select'])->name('branch-context.select');
+    Route::post('session/branch', [BranchContextController::class, 'store'])->name('branch-context.store');
+    Route::delete('session/branch', [BranchContextController::class, 'destroy'])->name('branch-context.destroy');
     
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 

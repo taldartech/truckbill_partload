@@ -26,15 +26,6 @@
                                         <div v-if="form.errors.date" class="invalid-feedback d-block">{{ form.errors.date }}</div>
                                     </div>
                                 </div>
-                                <div class="col-md-3 d-flex align-items-center" v-if="$page.props.auth.is_admin">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Company</label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="form.company_id"
-                                        :options="companies"
-                                        placeholder="Select Company"
-                                    />
-                                </div>
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Payment</label>
                                     <select class="form-select form-select-sm border-secondary shadow-none" v-model="form.payment_type">
@@ -378,7 +369,6 @@
 
         <BiltyEntityModals
             ref="entityModals"
-            :default-company-id="form.company_id"
             @party-created="onPartyCreated"
             @station-created="onStationCreated"
         />
@@ -389,34 +379,29 @@
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import SelectWithActions from '@/Components/SelectWithActions.vue';
 import BiltyEntityModals from '@/Components/Bilty/BiltyEntityModals.vue';
-import { useForm, Link, usePage } from '@inertiajs/vue3';
+import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { watch, ref, onMounted, computed } from 'vue';
 
-const page = usePage();
 const gstAmount = ref('0.00');
 const entityModals = ref(null);
 const partyOptions = ref([]);
 const stationOptions = ref([]);
 
 const props = defineProps({
-    companies: Array,
     parties: Array,
     vendors: Array,
     stations: Array,
     goods: Array,
     package_types: Array,
     next_bilty_number: String,
-    company_gst_rates: Object,
+    default_gst_percent: { type: Number, default: 18 },
 });
 
 partyOptions.value = [...props.parties];
 stationOptions.value = [...props.stations];
 
-const gstForCompany = (companyId) => props.company_gst_rates?.[companyId] ?? 18;
-
 const form = useForm({
-    company_id: '',
     consignor_id: '',
     consignee_id: '',
     from_station_id: '',
@@ -437,7 +422,7 @@ const form = useForm({
     weight_actual: '',
     declared_value: '',
     invoice_number: '',
-    gst: gstForCompany(page.props.auth.user?.company_id),
+    gst: props.default_gst_percent,
     gst_liability_by: '',
     
     // Totals
@@ -485,8 +470,6 @@ const onStationCreated = ({ station, targetField }) => {
     }
 };
 
-const resolveCompanyId = () => form.company_id || page.props.auth.user?.company_id;
-
 const showCartageOptions = computed(() => parseFloat(form.cartage || 0) > 0);
 
 const onCartageChange = () => {
@@ -507,12 +490,11 @@ const applyCompanyGst = () => {
     if (form.gst_liability_by === 'Exempted') {
         form.gst = 0;
     } else {
-        form.gst = gstForCompany(resolveCompanyId());
+        form.gst = props.default_gst_percent;
     }
     calculateFinalTotal();
 };
 
-watch(() => form.company_id, applyCompanyGst);
 watch(() => form.gst_liability_by, applyCompanyGst);
 
 onMounted(() => calculateFinalTotal());

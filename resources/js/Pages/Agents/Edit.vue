@@ -8,18 +8,7 @@
                     </div>
                     <form @submit.prevent="submit">
                         <div class="card-body">
-                            <div v-if="$page.props.auth.is_admin" class="form-group mb-3">
-                                <label for="company_id">Company *</label>
-                                <select class="form-control" id="company_id" v-model="form.company_id" >
-                                    <option value="">Select Company</option>
-                                    <option v-for="company in companies" :key="company.id" :value="company.id">
-                                        {{ company.name }}
-                                    </option>
-                                </select>
-                                <div v-if="form.errors.company_id" class="text-danger mt-1 small">{{ form.errors.company_id }}</div>
-                            </div>
-                            
-                            <div class="form-group mb-3">
+<div class="form-group mb-3">
                                 <label for="name">Agent Name *</label>
                                 <input type="text" class="form-control" id="name" v-model="form.name" required>
                                 <div v-if="form.errors.name" class="text-danger mt-1 small">{{ form.errors.name }}</div>
@@ -91,13 +80,11 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 const props = defineProps({
     agent: Object,
-    companies: Array,
     cities: Array,
     states: Array
 });
 
 const form = useForm({
-    company_id: props.agent.company_id || '',
     name: props.agent.name || '',
     address: props.agent.address || '',
     state_id: props.agent.state_id || '',

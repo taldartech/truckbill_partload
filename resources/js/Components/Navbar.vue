@@ -8,15 +8,39 @@
                     </button>
                 </li>
                 <li class="nav-item d-none d-md-block ms-3">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-building text-muted me-2"></i>
-                        <span class="fw-bold text-dark small">{{ $page.props.auth?.company_name || 'Demo Company' }}</span>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-building text-muted me-2"></i>
+                            <span class="fw-bold text-dark small">{{ $page.props.auth?.company_name || 'Demo Company' }}</span>
+                        </div>
+                        <div v-if="$page.props.auth?.branch_name" class="d-flex align-items-center">
+                            <i class="fas fa-code-branch text-muted me-2"></i>
+                            <span class="fw-bold text-dark small">{{ $page.props.auth.branch_name }}</span>
+                        </div>
                     </div>
                 </li>
             </ul>
 
             <ul class="navbar-nav ms-auto align-items-center">
-                <!-- Info Pills -->
+                <li v-if="$page.props.auth?.is_super_admin" class="nav-item me-2">
+                    <Link
+                        v-if="$page.props.auth?.is_acting_as_admin"
+                        href="/session/branch"
+                        method="delete"
+                        as="button"
+                        class="btn btn-sm btn-outline-secondary"
+                    >
+                        <i class="fas fa-cog me-1"></i> Setup Mode
+                    </Link>
+                    <Link
+                        v-else
+                        href="/select-branch"
+                        class="btn btn-sm btn-primary"
+                    >
+                        <i class="fas fa-code-branch me-1"></i> Select Branch
+                    </Link>
+                </li>
+
                 <li class="nav-item d-none d-lg-block me-2">
                     <div class="badge rounded-pill bg-light border text-dark px-3 py-2 d-flex align-items-center small shadow-sm">
                         <i class="far fa-calendar-alt text-success me-2"></i>
@@ -26,15 +50,7 @@
                         </span>
                     </div>
                 </li>
-                <!-- <li class="nav-item d-none d-lg-block me-3">
-                    <div class="badge rounded-pill bg-light border text-dark px-3 py-2 d-flex align-items-center small shadow-sm">
-                        <i class="fas fa-coins text-success me-2"></i>
-                        <span class="text-muted me-1">CREDITS:</span>
-                        <span class="fw-bold text-success">680</span>
-                    </div> 
-                </li> -->
 
-                <!-- User Menu -->
                 <li class="nav-item dropdown">
                     <a href="#" class="nav-link dropdown-toggle d-flex align-items-center py-1 px-2 rounded-2 hover-bg" data-bs-toggle="dropdown">
                         <div class="bg-secondary bg-opacity-10 rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">

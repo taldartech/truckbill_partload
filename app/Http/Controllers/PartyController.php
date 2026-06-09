@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Party;
-use App\Models\Company;
 use App\Models\Group;
 use App\Models\City;
 use App\Models\State;
@@ -28,25 +27,24 @@ class PartyController extends Controller implements HasMiddleware
     public function index()
     {
         $parties = Party::with('company')->latest()->paginate(10);
+
         return Inertia::render('Parties/Index', [
-            'parties' => $parties
+            'parties' => $parties,
         ]);
     }
 
     public function create()
     {
         return Inertia::render('Parties/Create', [
-            'companies' => Company::all(),
-            'groups' => Group::all()
-        ,
+            'groups' => Group::all(),
             'cities' => City::all(),
-            'states' => State::all()]);
+            'states' => State::all(),
+        ]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'group_id' => 'nullable|exists:groups,id',
             'name' => 'nullable|string',
             'type' => 'nullable|string',
@@ -57,26 +55,21 @@ class PartyController extends Controller implements HasMiddleware
             'mobile_sms' => 'nullable|string',
             'email' => 'nullable|email',
             'gst_number' => 'nullable|string',
-            'bilty_charge' => 'nullable|numeric'
-        ]);
+            'bilty_charge' => 'nullable|numeric',
+        ]));
 
         Party::create($validated);
+
         return redirect()->route('parties.index')->with('success', 'Party created successfully.');
     }
 
     public function quickFormData(): JsonResponse
     {
-        $data = [
+        return response()->json([
             'groups' => Group::select('id', 'name')->orderBy('name')->get(),
             'states' => State::select('id', 'name')->orderBy('name')->get(),
-            'default_company_id' => auth()->user()?->company_id,
-        ];
-
-        if (auth()->user()?->hasRole(['master_admin', 'super_admin'])) {
-            $data['companies'] = Company::select('id', 'name')->orderBy('name')->get();
-        }
-
-        return response()->json($data);
+            'default_company_id' => $this->companyId(),
+        ]);
     }
 
     public function quickShow(Party $party): JsonResponse
@@ -94,15 +87,13 @@ class PartyController extends Controller implements HasMiddleware
                 ['label' => 'Email', 'value' => $party->email],
                 ['label' => 'GST Number', 'value' => $party->gst_number],
                 ['label' => 'Group', 'value' => $party->group?->name],
-                ['label' => 'Company', 'value' => $party->company?->name],
             ],
         ]);
     }
 
     public function quickStore(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'group_id' => 'nullable|exists:groups,id',
             'name' => 'required|string|max:255',
             'type' => 'nullable|string|in:Consignor,Consignee,Both',
@@ -112,11 +103,7 @@ class PartyController extends Controller implements HasMiddleware
             'mobile' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'gst_number' => 'nullable|string|max:50',
-        ]);
-
-        if (empty($validated['company_id']) && auth()->user()?->company_id) {
-            $validated['company_id'] = auth()->user()->company_id;
-        }
+        ]));
 
         $validated['type'] = $validated['type'] ?? 'Both';
 
@@ -135,17 +122,15 @@ class PartyController extends Controller implements HasMiddleware
     {
         return Inertia::render('Parties/Edit', [
             'party' => $party,
-            'companies' => Company::all(),
-            'groups' => Group::all()
-        ,
+            'groups' => Group::all(),
             'cities' => City::all(),
-            'states' => State::all()]);
+            'states' => State::all(),
+        ]);
     }
 
     public function update(Request $request, Party $party)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'group_id' => 'nullable|exists:groups,id',
             'name' => 'nullable|string',
             'type' => 'nullable|string',
@@ -156,16 +141,18 @@ class PartyController extends Controller implements HasMiddleware
             'mobile_sms' => 'nullable|string',
             'email' => 'nullable|email',
             'gst_number' => 'nullable|string',
-            'bilty_charge' => 'nullable|numeric'
-        ]);
+            'bilty_charge' => 'nullable|numeric',
+        ]));
 
         $party->update($validated);
+
         return redirect()->route('parties.index')->with('success', 'Party updated successfully.');
     }
 
     public function destroy(Party $party)
     {
         $party->delete();
+
         return redirect()->route('parties.index')->with('success', 'Party deleted successfully.');
     }
 }

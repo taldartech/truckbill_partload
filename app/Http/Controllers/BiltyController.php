@@ -4,17 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BiltyRequest;
 use App\Models\Bilty;
-use App\Models\Company;
 use App\Models\Party;
 use App\Models\Vendor;
 use App\Models\Station;
 use App\Models\Good;
 use App\Models\PackageType;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Inertia\Inertia;
 use Illuminate\Support\Str;
 
 class BiltyController extends Controller implements HasMiddleware
@@ -28,37 +26,36 @@ class BiltyController extends Controller implements HasMiddleware
             new Middleware('permission:delete bilties', only: ['destroy']),
         ];
     }
+
     public function index()
     {
         $bilties = Bilty::with(['company', 'consignor', 'consignee', 'fromStation', 'toStation'])->latest()->paginate(10);
+
         return Inertia::render('Bilties/Index', [
-            'bilties' => $bilties
+            'bilties' => $bilties,
         ]);
     }
 
     public function create()
     {
-        $company_id = auth()->check() && auth()->user()->company_id ? auth()->user()->company_id : 1;
-        $initial = \App\Models\Setting::where('company_id', $company_id)->where('key', 'bilty_initial')->value('value') ?? 'BLT-';
+        $initial = $this->branchSetting('bilty_initial', 'BLT-');
         $prefixLength = Str::length($initial);
-        $maxSequence = \App\Models\Bilty::where('company_id', $company_id)
-            ->where('bilty_number', 'like', $initial . '%')
+        $maxSequence = Bilty::query()
+            ->where('bilty_number', 'like', $initial.'%')
             ->whereRaw('SUBSTRING(bilty_number, ?) REGEXP "^[0-9]+$"', [$prefixLength + 1])
             ->selectRaw('MAX(CAST(SUBSTRING(bilty_number, ?) AS UNSIGNED)) as max_seq', [$prefixLength + 1])
             ->value('max_seq') ?? 0;
 
-        $nextNumber = $initial . str_pad($maxSequence + 1, 4, '0', STR_PAD_LEFT);
-        $companyGstRates = $this->companyGstRates();
+        $nextNumber = $initial.str_pad($maxSequence + 1, 4, '0', STR_PAD_LEFT);
 
         return Inertia::render('Bilties/Create', [
-            'companies' => Company::all(),
             'parties' => Party::all(),
             'vendors' => Vendor::all(),
             'stations' => Station::all(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
             'next_bilty_number' => $nextNumber,
-            'company_gst_rates' => $companyGstRates,
+            'default_gst_percent' => (float) $this->branchSetting('default_gst_percent', 18),
         ]);
     }
 
@@ -75,16 +72,15 @@ class BiltyController extends Controller implements HasMiddleware
             $bilty = Bilty::create($validated);
 
             foreach ($details as $item) {
-                if (!empty($item['good_id'])) {
+                if (! empty($item['good_id'])) {
                     $bilty->biltyDetails()->create([
-                        'company_id' => $bilty->company_id,
                         'good_id' => $item['good_id'],
                         'package_type_id' => $item['package_type_id'],
                         'no_of_packages' => $item['no_of_packages'],
                         'gross_weight' => $item['gross_weight'],
                         'charged_weight' => $item['charged_weight'] ?? null,
                         'rate' => $item['rate'],
-                        'rate_type' => $item['rate_type'] ?? 'Fixed'
+                        'rate_type' => $item['rate_type'] ?? 'Fixed',
                     ]);
                 }
             }
@@ -98,15 +94,15 @@ class BiltyController extends Controller implements HasMiddleware
     public function edit(Bilty $bilty)
     {
         $bilty->load(['biltyDetails', 'ewayBills']);
+
         return Inertia::render('Bilties/Edit', [
             'bilty' => $bilty,
-            'companies' => Company::all(),
             'parties' => Party::all(),
             'vendors' => Vendor::all(),
             'stations' => Station::all(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
-            'company_gst_rates' => $this->companyGstRates(),
+            'default_gst_percent' => (float) $this->branchSetting('default_gst_percent', 18),
         ]);
     }
 
@@ -123,16 +119,15 @@ class BiltyController extends Controller implements HasMiddleware
             $bilty->biltyDetails()->delete();
 
             foreach ($details as $item) {
-                if (!empty($item['good_id'])) {
+                if (! empty($item['good_id'])) {
                     $bilty->biltyDetails()->create([
-                        'company_id' => $bilty->company_id,
                         'good_id' => $item['good_id'],
                         'package_type_id' => $item['package_type_id'],
                         'no_of_packages' => $item['no_of_packages'],
                         'gross_weight' => $item['gross_weight'],
                         'charged_weight' => $item['charged_weight'] ?? null,
                         'rate' => $item['rate'],
-                        'rate_type' => $item['rate_type'] ?? 'Fixed'
+                        'rate_type' => $item['rate_type'] ?? 'Fixed',
                     ]);
                 }
             }
@@ -146,6 +141,7 @@ class BiltyController extends Controller implements HasMiddleware
     public function destroy(Bilty $bilty)
     {
         $bilty->delete();
+
         return redirect()->route('bilties.index')->with('success', 'Bilty deleted successfully.');
     }
 
@@ -207,9 +203,9 @@ class BiltyController extends Controller implements HasMiddleware
         $addCharge('Handling Charge', $bilty->handling_charge);
         $addCharge('Risk / DD Charge', $bilty->risk_dd_charge);
         $cartageLabel = 'Cartage';
-        if ((float) ($bilty->cartage ?? 0) != 0 && !empty($bilty->cartage_type)) {
+        if ((float) ($bilty->cartage ?? 0) != 0 && ! empty($bilty->cartage_type)) {
             $cartageType = in_array(strtolower((string) $bilty->cartage_type), ['due'], true) ? 'Due' : 'Paid';
-            $cartageLabel = 'Cartage (' . $cartageType . ')';
+            $cartageLabel = 'Cartage ('.$cartageType.')';
         }
         $addCharge($cartageLabel, $bilty->cartage);
         $addCharge('Other Charge', $bilty->other_charge);
@@ -236,7 +232,7 @@ class BiltyController extends Controller implements HasMiddleware
 
         if ($gstAmount != 0) {
             $charges[] = [
-                'label' => 'GST (' . rtrim(rtrim(number_format($gstRate, 2), '0'), '.') . '%)',
+                'label' => 'GST ('.rtrim(rtrim(number_format($gstRate, 2), '0'), '.').'%)',
                 'amount' => $gstAmount,
             ];
         }
@@ -280,14 +276,6 @@ class BiltyController extends Controller implements HasMiddleware
         return $rate;
     }
 
-    private function companyGstRates(): array
-    {
-        return \App\Models\Setting::where('key', 'default_gst_percent')
-            ->pluck('value', 'company_id')
-            ->map(fn ($value) => (float) $value)
-            ->toArray();
-    }
-
     private function syncEwayBills(Bilty $bilty, array $ewayBills): void
     {
         $keptIds = [];
@@ -298,13 +286,12 @@ class BiltyController extends Controller implements HasMiddleware
             }
 
             $payload = [
-                'company_id' => $bilty->company_id,
                 'eway_bill_no' => $item['eway_bill_no'],
                 'eway_bill_date' => null,
                 'eway_bill_valid_till' => $item['eway_bill_valid_till'] ?? null,
             ];
 
-            if (!empty($item['id'])) {
+            if (! empty($item['id'])) {
                 $existing = $bilty->ewayBills()->whereKey($item['id'])->first();
                 if ($existing) {
                     $existing->update($payload);

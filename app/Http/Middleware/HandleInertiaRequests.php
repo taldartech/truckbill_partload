@@ -2,58 +2,60 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * The root template that's loaded on the first page visit.
-     *
-     * @see https://inertiajs.com/server-side-setup#root-template
-     *
-     * @var string
-     */
     protected $rootView = 'app';
 
-    /**
-     * Determines the current asset version.
-     *
-     * @see https://inertiajs.com/asset-versioning
-     */
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
-    /**
-     * Define the props that are shared by default.
-     *
-     * @see https://inertiajs.com/shared-data
-     *
-     * @return array<string, mixed>
-     */
     public function share(Request $request): array
     {
+        $context = app(TenantContext::class);
+        $user = $request->user();
+        $activeBranch = $context->activeBranch();
+        $activeCompany = $context->activeCompany();
+
         return array_merge(parent::share($request), [
             'csrf_token' => csrf_token(),
             'auth' => [
-                'user' => $request->user(),
-                'roles' => $request->user() ? $request->user()->getRoleNames() : [],
-                'permissions' => $request->user() ? $request->user()->getAllPermissions()->pluck('name') : [],
-                'is_admin' => $request->user() ? $request->user()->hasRole(['master_admin', 'super_admin']) : false,
-                'company_name' => $request->user() && $request->user()->company ? $request->user()->company->name : 'Demo Company',
-                'subscription_ends_at' => function () use ($request) {
-                    if ($request->user() && $request->user()->company_id) {
-                        $sub = \Illuminate\Support\Facades\DB::table('subscriptions')
-                            ->where('company_id', $request->user()->company_id)
-                            ->where('status', 'active')
-                            ->orderBy('ends_at', 'desc')
-                            ->first();
-                        if ($sub) {
-                            return \Carbon\Carbon::parse($sub->ends_at)->format('d M, Y');
-                        }
+                'user' => $user,
+                'roles' => $user ? $user->getRoleNames() : [],
+                'permissions' => $user ? $user->getAllPermissions()->pluck('name') : [],
+                'effective_permissions' => $context->effectivePermissions(),
+                'is_master_admin' => $context->isMasterAdmin(),
+                'is_super_admin' => $context->isSuperAdmin(),
+                'is_admin' => $context->isPlatformAdmin(),
+                'is_acting_as_admin' => $context->isActingAsAdmin(),
+                'is_portal_user' => $context->isPortalUser(),
+                'company_name' => $activeCompany?->name
+                    ?? ($user && $user->company ? $user->company->name : 'Demo Company'),
+                'branch_name' => $activeBranch?->name ?? ($user?->branch?->name),
+                'active_branch' => $activeBranch ? $activeBranch->only(['id', 'name']) : null,
+                'active_company' => $activeCompany ? $activeCompany->only(['id', 'name']) : null,
+                'subscription_ends_at' => function () use ($request, $context) {
+                    $companyId = $context->activeCompanyId() ?? $request->user()?->company_id;
+
+                    if (! $companyId) {
+                        return null;
                     }
+
+                    $sub = \Illuminate\Support\Facades\DB::table('subscriptions')
+                        ->where('company_id', $companyId)
+                        ->where('status', 'active')
+                        ->orderBy('ends_at', 'desc')
+                        ->first();
+
+                    if ($sub) {
+                        return \Carbon\Carbon::parse($sub->ends_at)->format('d M, Y');
+                    }
+
                     return null;
                 },
             ],

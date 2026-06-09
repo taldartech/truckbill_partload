@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TruckType extends Model
 {
+    use \App\Traits\BelongsToCompany;
     protected $guarded = [];
     //
 }

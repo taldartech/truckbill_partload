@@ -11,16 +11,6 @@
                             <!-- Basic Details -->
                             <h5 class="text-primary border-bottom pb-2 mb-3">Basic Information</h5>
                             <div class="row">
-                                <div v-if="$page.props.auth.is_admin" class="col-md-6 form-group mb-3">
-                                    <label>Company *</label>
-                                    <select class="form-control" v-model="form.company_id" >
-                                        <option value="">Select Company</option>
-                                        <option v-for="company in companies" :key="company.id" :value="company.id">
-                                            {{ company.name }}
-                                        </option>
-                                    </select>
-                                    <div v-if="form.errors.company_id" class="text-danger small">{{ form.errors.company_id }}</div>
-                                </div>
                                 <div class="col-md-6 form-group mb-3">
                                     <label>Driver Name *</label>
                                     <input type="text" class="form-control" v-model="form.name" required>
@@ -119,13 +109,11 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 const props = defineProps({
     driver: Object,
-    companies: Array,
     cities: Array,
     states: Array
 });
 
 const form = useForm({
-    company_id: props.driver.company_id || '',
     name: props.driver.name || '',
     father_name: props.driver.father_name || '',
     mobile: props.driver.mobile || '',

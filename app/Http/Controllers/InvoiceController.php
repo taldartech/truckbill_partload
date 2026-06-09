@@ -7,10 +7,21 @@ use App\Models\InvoiceDetail;
 use App\Models\Party;
 use App\Models\Bilty;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 
-class InvoiceController extends Controller
+class InvoiceController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view invoices', only: ['index', 'show', 'print']),
+            new Middleware('permission:create invoices', only: ['create', 'store']),
+            new Middleware('permission:edit invoices', only: ['edit', 'update']),
+            new Middleware('permission:delete invoices', only: ['destroy']),
+        ];
+    }
     public function index()
     {
         $invoices = Invoice::with('party')->orderBy('id', 'desc')->paginate(10);
@@ -42,13 +53,10 @@ class InvoiceController extends Controller
             'bilty_ids.*' => 'exists:bilties,id'
         ]);
 
-        $company_id = auth()->check() && auth()->user()->company_id ? auth()->user()->company_id : 1;
-
         $bilties = Bilty::whereIn('id', $request->bilty_ids)->get();
         $totalAmount = $bilties->sum('amount');
-        
+
         $invoice = Invoice::create([
-            'company_id' => $company_id,
             'invoice_no' => $validated['invoice_no'],
             'date' => $validated['date'],
             'party_id' => $validated['party_id'],

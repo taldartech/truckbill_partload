@@ -8,18 +8,7 @@
                     </div>
                     <form @submit.prevent="submit">
                         <div class="card-body">
-                            <div v-if="$page.props.auth.is_admin" class="form-group mb-3">
-                                <label for="company_id">Company *</label>
-                                <select class="form-control" id="company_id" v-model="form.company_id" >
-                                    <option value="">Select Company</option>
-                                    <option v-for="company in companies" :key="company.id" :value="company.id">
-                                        {{ company.name }}
-                                    </option>
-                                </select>
-                                <div v-if="form.errors.company_id" class="text-danger mt-1 small">{{ form.errors.company_id }}</div>
-                            </div>
-
-                            <div class="form-group mb-3">
+<div class="form-group mb-3">
                                 <label for="name">Station Name *</label>
                                 <input type="text" class="form-control" id="name" v-model="form.name" placeholder="Enter Station Name" required>
                             </div>
@@ -68,13 +57,11 @@ import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 const props = defineProps({
-    companies: Array,
     cities: Array,
     states: Array
 });
 
 const form = useForm({
-    company_id: '',
     name: '',
     city_id: '',
     state_id: ''

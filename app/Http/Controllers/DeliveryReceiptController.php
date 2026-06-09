@@ -5,10 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\DeliveryReceipt;
 use App\Models\Party;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 
-class DeliveryReceiptController extends Controller
+class DeliveryReceiptController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view delivery_receipts', only: ['index', 'show', 'print']),
+            new Middleware('permission:create delivery_receipts', only: ['create', 'store']),
+            new Middleware('permission:edit delivery_receipts', only: ['edit', 'update']),
+            new Middleware('permission:delete delivery_receipts', only: ['destroy']),
+        ];
+    }
     /**
      * Display a listing of the resource.
      */
@@ -53,12 +64,6 @@ class DeliveryReceiptController extends Controller
             'final_amount' => 'required|numeric|min:0',
             'cartage_charge' => 'nullable|numeric|min:0',
         ]);
-
-        if (auth()->check() && auth()->user()->company_id) {
-            $validated['company_id'] = auth()->user()->company_id;
-        } else {
-            $validated['company_id'] = 1;
-        }
 
         DeliveryReceipt::create($validated);
 

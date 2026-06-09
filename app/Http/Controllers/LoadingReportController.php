@@ -3,17 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Models\LoadingReport;
-use App\Models\Company;
 use App\Models\Station;
 use App\Models\Truck;
 use App\Models\Driver;
 use App\Models\Bilty;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
-class LoadingReportController extends Controller
+class LoadingReportController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view loading_reports', only: ['index', 'show', 'print']),
+            new Middleware('permission:create loading_reports', only: ['create', 'store']),
+            new Middleware('permission:edit loading_reports', only: ['edit', 'update']),
+            new Middleware('permission:delete loading_reports', only: ['destroy']),
+        ];
+    }
     /**
      * Display a listing of the resource.
      */
@@ -53,12 +63,6 @@ class LoadingReportController extends Controller
             'details.*.gross_weight' => 'nullable|numeric'
         ]);
 
-        if (auth()->check() && auth()->user()->company_id) {
-            $validated['company_id'] = auth()->user()->company_id;
-        } else {
-            $validated['company_id'] = 1; // Default for testing if not auth
-        }
-
         DB::transaction(function () use ($validated) {
             $details = $validated['details'];
             unset($validated['details']);
@@ -70,7 +74,6 @@ class LoadingReportController extends Controller
             $report = LoadingReport::create($validated);
 
             foreach ($details as $item) {
-                $item['company_id'] = $report->company_id;
                 $report->details()->create($item);
             }
 
@@ -111,10 +114,6 @@ class LoadingReportController extends Controller
             'details.*.gross_weight' => 'nullable|numeric'
         ]);
 
-        if (auth()->check() && auth()->user()->company_id) {
-            $validated['company_id'] = auth()->user()->company_id;
-        }
-
         DB::transaction(function () use ($validated, $loadingReport) {
             $details = $validated['details'];
             unset($validated['details']);
@@ -127,7 +126,6 @@ class LoadingReportController extends Controller
             $loadingReport->details()->delete();
 
             foreach ($details as $item) {
-                $item['company_id'] = $loadingReport->company_id;
                 $loadingReport->details()->create($item);
             }
         });
@@ -154,7 +152,7 @@ class LoadingReportController extends Controller
             'details.consignee',
         ]);
 
-        $company = Company::find($loading_report->company_id);
+        $company = \App\Models\Company::find($loading_report->company_id);
         $printData = $this->buildPrintData($loading_report);
 
         return view('prints.loading_report', compact('loading_report', 'company', 'printData'));

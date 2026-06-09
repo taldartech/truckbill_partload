@@ -11,11 +11,23 @@ use App\Models\Party;
 use App\Models\Transporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
-class InwardRegisterController extends Controller
+class InwardRegisterController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view inward_registers', only: ['index', 'show']),
+            new Middleware('permission:create inward_registers', only: ['create', 'store']),
+            new Middleware('permission:edit inward_registers', only: ['edit', 'update']),
+            new Middleware('permission:delete inward_registers', only: ['destroy']),
+        ];
+    }
+
     public function index()
     {
         $registers = InwardRegister::with(['fromStation', 'toStation', 'truck', 'driver', 'details'])
@@ -49,9 +61,6 @@ class InwardRegisterController extends Controller
             unset($validated['details']);
 
             $this->applyDetailTotals($validated, $details);
-
-            $validated['company_id'] = $validated['company_id']
-                ?? (auth()->user()?->company_id ?: 1);
 
             $register = InwardRegister::create($validated);
             $this->syncDetails($register, $details);
@@ -108,13 +117,10 @@ class InwardRegisterController extends Controller
 
     private function nextInwardRegisterNumber(): string
     {
-        $companyId = auth()->user()?->company_id ?: 1;
-        $initial = \App\Models\Setting::where('company_id', $companyId)
-            ->where('key', 'inward_register_initial')
-            ->value('value') ?? 'IR-';
+        $initial = $this->branchSetting('inward_register_initial', 'IR-');
 
-        $last = InwardRegister::where('company_id', $companyId)
-            ->where('inward_register_no', 'like', $initial . '%')
+        $last = InwardRegister::query()
+            ->where('inward_register_no', 'like', $initial.'%')
             ->orderByDesc('id')
             ->value('inward_register_no');
 
@@ -204,10 +210,7 @@ class InwardRegisterController extends Controller
         $keptIds = [];
 
         foreach ($details as $detail) {
-            $payload = [
-                ...$this->normalizeDetail($detail),
-                'company_id' => $register->company_id,
-            ];
+            $payload = $this->normalizeDetail($detail);
 
             if (!empty($detail['id'])) {
                 $existing = $register->details()->whereKey($detail['id'])->first();

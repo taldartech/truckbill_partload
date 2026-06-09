@@ -4,7 +4,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Users List</h3>
+                        <h3 class="card-title">{{ $page.props.auth.is_master_admin ? 'Super Admins' : 'Users List' }}</h3>
                         <div class="card-tools">
                             <button v-if="can('create users')" class="btn btn-primary btn-sm" @click="openModal()">
                                 <i class="fas fa-plus"></i> Add New User
@@ -19,6 +19,7 @@
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Company</th>
+                                    <th>Branch</th>
                                     <th>Role</th>
                                     <th>Actions</th>
                                 </tr>
@@ -29,6 +30,7 @@
                                     <td>{{ user.name }}</td>
                                     <td>{{ user.email }}</td>
                                     <td>{{ user.company ? user.company.name : 'System/Global' }}</td>
+                                    <td>{{ user.branch ? user.branch.name : '—' }}</td>
                                     <td>
                                         <span v-for="role in user.roles" :key="role.id" class="badge bg-info me-1">
                                             {{ role.name }}
@@ -50,7 +52,6 @@
             </div>
         </div>
 
-        <!-- Modal -->
         <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -69,12 +70,21 @@
                                 <input type="email" class="form-control" v-model="form.email" required>
                                 <div v-if="form.errors.email" class="text-danger small">{{ form.errors.email }}</div>
                             </div>
-                            <div class="form-group mb-3" v-if="$page.props.auth.is_admin">
+                            <div class="form-group mb-3" v-if="showCompanyField">
                                 <label>Company</label>
-                                <select class="form-control" v-model="form.company_id">
-                                    <option value="">Global/System (No Company)</option>
+                                <select class="form-control" v-model="form.company_id" @change="form.branch_id = ''">
+                                    <option value="">Select Company</option>
                                     <option v-for="company in companies" :key="company.id" :value="company.id">
                                         {{ company.name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-3" v-if="showBranchField">
+                                <label>Branch</label>
+                                <select class="form-control" v-model="form.branch_id" :disabled="!form.company_id">
+                                    <option value="">Select Branch</option>
+                                    <option v-for="branch in filteredBranches" :key="branch.id" :value="branch.id">
+                                        {{ branch.name }}
                                     </option>
                                 </select>
                             </div>
@@ -106,33 +116,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import {  useForm, router , usePage } from '@inertiajs/vue3';
+import { ref, onMounted, computed } from 'vue';
+import { useForm, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { usePermissions } from '@/composables/usePermissions';
 
-
-const page = usePage();
-const can = (permission) => {
-    return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
-};
+const { can } = usePermissions();
 
 const props = defineProps({
     users: Object,
     roles: Array,
-    companies: Array
+    companies: Array,
+    branches: Array,
+    assignable_roles: Array,
 });
+
+const operationalRoles = ['admin', 'moderator', 'accountant'];
 
 const form = useForm({
     id: null,
     name: '',
     email: '',
     company_id: '',
+    branch_id: '',
     role: '',
-    password: ''
+    password: '',
 });
 
 const editMode = ref(false);
 let modal = null;
+
+const showCompanyField = computed(() => operationalRoles.includes(form.role));
+const showBranchField = computed(() => operationalRoles.includes(form.role));
+const filteredBranches = computed(() =>
+    props.branches.filter((branch) => String(branch.company_id) === String(form.company_id))
+);
 
 onMounted(() => {
     modal = new bootstrap.Modal(document.getElementById('userModal'));
@@ -150,6 +168,7 @@ const editUser = (user) => {
     form.name = user.name;
     form.email = user.email;
     form.company_id = user.company_id || '';
+    form.branch_id = user.branch_id || '';
     form.role = user.roles.length > 0 ? user.roles[0].name : '';
     form.password = '';
     modal.show();
@@ -162,11 +181,11 @@ const closeModal = () => {
 const submit = () => {
     if (editMode.value) {
         form.put(`/users/${form.id}`, {
-            onSuccess: () => closeModal()
+            onSuccess: () => closeModal(),
         });
     } else {
         form.post('/users', {
-            onSuccess: () => closeModal()
+            onSuccess: () => closeModal(),
         });
     }
 };

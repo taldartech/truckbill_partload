@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transporter;
-use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -24,29 +23,28 @@ class TransporterController extends Controller implements HasMiddleware
     public function index()
     {
         $transporters = Transporter::with('company')->latest()->paginate(10);
+
         return Inertia::render('Transporters/Index', [
-            'transporters' => $transporters
+            'transporters' => $transporters,
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Transporters/Create', [
-            'companies' => Company::all()
-        ]);
+        return Inertia::render('Transporters/Create');
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'name' => 'nullable|string',
             'short_name' => 'nullable|string',
             'gst_number' => 'nullable|string',
-            'pan_number' => 'nullable|string'
-        ]);
+            'pan_number' => 'nullable|string',
+        ]));
 
         Transporter::create($validated);
+
         return redirect()->route('transporters.index')->with('success', 'Transporter created successfully.');
     }
 
@@ -54,27 +52,27 @@ class TransporterController extends Controller implements HasMiddleware
     {
         return Inertia::render('Transporters/Edit', [
             'transporter' => $transporter,
-            'companies' => Company::all()
         ]);
     }
 
     public function update(Request $request, Transporter $transporter)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
+        $validated = $this->stripTenantFields($request->validate([
             'name' => 'nullable|string',
             'short_name' => 'nullable|string',
             'gst_number' => 'nullable|string',
-            'pan_number' => 'nullable|string'
-        ]);
+            'pan_number' => 'nullable|string',
+        ]));
 
         $transporter->update($validated);
+
         return redirect()->route('transporters.index')->with('success', 'Transporter updated successfully.');
     }
 
     public function destroy(Transporter $transporter)
     {
         $transporter->delete();
+
         return redirect()->route('transporters.index')->with('success', 'Transporter deleted successfully.');
     }
 }
