@@ -17,4 +17,9 @@ class Branch extends Model
     {
         return $this->belongsTo(Company::class);
     }
+
+    public function station()
+    {
+        return $this->belongsTo(Station::class);
+    }
 }

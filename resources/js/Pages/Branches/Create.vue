@@ -25,6 +25,18 @@
                             </div>
 
                             <div class="form-group mb-3">
+                                <label for="station_id">Station *</label>
+                                <SearchableSelect
+                                    v-model="form.station_id"
+                                    :options="filteredStations"
+                                    placeholder="Select Station"
+                                    :disabled="!resolvedCompanyId"
+                                />
+                                <div v-if="!resolvedCompanyId" class="text-muted mt-1 small">Select a company first.</div>
+                                <div v-if="form.errors.station_id" class="text-danger mt-1 small">{{ form.errors.station_id }}</div>
+                            </div>
+
+                            <div class="form-group mb-3">
                                 <label for="address">Address</label>
                                 <textarea class="form-control" id="address" v-model="form.address" rows="2" placeholder="Enter Address"></textarea>
                             </div>
@@ -42,10 +54,10 @@
                                 <div class="col-md-3 form-group mb-3">
                                     <label>State</label>
                                     <SearchableSelect
-    v-model="form.state_id"
-    :options="states"
-    placeholder="Select State"
-/>
+                                        v-model="form.state_id"
+                                        :options="states"
+                                        placeholder="Select State"
+                                    />
                                 </div>
                                 <div class="col-md-3 form-group mb-3">
                                     <label>City</label>
@@ -82,12 +94,15 @@
 
 <script setup>
 import { computed, watch } from 'vue';
-import { useForm, Link } from '@inertiajs/vue3';
+import { useForm, Link, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 
+const page = usePage();
+
 const props = defineProps({
     companies: Array,
+    stations: Array,
     countries: Array,
     states: Array,
     cities: Array
@@ -95,6 +110,7 @@ const props = defineProps({
 
 const form = useForm({
     company_id: '',
+    station_id: '',
     name: '',
     address: '',
     country_id: '',
@@ -104,6 +120,23 @@ const form = useForm({
     is_head_office: false
 });
 
+
+const resolvedCompanyId = computed(() =>
+    form.company_id
+    || page.props.auth.active_company?.id
+    || page.props.auth.user?.company_id
+    || ''
+);
+
+const filteredStations = computed(() => {
+    if (!resolvedCompanyId.value) {
+        return [];
+    }
+
+    return props.stations.filter(
+        (station) => String(station.company_id) === String(resolvedCompanyId.value)
+    );
+});
 
 const filteredCities = computed(() => {
     if (!form.state_id) return [];
@@ -116,6 +149,17 @@ watch(() => form.state_id, (newStateId) => {
         const cityExists = filteredCities.value.some(city => String(city.id) === String(form.city_id));
         if (!cityExists) {
             form.city_id = '';
+        }
+    }
+});
+
+watch(resolvedCompanyId, () => {
+    if (form.station_id) {
+        const stationExists = filteredStations.value.some(
+            (station) => String(station.id) === String(form.station_id)
+        );
+        if (!stationExists) {
+            form.station_id = '';
         }
     }
 });

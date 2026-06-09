@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\Country;
 use App\Models\State;
 use App\Models\City;
+use App\Models\Station;
 use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -29,7 +30,7 @@ class BranchController extends Controller implements HasMiddleware
     public function index()
     {
         $context = app(TenantContext::class);
-        $query = Branch::with('company')->latest();
+        $query = Branch::with(['company', 'station'])->latest();
 
         if ($context->isSuperAdmin()) {
             $query->whereIn('company_id', $context->ownedCompanyIds());
@@ -46,6 +47,7 @@ class BranchController extends Controller implements HasMiddleware
     {
         return Inertia::render('Branches/Create', [
             'companies' => $this->availableCompanies(),
+            'stations' => $this->availableStations(),
             'countries' => Country::all(),
             'states' => State::all(),
             'cities' => City::all(),
@@ -62,12 +64,14 @@ class BranchController extends Controller implements HasMiddleware
             'state_id' => 'nullable|exists:states,id',
             'city_id' => 'nullable|exists:cities,id',
             'pin_code' => 'nullable|string|max:10',
+            'station_id' => 'required|exists:stations,id',
             'is_head_office' => 'boolean',
         ]);
 
         $companyId = $validated['company_id'] ?? app(TenantContext::class)->activeCompanyId();
         $this->authorizeCompanyId($companyId);
         $this->enforceBranchLimit($companyId);
+        $this->validateStationForCompany($validated['station_id'], $companyId);
 
         $validated['company_id'] = $companyId;
         Branch::create($validated);
@@ -80,8 +84,9 @@ class BranchController extends Controller implements HasMiddleware
         $this->authorizeBranch($branch);
 
         return Inertia::render('Branches/Edit', [
-            'branch' => $branch,
+            'branch' => $branch->load('station'),
             'companies' => $this->availableCompanies(),
+            'stations' => $this->availableStations(),
             'countries' => Country::all(),
             'states' => State::all(),
             'cities' => City::all(),
@@ -100,12 +105,16 @@ class BranchController extends Controller implements HasMiddleware
             'state_id' => 'nullable|exists:states,id',
             'city_id' => 'nullable|exists:cities,id',
             'pin_code' => 'nullable|string|max:10',
+            'station_id' => 'required|exists:stations,id',
             'is_head_office' => 'boolean',
         ]);
 
         if (! empty($validated['company_id'])) {
             $this->authorizeCompanyId($validated['company_id']);
         }
+
+        $companyId = $validated['company_id'] ?? $branch->company_id;
+        $this->validateStationForCompany($validated['station_id'], $companyId);
 
         $branch->update($validated);
 
@@ -129,6 +138,36 @@ class BranchController extends Controller implements HasMiddleware
         }
 
         return Company::where('user_id', auth()->id())->orderBy('name')->get(['id', 'name']);
+    }
+
+    private function availableStations()
+    {
+        $context = app(TenantContext::class);
+        $query = Station::query()->orderBy('name');
+
+        if ($context->isSuperAdmin()) {
+            $query->whereIn('company_id', $context->ownedCompanyIds());
+        } elseif ($context->activeCompanyId()) {
+            $query->where('company_id', $context->activeCompanyId());
+        }
+
+        return $query->get(['id', 'name', 'company_id']);
+    }
+
+    private function validateStationForCompany(int $stationId, ?int $companyId): void
+    {
+        if (! $companyId) {
+            return;
+        }
+
+        $station = Station::query()
+            ->whereKey($stationId)
+            ->where('company_id', $companyId)
+            ->exists();
+
+        if (! $station) {
+            abort(422, 'Selected station does not belong to this company.');
+        }
     }
 
     private function authorizeCompanyId(?int $companyId): void
