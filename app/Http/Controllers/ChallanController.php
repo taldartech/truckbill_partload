@@ -90,7 +90,7 @@ class ChallanController extends Controller implements HasMiddleware
             'stations' => Station::all(),
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
-            'bilties' => $this->pendingBilties($challan->id),
+            'bilties' => $this->pendingBilties(),
             'inward_details' => $this->pendingInwardDetails($challan->id),
             'agents' => Agent::orderBy('name')->get(['id', 'name']),
         ]);
@@ -121,7 +121,12 @@ class ChallanController extends Controller implements HasMiddleware
                 ->whereNotNull('inward_register_detail_id')
                 ->pluck('inward_register_detail_id');
 
+            $biltyIds = $challan->details()
+                ->whereNotNull('bilty_id')
+                ->pluck('bilty_id');
+
             InwardRegisterDetail::whereIn('id', $inwardIds)->update(['status' => 'pending']);
+            Bilty::whereIn('id', $biltyIds)->update(['status' => 'Pending']);
             $challan->delete();
         });
 
@@ -199,30 +204,11 @@ class ChallanController extends Controller implements HasMiddleware
         }
     }
 
-    private function pendingBilties(?int $challanId = null)
+    private function pendingBilties()
     {
-        $query = Bilty::with(['biltyDetails.good', 'consignee'])
-            ->where('status', '!=', 'Delivered');
-
-        if ($challanId) {
-            $linkedIds = ChallanDetail::where('challan_id', $challanId)
-                ->whereNotNull('bilty_id')
-                ->pluck('bilty_id');
-
-            $query->where(function ($builder) use ($challanId, $linkedIds) {
-                $builder->whereDoesntHave('challanDetails', function ($sub) use ($challanId) {
-                    $sub->where('challan_id', '!=', $challanId);
-                });
-
-                if ($linkedIds->isNotEmpty()) {
-                    $builder->orWhereIn('id', $linkedIds);
-                }
-            });
-        } else {
-            $query->whereDoesntHave('challanDetails');
-        }
-
-        return $query->get();
+        return Bilty::with(['biltyDetails.good', 'consignee'])
+            ->whereNotIn('status', ['Delivered', 'Cancelled', 'In Transit'])
+            ->get();
     }
 
     private function pendingInwardDetails(?int $challanId = null)
@@ -256,8 +242,16 @@ class ChallanController extends Controller implements HasMiddleware
             ->whereNotNull('inward_register_detail_id')
             ->pluck('inward_register_detail_id');
 
+        $existingBiltyIds = $challan->details()
+            ->whereNotNull('bilty_id')
+            ->pluck('bilty_id');
+
         if ($existingInwardIds->isNotEmpty()) {
             InwardRegisterDetail::whereIn('id', $existingInwardIds)->update(['status' => 'pending']);
+        }
+
+        if ($existingBiltyIds->isNotEmpty()) {
+            Bilty::whereIn('id', $existingBiltyIds)->update(['status' => 'Pending']);
         }
 
         $challan->details()->delete();
@@ -277,6 +271,7 @@ class ChallanController extends Controller implements HasMiddleware
                     'to_station_id' => $bilty->to_station_id,
                 ]);
 
+                $bilty->update(['status' => 'In Transit']);
                 $bookingFreight += (float) ($bilty->freight ?? 0);
 
                 continue;
