@@ -8,6 +8,13 @@
                         <h5 class="fw-bold text-dark mb-4">Welcome back! Please sign in to continue.</h5>
                     </div>
 
+                    <div v-if="$page.props.flash?.error" class="alert alert-danger small">
+                        {{ $page.props.flash.error }}
+                    </div>
+                    <div v-if="$page.props.flash?.success" class="alert alert-success small">
+                        {{ $page.props.flash.success }}
+                    </div>
+
                     <form @submit.prevent="submit">
                         <div class="mb-4">
                             <label class="form-label fw-bold text-muted small">Email Address</label>

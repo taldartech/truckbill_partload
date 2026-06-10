@@ -21,6 +21,7 @@
                                     <th>Company</th>
                                     <th>Branch</th>
                                     <th>Role</th>
+                                    <th v-if="invitesSuperAdmin">Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -36,7 +37,22 @@
                                             {{ role.name }}
                                         </span>
                                     </td>
+                                    <td v-if="invitesSuperAdmin">
+                                        <span
+                                            class="badge"
+                                            :class="user.requires_onboarding ? 'bg-warning text-dark' : 'bg-success'"
+                                        >
+                                            {{ user.onboarding_status }}
+                                        </span>
+                                    </td>
                                     <td>
+                                        <button
+                                            v-if="invitesSuperAdmin && user.requires_onboarding && can('edit users')"
+                                            class="btn btn-outline-primary btn-sm me-2"
+                                            @click="resendInvitation(user.id)"
+                                        >
+                                            Resend Invite
+                                        </button>
                                         <button v-if="can('edit users') && user.can_manage" class="btn btn-warning btn-sm me-2" @click="editUser(user)">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -90,7 +106,7 @@
                                 </select>
                                 <div v-if="form.errors.branch_id" class="text-danger small">{{ form.errors.branch_id }}</div>
                             </div>
-                            <div class="form-group mb-3">
+                            <div class="form-group mb-3" v-if="!invitesSuperAdmin">
                                 <label>Role</label>
                                 <select class="form-control" v-model="form.role" required>
                                     <option value="">Select Role</option>
@@ -99,9 +115,9 @@
                                     </option>
                                 </select>
                             </div>
-                            <div class="form-group mb-3">
+                            <div class="form-group mb-3" v-if="showPasswordField">
                                 <label>{{ editMode ? 'New Password (Leave blank to keep current)' : 'Password' }}</label>
-                                <input type="password" class="form-control" v-model="form.password" :required="!editMode">
+                                <input type="password" class="form-control" v-model="form.password" :required="passwordRequired">
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -140,6 +156,14 @@ const managesOperationalUsers = computed(() =>
     (props.assignable_roles ?? []).length > 0
     && props.assignable_roles.every((role) => operationalRoles.includes(role))
 );
+
+const invitesSuperAdmin = computed(() =>
+    (props.assignable_roles ?? []).length === 1
+    && props.assignable_roles[0] === 'super_admin'
+);
+
+const showPasswordField = computed(() => !invitesSuperAdmin.value || editMode.value);
+const passwordRequired = computed(() => !editMode.value && !invitesSuperAdmin.value);
 
 const form = useForm({
     id: null,
@@ -208,6 +232,10 @@ const openModal = () => {
         form.branch_id = defaultBranchId(companyId);
     }
 
+    if (invitesSuperAdmin.value) {
+        form.role = 'super_admin';
+    }
+
     modal.show();
 };
 
@@ -242,6 +270,12 @@ const submit = () => {
 const deleteUser = (id) => {
     if (confirm('Are you sure you want to delete this user?')) {
         router.delete(`/users/${id}`);
+    }
+};
+
+const resendInvitation = (id) => {
+    if (confirm('Resend onboarding invitation email with a new OTP?')) {
+        router.post(`/users/${id}/resend-invitation`);
     }
 };
 </script>

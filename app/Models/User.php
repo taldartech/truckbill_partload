@@ -24,8 +24,45 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'policy_accepted_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function onboarding()
+    {
+        return $this->hasOne(UserOnboarding::class);
+    }
+
+    public function hasCompletedOnboarding(): bool
+    {
+        if (! $this->isSuperAdmin()) {
+            return true;
+        }
+
+        return (bool) $this->onboarding?->isCompleted();
+    }
+
+    public function requiresOnboarding(): bool
+    {
+        return $this->isSuperAdmin() && ! $this->hasCompletedOnboarding();
+    }
+
+    public function onboardingStatusLabel(): string
+    {
+        if (! $this->requiresOnboarding()) {
+            return 'Active';
+        }
+
+        if (! $this->email_verified_at) {
+            return 'Pending Email Verification';
+        }
+
+        if (! $this->policy_accepted_at) {
+            return 'Pending Policy Acceptance';
+        }
+
+        return 'Pending Password Setup';
     }
 
     public function company()
