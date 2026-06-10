@@ -7,6 +7,7 @@ use App\Models\Branch;
 use App\Models\Company;
 use App\Models\User;
 use App\Support\RolePermissions;
+use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
@@ -262,6 +263,12 @@ class TenantContext
 
         foreach ($setupPrefixes as $prefix) {
             if (str_starts_with($routeName, $prefix)) {
+                return true;
+            }
+        }
+
+        foreach (RolePermissions::sharedMasterDataModules() as $module) {
+            if (str_starts_with($routeName, Str::slug($module, '-').'.')) {
                 return true;
             }
         }

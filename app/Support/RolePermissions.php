@@ -32,6 +32,11 @@ class RolePermissions
         return ['companies', 'branches', 'users', 'subscriptions', 'subscription_plans'];
     }
 
+    public static function sharedMasterDataModules(): array
+    {
+        return ['stations', 'goods', 'package_types', 'truck_types'];
+    }
+
     public static function permissionNames(array $modules, array $actions): array
     {
         $permissions = [];
@@ -73,6 +78,7 @@ class RolePermissions
         return array_merge(
             self::permissionNames(['companies', 'branches', 'users'], ['view', 'create', 'edit', 'delete']),
             self::permissionNames(['subscriptions', 'subscription_plans'], ['view', 'create', 'edit', 'delete']),
+            self::permissionNames(self::sharedMasterDataModules(), ['view', 'create', 'edit', 'delete']),
         );
     }
 

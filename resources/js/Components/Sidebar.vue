@@ -234,6 +234,36 @@
                         </Link>
                     </li>
 
+                    <li class="nav-header mt-3 px-3 py-2 text-muted fw-bold small">SHARED MASTER DATA</li>
+
+                    <li class="nav-item" v-if="can('view stations')">
+                        <Link href="/stations" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/stations') }">
+                            <i class="nav-icon fas fa-map-marker-alt me-3"></i>
+                            <p class="mb-0 fw-medium">Stations</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item" v-if="can('view goods')">
+                        <Link href="/goods" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/goods') }">
+                            <i class="nav-icon fas fa-box me-3"></i>
+                            <p class="mb-0 fw-medium">Goods</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item" v-if="can('view package_types')">
+                        <Link href="/package-types" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/package-types') }">
+                            <i class="nav-icon fas fa-boxes me-3"></i>
+                            <p class="mb-0 fw-medium">Package Types</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item" v-if="can('view truck_types')">
+                        <Link href="/truck-types" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/truck-types') }">
+                            <i class="nav-icon fas fa-truck-moving me-3"></i>
+                            <p class="mb-0 fw-medium">Truck Types</p>
+                        </Link>
+                    </li>
+
                     <!-- <li class="nav-item" v-if="can('view subscriptions')">
                         <Link href="/subscriptions" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/subscriptions') }">
                             <i class="nav-icon fas fa-credit-card me-3"></i>

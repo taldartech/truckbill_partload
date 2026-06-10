@@ -9,10 +9,10 @@ return new class extends Migration
 {
     private array $tables = [
         'agents', 'bilties', 'bilty_details', 'bilty_eway_bills', 'challans', 'challan_details',
-        'delivery_receipts', 'drivers', 'goods', 'groups', 'inward_register_details', 'inward_registers',
+        'delivery_receipts', 'drivers', 'groups', 'inward_register_details', 'inward_registers',
         'invoices', 'loading_report_details', 'loading_reports', 'main_challan_details', 'main_challans',
-        'package_types', 'parties', 'rate_lists', 'settings', 'stations', 'transporters', 'trucks',
-        'truck_types', 'vendors', 'vouchers',
+        'parties', 'rate_lists', 'settings', 'transporters', 'trucks',
+        'vendors', 'vouchers',
     ];
 
     public function up(): void
