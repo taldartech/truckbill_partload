@@ -36,17 +36,16 @@ class UserController extends Controller implements HasMiddleware
         if ($context->isMasterAdmin()) {
             $query->whereHas('roles', fn ($roleQuery) => $roleQuery->where('name', UserRole::SuperAdmin->value));
         } elseif ($context->isSuperAdmin()) {
-            $companyIds = $context->ownedCompanyIds();
-            $query->where(function ($builder) use ($companyIds) {
-                $builder->whereIn('company_id', $companyIds)
-                    ->orWhereHas('roles', fn ($roleQuery) => $roleQuery->where('name', UserRole::SuperAdmin->value));
-            });
+            $query->whereIn('company_id', $context->ownedCompanyIds())
+                ->whereDoesntHave('roles', fn ($roleQuery) => $roleQuery->where('name', UserRole::SuperAdmin->value));
         } elseif (auth()->user()?->company_id) {
             $query->where('company_id', auth()->user()->company_id);
         }
 
         return Inertia::render('Users/Index', [
-            'users' => $query->paginate(10),
+            'users' => $query->paginate(10)->through(fn (User $user) => array_merge($user->toArray(), [
+                'can_manage' => $this->canManageUser($user),
+            ])),
             'roles' => Role::whereIn('name', $context->assignableRolesFor(auth()->user()))->get(),
             'companies' => $this->availableCompanies(),
             'branches' => $this->availableBranches(),
@@ -85,6 +84,8 @@ class UserController extends Controller implements HasMiddleware
 
     public function update(Request $request, User $user)
     {
+        $this->authorizeManagedUser($user);
+
         $context = app(TenantContext::class);
         $assignableRoles = $context->assignableRolesFor(auth()->user());
 
@@ -98,7 +99,6 @@ class UserController extends Controller implements HasMiddleware
         ]);
 
         $this->validateAssignment($validated);
-        $this->authorizeManagedUser($user);
 
         $user->update([
             'name' => $validated['name'],
@@ -202,26 +202,28 @@ class UserController extends Controller implements HasMiddleware
 
     private function authorizeManagedUser(User $user): void
     {
+        if (! $this->canManageUser($user)) {
+            abort(403, 'Super Admin accounts can only be managed by the Master Admin.');
+        }
+    }
+
+    private function canManageUser(User $user): bool
+    {
         $context = app(TenantContext::class);
 
         if ($context->isMasterAdmin()) {
-            return;
+            return true;
         }
 
         if ($context->isSuperAdmin()) {
             if ($user->hasRole(UserRole::SuperAdmin->value)) {
-                abort(403);
+                return false;
             }
 
-            if ($user->company_id && ! in_array((int) $user->company_id, $context->ownedCompanyIds(), true)) {
-                abort(403);
-            }
-
-            return;
+            return $user->company_id
+                && in_array((int) $user->company_id, $context->ownedCompanyIds(), true);
         }
 
-        if ((int) $user->company_id !== (int) auth()->user()?->company_id) {
-            abort(403);
-        }
+        return (int) $user->company_id === (int) auth()->user()?->company_id;
     }
 }

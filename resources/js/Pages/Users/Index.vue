@@ -37,10 +37,10 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <button v-if="can('edit users')" class="btn btn-warning btn-sm me-2" @click="editUser(user)">
+                                        <button v-if="can('edit users') && user.can_manage" class="btn btn-warning btn-sm me-2" @click="editUser(user)">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button v-if="can('delete users')" class="btn btn-danger btn-sm" @click="deleteUser(user.id)">
+                                        <button v-if="can('delete users') && user.can_manage" class="btn btn-danger btn-sm" @click="deleteUser(user.id)">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -71,22 +71,24 @@
                                 <div v-if="form.errors.email" class="text-danger small">{{ form.errors.email }}</div>
                             </div>
                             <div class="form-group mb-3" v-if="showCompanyField">
-                                <label>Company</label>
-                                <select class="form-control" v-model="form.company_id" @change="form.branch_id = ''">
+                                <label>Company *</label>
+                                <select class="form-control" v-model="form.company_id" @change="form.branch_id = ''" required>
                                     <option value="">Select Company</option>
                                     <option v-for="company in companies" :key="company.id" :value="company.id">
                                         {{ company.name }}
                                     </option>
                                 </select>
+                                <div v-if="form.errors.company_id" class="text-danger small">{{ form.errors.company_id }}</div>
                             </div>
                             <div class="form-group mb-3" v-if="showBranchField">
-                                <label>Branch</label>
-                                <select class="form-control" v-model="form.branch_id" :disabled="!form.company_id">
+                                <label>Branch *</label>
+                                <select class="form-control" v-model="form.branch_id" :disabled="!form.company_id" required>
                                     <option value="">Select Branch</option>
                                     <option v-for="branch in filteredBranches" :key="branch.id" :value="branch.id">
                                         {{ branch.name }}
                                     </option>
                                 </select>
+                                <div v-if="form.errors.branch_id" class="text-danger small">{{ form.errors.branch_id }}</div>
                             </div>
                             <div class="form-group mb-3">
                                 <label>Role</label>
@@ -117,11 +119,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
+import { useForm, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { usePermissions } from '@/composables/usePermissions';
 
 const { can } = usePermissions();
+const page = usePage();
 
 const props = defineProps({
     users: Object,
@@ -132,6 +135,11 @@ const props = defineProps({
 });
 
 const operationalRoles = ['admin', 'moderator', 'accountant'];
+
+const managesOperationalUsers = computed(() =>
+    (props.assignable_roles ?? []).length > 0
+    && props.assignable_roles.every((role) => operationalRoles.includes(role))
+);
 
 const form = useForm({
     id: null,
@@ -146,11 +154,45 @@ const form = useForm({
 const editMode = ref(false);
 let modal = null;
 
-const showCompanyField = computed(() => operationalRoles.includes(form.role));
-const showBranchField = computed(() => operationalRoles.includes(form.role));
+const showCompanyField = computed(() =>
+    managesOperationalUsers.value || operationalRoles.includes(form.role)
+);
+const showBranchField = computed(() =>
+    managesOperationalUsers.value || operationalRoles.includes(form.role)
+);
 const filteredBranches = computed(() =>
     props.branches.filter((branch) => String(branch.company_id) === String(form.company_id))
 );
+
+const defaultCompanyId = () => {
+    const companies = props.companies ?? [];
+    if (companies.length === 1) {
+        return companies[0].id;
+    }
+
+    return page.props.auth.active_company?.id ?? '';
+};
+
+const defaultBranchId = (companyId) => {
+    if (! companyId) {
+        return '';
+    }
+
+    const branches = props.branches.filter(
+        (branch) => String(branch.company_id) === String(companyId)
+    );
+
+    if (branches.length === 1) {
+        return branches[0].id;
+    }
+
+    const activeBranchId = page.props.auth.active_branch?.id;
+    if (activeBranchId && branches.some((branch) => String(branch.id) === String(activeBranchId))) {
+        return activeBranchId;
+    }
+
+    return '';
+};
 
 onMounted(() => {
     modal = new bootstrap.Modal(document.getElementById('userModal'));
@@ -159,6 +201,13 @@ onMounted(() => {
 const openModal = () => {
     editMode.value = false;
     form.reset();
+
+    if (managesOperationalUsers.value) {
+        const companyId = defaultCompanyId();
+        form.company_id = companyId;
+        form.branch_id = defaultBranchId(companyId);
+    }
+
     modal.show();
 };
 
