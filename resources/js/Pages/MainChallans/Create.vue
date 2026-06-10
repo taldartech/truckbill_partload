@@ -140,7 +140,7 @@
                                             </div>
                                             <div class="d-flex justify-content-between">
                                                 <label class="mb-0 fw-bold small text-dark">Total Nugs</label>
-                                                <span class="fw-bold text-primary">{{ totalNugs }}</span>
+                                                <span class="fw-bold text-primary">{{ totalPackages }}</span>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
@@ -162,9 +162,9 @@
                                                 <label class="mb-0 fw-bold small text-dark">Cartage/Dalali/PF</label>
                                                 <span class="fw-bold text-primary">{{ cartageAmount }}</span>
                                             </div>
-                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <div class="d-flex justify-content-between mb-1">
                                                 <label class="mb-0 fw-bold small text-dark text-nowrap">GST Tax</label>
-                                                <input type="number" step="0.01" class="form-control form-control-sm w-50 p-1" v-model="form.gst" @input="calculateTotal">
+                                                <span class="fw-bold text-primary">{{ gstDisplay }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -176,15 +176,15 @@
                                         <div class="col-md-9">
                                             <div class="d-flex align-items-center mb-1">
                                                 <label class="mb-0 fw-bold small text-dark text-end me-2" style="width: 120px;">Labour Comm.</label>
-                                                <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.labour_charge" @input="calculateTotal">
+                                                <span class="fw-bold text-primary">{{ labourDisplay }}</span>
                                             </div>
                                             <div class="d-flex align-items-center mb-1">
                                                 <label class="mb-0 fw-bold small text-dark text-end me-2" style="width: 120px;">Kat</label>
-                                                <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.kat" @input="calculateTotal">
+                                                <span class="fw-bold text-primary">{{ katDisplay }}</span>
                                             </div>
                                             <div class="d-flex align-items-center mb-1">
                                                 <label class="mb-0 fw-bold small text-dark text-end me-2" style="width: 120px;">Home Delivery</label>
-                                                <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.home_delivery_charge" @input="calculateTotal">
+                                                <span class="fw-bold text-primary">{{ homeDeliveryDisplay }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -194,15 +194,15 @@
                                 <div class="col-md-4">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="mb-0 fw-bold small text-dark">Truck Freight</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm w-50 p-1" v-model="form.truck_freight" @input="calculateTotal">
+                                        <span class="fw-bold text-primary">{{ truckFreightDisplay }}</span>
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="mb-0 fw-bold small text-dark">Cash Receive</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm w-50 p-1" v-model="form.cash_received" @input="calculateTotal">
+                                        <span class="fw-bold text-primary">{{ cashReceivedDisplay }}</span>
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="mb-0 fw-bold small text-dark">Cash Paid</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm w-50 p-1" v-model="form.cash_paid" @input="calculateTotal">
+                                        <span class="fw-bold text-primary">{{ cashPaidDisplay }}</span>
                                     </div>
                                     <hr class="border-dark my-1">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
@@ -211,10 +211,7 @@
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="mb-0 fw-bold small text-dark">Total Balance Amt.</label>
-                                        <select class="form-control form-control-sm w-50 p-1 bg-secondary text-white border-0" v-model="form.total_balance_type">
-                                            <option value="Cr">Cr</option>
-                                            <option value="Dr">Dr</option>
-                                        </select>
+                                        <span class="fw-bold text-primary">{{ form.total_balance_type }}</span>
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="mb-0 fw-bold small text-dark">To (Account)</label>
@@ -295,121 +292,145 @@ const form = useForm({
     remark: '',
 });
 
+const challanToDetailRow = (challan) => {
+    const toStation = props.stations.find((s) => s.id === challan.to_station_id);
+
+    let totalNugs = parseFloat(challan.total_packages || 0);
+    let totalWeight = parseFloat(challan.total_weight || 0);
+
+    if (challan.details?.length) {
+        let nugsFromDetails = 0;
+        let weightFromDetails = 0;
+
+        challan.details.forEach((detail) => {
+            if (detail.bilty?.bilty_details) {
+                detail.bilty.bilty_details.forEach((bd) => {
+                    nugsFromDetails += parseFloat(bd.no_of_packages || 0);
+                    weightFromDetails += parseFloat(bd.gross_weight || 0);
+                });
+            }
+            if (detail.inward_register_detail) {
+                nugsFromDetails += parseFloat(detail.inward_register_detail.no_of_packages || 0);
+                weightFromDetails += parseFloat(detail.inward_register_detail.weight || 0);
+            }
+        });
+
+        if (nugsFromDetails > 0) {
+            totalNugs = nugsFromDetails;
+        }
+        if (weightFromDetails > 0) {
+            totalWeight = weightFromDetails;
+        }
+    }
+
+    return {
+        challan_id: challan.id,
+        challan_number: challan.challan_number,
+        to_station_name: toStation ? toStation.name : '--',
+        nugs: totalNugs,
+        weight: totalWeight,
+        to_pay: parseFloat(challan.to_pay_amount || 0),
+        paid_amount: parseFloat(challan.paid_amount || 0),
+        crossing: parseFloat(challan.crossing_freight || 0),
+        cartage: parseFloat(challan.cartage_dalali_pf || 0),
+        labour: parseFloat(challan.labour_charge || 0),
+        kat: parseFloat(challan.kat || 0),
+        home_delivery: parseFloat(challan.home_delivery_charge || 0),
+        truck_freight: parseFloat(challan.truck_freight || 0),
+        gst: parseFloat(challan.gst || 0),
+        cash_received: parseFloat(challan.cash_received || 0),
+        cash_paid: parseFloat(challan.cash_payment || 0),
+    };
+};
+
 const removeRow = (index) => {
     form.details.splice(index, 1);
-    calculateTotal();
+    syncTotals();
 };
 
 const addChallan = () => {
     if (!fetch_challan_id.value) return;
-    
-    // Check if already added
-    const existing = form.details.find(d => d.challan_id === fetch_challan_id.value);
+
+    const existing = form.details.find((d) => d.challan_id === fetch_challan_id.value);
     if (existing) {
         alert('This challan is already added.');
         return;
     }
-    
-    const challan = props.challans.find(c => c.id === fetch_challan_id.value);
+
+    const challan = props.challans.find((c) => c.id === fetch_challan_id.value);
     if (challan) {
-        const toStation = props.stations.find(s => s.id === challan.to_station_id);
-        
-        let toPay = challan.to_pay_amount || 0;
-        let paid = challan.paid_amount || 0;
-        
-        // If the challan has no saved total_weight/packages, we can try to extract from its details if needed
-        let totalNugs = challan.total_packages || 0;
-        let totalWeight = challan.total_weight || 0;
-        if(totalNugs === 0 && challan.details) {
-            challan.details.forEach(detail => {
-                if(detail.bilty && detail.bilty.bilty_details) {
-                    detail.bilty.bilty_details.forEach(bd => {
-                        totalNugs += parseFloat(bd.no_of_packages || 0);
-                        totalWeight += parseFloat(bd.gross_weight || 0);
-                    });
-                }
-            });
-        }
-        
-        form.details.push({
-            challan_id: challan.id,
-            challan_number: challan.challan_number,
-            to_station_name: toStation ? toStation.name : '--',
-            nugs: totalNugs,
-            weight: totalWeight,
-            to_pay: toPay,
-            paid_amount: paid,
-            crossing: challan.crossing_freight || 0,
-            cartage: challan.cartage_dalali_pf || 0,
-            labour: challan.labour_charge || 0
-        });
-        
-        fetch_challan_id.value = ''; // Reset select
-        calculateTotal();
+        form.details.push(challanToDetailRow(challan));
+        fetch_challan_id.value = '';
+        syncTotals();
     }
 };
 
-const totalPackages = computed(() => {
-    return form.details.reduce((sum, item) => sum + (parseFloat(item.nugs) || 0), 0);
-});
+const sumDetailField = (field) =>
+    form.details.reduce((sum, item) => sum + (parseFloat(item[field]) || 0), 0);
 
-const totalWeight = computed(() => {
-    return form.details.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0);
-});
+const totalPackages = computed(() => sumDetailField('nugs'));
+const totalWeight = computed(() => sumDetailField('weight'));
+const toPayAmount = computed(() => sumDetailField('to_pay'));
+const paidAmount = computed(() => sumDetailField('paid_amount'));
+const crossingFreight = computed(() => sumDetailField('crossing'));
+const cartageAmount = computed(() => sumDetailField('cartage'));
+const labourTotal = computed(() => sumDetailField('labour'));
+const katTotal = computed(() => sumDetailField('kat'));
+const homeDeliveryTotal = computed(() => sumDetailField('home_delivery'));
+const truckFreightTotal = computed(() => sumDetailField('truck_freight'));
+const gstTotal = computed(() => sumDetailField('gst'));
+const cashReceivedTotal = computed(() => sumDetailField('cash_received'));
+const cashPaidTotal = computed(() => sumDetailField('cash_paid'));
 
-const toPayAmount = computed(() => {
-    return form.details.reduce((sum, item) => sum + (parseFloat(item.to_pay) || 0), 0);
-});
+const labourDisplay = computed(() => labourTotal.value.toFixed(2));
+const katDisplay = computed(() => katTotal.value.toFixed(2));
+const homeDeliveryDisplay = computed(() => homeDeliveryTotal.value.toFixed(2));
+const truckFreightDisplay = computed(() => truckFreightTotal.value.toFixed(2));
+const gstDisplay = computed(() => gstTotal.value.toFixed(2));
+const cashReceivedDisplay = computed(() => cashReceivedTotal.value.toFixed(2));
+const cashPaidDisplay = computed(() => cashPaidTotal.value.toFixed(2));
 
-const paidAmount = computed(() => {
-    return form.details.reduce((sum, item) => sum + (parseFloat(item.paid_amount) || 0), 0);
-});
-
-const crossingFreight = computed(() => {
-    return form.details.reduce((sum, item) => sum + (parseFloat(item.crossing) || 0), 0);
-});
-
-const cartageAmount = computed(() => {
-    return form.details.reduce((sum, item) => sum + (parseFloat(item.cartage) || 0), 0);
-});
-
-const totalLabour = computed(() => {
-    return form.details.reduce((sum, item) => sum + (parseFloat(item.labour) || 0), 0);
-});
-
-watch([totalPackages, totalWeight, toPayAmount, paidAmount, crossingFreight, cartageAmount], () => {
+const syncTotals = () => {
     form.total_packages = totalPackages.value;
     form.total_weight = totalWeight.value;
     form.to_pay_amount = toPayAmount.value;
     form.paid_amount = paidAmount.value;
     form.crossing_freight = crossingFreight.value;
     form.cartage_dalali_pf = cartageAmount.value;
-});
+    form.labour_charge = labourTotal.value;
+    form.kat = katTotal.value;
+    form.home_delivery_charge = homeDeliveryTotal.value;
+    form.truck_freight = truckFreightTotal.value;
+    form.gst = gstTotal.value;
+    form.cash_received = cashReceivedTotal.value;
+    form.cash_paid = cashPaidTotal.value;
+    calculateTotal();
+};
+
+watch(
+    [totalPackages, totalWeight, toPayAmount, paidAmount, crossingFreight, cartageAmount, labourTotal, katTotal, homeDeliveryTotal, truckFreightTotal, gstTotal, cashReceivedTotal, cashPaidTotal],
+    syncTotals
+);
 
 const calculateTotal = () => {
-    // Standard sum calculation
-    const additions = parseFloat(form.truck_freight || 0) 
-        + parseFloat(form.gst || 0)
-        + parseFloat(form.cash_received || 0);
-        
-    const deductions = parseFloat(form.labour_charge || 0)
-        + parseFloat(form.kat || 0)
-        + parseFloat(form.home_delivery_charge || 0)
-        + parseFloat(form.cash_paid || 0);
-        
-    form.total_amount = (additions - deductions).toFixed(2);
+    const total =
+        toPayAmount.value
+        + crossingFreight.value
+        - labourTotal.value
+        - katTotal.value
+        - homeDeliveryTotal.value
+        - truckFreightTotal.value
+        + cashPaidTotal.value
+        - cashReceivedTotal.value;
+
+    form.total_amount = total.toFixed(2);
+    form.total_balance_type = total < 0 ? 'Cr' : 'Dr';
 };
 
 const submit = () => {
-    // Ensure bound before submit
-    form.total_packages = totalPackages.value;
-    form.total_weight = totalWeight.value;
-    form.to_pay_amount = toPayAmount.value;
-    form.paid_amount = paidAmount.value;
-    form.crossing_freight = crossingFreight.value;
-    form.cartage_dalali_pf = cartageAmount.value;
+    syncTotals();
     form.total_amount = parseFloat(form.total_amount);
-    
+
     form.post('/main-challans');
 };
 </script>

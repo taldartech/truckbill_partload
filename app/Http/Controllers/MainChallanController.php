@@ -46,7 +46,11 @@ class MainChallanController extends Controller implements HasMiddleware
         })->get();
         // Since we don't have a direct back-relationship, we can check main_challan_details
         $used_challan_ids = \App\Models\MainChallanDetail::pluck('challan_id')->toArray();
-        $available_challans = Challan::with(['details.bilty.biltyDetails.good'])
+        $available_challans = Challan::with([
+            'details.bilty.biltyDetails.good',
+            'details.inwardRegisterDetail.good',
+            'toStation',
+        ])
             ->whereNotIn('id', $used_challan_ids)
             ->get();
 
@@ -110,12 +114,20 @@ class MainChallanController extends Controller implements HasMiddleware
 
     public function edit(MainChallan $main_challan)
     {
-        $main_challan->load('details.challan.details.bilty.biltyDetails.good');
+        $main_challan->load([
+            'details.challan.details.bilty.biltyDetails.good',
+            'details.challan.details.inwardRegisterDetail',
+            'details.challan.toStation',
+        ]);
         
         $existingChallanIds = $main_challan->details->pluck('challan_id')->toArray();
         $used_challan_ids = \App\Models\MainChallanDetail::where('main_challan_id', '!=', $main_challan->id)->pluck('challan_id')->toArray();
         
-        $available_challans = Challan::with(['details.bilty.biltyDetails.good'])
+        $available_challans = Challan::with([
+            'details.bilty.biltyDetails.good',
+            'details.inwardRegisterDetail.good',
+            'toStation',
+        ])
             ->whereNotIn('id', $used_challan_ids)
             ->get();
 
@@ -193,6 +205,7 @@ class MainChallanController extends Controller implements HasMiddleware
             'driver',
             'details.challan.toStation',
             'details.challan.details.bilty.biltyDetails',
+            'details.challan.details.inwardRegisterDetail',
         ]);
 
         $company = \App\Models\Company::find($main_challan->company_id);
@@ -212,16 +225,31 @@ class MainChallanController extends Controller implements HasMiddleware
             $totalNugs = (float) ($challan->total_packages ?? 0);
             $totalWeight = (float) ($challan->total_weight ?? 0);
 
-            if ($totalNugs == 0 && $challan->details) {
+            if ($challan->details) {
+                $nugsFromDetails = 0;
+                $weightFromDetails = 0;
+
                 foreach ($challan->details as $challanDetail) {
                     $bilty = $challanDetail->bilty;
-                    if (!$bilty?->biltyDetails) {
-                        continue;
+                    if ($bilty?->biltyDetails) {
+                        foreach ($bilty->biltyDetails as $biltyDetail) {
+                            $nugsFromDetails += (float) ($biltyDetail->no_of_packages ?? 0);
+                            $weightFromDetails += (float) ($biltyDetail->gross_weight ?? 0);
+                        }
                     }
-                    foreach ($bilty->biltyDetails as $biltyDetail) {
-                        $totalNugs += (float) ($biltyDetail->no_of_packages ?? 0);
-                        $totalWeight += (float) ($biltyDetail->gross_weight ?? 0);
+
+                    $inward = $challanDetail->inwardRegisterDetail;
+                    if ($inward) {
+                        $nugsFromDetails += (float) ($inward->no_of_packages ?? 0);
+                        $weightFromDetails += (float) ($inward->weight ?? 0);
                     }
+                }
+
+                if ($nugsFromDetails > 0) {
+                    $totalNugs = $nugsFromDetails;
+                }
+                if ($weightFromDetails > 0) {
+                    $totalWeight = $weightFromDetails;
                 }
             }
 
@@ -235,6 +263,12 @@ class MainChallanController extends Controller implements HasMiddleware
                 'crossing' => (float) ($challan->crossing_freight ?? 0),
                 'cartage' => (float) ($challan->cartage_dalali_pf ?? 0),
                 'labour' => (float) ($challan->labour_charge ?? 0),
+                'kat' => (float) ($challan->kat ?? 0),
+                'home_delivery' => (float) ($challan->home_delivery_charge ?? 0),
+                'truck_freight' => (float) ($challan->truck_freight ?? 0),
+                'gst' => (float) ($challan->gst ?? 0),
+                'cash_received' => (float) ($challan->cash_received ?? 0),
+                'cash_paid' => (float) ($challan->cash_payment ?? 0),
             ];
         })->filter()->values();
 
@@ -248,6 +282,12 @@ class MainChallanController extends Controller implements HasMiddleware
                 'crossing' => $rows->sum('crossing'),
                 'cartage' => $rows->sum('cartage'),
                 'labour' => $rows->sum('labour'),
+                'kat' => $rows->sum('kat'),
+                'home_delivery' => $rows->sum('home_delivery'),
+                'truck_freight' => $rows->sum('truck_freight'),
+                'gst' => $rows->sum('gst'),
+                'cash_received' => $rows->sum('cash_received'),
+                'cash_paid' => $rows->sum('cash_paid'),
             ],
         ];
     }
