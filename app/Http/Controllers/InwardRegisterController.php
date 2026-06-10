@@ -54,6 +54,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
+        $this->branchStationId();
         $validated = $this->validateInwardRegister($request);
 
         DB::transaction(function () use ($validated) {
@@ -93,6 +94,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
     public function update(Request $request, InwardRegister $inwardRegister)
     {
+        $this->branchStationId();
         $validated = $this->validateInwardRegister($request, $inwardRegister->id);
 
         DB::transaction(function () use ($validated, $inwardRegister) {
@@ -113,6 +115,22 @@ class InwardRegisterController extends Controller implements HasMiddleware
         $inwardRegister->delete();
 
         return redirect()->route('inward-registers.index')->with('success', 'Inward Register deleted successfully.');
+    }
+
+    private function branchStationId(): int
+    {
+        $branchStationId = $this->tenant()->activeBranch()?->station_id;
+
+        if (! $branchStationId) {
+            abort(422, 'Branch station is not configured. Please update the branch with a station before saving inward registers.');
+        }
+
+        return (int) $branchStationId;
+    }
+
+    private function resolveDisposition(int $toStationId): string
+    {
+        return $toStationId === $this->branchStationId() ? 'delivery' : 'forward';
     }
 
     private function nextInwardRegisterNumber(): string
@@ -164,7 +182,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
             'details.*.gr_no' => 'nullable|string|max:255',
             'details.*.date' => 'nullable|date',
             'details.*.from_station_id' => 'nullable|exists:stations,id',
-            'details.*.to_station_id' => 'nullable|exists:stations,id',
+            'details.*.to_station_id' => 'required|exists:stations,id',
             'details.*.consignor_id' => 'nullable|exists:parties,id',
             'details.*.consignee_id' => 'nullable|exists:parties,id',
             'details.*.good_id' => 'nullable|exists:goods,id',
@@ -211,15 +229,25 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
         foreach ($details as $detail) {
             $payload = $this->normalizeDetail($detail);
+            $toStationId = (int) ($payload['to_station_id'] ?? 0);
 
             if (!empty($detail['id'])) {
                 $existing = $register->details()->whereKey($detail['id'])->first();
                 if ($existing) {
+                    if ($existing->status === 'challaned') {
+                        unset($payload['to_station_id']);
+                    } else {
+                        $payload['disposition'] = $this->resolveDisposition($toStationId);
+                    }
+
                     $existing->update($payload);
                     $keptIds[] = $existing->id;
                     continue;
                 }
             }
+
+            $payload['disposition'] = $this->resolveDisposition($toStationId);
+            $payload['status'] = 'pending';
 
             $created = $register->details()->create($payload);
             $keptIds[] = $created->id;

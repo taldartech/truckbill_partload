@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bilty;
 use App\Models\Challan;
+use App\Models\ChallanDetail;
+use App\Models\InwardRegisterDetail;
 use App\Models\Station;
 use App\Models\Driver;
 use App\Models\Truck;
@@ -10,6 +13,8 @@ use App\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ChallanController extends Controller implements HasMiddleware
@@ -27,8 +32,9 @@ class ChallanController extends Controller implements HasMiddleware
     public function index()
     {
         $challans = Challan::with(['company', 'fromStation', 'toStation', 'driver', 'truck'])->latest()->paginate(10);
+
         return Inertia::render('Challans/Index', [
-            'challans' => $challans
+            'challans' => $challans,
         ]);
     }
 
@@ -43,89 +49,108 @@ class ChallanController extends Controller implements HasMiddleware
             'stations' => Station::all(),
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
-            'bilties' => \App\Models\Bilty::with(['biltyDetails.good', 'consignee'])->where('status', '!=', 'Delivered')->get(),
+            'bilties' => $this->pendingBilties(),
+            'inward_details' => $this->pendingInwardDetails(),
             'agents' => Agent::orderBy('name')->get(['id', 'name']),
-            'next_challan_number' => $nextNumber
+            'next_challan_number' => $nextNumber,
         ]);
     }
 
     public function store(Request $request)
     {
-        $validated = $this->stripTenantFields($request->validate([
-            'from_station_id' => 'required|exists:stations,id',
-            'to_station_id' => 'required|exists:stations,id',
-            'driver_id' => 'required|exists:drivers,id',
-            'truck_id' => 'required|exists:trucks,id',
-            'challan_number' => 'nullable|string',
-            'date' => 'nullable|date',
-            'labour_charge' => 'nullable|numeric',
-            'kat' => 'nullable|numeric',
-            'home_delivery_charge' => 'nullable|numeric',
-            'other_charge' => 'nullable|numeric',
-            'add_to_main_challan' => 'nullable|boolean',
-            'truck_freight' => 'nullable|numeric',
-            'cash_received' => 'nullable|numeric',
-            'cash_payment' => 'nullable|numeric',
-            'total_amount' => 'nullable|numeric',
-            'pay_by_agent_id' => 'nullable|exists:agents,id',
-            'delivery_at_agent_id' => 'nullable|exists:agents,id',
-            'total_weight' => 'nullable|numeric',
-            'total_packages' => 'nullable|numeric',
-            'to_pay_amount' => 'nullable|numeric',
-            'paid_amount' => 'nullable|numeric',
-            'crossing_freight' => 'nullable|numeric',
-            'cartage_dalali_pf' => 'nullable|numeric',
-            'gst' => 'nullable|numeric',
-            'remark' => 'nullable|string',
-            'status' => 'nullable|string',
-            'details' => 'required|array|min:1',
-            'details.*.bilty_id' => 'required|exists:bilties,id',
-        ]));
+        $validated = $this->stripTenantFields($request->validate($this->challanRules()));
 
         $details = $validated['details'] ?? [];
         unset($validated['details']);
 
+        $this->validateChallanDetails($details);
         $this->syncChallanAgentFields($validated);
 
-        $challan = Challan::create($validated);
-
-        foreach ($details as $detail) {
-            $bilty = \App\Models\Bilty::find($detail['bilty_id']);
-            if ($bilty) {
-                $challan->details()->create([
-                    'bilty_id' => $bilty->id,
-                    'to_station_id' => $bilty->to_station_id,
-                ]);
-            }
-        }
+        DB::transaction(function () use ($validated, $details) {
+            $challan = Challan::create($validated);
+            $this->syncChallanDetails($challan, $details);
+        });
 
         return redirect()->route('challans.index')->with('success', 'Challan created successfully.');
     }
 
     public function edit(Challan $challan)
     {
-        $challan->load('details.bilty.biltyDetails.good', 'details.bilty.consignee');
-        
-        // Fetch all bilties that are not delivered OR already in this challan
-        $existingBiltyIds = $challan->details->pluck('bilty_id')->toArray();
-        $bilties = \App\Models\Bilty::with(['biltyDetails.good', 'consignee'])
-            ->where('status', '!=', 'Delivered')
-            ->orWhereIn('id', $existingBiltyIds)
-            ->get();
+        $challan->load([
+            'details.bilty.biltyDetails.good',
+            'details.bilty.consignee',
+            'details.inwardRegisterDetail.good',
+            'details.inwardRegisterDetail.consignee',
+            'details.inwardRegisterDetail.toStation',
+            'details.toStation',
+        ]);
 
         return Inertia::render('Challans/Edit', [
             'challan' => $challan,
             'stations' => Station::all(),
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
-            'bilties' => $bilties,
+            'bilties' => $this->pendingBilties($challan->id),
+            'inward_details' => $this->pendingInwardDetails($challan->id),
             'agents' => Agent::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
     public function update(Request $request, Challan $challan)
     {
-        $validated = $this->stripTenantFields($request->validate([
+        $validated = $this->stripTenantFields($request->validate($this->challanRules()));
+
+        $details = $validated['details'] ?? [];
+        unset($validated['details']);
+
+        $this->validateChallanDetails($details);
+        $this->syncChallanAgentFields($validated);
+
+        DB::transaction(function () use ($validated, $details, $challan) {
+            $challan->update($validated);
+            $this->syncChallanDetails($challan, $details);
+        });
+
+        return redirect()->route('challans.index')->with('success', 'Challan updated successfully.');
+    }
+
+    public function destroy(Challan $challan)
+    {
+        DB::transaction(function () use ($challan) {
+            $inwardIds = $challan->details()
+                ->whereNotNull('inward_register_detail_id')
+                ->pluck('inward_register_detail_id');
+
+            InwardRegisterDetail::whereIn('id', $inwardIds)->update(['status' => 'pending']);
+            $challan->delete();
+        });
+
+        return redirect()->route('challans.index')->with('success', 'Challan deleted successfully.');
+    }
+
+    public function print(Challan $challan)
+    {
+        $challan->load([
+            'fromStation',
+            'toStation',
+            'truck',
+            'driver',
+            'details.bilty.biltyDetails.good',
+            'details.bilty.consignee',
+            'details.bilty.toStation',
+            'details.inwardRegisterDetail.good',
+            'details.inwardRegisterDetail.consignee',
+            'details.inwardRegisterDetail.toStation',
+            'details.toStation',
+        ]);
+        $company = \App\Models\Company::find($challan->company_id);
+
+        return view('prints.challan', compact('challan', 'company'));
+    }
+
+    private function challanRules(): array
+    {
+        return [
             'from_station_id' => 'required|exists:stations,id',
             'to_station_id' => 'required|exists:stations,id',
             'driver_id' => 'required|exists:drivers,id',
@@ -148,52 +173,140 @@ class ChallanController extends Controller implements HasMiddleware
             'to_pay_amount' => 'nullable|numeric',
             'paid_amount' => 'nullable|numeric',
             'crossing_freight' => 'nullable|numeric',
+            'booking_freight' => 'nullable|numeric',
             'cartage_dalali_pf' => 'nullable|numeric',
             'gst' => 'nullable|numeric',
             'remark' => 'nullable|string',
             'status' => 'nullable|string',
             'details' => 'required|array|min:1',
-            'details.*.bilty_id' => 'required|exists:bilties,id',
-        ]));
+            'details.*.row_type' => 'nullable|in:bilty,inward',
+            'details.*.bilty_id' => 'nullable|exists:bilties,id',
+            'details.*.inward_register_detail_id' => 'nullable|exists:inward_register_details,id',
+        ];
+    }
 
-        $details = $validated['details'] ?? [];
-        unset($validated['details']);
+    private function validateChallanDetails(array $details): void
+    {
+        foreach ($details as $index => $detail) {
+            $hasBilty = ! empty($detail['bilty_id']);
+            $hasInward = ! empty($detail['inward_register_detail_id']);
 
-        $this->syncChallanAgentFields($validated);
+            if ($hasBilty === $hasInward) {
+                throw ValidationException::withMessages([
+                    "details.{$index}" => 'Each row must reference either a bilty or an inward register entry.',
+                ]);
+            }
+        }
+    }
 
-        $challan->update($validated);
-        
-        $challan->details()->delete(); // Clear old details
+    private function pendingBilties(?int $challanId = null)
+    {
+        $query = Bilty::with(['biltyDetails.good', 'consignee'])
+            ->where('status', '!=', 'Delivered');
+
+        if ($challanId) {
+            $linkedIds = ChallanDetail::where('challan_id', $challanId)
+                ->whereNotNull('bilty_id')
+                ->pluck('bilty_id');
+
+            $query->where(function ($builder) use ($challanId, $linkedIds) {
+                $builder->whereDoesntHave('challanDetails', function ($sub) use ($challanId) {
+                    $sub->where('challan_id', '!=', $challanId);
+                });
+
+                if ($linkedIds->isNotEmpty()) {
+                    $builder->orWhereIn('id', $linkedIds);
+                }
+            });
+        } else {
+            $query->whereDoesntHave('challanDetails');
+        }
+
+        return $query->get();
+    }
+
+    private function pendingInwardDetails(?int $challanId = null)
+    {
+        $query = InwardRegisterDetail::with(['inwardRegister', 'toStation', 'consignee', 'good'])
+            ->where('disposition', 'forward')
+            ->whereNotNull('to_station_id');
+
+        if ($challanId) {
+            $linkedIds = ChallanDetail::where('challan_id', $challanId)
+                ->whereNotNull('inward_register_detail_id')
+                ->pluck('inward_register_detail_id');
+
+            $query->where(function ($builder) use ($linkedIds) {
+                $builder->where('status', 'pending');
+
+                if ($linkedIds->isNotEmpty()) {
+                    $builder->orWhereIn('id', $linkedIds);
+                }
+            });
+        } else {
+            $query->where('status', 'pending');
+        }
+
+        return $query->get();
+    }
+
+    private function syncChallanDetails(Challan $challan, array $details): void
+    {
+        $existingInwardIds = $challan->details()
+            ->whereNotNull('inward_register_detail_id')
+            ->pluck('inward_register_detail_id');
+
+        if ($existingInwardIds->isNotEmpty()) {
+            InwardRegisterDetail::whereIn('id', $existingInwardIds)->update(['status' => 'pending']);
+        }
+
+        $challan->details()->delete();
+
+        $bookingFreight = 0.0;
+        $crossingFreight = 0.0;
+
         foreach ($details as $detail) {
-            $bilty = \App\Models\Bilty::find($detail['bilty_id']);
-            if ($bilty) {
+            if (! empty($detail['bilty_id'])) {
+                $bilty = Bilty::find($detail['bilty_id']);
+                if (! $bilty) {
+                    continue;
+                }
+
                 $challan->details()->create([
                     'bilty_id' => $bilty->id,
                     'to_station_id' => $bilty->to_station_id,
                 ]);
+
+                $bookingFreight += (float) ($bilty->freight ?? 0);
+
+                continue;
+            }
+
+            if (! empty($detail['inward_register_detail_id'])) {
+                $inwardDetail = InwardRegisterDetail::find($detail['inward_register_detail_id']);
+                if (! $inwardDetail || $inwardDetail->disposition !== 'forward') {
+                    continue;
+                }
+
+                $challan->details()->create([
+                    'inward_register_detail_id' => $inwardDetail->id,
+                    'to_station_id' => $inwardDetail->to_station_id,
+                ]);
+
+                $inwardDetail->update(['status' => 'challaned']);
+                $crossingFreight += (float) ($inwardDetail->freight ?? 0);
             }
         }
 
-        return redirect()->route('challans.index')->with('success', 'Challan updated successfully.');
-    }
-
-    public function destroy(Challan $challan)
-    {
-        $challan->delete();
-        return redirect()->route('challans.index')->with('success', 'Challan deleted successfully.');
-    }
-
-    public function print(Challan $challan)
-    {
-        $challan->load(['fromStation', 'toStation', 'truck', 'driver', 'details.bilty.biltyDetails', 'details.bilty.consignee', 'details.bilty.toStation']);
-        $company = \App\Models\Company::find($challan->company_id);
-        
-        return view('prints.challan', compact('challan', 'company'));
+        $challan->update([
+            'booking_freight' => $bookingFreight,
+            'crossing_freight' => $crossingFreight,
+        ]);
     }
 
     private function syncChallanAgentFields(array &$validated): void
     {
-        if (!empty($validated['pay_by_agent_id'])) {
+        if (! empty($validated['pay_by_agent_id'])) {
             $agent = Agent::find($validated['pay_by_agent_id']);
             $validated['pay_by'] = $agent?->name;
         } else {
@@ -201,7 +314,7 @@ class ChallanController extends Controller implements HasMiddleware
             $validated['pay_by'] = null;
         }
 
-        if (!empty($validated['delivery_at_agent_id'])) {
+        if (! empty($validated['delivery_at_agent_id'])) {
             $agent = Agent::find($validated['delivery_at_agent_id']);
             $validated['delivery_at'] = $agent?->name;
         } else {

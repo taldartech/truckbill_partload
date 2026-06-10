@@ -14,4 +14,14 @@ class ChallanDetail extends Model
     {
         return $this->belongsTo(Bilty::class);
     }
+
+    public function inwardRegisterDetail()
+    {
+        return $this->belongsTo(InwardRegisterDetail::class);
+    }
+
+    public function toStation()
+    {
+        return $this->belongsTo(Station::class, 'to_station_id');
+    }
 }

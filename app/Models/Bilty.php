@@ -57,4 +57,9 @@ class Bilty extends Model
     {
         return $this->hasMany(BiltyEwayBill::class, 'bilty_id');
     }
+
+    public function challanDetails()
+    {
+        return $this->hasMany(ChallanDetail::class);
+    }
 }

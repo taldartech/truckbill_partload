@@ -81,8 +81,16 @@
                                             <SearchableSelect v-model="entry.from_station_id" :options="stations" placeholder="Select Station" />
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label">To Station</label>
-                                            <SearchableSelect v-model="entry.to_station_id" :options="stations" placeholder="Select Station" />
+                                            <label class="form-label">To Station <span class="text-danger">*</span></label>
+                                            <SearchableSelect
+                                                v-model="entry.to_station_id"
+                                                :options="stations"
+                                                placeholder="Select Station"
+                                                :disabled="entry.status === 'challaned'"
+                                            />
+                                            <span v-if="entry.to_station_id" class="badge mt-1" :class="dispositionBadgeClass(rowDisposition(entry))">
+                                                {{ formatDisposition(rowDisposition(entry)) }}
+                                            </span>
                                         </div>
                                         <div class="col-md-3">
                                             <label class="form-label">Consignor</label>
@@ -171,6 +179,8 @@
                                             <th>Date</th>
                                             <th>From</th>
                                             <th>To</th>
+                                            <th>Route</th>
+                                            <th>Status</th>
                                             <th>Consignor</th>
                                             <th>Consignee</th>
                                             <th>Goods</th>
@@ -191,19 +201,34 @@
                                             <td class="align-middle">{{ detail.date || '—' }}</td>
                                             <td class="align-middle">{{ stationName(detail.from_station_id) }}</td>
                                             <td class="align-middle">{{ stationName(detail.to_station_id) }}</td>
+                                            <td class="align-middle">
+                                                <span class="badge" :class="dispositionBadgeClass(rowDisposition(detail))">
+                                                    {{ formatDisposition(rowDisposition(detail)) }}
+                                                </span>
+                                            </td>
+                                            <td class="align-middle">
+                                                <span class="badge" :class="detail.status === 'challaned' ? 'bg-warning text-dark' : 'bg-secondary'">
+                                                    {{ detail.status === 'challaned' ? 'Challaned' : 'Pending' }}
+                                                </span>
+                                            </td>
                                             <td class="align-middle">{{ partyName(detail.consignor_id) }}</td>
                                             <td class="align-middle">{{ partyName(detail.consignee_id) }}</td>
                                             <td class="align-middle">{{ goodName(detail.good_id) }}</td>
                                             <td class="text-center align-middle">{{ detail.no_of_packages || 0 }}</td>
                                             <td class="text-center align-middle">{{ detail.weight || 0 }}</td>
                                             <td class="text-center align-middle">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" @click.stop="deleteRow(index)">
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-link text-danger p-0"
+                                                    @click.stop="deleteRow(index)"
+                                                    :disabled="detail.status === 'challaned'"
+                                                >
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </td>
                                         </tr>
                                         <tr v-if="form.details.length === 0">
-                                            <td colspan="11" class="text-center py-4 text-muted">
+                                            <td colspan="13" class="text-center py-4 text-muted">
                                                 No entries added yet. Fill the form above and click Add to List.
                                                 <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
                                             </td>
@@ -245,9 +270,11 @@
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
-import { useForm, Link } from '@inertiajs/vue3';
+import { useForm, Link, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref } from 'vue';
+
+const page = usePage();
 
 const props = defineProps({
     register: Object,
@@ -277,6 +304,8 @@ const emptyEntry = () => ({
     home_delivery_charge: '',
     private_marka: '',
     transporter_id: '',
+    disposition: '',
+    status: 'pending',
 });
 
 const mapDetail = (detail) => ({
@@ -295,6 +324,8 @@ const mapDetail = (detail) => ({
     home_delivery_charge: detail.home_delivery_charge ?? '',
     private_marka: detail.private_marka || '',
     transporter_id: detail.transporter_id || '',
+    disposition: detail.disposition || '',
+    status: detail.status || 'pending',
 });
 
 const entry = ref(emptyEntry());
@@ -315,6 +346,26 @@ const form = useForm({
     total_crossing_freight: props.register.total_crossing_freight || 0,
     details: initialDetails,
 });
+
+const branchStationId = computed(() => page.props.auth.active_branch?.station_id ?? null);
+
+const rowDisposition = (detail) => {
+    if (detail.disposition) return detail.disposition;
+    if (!detail.to_station_id || !branchStationId.value) return null;
+    return String(detail.to_station_id) === String(branchStationId.value) ? 'delivery' : 'forward';
+};
+
+const formatDisposition = (disposition) => {
+    if (disposition === 'delivery') return 'Delivery';
+    if (disposition === 'forward') return 'Forward';
+    return '—';
+};
+
+const dispositionBadgeClass = (disposition) => {
+    if (disposition === 'delivery') return 'bg-success';
+    if (disposition === 'forward') return 'bg-info text-dark';
+    return 'bg-secondary';
+};
 
 const stationName = (id) => props.stations.find((s) => s.id === id)?.name || '—';
 const partyName = (id) => props.parties.find((p) => p.id === id)?.name || '—';
@@ -343,13 +394,24 @@ const loadSelectedEntry = () => {
         return;
     }
 
-    entry.value = { ...form.details[selectedRowIndex.value] };
+    const selected = form.details[selectedRowIndex.value];
+    if (selected.status === 'challaned') {
+        alert('Challaned entries cannot be edited.');
+        return;
+    }
+
+    entry.value = { ...selected };
     editingRowIndex.value = selectedRowIndex.value;
 };
 
 const confirmEntry = () => {
     if (!entry.value.gr_no && !entry.value.good_id) {
         alert('Please enter G.R. No. or select Goods Name.');
+        return;
+    }
+
+    if (!entry.value.to_station_id) {
+        alert('Please select To Station for this entry.');
         return;
     }
 
@@ -366,6 +428,11 @@ const confirmEntry = () => {
 };
 
 const deleteRow = (index) => {
+    if (form.details[index]?.status === 'challaned') {
+        alert('Challaned entries cannot be deleted.');
+        return;
+    }
+
     form.details.splice(index, 1);
     if (selectedRowIndex.value === index) {
         selectedRowIndex.value = null;

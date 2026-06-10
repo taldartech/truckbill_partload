@@ -38,13 +38,13 @@
                             <!-- HEADER ROW 2 -->
                             <div class="row align-items-center mb-2 mt-2">
                                 <div class="col-md-3 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-primary text-nowrap" style="min-width: 90px;">Add Bilties For</label>
+                                    <label class="me-2 mb-0 fw-bold text-primary text-nowrap" style="min-width: 90px;">Add For</label>
                                     <div class="flex-grow-1">
                                         <SearchableSelect :small="true" v-model="fetch_station_id" :options="destinationStationOptions" placeholder="Station Wise" />
                                     </div>
                                 </div>
                                 <div class="col-md-1 d-flex align-items-center">
-                                    <button type="button" class="btn btn-sm btn-primary text-nowrap shadow-sm w-100" @click="fetchBiltiesByStation" :disabled="!fetch_station_id">
+                                    <button type="button" class="btn btn-sm btn-primary text-nowrap shadow-sm w-100" @click="fetchByStation" :disabled="!fetch_station_id">
                                         <i class="fas fa-magic"></i> Add
                                     </button>
                                 </div>
@@ -79,7 +79,7 @@
                                             <th width="15%">Goods Name</th>
                                             <th width="10%" class="text-end">Freight</th>
                                             <th width="10%" class="text-center">B.O.B.</th>
-                                            <th width="10%" class="text-center">Booking</th>
+                                            <th width="10%" class="text-center">Type</th>
                                             <th width="5%" class="text-center"><i class="fas fa-cog"></i></th>
                                         </tr>
                                     </thead>
@@ -87,8 +87,24 @@
                                         <tr v-for="(detail, index) in form.details" :key="index" :class="index % 2 === 0 ? 'bg-light' : 'bg-white'">
                                             <td class="text-center align-middle">{{ index + 1 }}</td>
                                             <td>
-                                                <SearchableSelect :small="true" @change="fetchBiltyDetails(index)" v-model="detail.bilty_id" :options="bilties" labelKey="bilty_number" placeholder="Select Bilty" />
-                                                <div v-if="form.errors['details.' + index + '.bilty_id']" class="text-danger small mt-1 text-start">{{ form.errors['details.' + index + '.bilty_id'] }}</div>
+                                                <SearchableSelect
+                                                    v-if="detail.row_type === 'bilty'"
+                                                    :small="true"
+                                                    @change="fetchBiltyDetails(index)"
+                                                    v-model="detail.bilty_id"
+                                                    :options="bilties"
+                                                    labelKey="bilty_number"
+                                                    placeholder="Select Bilty"
+                                                />
+                                                <SearchableSelect
+                                                    v-else
+                                                    :small="true"
+                                                    @change="fetchInwardDetails(index)"
+                                                    v-model="detail.inward_register_detail_id"
+                                                    :options="inwardDetailOptions"
+                                                    labelKey="gr_no"
+                                                    placeholder="Select G.R."
+                                                />
                                             </td>
                                             <td class="align-middle">{{ detail.to_station_name || '--' }}</td>
                                             <td>
@@ -102,7 +118,7 @@
                                                 <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-end bg-transparent" v-model="detail.freight" readonly>
                                             </td>
                                             <td class="align-middle text-center">{{ detail.bob || '--' }}</td>
-                                            <td class="align-middle text-center">Booking</td>
+                                            <td class="align-middle text-center">{{ detail.row_type === 'bilty' ? 'Booking' : 'Crossing' }}</td>
                                             <td class="text-center align-middle">
                                                 <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeRow(index)" v-if="form.details.length > 1">
                                                     <i class="fas fa-times"></i>
@@ -111,8 +127,11 @@
                                         </tr>
                                         <tr>
                                             <td colspan="10" class="bg-white p-1 text-center border-top">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addRow">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 me-1" @click="addBiltyRow">
                                                     <i class="fas fa-plus"></i> Add Bilty
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info py-0" @click="addInwardRow">
+                                                    <i class="fas fa-plus"></i> Add Inward
                                                 </button>
                                                 <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
                                             </td>
@@ -135,31 +154,31 @@
                                             </div>
                                             <div class="d-flex justify-content-between">
                                                 <label class="mb-0 fw-bold small text-dark">Total Nugs</label>
-                                                <span class="fw-bold text-primary">{{ totalNugs }}</span>
+                                                <span class="fw-bold text-primary">{{ totalPackages }}</span>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="d-flex justify-content-between mb-1">
                                                 <label class="mb-0 fw-bold small text-dark">To Pay Amount</label>
-                                                <span class="fw-bold text-primary">{{ toPayAmount }}</span>
+                                                <span class="fw-bold text-primary">{{ toPayAmountDisplay }}</span>
                                             </div>
                                             <div class="d-flex justify-content-between">
                                                 <label class="mb-0 fw-bold small text-dark">Paid Amt/Adv.Rec.</label>
-                                                <span class="fw-bold text-primary">{{ paidAmount }}</span>
+                                                <span class="fw-bold text-primary">{{ paidAmountDisplay }}</span>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
-                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <div class="d-flex justify-content-between mb-1">
                                                 <label class="mb-0 fw-bold small text-dark">Crossing Freight</label>
-                                                <input type="number" step="0.01" class="form-control form-control-sm w-50 p-1" v-model="form.crossing_freight" @input="calculateTotal">
+                                                <span class="fw-bold text-primary">{{ crossingFreightDisplay }}</span>
                                             </div>
-                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <div class="d-flex justify-content-between mb-1">
                                                 <label class="mb-0 fw-bold small text-dark text-nowrap">Cartage/Dalali/PF</label>
-                                                <input type="number" step="0.01" class="form-control form-control-sm w-50 p-1" v-model="form.cartage_dalali_pf" @input="calculateTotal">
+                                                <span class="fw-bold text-primary">{{ cartageDisplay }}</span>
                                             </div>
-                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <div class="d-flex justify-content-between mb-1">
                                                 <label class="mb-0 fw-bold small text-dark text-nowrap">GST Tax</label>
-                                                <input type="number" step="0.01" class="form-control form-control-sm w-50 p-1" v-model="form.gst" @input="calculateTotal">
+                                                <span class="fw-bold text-primary">{{ gstDisplay }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -206,10 +225,7 @@
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="mb-0 fw-bold small text-dark">Total Balance Amt.</label>
-                                        <select class="form-control form-control-sm w-50 p-1 bg-secondary text-white border-0" v-model="form.total_balance_type">
-                                            <option value="Cr">Cr</option>
-                                            <option value="Dr">Dr</option>
-                                        </select>
+                                        <span class="fw-bold text-primary">{{ form.total_balance_type }}</span>
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="mb-0 fw-bold small text-dark">To (Account)</label>
@@ -280,13 +296,21 @@ const props = defineProps({
     drivers: Array,
     trucks: Array,
     bilties: Array,
-    agents: Array
+    inward_details: Array,
+    agents: Array,
 });
 
 const destinationStationOptions = computed(() => [
     { id: ALL_STATIONS_VALUE, name: 'ALL' },
     ...props.stations,
 ]);
+
+const inwardDetailOptions = computed(() =>
+    (props.inward_details || []).map((detail) => ({
+        ...detail,
+        gr_no: detail.gr_no || `GR-${detail.id}`,
+    }))
+);
 
 const resolveAgentId = (agentId, agentName) => {
     if (agentId) {
@@ -298,6 +322,56 @@ const resolveAgentId = (agentId, agentName) => {
     const agent = props.agents.find((item) => item.name === agentName);
 
     return agent?.id ?? '';
+};
+
+const emptyBiltyRow = () => ({
+    row_type: 'bilty',
+    bilty_id: '',
+    inward_register_detail_id: '',
+    to_station_name: '',
+    nugs: 0,
+    weight: 0,
+    goods_name: '',
+    freight: 0,
+    cartage: 0,
+    gst_amount: 0,
+    bob: '',
+});
+
+const emptyInwardRow = () => ({
+    row_type: 'inward',
+    bilty_id: '',
+    inward_register_detail_id: '',
+    to_station_name: '',
+    nugs: 0,
+    weight: 0,
+    goods_name: '',
+    freight: 0,
+    cartage: 0,
+    gst_amount: 0,
+    bob: '',
+});
+
+const biltyGstAmount = (bilty) => {
+    const addonTotal = (bilty.addon_charges || []).reduce(
+        (sum, charge) => sum + parseFloat(charge.amount || 0),
+        0
+    );
+
+    const subtotal =
+        parseFloat(bilty.freight || 0) +
+        parseFloat(bilty.bilty_charge || 0) +
+        parseFloat(bilty.surcharge || 0) +
+        parseFloat(bilty.handling_charge || 0) +
+        parseFloat(bilty.risk_dd_charge || 0) +
+        parseFloat(bilty.cartage || 0) +
+        parseFloat(bilty.other_charge || 0) +
+        addonTotal -
+        parseFloat(bilty.less_advance_received || 0);
+
+    const gstRate = bilty.gst_liability_by === 'Exempted' ? 0 : parseFloat(bilty.gst || 0);
+
+    return subtotal * (gstRate / 100);
 };
 
 const form = useForm({
@@ -313,6 +387,7 @@ const form = useForm({
     kat: props.challan.kat || 0,
     home_delivery_charge: props.challan.home_delivery_charge || 0,
     crossing_freight: props.challan.crossing_freight || 0,
+    booking_freight: props.challan.booking_freight || 0,
     cartage_dalali_pf: props.challan.cartage_dalali_pf || 0,
     other_charge: props.challan.other_charge || 0,
     gst: props.challan.gst || 0,
@@ -328,208 +403,273 @@ const form = useForm({
     delivery_at_agent_id: resolveAgentId(props.challan.delivery_at_agent_id, props.challan.delivery_at),
     add_to_main_challan: props.challan.add_to_main_challan || false,
     remark: props.challan.remark || '',
-    status: props.challan.status || 'Created'
+    status: props.challan.status || 'Created',
 });
 
 onMounted(() => {
     if (props.challan.details && props.challan.details.length > 0) {
-        props.challan.details.forEach(detail => {
-            if (detail.bilty) {
-                let totalNugs = 0;
-                let totalWeight = 0;
-                let goodName = '--';
-                
-                if (detail.bilty.bilty_details && detail.bilty.bilty_details.length > 0) {
-                    detail.bilty.bilty_details.forEach(bd => {
-                        totalNugs += parseFloat(bd.no_of_packages || 0);
-                        totalWeight += parseFloat(bd.gross_weight || 0);
-                    });
-                    goodName = detail.bilty.bilty_details[0].good ? detail.bilty.bilty_details[0].good.name : '--';
-                }
-                
-                const toStation = props.stations.find(s => s.id === detail.bilty.to_station_id);
-
-                form.details.push({
-                    bilty_id: detail.bilty_id,
-                    to_station_name: toStation ? toStation.name : '--',
-                    nugs: totalNugs,
-                    weight: totalWeight,
-                    goods_name: goodName,
-                    freight: detail.bilty.freight || 0,
-                    bob: detail.bilty.payment_type || '--'
-                });
+        props.challan.details.forEach((detail) => {
+            if (detail.bilty_id && detail.bilty) {
+                const row = emptyBiltyRow();
+                populateBiltyRow(row, detail.bilty);
+                form.details.push(row);
+            } else if (detail.inward_register_detail_id && detail.inward_register_detail) {
+                const row = emptyInwardRow();
+                populateInwardRow(row, detail.inward_register_detail);
+                form.details.push(row);
             }
         });
     }
     if (form.details.length === 0) {
-        addRow();
+        addBiltyRow();
     }
-    calculateTotal();
+    syncFreightTotals();
 });
 
-const addRow = () => {
-    form.details.push({ bilty_id: '', to_station_name: '', nugs: 0, weight: 0, goods_name: '', freight: 0, bob: '' });
+const addBiltyRow = () => {
+    form.details.push(emptyBiltyRow());
+};
+
+const addInwardRow = () => {
+    form.details.push(emptyInwardRow());
 };
 
 const removeRow = (index) => {
     if (form.details.length > 1) {
         form.details.splice(index, 1);
-        calculateTotal();
+        syncFreightTotals();
     }
+};
+
+const populateBiltyRow = (detail, bilty) => {
+    let totalNugs = 0;
+    let totalWeight = 0;
+    let goodName = '--';
+
+    if (bilty.bilty_details && bilty.bilty_details.length > 0) {
+        bilty.bilty_details.forEach((bd) => {
+            totalNugs += parseFloat(bd.no_of_packages || 0);
+            totalWeight += parseFloat(bd.gross_weight || 0);
+        });
+        goodName = bilty.bilty_details[0].good ? bilty.bilty_details[0].good.name : '--';
+    }
+
+    const toStation = props.stations.find((s) => s.id === bilty.to_station_id);
+
+    detail.row_type = 'bilty';
+    detail.bilty_id = bilty.id;
+    detail.inward_register_detail_id = '';
+    detail.to_station_name = toStation ? toStation.name : '--';
+    detail.nugs = totalNugs;
+    detail.weight = totalWeight;
+    detail.goods_name = goodName;
+    detail.freight = bilty.freight || 0;
+    detail.cartage = parseFloat(bilty.cartage || 0);
+    detail.gst_amount = biltyGstAmount(bilty);
+    detail.bob = bilty.payment_type || '--';
+};
+
+const populateInwardRow = (detail, inward) => {
+    detail.row_type = 'inward';
+    detail.bilty_id = '';
+    detail.inward_register_detail_id = inward.id;
+    detail.to_station_name = inward.to_station?.name || props.stations.find((s) => s.id === inward.to_station_id)?.name || '--';
+    detail.nugs = inward.no_of_packages || 0;
+    detail.weight = inward.weight || 0;
+    detail.goods_name = inward.good?.name || '--';
+    detail.freight = inward.freight || 0;
+    detail.bob = inward.basis_of_booking || '--';
 };
 
 const fetchBiltyDetails = (index) => {
     const detail = form.details[index];
     if (detail.bilty_id) {
-        const bilty = props.bilties.find(b => b.id === detail.bilty_id);
+        const bilty = props.bilties.find((b) => b.id === detail.bilty_id);
         if (bilty) {
-            let totalNugs = 0;
-            let totalWeight = 0;
-            let goodName = '--';
-            
-            if (bilty.bilty_details && bilty.bilty_details.length > 0) {
-                bilty.bilty_details.forEach(bd => {
-                    totalNugs += parseFloat(bd.no_of_packages || 0);
-                    totalWeight += parseFloat(bd.gross_weight || 0);
-                });
-                goodName = bilty.bilty_details[0].good ? bilty.bilty_details[0].good.name : '--';
-            }
-            
-            const toStation = props.stations.find(s => s.id === bilty.to_station_id);
-
-            detail.to_station_name = toStation ? toStation.name : '--';
-            detail.nugs = totalNugs;
-            detail.weight = totalWeight;
-            detail.goods_name = goodName;
-            detail.freight = bilty.freight || 0;
-            detail.bob = bilty.payment_type || '--';
-            
-            calculateTotal();
+            populateBiltyRow(detail, bilty);
+            syncFreightTotals();
         }
     } else {
-        detail.to_station_name = '';
-        detail.nugs = 0;
-        detail.weight = 0;
-        detail.goods_name = '';
-        detail.freight = 0;
-        detail.bob = '';
-        calculateTotal();
+        Object.assign(detail, emptyBiltyRow());
+        syncFreightTotals();
     }
 };
 
-const fetchBiltiesByStation = () => {
+const fetchInwardDetails = (index) => {
+    const detail = form.details[index];
+    if (detail.inward_register_detail_id) {
+        const inward = inwardDetailOptions.value.find((d) => d.id === detail.inward_register_detail_id);
+        if (inward) {
+            populateInwardRow(detail, inward);
+            syncFreightTotals();
+        }
+    } else {
+        Object.assign(detail, emptyInwardRow());
+        syncFreightTotals();
+    }
+};
+
+const fetchByStation = () => {
     if (!fetch_station_id.value) return;
 
-    const existingBiltyIds = form.details.filter(d => d.bilty_id).map(d => d.bilty_id);
+    const stationId = fetch_station_id.value;
+    const isAll = stationId === ALL_STATIONS_VALUE;
 
-    const matchingBilties = fetch_station_id.value === ALL_STATIONS_VALUE
+    const existingBiltyIds = form.details
+        .filter((d) => d.row_type === 'bilty' && d.bilty_id)
+        .map((d) => d.bilty_id);
+
+    const existingInwardIds = form.details
+        .filter((d) => d.row_type === 'inward' && d.inward_register_detail_id)
+        .map((d) => d.inward_register_detail_id);
+
+    const matchingBilties = isAll
         ? props.bilties
-        : props.bilties.filter(b => b.to_station_id === fetch_station_id.value);
+        : props.bilties.filter((b) => b.to_station_id === stationId);
 
-    if (matchingBilties.length === 0) {
-        alert(fetch_station_id.value === ALL_STATIONS_VALUE
-            ? 'No pending bilties found.'
-            : 'No pending bilties found headed to this station.');
+    const matchingInward = isAll
+        ? inwardDetailOptions.value
+        : inwardDetailOptions.value.filter((d) => d.to_station_id === stationId);
+
+    if (matchingBilties.length === 0 && matchingInward.length === 0) {
+        alert(isAll
+            ? 'No pending bilties or inward entries found.'
+            : 'No pending bilties or inward entries found for this station.');
         return;
     }
 
-    if (form.details.length === 1 && !form.details[0].bilty_id) {
+    const biltiesToAdd = matchingBilties.filter((b) => !existingBiltyIds.includes(b.id));
+    const inwardToAdd = matchingInward.filter((d) => !existingInwardIds.includes(d.id));
+
+    if (biltiesToAdd.length === 0 && inwardToAdd.length === 0) {
+        alert('All pending entries for this selection are already in the grid.');
+        if (form.details.length === 0) addBiltyRow();
+        return;
+    }
+
+    if (form.details.length === 1 && !form.details[0].bilty_id && !form.details[0].inward_register_detail_id) {
         form.details.splice(0, 1);
     }
 
-    const biltiesToAdd = matchingBilties.filter(b => !existingBiltyIds.includes(b.id));
-
-    if (biltiesToAdd.length === 0) {
-        alert(fetch_station_id.value === ALL_STATIONS_VALUE
-            ? 'All pending bilties are already added to the grid.'
-            : 'All bilties for this station are already added to the grid.');
-        if (form.details.length === 0) addRow();
-        return;
-    }
-
-    biltiesToAdd.forEach(bilty => {
-        let totalNugs = 0;
-        let totalWeight = 0;
-        let goodName = '--';
-
-        if (bilty.bilty_details && bilty.bilty_details.length > 0) {
-            bilty.bilty_details.forEach(bd => {
-                totalNugs += parseFloat(bd.no_of_packages || 0);
-                totalWeight += parseFloat(bd.gross_weight || 0);
-            });
-            goodName = bilty.bilty_details[0].good ? bilty.bilty_details[0].good.name : '--';
-        }
-
-        const toStation = props.stations.find(s => s.id === bilty.to_station_id);
-
-        form.details.push({
-            bilty_id: bilty.id,
-            to_station_name: toStation ? toStation.name : '--',
-            nugs: totalNugs,
-            weight: totalWeight,
-            goods_name: goodName,
-            freight: bilty.freight || 0,
-            bob: bilty.payment_type || '--'
-        });
+    biltiesToAdd.forEach((bilty) => {
+        const row = emptyBiltyRow();
+        populateBiltyRow(row, bilty);
+        form.details.push(row);
     });
 
-    calculateTotal();
+    inwardToAdd.forEach((inward) => {
+        const row = emptyInwardRow();
+        populateInwardRow(row, inward);
+        form.details.push(row);
+    });
+
+    syncFreightTotals();
     fetch_station_id.value = '';
 };
 
-const totalPackages = computed(() => {
-    return form.details.reduce((sum, item) => sum + (parseFloat(item.nugs) || 0), 0);
-});
+const totalPackages = computed(() =>
+    form.details.reduce((sum, item) => sum + (parseFloat(item.nugs) || 0), 0)
+);
 
-const totalWeight = computed(() => {
-    return form.details.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0);
-});
+const totalWeight = computed(() =>
+    form.details.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0)
+);
 
-const toPayAmount = computed(() => {
-    return form.details.reduce((sum, item) => {
-        if (item.bob === 'To Pay') return sum + (parseFloat(item.freight) || 0);
+const bookingFreightTotal = computed(() =>
+    form.details
+        .filter((item) => item.row_type === 'bilty')
+        .reduce((sum, item) => sum + (parseFloat(item.freight) || 0), 0)
+);
+
+const toPayAmount = computed(() =>
+    form.details.reduce((sum, item) => {
+        if (item.row_type === 'bilty' && item.bob === 'To Pay') {
+            return sum + (parseFloat(item.freight) || 0);
+        }
         return sum;
-    }, 0);
-});
+    }, 0)
+);
 
-const paidAmount = computed(() => {
-    return form.details.reduce((sum, item) => {
-        if (item.bob === 'Paid' || item.bob === 'TBB') return sum + (parseFloat(item.freight) || 0);
+const crossingFreightTotal = computed(() =>
+    form.details
+        .filter((item) => item.row_type === 'inward')
+        .reduce((sum, item) => sum + (parseFloat(item.freight) || 0), 0)
+);
+
+const paidAmount = computed(() =>
+    form.details.reduce((sum, item) => {
+        if (item.row_type === 'bilty' && (item.bob === 'Paid' || item.bob === 'TBB')) {
+            return sum + (parseFloat(item.freight) || 0);
+        }
         return sum;
-    }, 0);
-});
+    }, 0)
+);
 
-watch([totalPackages, totalWeight, toPayAmount, paidAmount], () => {
+const cartageTotal = computed(() =>
+    form.details
+        .filter((item) => item.row_type === 'bilty')
+        .reduce((sum, item) => sum + (parseFloat(item.cartage) || 0), 0)
+);
+
+const gstTotal = computed(() =>
+    form.details
+        .filter((item) => item.row_type === 'bilty')
+        .reduce((sum, item) => sum + (parseFloat(item.gst_amount) || 0), 0)
+);
+
+const toPayAmountDisplay = computed(() => toPayAmount.value.toFixed(2));
+const crossingFreightDisplay = computed(() => crossingFreightTotal.value.toFixed(2));
+const paidAmountDisplay = computed(() => paidAmount.value.toFixed(2));
+const cartageDisplay = computed(() => cartageTotal.value.toFixed(2));
+const gstDisplay = computed(() => gstTotal.value.toFixed(2));
+
+const syncFreightTotals = () => {
+    form.booking_freight = bookingFreightTotal.value;
+    form.to_pay_amount = toPayAmount.value;
+    form.crossing_freight = crossingFreightTotal.value;
+    form.cartage_dalali_pf = cartageTotal.value;
+    form.gst = gstTotal.value;
+    calculateTotal();
+};
+
+watch([totalPackages, totalWeight, toPayAmount, paidAmount, bookingFreightTotal, crossingFreightTotal, cartageTotal, gstTotal], () => {
     form.total_packages = totalPackages.value;
     form.total_weight = totalWeight.value;
     form.to_pay_amount = toPayAmount.value;
     form.paid_amount = paidAmount.value;
+    form.booking_freight = bookingFreightTotal.value;
+    form.crossing_freight = crossingFreightTotal.value;
+    form.cartage_dalali_pf = cartageTotal.value;
+    form.gst = gstTotal.value;
+    calculateTotal();
 });
 
 const calculateTotal = () => {
-    // Standard sum calculation
-    const additions = parseFloat(form.truck_freight || 0) 
-        + parseFloat(form.crossing_freight || 0)
-        + parseFloat(form.cartage_dalali_pf || 0)
-        + parseFloat(form.other_charge || 0)
-        + parseFloat(form.gst || 0)
-        + parseFloat(form.cash_received || 0);
-        
-    const deductions = parseFloat(form.labour_charge || 0)
-        + parseFloat(form.kat || 0)
-        + parseFloat(form.home_delivery_charge || 0)
-        + parseFloat(form.cash_payment || 0);
-        
-    form.total_amount = (additions - deductions).toFixed(2);
+    const total =
+        toPayAmount.value
+        + crossingFreightTotal.value
+        - parseFloat(form.labour_charge || 0)
+        - parseFloat(form.kat || 0)
+        - parseFloat(form.home_delivery_charge || 0)
+        - parseFloat(form.truck_freight || 0)
+        + parseFloat(form.cash_payment || 0)
+        - parseFloat(form.cash_received || 0);
+
+    form.total_amount = total.toFixed(2);
+    form.total_balance_type = total < 0 ? 'Cr' : 'Dr';
 };
 
 const submit = () => {
-    form.total_packages = totalPackages.value;
-    form.total_weight = totalWeight.value;
-    form.to_pay_amount = toPayAmount.value;
-    form.paid_amount = paidAmount.value;
-    
-    form.put('/challans/' + props.challan.id);
+    form.transform((data) => ({
+        ...data,
+        details: data.details
+            .filter((row) => row.bilty_id || row.inward_register_detail_id)
+            .map((row) => ({
+                row_type: row.row_type,
+                bilty_id: row.row_type === 'bilty' ? row.bilty_id : null,
+                inward_register_detail_id: row.row_type === 'inward' ? row.inward_register_detail_id : null,
+            })),
+    })).put('/challans/' + props.challan.id);
 };
 </script>
 

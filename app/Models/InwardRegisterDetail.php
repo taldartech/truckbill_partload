@@ -44,4 +44,9 @@ class InwardRegisterDetail extends Model
     {
         return $this->belongsTo(Transporter::class);
     }
+
+    public function challanDetail()
+    {
+        return $this->hasOne(ChallanDetail::class);
+    }
 }

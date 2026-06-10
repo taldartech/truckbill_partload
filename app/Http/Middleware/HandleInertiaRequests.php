@@ -20,6 +20,9 @@ class HandleInertiaRequests extends Middleware
         $context = app(TenantContext::class);
         $user = $request->user();
         $activeBranch = $context->activeBranch();
+        if ($activeBranch) {
+            $activeBranch->loadMissing('station:id,name');
+        }
         $activeCompany = $context->activeCompany();
 
         return array_merge(parent::share($request), [
@@ -37,7 +40,12 @@ class HandleInertiaRequests extends Middleware
                 'company_name' => $activeCompany?->name
                     ?? ($user && $user->company ? $user->company->name : 'Demo Company'),
                 'branch_name' => $activeBranch?->name ?? ($user?->branch?->name),
-                'active_branch' => $activeBranch ? $activeBranch->only(['id', 'name']) : null,
+                'active_branch' => $activeBranch ? [
+                    'id' => $activeBranch->id,
+                    'name' => $activeBranch->name,
+                    'station_id' => $activeBranch->station_id,
+                    'station_name' => $activeBranch->station?->name,
+                ] : null,
                 'active_company' => $activeCompany ? $activeCompany->only(['id', 'name']) : null,
                 'subscription_ends_at' => function () use ($request, $context) {
                     $companyId = $context->activeCompanyId() ?? $request->user()?->company_id;

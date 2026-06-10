@@ -81,8 +81,11 @@
                                             <SearchableSelect v-model="entry.from_station_id" :options="stations" placeholder="Select Station" />
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label">To Station</label>
+                                            <label class="form-label">To Station <span class="text-danger">*</span></label>
                                             <SearchableSelect v-model="entry.to_station_id" :options="stations" placeholder="Select Station" />
+                                            <span v-if="entry.to_station_id" class="badge mt-1" :class="dispositionBadgeClass(rowDisposition(entry))">
+                                                {{ formatDisposition(rowDisposition(entry)) }}
+                                            </span>
                                         </div>
                                         <div class="col-md-3">
                                             <label class="form-label">Consignor</label>
@@ -171,6 +174,7 @@
                                             <th>Date</th>
                                             <th>From</th>
                                             <th>To</th>
+                                            <th>Route</th>
                                             <th>Consignor</th>
                                             <th>Consignee</th>
                                             <th>Goods</th>
@@ -191,6 +195,11 @@
                                             <td class="align-middle">{{ detail.date || '—' }}</td>
                                             <td class="align-middle">{{ stationName(detail.from_station_id) }}</td>
                                             <td class="align-middle">{{ stationName(detail.to_station_id) }}</td>
+                                            <td class="align-middle">
+                                                <span class="badge" :class="dispositionBadgeClass(rowDisposition(detail))">
+                                                    {{ formatDisposition(rowDisposition(detail)) }}
+                                                </span>
+                                            </td>
                                             <td class="align-middle">{{ partyName(detail.consignor_id) }}</td>
                                             <td class="align-middle">{{ partyName(detail.consignee_id) }}</td>
                                             <td class="align-middle">{{ goodName(detail.good_id) }}</td>
@@ -203,7 +212,7 @@
                                             </td>
                                         </tr>
                                         <tr v-if="form.details.length === 0">
-                                            <td colspan="11" class="text-center py-4 text-muted">
+                                            <td colspan="12" class="text-center py-4 text-muted">
                                                 No entries added yet. Fill the form above and click Add to List.
                                                 <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
                                             </td>
@@ -245,9 +254,11 @@
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
-import { useForm, Link } from '@inertiajs/vue3';
+import { useForm, Link, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref } from 'vue';
+
+const page = usePage();
 
 const props = defineProps({
     stations: Array,
@@ -296,6 +307,31 @@ const form = useForm({
     details: [],
 });
 
+const branchStationId = computed(() => page.props.auth.active_branch?.station_id ?? null);
+
+const previewDisposition = (toStationId) => {
+    if (!toStationId || !branchStationId.value) return '—';
+    return String(toStationId) === String(branchStationId.value) ? 'Delivery' : 'Forward';
+};
+
+const rowDisposition = (detail) => {
+    if (detail.disposition) return detail.disposition;
+    if (!detail.to_station_id || !branchStationId.value) return null;
+    return String(detail.to_station_id) === String(branchStationId.value) ? 'delivery' : 'forward';
+};
+
+const formatDisposition = (disposition) => {
+    if (disposition === 'delivery') return 'Delivery';
+    if (disposition === 'forward') return 'Forward';
+    return '—';
+};
+
+const dispositionBadgeClass = (disposition) => {
+    if (disposition === 'delivery') return 'bg-success';
+    if (disposition === 'forward') return 'bg-info text-dark';
+    return 'bg-secondary';
+};
+
 const stationName = (id) => props.stations.find((s) => s.id === id)?.name || '—';
 const partyName = (id) => props.parties.find((p) => p.id === id)?.name || '—';
 const goodName = (id) => props.goods.find((g) => g.id === id)?.name || '—';
@@ -330,6 +366,11 @@ const loadSelectedEntry = () => {
 const confirmEntry = () => {
     if (!entry.value.gr_no && !entry.value.good_id) {
         alert('Please enter G.R. No. or select Goods Name.');
+        return;
+    }
+
+    if (!entry.value.to_station_id) {
+        alert('Please select To Station for this entry.');
         return;
     }
 
