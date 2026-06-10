@@ -16,9 +16,6 @@ class CitiesSeeder extends Seeder
             return;
         }
 
-        $company = DB::table('companies')->first();
-        $companyId = $company ? $company->id : 1;
-
         $now = now();
 
         foreach (IndiaGeoData::statesWithDistricts() as $stateRow) {
@@ -50,42 +47,17 @@ class CitiesSeeder extends Seeder
                             'country_id' => $india->id,
                             'updated_at' => $now,
                         ]);
-                    $cityId = $existingCity->id;
-                } else {
-                    $cityId = DB::table('cities')->insertGetId([
-                        'state_id' => $state->id,
-                        'country_id' => $india->id,
-                        'name' => $districtName,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ]);
+
+                    continue;
                 }
 
-                $existingStation = DB::table('stations')
-                    ->where('company_id', $companyId)
-                    ->where('name', $districtName)
-                    ->where('city_id', $cityId)
-                    ->first();
-
-                if ($existingStation) {
-                    DB::table('stations')
-                        ->where('id', $existingStation->id)
-                        ->update([
-                            'state_id' => $state->id,
-                            'country_id' => $india->id,
-                            'updated_at' => $now,
-                        ]);
-                } else {
-                    DB::table('stations')->insert([
-                        'company_id' => $companyId,
-                        'country_id' => $india->id,
-                        'state_id' => $state->id,
-                        'city_id' => $cityId,
-                        'name' => $districtName,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ]);
-                }
+                DB::table('cities')->insert([
+                    'state_id' => $state->id,
+                    'country_id' => $india->id,
+                    'name' => $districtName,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
             }
         }
     }

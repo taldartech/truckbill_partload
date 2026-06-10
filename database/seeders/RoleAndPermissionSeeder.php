@@ -42,18 +42,7 @@ class RoleAndPermissionSeeder extends Seeder
         );
         $masterAdmin->syncRoles([UserRole::MasterAdmin->value]);
 
-        $superAdmin = User::firstOrCreate(
-            ['email' => 'super@truckbill.com'],
-            [
-                'name' => 'Super Admin',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]
-        );
-        $superAdmin->syncRoles([UserRole::SuperAdmin->value]);
-
         echo "Roles and Permissions seeded successfully!\n";
         echo "Master Admin: admin@truckbill.com / password\n";
-        echo "Super Admin: super@truckbill.com / password\n";
     }
 }
