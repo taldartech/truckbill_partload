@@ -25,7 +25,7 @@ class StationController extends Controller implements HasMiddleware
 
     public function index()
     {
-        $stations = Station::with('company')->latest()->paginate(10);
+        $stations = Station::latest()->paginate(10);
 
         return Inertia::render('Stations/Index', [
             'stations' => $stations,
@@ -57,7 +57,6 @@ class StationController extends Controller implements HasMiddleware
     {
         return response()->json([
             'states' => State::select('id', 'name')->orderBy('name')->get(),
-            'default_company_id' => $this->companyId(),
         ]);
     }
 

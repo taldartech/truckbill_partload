@@ -121,22 +121,7 @@ const form = useForm({
 });
 
 
-const resolvedCompanyId = computed(() =>
-    form.company_id
-    || page.props.auth.active_company?.id
-    || page.props.auth.user?.company_id
-    || ''
-);
-
-const filteredStations = computed(() => {
-    if (!resolvedCompanyId.value) {
-        return [];
-    }
-
-    return props.stations.filter(
-        (station) => String(station.company_id) === String(resolvedCompanyId.value)
-    );
-});
+const filteredStations = computed(() => props.stations);
 
 const filteredCities = computed(() => {
     if (!form.state_id) return [];
@@ -149,17 +134,6 @@ watch(() => form.state_id, (newStateId) => {
         const cityExists = filteredCities.value.some(city => String(city.id) === String(form.city_id));
         if (!cityExists) {
             form.city_id = '';
-        }
-    }
-});
-
-watch(resolvedCompanyId, () => {
-    if (form.station_id) {
-        const stationExists = filteredStations.value.some(
-            (station) => String(station.id) === String(form.station_id)
-        );
-        if (!stationExists) {
-            form.station_id = '';
         }
     }
 });

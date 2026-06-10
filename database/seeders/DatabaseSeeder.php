@@ -23,11 +23,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SubscriptionPlanSeeder::class,
             RoleAndPermissionSeeder::class,
-            TruckTypeSeeder::class,
             CountriesSeeder::class,
             StatesSeeder::class,
             CitiesSeeder::class,
             UserSeeder::class,
+            TruckTypeSeeder::class,
             DummyDataSeeder::class,
         ]);
     }

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PackageType extends Model
 {
-    use \App\Traits\BelongsToCompany;
+    use \App\Traits\BelongsToOwner;
     protected $guarded = [];
     //
 }

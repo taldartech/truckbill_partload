@@ -71,7 +71,7 @@ class BranchController extends Controller implements HasMiddleware
         $companyId = $validated['company_id'] ?? app(TenantContext::class)->activeCompanyId();
         $this->authorizeCompanyId($companyId);
         $this->enforceBranchLimit($companyId);
-        $this->validateStationForCompany($validated['station_id'], $companyId);
+        $this->validateStationForOwner($validated['station_id']);
 
         $validated['company_id'] = $companyId;
         Branch::create($validated);
@@ -113,8 +113,7 @@ class BranchController extends Controller implements HasMiddleware
             $this->authorizeCompanyId($validated['company_id']);
         }
 
-        $companyId = $validated['company_id'] ?? $branch->company_id;
-        $this->validateStationForCompany($validated['station_id'], $companyId);
+        $this->validateStationForOwner($validated['station_id']);
 
         $branch->update($validated);
 
@@ -142,31 +141,19 @@ class BranchController extends Controller implements HasMiddleware
 
     private function availableStations()
     {
-        $context = app(TenantContext::class);
-        $query = Station::query()->orderBy('name');
-
-        if ($context->isSuperAdmin()) {
-            $query->whereIn('company_id', $context->ownedCompanyIds());
-        } elseif ($context->activeCompanyId()) {
-            $query->where('company_id', $context->activeCompanyId());
-        }
-
-        return $query->get(['id', 'name', 'company_id']);
+        return Station::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 
-    private function validateStationForCompany(int $stationId, ?int $companyId): void
+    private function validateStationForOwner(int $stationId): void
     {
-        if (! $companyId) {
-            return;
-        }
-
         $station = Station::query()
             ->whereKey($stationId)
-            ->where('company_id', $companyId)
             ->exists();
 
         if (! $station) {
-            abort(422, 'Selected station does not belong to this company.');
+            abort(422, 'Selected station is not available for this account.');
         }
     }
 

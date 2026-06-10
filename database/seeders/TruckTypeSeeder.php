@@ -2,16 +2,23 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Company;
+use App\Models\TruckType;
 use Illuminate\Database\Seeder;
 
 class TruckTypeSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        $ownerIds = Company::query()
+            ->whereNotNull('user_id')
+            ->distinct()
+            ->pluck('user_id');
+
+        if ($ownerIds->isEmpty()) {
+            return;
+        }
+
         $types = [
             'Open',
             'Closed',
@@ -24,8 +31,13 @@ class TruckTypeSeeder extends Seeder
             'Other',
         ];
 
-        foreach ($types as $type) {
-            \App\Models\TruckType::firstOrCreate(['name' => $type]);
+        foreach ($ownerIds as $ownerId) {
+            foreach ($types as $type) {
+                TruckType::firstOrCreate([
+                    'owner_id' => $ownerId,
+                    'name' => $type,
+                ]);
+            }
         }
     }
 }

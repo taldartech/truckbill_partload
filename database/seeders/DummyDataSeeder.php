@@ -24,9 +24,16 @@ class DummyDataSeeder extends Seeder
     {
         $faker = Faker::create('en_IN'); // Indian context for realistic data
         $company = Company::first();
-        
-        if (!$company) {
+
+        if (! $company) {
             $this->command->error('No company found to seed data for.');
+            return;
+        }
+
+        $ownerId = $company->user_id;
+
+        if (! $ownerId) {
+            $this->command->error('No super admin owner found for the company.');
             return;
         }
 
@@ -48,7 +55,7 @@ class DummyDataSeeder extends Seeder
         for ($i = 0; $i < 5; $i++) {
             $city = $cities->random();
             $stations[] = Station::create([
-                'company_id' => $company->id,
+                'owner_id' => $ownerId,
                 'name' => $city->name . ' Hub',
                 'city_id' => $city->id,
                 'state_id' => $city->state_id,
@@ -125,7 +132,7 @@ class DummyDataSeeder extends Seeder
         $itemNames = ['Electronics', 'Textiles', 'Machinery', 'FMCG', 'Furniture', 'Auto Parts'];
         foreach ($itemNames as $name) {
             $goods[] = Good::create([
-                'company_id' => $company->id,
+                'owner_id' => $ownerId,
                 'name' => $name,
             ]);
         }
@@ -136,7 +143,7 @@ class DummyDataSeeder extends Seeder
         $packNames = ['Carton', 'Bag', 'Pallet', 'Box', 'Bundle', 'Drum'];
         foreach ($packNames as $name) {
             $packageTypes[] = PackageType::create([
-                'company_id' => $company->id,
+                'owner_id' => $ownerId,
                 'name' => $name,
             ]);
         }

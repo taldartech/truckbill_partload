@@ -7,15 +7,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Station extends Model
 {
-    use \App\Traits\BelongsToCompany;
+    use \App\Traits\BelongsToOwner;
 
     use SoftDeletes;
 
     protected $guarded = [];
 
-    public function company()
+    public function owner()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
     public function state()

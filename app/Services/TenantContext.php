@@ -94,6 +94,46 @@ class TenantContext
             ->all();
     }
 
+    public function activeOwnerId(): ?int
+    {
+        if ($this->isMasterAdmin()) {
+            return null;
+        }
+
+        if ($this->isSuperAdmin()) {
+            return $this->user()?->id ? (int) $this->user()->id : null;
+        }
+
+        $companyId = $this->user()?->company_id;
+
+        if (! $companyId) {
+            return null;
+        }
+
+        $ownerId = Company::query()
+            ->whereKey($companyId)
+            ->value('user_id');
+
+        return $ownerId ? (int) $ownerId : null;
+    }
+
+    public function shouldApplyOwnerScope(): bool
+    {
+        if (! $this->user()) {
+            return false;
+        }
+
+        if ($this->isMasterAdmin()) {
+            return false;
+        }
+
+        if ($this->isSuperAdmin()) {
+            return $this->isActingAsAdmin() || ! empty($this->ownedCompanyIds());
+        }
+
+        return $this->user()->company_id !== null;
+    }
+
     public function shouldApplyCompanyScope(): bool
     {
         if (! $this->user()) {

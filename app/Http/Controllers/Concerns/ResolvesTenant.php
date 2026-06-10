@@ -24,7 +24,7 @@ trait ResolvesTenant
 
     protected function stripTenantFields(array $validated): array
     {
-        unset($validated['company_id'], $validated['branch_id']);
+        unset($validated['company_id'], $validated['branch_id'], $validated['owner_id']);
 
         return $validated;
     }
