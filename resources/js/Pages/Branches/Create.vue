@@ -30,9 +30,7 @@
                                     v-model="form.station_id"
                                     :options="filteredStations"
                                     placeholder="Select Station"
-                                    :disabled="!resolvedCompanyId"
                                 />
-                                <div v-if="!resolvedCompanyId" class="text-muted mt-1 small">Select a company first.</div>
                                 <div v-if="form.errors.station_id" class="text-danger mt-1 small">{{ form.errors.station_id }}</div>
                             </div>
 
