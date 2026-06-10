@@ -10,6 +10,7 @@ use App\Models\Truck;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class MainChallanController extends Controller implements HasMiddleware
@@ -39,26 +40,11 @@ class MainChallanController extends Controller implements HasMiddleware
         $nextId = $lastChallan ? $lastChallan->id + 1 : 1;
         $nextNumber = $initial . str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
-        // Fetch challans that are NOT added to a main challan yet
-        $available_challans = Challan::whereDoesntHave('details', function ($query) {
-            // we only want challans that aren't already linked to a main challan
-            // Wait, details in MainChallan link to Challans
-        })->get();
-        // Since we don't have a direct back-relationship, we can check main_challan_details
-        $used_challan_ids = \App\Models\MainChallanDetail::pluck('challan_id')->toArray();
-        $available_challans = Challan::with([
-            'details.bilty.biltyDetails.good',
-            'details.inwardRegisterDetail.good',
-            'toStation',
-        ])
-            ->whereNotIn('id', $used_challan_ids)
-            ->get();
-
         return Inertia::render('MainChallans/Create', [
             'stations' => Station::all(),
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
-            'challans' => $available_challans,
+            'challans' => $this->pendingChallans(),
             'next_main_challan_number' => $nextNumber
         ]);
     }
@@ -98,16 +84,10 @@ class MainChallanController extends Controller implements HasMiddleware
         $details = $validated['details'] ?? [];
         unset($validated['details']);
 
-        $main_challan = MainChallan::create($validated);
-
-        foreach ($details as $detail) {
-            $challan = Challan::find($detail['challan_id']);
-            if ($challan) {
-                $main_challan->details()->create([
-                    'challan_id' => $challan->id,
-                ]);
-            }
-        }
+        DB::transaction(function () use ($validated, $details) {
+            $main_challan = MainChallan::create($validated);
+            $this->syncMainChallanDetails($main_challan, $details);
+        });
 
         return redirect()->route('main-challans.index')->with('success', 'Main Challan created successfully.');
     }
@@ -120,23 +100,12 @@ class MainChallanController extends Controller implements HasMiddleware
             'details.challan.toStation',
         ]);
         
-        $existingChallanIds = $main_challan->details->pluck('challan_id')->toArray();
-        $used_challan_ids = \App\Models\MainChallanDetail::where('main_challan_id', '!=', $main_challan->id)->pluck('challan_id')->toArray();
-        
-        $available_challans = Challan::with([
-            'details.bilty.biltyDetails.good',
-            'details.inwardRegisterDetail.good',
-            'toStation',
-        ])
-            ->whereNotIn('id', $used_challan_ids)
-            ->get();
-
         return Inertia::render('MainChallans/Edit', [
             'main_challan' => $main_challan,
             'stations' => Station::all(),
             'drivers' => Driver::all(),
             'trucks' => Truck::all(),
-            'challans' => $available_challans,
+            'challans' => $this->pendingChallans(),
         ]);
     }
 
@@ -175,24 +144,23 @@ class MainChallanController extends Controller implements HasMiddleware
         $details = $validated['details'] ?? [];
         unset($validated['details']);
 
-        $main_challan->update($validated);
-        
-        $main_challan->details()->delete(); // Clear old details
-        foreach ($details as $detail) {
-            $challan = Challan::find($detail['challan_id']);
-            if ($challan) {
-                $main_challan->details()->create([
-                    'challan_id' => $challan->id,
-                ]);
-            }
-        }
+        DB::transaction(function () use ($validated, $details, $main_challan) {
+            $main_challan->update($validated);
+            $this->syncMainChallanDetails($main_challan, $details);
+        });
 
         return redirect()->route('main-challans.index')->with('success', 'Main Challan updated successfully.');
     }
 
     public function destroy(MainChallan $main_challan)
     {
-        $main_challan->delete();
+        DB::transaction(function () use ($main_challan) {
+            $challanIds = $main_challan->details()->pluck('challan_id');
+
+            Challan::whereIn('id', $challanIds)->update(['status' => 'Created']);
+            $main_challan->delete();
+        });
+
         return redirect()->route('main-challans.index')->with('success', 'Main Challan deleted successfully.');
     }
 
@@ -212,6 +180,44 @@ class MainChallanController extends Controller implements HasMiddleware
         $printData = $this->buildPrintData($main_challan);
 
         return view('prints.main_challan', compact('main_challan', 'company', 'printData'));
+    }
+
+    private function pendingChallans()
+    {
+        return Challan::with([
+            'details.bilty.biltyDetails.good',
+            'details.inwardRegisterDetail.good',
+            'toStation',
+        ])
+            ->where(function ($query) {
+                $query->where('status', 'Created')
+                    ->orWhereNull('status');
+            })
+            ->get();
+    }
+
+    private function syncMainChallanDetails(MainChallan $mainChallan, array $details): void
+    {
+        $existingChallanIds = $mainChallan->details()->pluck('challan_id');
+
+        if ($existingChallanIds->isNotEmpty()) {
+            Challan::whereIn('id', $existingChallanIds)->update(['status' => 'Created']);
+        }
+
+        $mainChallan->details()->delete();
+
+        foreach ($details as $detail) {
+            $challan = Challan::find($detail['challan_id'] ?? null);
+            if (! $challan) {
+                continue;
+            }
+
+            $mainChallan->details()->create([
+                'challan_id' => $challan->id,
+            ]);
+
+            $challan->update(['status' => 'In Progress']);
+        }
     }
 
     private function buildPrintData(MainChallan $mainChallan): array
