@@ -10,7 +10,7 @@
                         </Link>
                     </div>
                     <div class="card-body p-0 table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -32,7 +32,7 @@
                                         <span v-else class="badge bg-secondary">Branch</span>
                                     </td>
                                     <td class="text-end">
-                                        <Link :href="`/branches/${branch.id}/edit`" class="btn btn-sm btn-info text-white me-2">
+                                        <Link :href="`/branches/${branch.id}/edit`" class="btn btn-edit btn-sm me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button @click="deleteBranch(branch.id)" class="btn btn-sm btn-danger">

@@ -10,7 +10,7 @@
                         </Link>
                     </div>
                     <div class="card-body p-0 table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -29,7 +29,7 @@
                                     <td>{{ branch.city || 'N/A' }}</td>
                                     <td>{{ branch.is_head_office || 'N/A' }}</td>
                                     <td class="text-end">
-                                        <Link :href="`/branchs/${branch.id}/edit`" class="btn btn-sm btn-info text-white me-2">
+                                        <Link :href="`/branchs/${branch.id}/edit`" class="btn btn-edit btn-sm me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button @click="deleteItem(branch.id)" class="btn btn-sm btn-danger">

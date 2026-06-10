@@ -2,7 +2,7 @@
     <AdminLayout title="Edit Invoice">
         <div class="row">
             <div class="col-md-10 mx-auto">
-                <div class="card card-warning">
+                <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h3 class="card-title">Edit Invoice #{{ invoice.invoice_no }}</h3>
                         <a :href="`/invoices/${invoice.id}/print`" target="_blank" class="btn btn-sm btn-dark">

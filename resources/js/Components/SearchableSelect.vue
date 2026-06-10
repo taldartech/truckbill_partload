@@ -273,8 +273,8 @@ onUnmounted(() => {
 }
 
 .searchable-select__trigger:focus {
-    border-color: #27AE60;
-    box-shadow: 0 0 0 0.25rem rgba(39, 174, 96, 0.1);
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 0.25rem var(--brand-input-focus-shadow);
 }
 
 .dropdown-item:active {
@@ -283,7 +283,7 @@ onUnmounted(() => {
 }
 
 .dropdown-item.active {
-    background-color: #27AE60 !important;
+    background-color: var(--brand-primary) !important;
     color: #fff !important;
 }
 

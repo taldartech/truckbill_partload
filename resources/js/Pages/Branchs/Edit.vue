@@ -2,7 +2,7 @@
     <AdminLayout title="Edit Branch">
         <div class="row">
             <div class="col-md-8 mx-auto">
-                <div class="card card-warning">
+                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Update Branch Details</h3>
                     </div>
@@ -29,7 +29,7 @@
                             </div>
                         </div>
                         <div class="card-footer d-flex justify-content-between">
-                            <Link href="/branchs" class="btn btn-default">Cancel</Link>
+                            <Link href="/branchs" class="btn btn-back">Cancel</Link>
                             <button type="submit" class="btn btn-warning" :disabled="form.processing">
                                 <i class="fas fa-save me-1"></i> Update Branch
                             </button>

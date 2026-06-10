@@ -25,7 +25,7 @@
                                     <td>{{ item.id }}</td>
                                     <td>{{ item.name }}</td>
                                     <td>
-                                        <button class="btn btn-warning btn-sm me-2" @click="editItem(item)">
+                                        <button class="btn btn-edit btn-sm me-2" @click="editItem(item)">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button class="btn btn-danger btn-sm" @click="deleteItem(item.id)">

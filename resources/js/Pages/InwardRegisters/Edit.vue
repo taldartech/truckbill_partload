@@ -2,7 +2,7 @@
     <AdminLayout title="Edit Inward Register">
         <div class="row">
             <div class="col-md-12 mx-auto">
-                <div class="card card-warning">
+                <div class="card ops-form-card">
                     <div class="card-header">
                         <h3 class="card-title">Edit Inward Register</h3>
                     </div>
@@ -456,23 +456,27 @@ const submit = () => {
 
 <style scoped>
 .entry-form-card {
-    border: 1px solid #dee2e6;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--brand-border);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .entry-form-card .card-header {
-    background-color: #f8f9fa;
+    background: var(--brand-gradient);
+}
+
+.entry-form-card .card-header h6 {
+    color: #ffffff !important;
 }
 
 .entry-form-section-title {
-    color: #6c757d;
+    color: var(--brand-text-muted);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     margin-bottom: 0;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--brand-border);
 }
 
 .entry-form-card .form-label {
@@ -481,13 +485,13 @@ const submit = () => {
 }
 
 .entry-row-selected > td {
-    background-color: #cfe2ff !important;
-    border-top: 2px solid #0d6efd;
-    border-bottom: 2px solid #0d6efd;
+    background-color: var(--brand-soft-info) !important;
+    border-top: 2px solid var(--brand-accent-blue);
+    border-bottom: 2px solid var(--brand-accent-blue);
 }
 
 .entry-row-selected > td:first-child {
-    border-left: 4px solid #0d6efd;
+    border-left: 4px solid var(--brand-accent-blue);
 }
 
 .entry-row-selected > td:last-child {

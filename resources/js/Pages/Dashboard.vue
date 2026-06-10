@@ -34,7 +34,7 @@
                 </div>
             </div>
 
-            <div class="card card-primary card-outline">
+            <div class="card card-outline">
                 <div class="card-header">
                     <h3 class="card-title">Portal Administration</h3>
                 </div>
@@ -85,7 +85,7 @@
                 </div>
             </div>
 
-            <div class="card card-warning card-outline">
+            <div class="card card-outline">
                 <div class="card-header">
                     <h3 class="card-title">Company Setup</h3>
                 </div>
@@ -149,8 +149,8 @@
 
             <div class="row">
                 <div class="col-lg-8">
-                    <div class="card card-primary card-outline">
-                        <div class="card-header border-transparent">
+                    <div class="card card-outline">
+                        <div class="card-header">
                             <h3 class="card-title">Recent Bilties</h3>
                         </div>
                         <div class="card-body p-0">
@@ -188,7 +188,7 @@
                 </div>
 
                 <div class="col-lg-4">
-                    <div class="card card-warning card-outline">
+                    <div class="card card-outline">
                         <div class="card-header">
                             <h3 class="card-title">Quick Actions</h3>
                         </div>

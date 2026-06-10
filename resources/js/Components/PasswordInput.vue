@@ -106,6 +106,6 @@ const visible = ref(false);
 
 .password-field__toggle:hover,
 .password-field__toggle:focus {
-    color: #27AE60;
+    color: var(--brand-primary);
 }
 </style>

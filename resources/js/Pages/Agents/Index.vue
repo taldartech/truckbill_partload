@@ -10,7 +10,7 @@
                         </Link>
                     </div>
                     <div class="card-body p-0 table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -29,7 +29,7 @@
                                     <td>{{ agent.mobile || 'N/A' }}</td>
                                     <td>{{ agent.city || 'N/A' }}</td>
                                     <td class="text-end">
-                                        <Link :href="`/agents/${agent.id}/edit`" class="btn btn-sm btn-info text-white me-2">
+                                        <Link :href="`/agents/${agent.id}/edit`" class="btn btn-edit btn-sm me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button @click="deleteItem(agent.id)" class="btn btn-sm btn-danger">

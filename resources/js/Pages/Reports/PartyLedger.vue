@@ -2,7 +2,7 @@
     <AdminLayout title="Party Ledger">
         <div class="row mb-3">
             <div class="col-12">
-                <div class="card card-success">
+                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title"><i class="fas fa-book me-2"></i>Party Ledger (Statement of Account)</h3>
                     </div>
@@ -37,8 +37,8 @@
         <div class="row" v-if="party">
             <div class="col-12">
                 <div class="card shadow-sm">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h4 class="m-0 text-success fw-bold">{{ party.name }} - Ledger</h4>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="m-0 fw-bold">{{ party.name }} - Ledger</h4>
                         <div>
                             <span class="badge bg-primary fs-6">Net Balance: ₹ {{ currentBalance.toFixed(2) }} {{ currentBalance >= 0 ? 'Dr' : 'Cr' }}</span>
                         </div>

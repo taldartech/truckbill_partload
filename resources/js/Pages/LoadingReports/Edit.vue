@@ -2,7 +2,7 @@
     <AdminLayout title="Edit Loading Report">
         <div class="row">
             <div class="col-md-12 mx-auto">
-                <div class="card card-warning">
+                <div class="card ops-form-card">
                     <div class="card-header">
                         <h3 class="card-title">Edit Loading Report</h3>
                     </div>

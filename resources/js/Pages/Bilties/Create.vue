@@ -2,7 +2,7 @@
     <AdminLayout title="Add Bilty">
         <div class="row">
             <div class="col-md-12 mx-auto">
-                <div class="card card-primary">
+                <div class="card ops-form-card">
                     <!-- Title Bar -->
                     <div class="card-header">
                         <h3 class="card-title">Booking Bilty</h3>
@@ -36,7 +36,7 @@
                                     </select>
                                 </div>
                             </div>
-                            
+
                             <div class="row align-items-center mb-2">
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">From St.</label>
@@ -191,9 +191,9 @@
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Consignee GST No:</label></div>
                                         <div class="col-7"><span class="small fw-bold text-muted">{{ getConsigneeGST() }}</span></div>
                                     </div>
-                                    
+
                                     <hr class="my-2 border-secondary">
-                                    
+
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">GST Tax (%)</label></div>
                                         <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-light" v-model="form.gst" readonly></div>
@@ -344,7 +344,7 @@
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">GST Amount</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-light" :value="gstAmount" readonly></div>
                                     </div>
-                                    
+
                                     <hr class="my-2 border-secondary">
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold text-danger">TOTAL AMOUNT</label></div>
@@ -409,12 +409,12 @@ const form = useForm({
     bilty_number: props.next_bilty_number || '',
     date: new Date().toISOString().substr(0, 10),
     payment_type: 'To Pay',
-    
+
     // Details Grid
     details: [
         { good_id: '', package_type_id: '', no_of_packages: '', gross_weight: '', charged_weight: '', rate_type: 'Fixed', rate: '', amount: 0 }
     ],
-    
+
     // Middle section
     private_marka: '',
     delivery_at: '',
@@ -424,7 +424,7 @@ const form = useForm({
     invoice_number: '',
     gst: props.default_gst_percent,
     gst_liability_by: '',
-    
+
     // Totals
     freight: 0,
     bilty_charge: 0,
@@ -537,7 +537,7 @@ const calculateGridRow = (index) => {
     const chargedWeight = parseFloat(row.charged_weight) || 0;
     const packages = parseFloat(row.no_of_packages) || 0;
     const rate = parseFloat(row.rate) || 0;
-    
+
     if (row.rate_type === 'Per Actual Weight' || row.rate_type === 'Per KG') {
         row.amount = (rate * weight).toFixed(2);
     } else if (row.rate_type === 'Per Charged Weight') {
@@ -553,15 +553,15 @@ const calculateGridRow = (index) => {
 const calculateTotalFreight = () => {
     let totalWeight = 0;
     let totalFreight = 0;
-    
+
     form.details.forEach(row => {
         totalWeight += parseFloat(row.gross_weight || 0);
         totalFreight += parseFloat(row.amount || 0);
     });
-    
+
     form.weight_actual = totalWeight.toFixed(2);
     form.freight = totalFreight.toFixed(2);
-    
+
     calculateFinalTotal();
 };
 

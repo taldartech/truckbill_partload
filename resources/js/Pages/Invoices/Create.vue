@@ -2,7 +2,7 @@
     <AdminLayout title="Create Invoice">
         <div class="row">
             <div class="col-md-10 mx-auto">
-                <div class="card card-primary">
+                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Create New Invoice</h3>
                     </div>

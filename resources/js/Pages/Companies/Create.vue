@@ -2,7 +2,7 @@
     <AdminLayout title="Add Company">
         <div class="row">
             <div class="col-md-12 mx-auto">
-                <div class="card card-primary">
+                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Company Details</h3>
                     </div>

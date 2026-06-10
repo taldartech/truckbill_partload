@@ -1,7 +1,7 @@
 <template>
-    <div class="login-page">
-        <div class="login-box">
-            <div class="card shadow-lg border-0 rounded-4">
+    <div class="auth-page">
+        <div class="auth-box">
+            <div class="card auth-card shadow-lg border-0">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
                         <img src="/logo.png" alt="TruckBill Logo" class="mb-3" style="max-height: 90px;">
@@ -41,11 +41,11 @@
                                     Remember me
                                 </label>
                             </div>
-                            <a href="#" class="text-primary fw-bold small text-decoration-none">Forgot password?</a>
+                            <a href="#" class="text-brand-primary fw-bold small text-decoration-none">Forgot password?</a>
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center" 
-                                :disabled="form.processing" style="background-color: #27AE60; border: none;">
+                                :disabled="form.processing">
                             Sign In <i class="fas fa-arrow-right ms-2"></i>
                         </button>
                     </form>
@@ -69,21 +69,3 @@ const submit = () => {
     form.post('/login');
 };
 </script>
-
-<style scoped>
-.login-page {
-    height: 100vh;
-    background-color: #f8fafc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.login-box {
-    width: 100%;
-    max-width: 500px;
-}
-.form-control:focus {
-    border-color: #27AE60;
-    box-shadow: 0 0 0 0.25rem rgba(39, 174, 96, 0.1);
-}
-</style>

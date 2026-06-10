@@ -2,7 +2,7 @@
     <AdminLayout title="Edit Driver">
         <div class="row">
             <div class="col-md-10 mx-auto">
-                <div class="card card-warning">
+                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Update Driver Details</h3>
                     </div>
@@ -89,7 +89,7 @@
                             </div>
                         </div>
                         <div class="card-footer d-flex justify-content-between">
-                            <Link href="/drivers" class="btn btn-default">Cancel</Link>
+                            <Link href="/drivers" class="btn btn-back">Cancel</Link>
                             <button type="submit" class="btn btn-warning" :disabled="form.processing">
                                 <i class="fas fa-save me-1"></i> Update Driver
                             </button>

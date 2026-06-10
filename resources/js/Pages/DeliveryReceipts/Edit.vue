@@ -2,7 +2,7 @@
     <AdminLayout title="Edit Delivery Receipt">
         <div class="row">
             <div class="col-md-10 mx-auto">
-                <div class="card card-warning">
+                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Edit Delivery Receipt</h3>
                     </div>

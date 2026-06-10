@@ -25,7 +25,7 @@
                                     <td>{{ type.id }}</td>
                                     <td>{{ type.name }}</td>
                                     <td>
-                                        <button class="btn btn-warning btn-sm me-2" @click="editType(type)">
+                                        <button class="btn btn-edit btn-sm me-2" @click="editType(type)">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button class="btn btn-danger btn-sm" @click="deleteType(type.id)">

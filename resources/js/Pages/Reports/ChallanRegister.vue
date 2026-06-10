@@ -2,7 +2,7 @@
     <AdminLayout title="Challan Register">
         <div class="row mb-3">
             <div class="col-12">
-                <div class="card card-warning">
+                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title"><i class="fas fa-filter me-2"></i>Filter Challan Register</h3>
                     </div>
@@ -17,7 +17,7 @@
                                 <input type="date" class="form-control form-control-sm" v-model="form.end_date">
                             </div>
                             <div class="col-md-4 d-flex align-items-end">
-                                <button type="submit" class="btn btn-warning btn-sm w-100">Filter Data</button>
+                                <button type="submit" class="btn btn-edit btn-sm w-100">Filter Data</button>
                             </div>
                         </form>
                     </div>
@@ -29,7 +29,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body p-0 table-responsive">
-                        <table class="table table-hover table-striped table-bordered text-sm m-0">
+                        <table class="table table-hover table-bordered text-sm m-0">
                             <thead class="bg-light">
                                 <tr>
                                     <th>Date</th>

@@ -2,8 +2,8 @@
     <AdminLayout title="Add Main Challan">
         <div class="row">
             <div class="col-md-12 mx-auto">
-                <div class="card card-primary" style="background-color: #d1f2cf;">
-                    <div class="card-header bg-primary text-white">
+                <div class="card ops-form-card">
+                    <div class="card-header">
                         <h3 class="card-title mb-0">MAIN CHALLAN Add/New</h3>
                     </div>
 
@@ -68,8 +68,8 @@
                         <!-- GRID SECTION -->
                         <div class="card-body p-0 border-bottom bg-white">
                             <div class="table-responsive" style="min-height: 250px;">
-                                <table class="table table-bordered table-sm m-0 table-grid">
-                                    <thead style="background-color: #aee4eb;">
+                                <table class="table table-bordered table-sm m-0 table-grid ops-form-table">
+                                    <thead>
                                         <tr>
                                             <th width="4%" class="text-center">Sr.No.</th>
                                             <th width="12%">Challan No.</th>
@@ -128,7 +128,7 @@
                         </div>
 
                         <!-- FOOTER TOTALS -->
-                        <div class="card-body p-0 border-top" style="background-color: #8ce175; padding-top: 10px !important; padding-bottom: 10px !important;">
+                        <div class="card-body p-0 border-top ops-form-summary py-2">
                             <div class="row m-0 p-2">
                                 <!-- Left side Totals -->
                                 <div class="col-md-8 border-end border-dark">
@@ -230,14 +230,14 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="card-footer d-flex justify-content-center gap-3" style="background-color: #8ce175;">
-                            <button type="submit" class="btn btn-sm btn-outline-dark px-4 fw-bold shadow-sm" style="background-color: #a7c5c9;" :disabled="form.processing">
+                        <div class="card-footer ops-form-footer d-flex justify-content-center gap-3">
+                            <button type="submit" class="btn btn-sm btn-form-action px-4 fw-bold shadow-sm" :disabled="form.processing">
                                 Save
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-dark px-4 fw-bold shadow-sm" style="background-color: #a7c5c9;" @click="form.reset()">
+                            <button type="button" class="btn btn-sm btn-form-action px-4 fw-bold shadow-sm" @click="form.reset()">
                                 Clear
                             </button>
-                            <Link href="/main-challans" class="btn btn-sm btn-outline-dark px-4 fw-bold shadow-sm" style="background-color: #a7c5c9;">
+                            <Link href="/main-challans" class="btn btn-sm btn-form-action px-4 fw-bold shadow-sm">
                                 Exit
                             </Link>
                         </div>

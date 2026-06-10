@@ -31,7 +31,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <button v-if="can('edit roles')" class="btn btn-warning btn-sm me-2" @click="editRole(role)">
+                                        <button v-if="can('edit roles')" class="btn btn-edit btn-sm me-2" @click="editRole(role)">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button class="btn btn-danger btn-sm" @click="deleteRole(role.id)" v-if="role.name !== 'Admin'">
@@ -65,7 +65,7 @@
                             <div class="row">
                                 <div v-for="(perms, module) in groupedPermissions" :key="module" class="col-md-4 mb-4">
                                     <div class="card h-100 border-light shadow-sm">
-                                        <div class="card-header bg-light py-2">
+                                        <div class="card-header py-2">
                                             <h6 class="mb-0 text-capitalize">{{ module }}</h6>
                                         </div>
                                         <div class="card-body py-2">

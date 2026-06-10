@@ -2,7 +2,7 @@
     <AdminLayout title="Bilty Register">
         <div class="row mb-3">
             <div class="col-12">
-                <div class="card card-primary">
+                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title"><i class="fas fa-filter me-2"></i>Filter Bilty Register</h3>
                     </div>
@@ -47,7 +47,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body p-0 table-responsive">
-                        <table class="table table-hover table-striped table-bordered text-sm m-0">
+                        <table class="table table-hover table-bordered text-sm m-0">
                             <thead class="bg-light">
                                 <tr>
                                     <th>Date</th>

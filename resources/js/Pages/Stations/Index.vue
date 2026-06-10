@@ -10,7 +10,7 @@
                         </Link>
                     </div>
                     <div class="card-body p-0 table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -27,7 +27,7 @@
                                     <td>{{ station.city || 'N/A' }}</td>
                                     <td>{{ station.state || 'N/A' }}</td>
                                     <td class="text-end">
-                                        <Link :href="`/stations/${station.id}/edit`" class="btn btn-sm btn-info text-white me-2">
+                                        <Link :href="`/stations/${station.id}/edit`" class="btn btn-edit btn-sm me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button @click="deleteItem(station.id)" class="btn btn-sm btn-danger">

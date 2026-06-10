@@ -2,7 +2,7 @@
     <AdminLayout title="System Settings">
         <div class="row">
             <div class="col-md-8 mx-auto">
-                <div class="card card-primary">
+                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title"><i class="fas fa-cog me-2"></i>Global Configuration</h3>
                     </div>

@@ -1,7 +1,7 @@
 <template>
-    <div class="onboarding-page">
-        <div class="onboarding-box">
-            <div class="card shadow-lg border-0 rounded-4">
+    <div class="auth-page">
+        <div class="auth-box">
+            <div class="card auth-card shadow-lg border-0">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
                         <img src="/logo.png" alt="TruckBill Logo" class="mb-3" style="max-height: 80px;">
@@ -24,7 +24,6 @@
                             class="btn btn-primary btn-lg w-100 py-3 fw-bold rounded-3"
                             @click="sendOtp"
                             :disabled="sendingOtp"
-                            style="background-color: #27AE60; border: none;"
                         >
                             Send OTP to Email
                         </button>
@@ -54,7 +53,6 @@
                             type="submit"
                             class="btn btn-primary btn-lg w-100 py-3 fw-bold rounded-3"
                             :disabled="form.processing"
-                            style="background-color: #27AE60; border: none;"
                         >
                             Verify Email
                         </button>
@@ -115,17 +113,8 @@ const sendOtp = () => {
 </script>
 
 <style scoped>
-.onboarding-page {
-    min-height: 100vh;
-    background-color: #f8fafc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.auth-page {
     padding: 1rem;
-}
-.onboarding-box {
-    width: 100%;
-    max-width: 480px;
 }
 .letter-spacing {
     letter-spacing: 0.35em;

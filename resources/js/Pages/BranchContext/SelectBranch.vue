@@ -2,7 +2,7 @@
     <AdminLayout title="Select Branch">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="card card-primary">
+                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Select Branch to Continue</h3>
                     </div>

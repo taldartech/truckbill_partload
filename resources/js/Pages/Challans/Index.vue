@@ -10,7 +10,7 @@
                         </Link>
                     </div>
                     <div class="card-body p-0 table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -47,10 +47,10 @@
                                         }">{{ challan.status }}</span>
                                     </td>
                                     <td class="text-end">
-                                        <a :href="`/challans/${challan.id}/print`" target="_blank" class="btn btn-sm btn-outline-info me-2" title="Print Challan">
+                                        <a :href="`/challans/${challan.id}/print`" target="_blank" class="btn btn-secondary btn-sm me-2" title="Print Challan">
                                             <i class="fas fa-print"></i>
                                         </a>
-                                        <Link :href="`/challans/${challan.id}/edit`" class="btn btn-sm btn-info text-white me-2">
+                                        <Link :href="`/challans/${challan.id}/edit`" class="btn btn-edit btn-sm me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button @click="deleteItem(challan.id)" class="btn btn-sm btn-danger">

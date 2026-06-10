@@ -6,8 +6,8 @@ return [
     'support_email' => 'team@taldartechconsultancy.com',
     'logo_url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/logo.png',
     'colors' => [
-        'primary' => '#27AE60',
-        'primary_dark' => '#1E8449',
+        'primary' => '#2FB36F',
+        'primary_dark' => '#23965C',
         'background' => '#f4f6f9',
         'surface' => '#ffffff',
         'text' => '#1f2937',

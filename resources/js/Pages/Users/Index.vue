@@ -53,7 +53,7 @@
                                         >
                                             Resend Invite
                                         </button>
-                                        <button v-if="can('edit users') && user.can_manage" class="btn btn-warning btn-sm me-2" @click="editUser(user)">
+                                        <button v-if="can('edit users') && user.can_manage" class="btn btn-edit btn-sm me-2" @click="editUser(user)">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button v-if="can('delete users') && user.can_manage" class="btn btn-danger btn-sm" @click="deleteUser(user.id)">
