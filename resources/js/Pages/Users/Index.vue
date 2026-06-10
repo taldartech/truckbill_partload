@@ -115,10 +115,14 @@
                                     </option>
                                 </select>
                             </div>
-                            <div class="form-group mb-3" v-if="showPasswordField">
-                                <label>{{ editMode ? 'New Password (Leave blank to keep current)' : 'Password' }}</label>
-                                <input type="password" class="form-control" v-model="form.password" :required="passwordRequired">
-                            </div>
+                            <PasswordInput
+                                v-if="showPasswordField"
+                                v-model="form.password"
+                                :label="editMode ? 'New Password (Leave blank to keep current)' : 'Password'"
+                                wrapper-class="form-group mb-3"
+                                :required="passwordRequired"
+                                :error="form.errors.password"
+                            />
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" @click="closeModal">Close</button>
@@ -137,6 +141,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useForm, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import PasswordInput from '@/Components/PasswordInput.vue';
 import { usePermissions } from '@/composables/usePermissions';
 
 const { can } = usePermissions();

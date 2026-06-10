@@ -12,35 +12,26 @@
                     </div>
 
                     <form @submit.prevent="submit">
-                        <div class="mb-4 position-relative">
-                            <label class="form-label fw-bold text-muted small">Password</label>
-                            <input
-                                :type="showPassword ? 'text' : 'password'"
-                                class="form-control form-control-lg"
-                                v-model="form.password"
-                                required
-                                minlength="8"
-                            >
-                            <button
-                                type="button"
-                                class="btn btn-link position-absolute end-0 top-50 mt-2 me-2 text-muted"
-                                @click="showPassword = !showPassword"
-                            >
-                                <i class="fas" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
-                            </button>
-                            <div v-if="form.errors.password" class="text-danger small mt-1">{{ form.errors.password }}</div>
-                        </div>
+                        <PasswordInput
+                            v-model="form.password"
+                            label="Password"
+                            wrapper-class="mb-4"
+                            input-class="form-control-lg"
+                            autocomplete="new-password"
+                            :error="form.errors.password"
+                            :minlength="8"
+                            required
+                        />
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-muted small">Confirm Password</label>
-                            <input
-                                type="password"
-                                class="form-control form-control-lg"
-                                v-model="form.password_confirmation"
-                                required
-                                minlength="8"
-                            >
-                        </div>
+                        <PasswordInput
+                            v-model="form.password_confirmation"
+                            label="Confirm Password"
+                            wrapper-class="mb-4"
+                            input-class="form-control-lg"
+                            autocomplete="new-password"
+                            :minlength="8"
+                            required
+                        />
 
                         <button
                             type="submit"
@@ -58,15 +49,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import PasswordInput from '@/Components/PasswordInput.vue';
 
 const props = defineProps({
     user: Object,
     submit_url: String,
 });
-
-const showPassword = ref(false);
 
 const form = useForm({
     password: '',

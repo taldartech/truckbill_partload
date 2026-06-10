@@ -23,17 +23,16 @@
                             <div v-if="form.errors.email" class="text-danger small mt-1">{{ form.errors.email }}</div>
                         </div>
                         
-                        <div class="mb-4 position-relative">
-                            <label class="form-label fw-bold text-muted small">Password</label>
-                            <input :type="showPassword ? 'text' : 'password'" 
-                                   class="form-control form-control-lg border-light-subtle bg-light-subtle" 
-                                   placeholder="Enter your password" v-model="form.password" required>
-                            <button type="button" class="btn btn-link position-absolute end-0 top-50 mt-2 me-2 text-muted" 
-                                    @click="showPassword = !showPassword">
-                                <i class="fas" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
-                            </button>
-                            <div v-if="form.errors.password" class="text-danger small mt-1">{{ form.errors.password }}</div>
-                        </div>
+                        <PasswordInput
+                            v-model="form.password"
+                            label="Password"
+                            placeholder="Enter your password"
+                            wrapper-class="mb-4"
+                            input-class="form-control-lg border-light-subtle bg-light-subtle"
+                            autocomplete="current-password"
+                            :error="form.errors.password"
+                            required
+                        />
 
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div class="form-check">
@@ -57,10 +56,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-
-const showPassword = ref(false);
+import PasswordInput from '@/Components/PasswordInput.vue';
 
 const form = useForm({
     email: '',
