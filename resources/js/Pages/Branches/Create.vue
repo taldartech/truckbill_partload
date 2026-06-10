@@ -27,6 +27,7 @@
                             <div class="form-group mb-3">
                                 <label for="station_id">Station *</label>
                                 <SearchableSelect
+                                    id="station_id"
                                     v-model="form.station_id"
                                     :options="filteredStations"
                                     placeholder="Select Station"
@@ -52,6 +53,7 @@
                                 <div class="col-md-3 form-group mb-3">
                                     <label>State</label>
                                     <SearchableSelect
+                                        id="state_id"
                                         v-model="form.state_id"
                                         :options="states"
                                         placeholder="Select State"

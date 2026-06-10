@@ -1,38 +1,56 @@
 <template>
     <div class="searchable-select" ref="container">
-        <!-- Displayed Input -->
-        <div 
-            class="form-select border-secondary shadow-none d-flex align-items-center justify-content-between" 
+        <input
+            :id="id"
+            ref="trigger"
+            type="text"
+            class="searchable-select__trigger form-select border-secondary shadow-none"
             :class="{ 'is-invalid': error, 'form-select-sm': small, 'bg-light text-muted': disabled }"
-            @click.stop="toggleDropdown"
-            :style="{ cursor: disabled ? 'not-allowed' : 'pointer', backgroundColor: disabled ? '#e9ecef' : '#fff' }"
+            :value="displayValue"
+            :placeholder="placeholder"
+            :disabled="disabled"
+            readonly
+            autocomplete="off"
+            role="combobox"
+            aria-autocomplete="list"
+            :aria-expanded="isOpen"
+            aria-haspopup="listbox"
+            @click.stop="openDropdown"
+            @keydown="onTriggerKeydown"
         >
-            <span v-if="selectedItem" class="text-truncate">{{ selectedItem[labelKey] }}</span>
-            <span v-else class="text-muted">{{ placeholder }}</span>
-        </div>
 
-        <!-- Dropdown Menu -->
-        <div v-show="isOpen" class="dropdown-menu show w-100 p-0 shadow-sm border-secondary" style="position: absolute; z-index: 1050; max-height: 250px; overflow-y: auto;">
+        <div
+            v-if="isOpen"
+            class="dropdown-menu show w-100 p-0 shadow-sm border-secondary"
+            role="listbox"
+            style="position: absolute; z-index: 1050; max-height: 250px; overflow-y: auto;"
+        >
             <div class="p-2 border-bottom sticky-top bg-white">
-                <input 
-                    type="text" 
-                    class="form-control form-control-sm shadow-none border-secondary" 
-                    v-model="searchQuery" 
-                    placeholder="Search..." 
+                <input
+                    type="text"
+                    class="form-control form-control-sm shadow-none border-secondary"
+                    v-model="searchQuery"
+                    placeholder="Search..."
                     ref="searchInput"
-                    @keydown.esc="closeDropdown"
+                    tabindex="-1"
+                    @keydown="onSearchKeydown"
                 >
             </div>
             <ul class="list-unstyled mb-0">
                 <li v-if="filteredOptions.length === 0" class="p-2 text-muted small text-center">
                     No results found
                 </li>
-                <li 
-                    v-for="option in filteredOptions" 
+                <li
+                    v-for="(option, index) in filteredOptions"
                     :key="option[valueKey]"
-                    @click.stop="selectOption(option)"
+                    role="option"
+                    :aria-selected="String(modelValue) === String(option[valueKey])"
+                    @mousedown.prevent="selectOption(option)"
                     class="p-2 dropdown-item small"
-                    :class="{ 'active bg-primary text-white': modelValue === option[valueKey] }"
+                    :class="{
+                        'active bg-primary text-white': String(modelValue) === String(option[valueKey]),
+                        'bg-light': highlightedIndex === index,
+                    }"
                     style="cursor: pointer;"
                 >
                     {{ option[labelKey] }}
@@ -43,9 +61,13 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue';
 
 const props = defineProps({
+    id: {
+        type: String,
+        default: undefined,
+    },
     modelValue: {
         type: [String, Number],
         default: ''
@@ -84,13 +106,16 @@ const emit = defineEmits(['update:modelValue', 'change']);
 
 const isOpen = ref(false);
 const searchQuery = ref('');
+const highlightedIndex = ref(-1);
 const container = ref(null);
 const searchInput = ref(null);
+const trigger = ref(null);
 
 const selectedItem = computed(() => {
-    // strict check for equality (convert to string for comparison)
     return props.options.find(opt => String(opt[props.valueKey]) === String(props.modelValue)) || null;
 });
+
+const displayValue = computed(() => selectedItem.value?.[props.labelKey] ?? '');
 
 const filteredOptions = computed(() => {
     if (!searchQuery.value) return props.options;
@@ -101,27 +126,115 @@ const filteredOptions = computed(() => {
     });
 });
 
-const toggleDropdown = () => {
-    if (props.disabled) return;
-    isOpen.value = !isOpen.value;
-    if (isOpen.value) {
-        searchQuery.value = '';
-        nextTick(() => {
-            if (searchInput.value) {
-                searchInput.value.focus();
-            }
-        });
-    }
+const openDropdown = () => {
+    if (props.disabled || isOpen.value) return;
+    isOpen.value = true;
+    highlightedIndex.value = filteredOptions.value.length ? 0 : -1;
+    searchQuery.value = '';
+    nextTick(() => {
+        searchInput.value?.focus();
+    });
 };
 
 const closeDropdown = () => {
     isOpen.value = false;
+    highlightedIndex.value = -1;
+    searchQuery.value = '';
 };
 
 const selectOption = (option) => {
     emit('update:modelValue', option[props.valueKey]);
     emit('change', option[props.valueKey]);
     closeDropdown();
+    nextTick(() => {
+        trigger.value?.focus();
+    });
+};
+
+const selectHighlightedOption = () => {
+    const option = filteredOptions.value[highlightedIndex.value];
+    if (option) {
+        selectOption(option);
+    }
+};
+
+const moveHighlight = (direction) => {
+    if (!filteredOptions.value.length) return;
+
+    if (highlightedIndex.value === -1) {
+        highlightedIndex.value = direction > 0 ? 0 : filteredOptions.value.length - 1;
+        return;
+    }
+
+    highlightedIndex.value = (highlightedIndex.value + direction + filteredOptions.value.length)
+        % filteredOptions.value.length;
+};
+
+const onTriggerKeydown = (event) => {
+    if (props.disabled) return;
+
+    if (event.key === 'Tab') {
+        closeDropdown();
+        return;
+    }
+
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        closeDropdown();
+        return;
+    }
+
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+
+        if (!isOpen.value) {
+            openDropdown();
+            return;
+        }
+
+        if (event.key === 'ArrowDown') {
+            moveHighlight(1);
+        } else if (event.key === 'ArrowUp') {
+            moveHighlight(-1);
+        } else if (event.key === 'Enter' || event.key === ' ') {
+            selectHighlightedOption();
+        }
+    }
+};
+
+const onSearchKeydown = (event) => {
+    if (event.key === 'Tab') {
+        closeDropdown();
+        return;
+    }
+
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        closeDropdown();
+        trigger.value?.focus();
+        return;
+    }
+
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        moveHighlight(1);
+        return;
+    }
+
+    if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        moveHighlight(-1);
+        return;
+    }
+
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (highlightedIndex.value >= 0) {
+            selectHighlightedOption();
+        } else if (filteredOptions.value.length === 1) {
+            selectOption(filteredOptions.value[0]);
+        }
+    }
 };
 
 const handleClickOutside = (event) => {
@@ -130,12 +243,16 @@ const handleClickOutside = (event) => {
     }
 };
 
+watch(searchQuery, () => {
+    highlightedIndex.value = filteredOptions.value.length ? 0 : -1;
+});
+
 onMounted(() => {
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
 });
 
 onUnmounted(() => {
-    document.removeEventListener('click', handleClickOutside);
+    document.removeEventListener('mousedown', handleClickOutside);
 });
 </script>
 
@@ -143,14 +260,33 @@ onUnmounted(() => {
 .searchable-select {
     position: relative;
 }
+
+.searchable-select__trigger {
+    width: 100%;
+    cursor: pointer;
+    background-color: #fff;
+    caret-color: transparent;
+}
+
+.searchable-select__trigger:disabled {
+    cursor: not-allowed;
+}
+
+.searchable-select__trigger:focus {
+    border-color: #27AE60;
+    box-shadow: 0 0 0 0.25rem rgba(39, 174, 96, 0.1);
+}
+
 .dropdown-item:active {
     background-color: #f8f9fa;
     color: #212529;
 }
+
 .dropdown-item.active {
     background-color: #27AE60 !important;
     color: #fff !important;
 }
+
 .dropdown-menu {
     border-radius: 0.375rem;
 }
