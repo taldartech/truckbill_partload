@@ -49,12 +49,12 @@
 
                     <li class="nav-header mt-3 px-3 py-2 text-muted fw-bold small">TRANSACTIONS</li>
 
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <Link href="/vouchers" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/vouchers') }">
                             <i class="nav-icon fas fa-file-invoice-dollar me-3"></i>
                             <p class="mb-0 fw-medium">Vouchers</p>
                         </Link>
-                    </li>
+                    </li> -->
 
                     <li class="nav-item">
                         <Link href="/inward-registers" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/inward-registers') }">
@@ -63,19 +63,19 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <Link href="/delivery-receipts" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/delivery-receipts') }">
                             <i class="nav-icon fas fa-receipt me-3"></i>
                             <p class="mb-0 fw-medium">Delivery Receipts</p>
                         </Link>
-                    </li>
+                    </li> -->
 
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <Link href="/invoices" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/invoices') }">
                             <i class="nav-icon fas fa-file-invoice-dollar me-3"></i>
                             <p class="mb-0 fw-medium">Tax Invoices</p>
                         </Link>
-                    </li>
+                    </li> -->
 
                     <li class="nav-header mt-3 px-3 py-2 text-muted fw-bold small">MASTER DATA</li>
 
@@ -161,7 +161,7 @@
                             <p class="mb-0 fw-medium">Agents</p>
                         </Link>
                     </li>
-                    <li class="nav-header text-uppercase text-muted fs-7 fw-bold mt-4 mb-2 px-3">Reports</li>
+                    <!-- <li class="nav-header text-uppercase text-muted fs-7 fw-bold mt-4 mb-2 px-3">Reports</li>
 
                     <li class="nav-item">
                         <Link href="/reports/bilty-register" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ active: $page.url.startsWith('/reports/bilty-register') }">
@@ -182,7 +182,7 @@
                             <i class="nav-icon fas fa-book me-3"></i>
                             <p class="mb-0 fw-medium">Party Ledger</p>
                         </Link>
-                    </li>
+                    </li> -->
                     </template>
 
                     <li class="nav-header mt-3 px-3 py-2 text-muted fw-bold small" v-if="showPortalMenu">PORTAL</li>
@@ -204,12 +204,12 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item" v-if="can('view subscriptions')">
+                    <!-- <li class="nav-item" v-if="can('view subscriptions')">
                         <Link href="/subscriptions" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/subscriptions') }">
                             <i class="nav-icon fas fa-credit-card me-3"></i>
                             <p class="mb-0 fw-medium">Subscriptions</p>
                         </Link>
-                    </li>
+                    </li> -->
                     </template>
 
                     <template v-if="showSetupMenu">
@@ -234,15 +234,15 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item" v-if="can('view subscriptions')">
+                    <!-- <li class="nav-item" v-if="can('view subscriptions')">
                         <Link href="/subscriptions" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/subscriptions') }">
                             <i class="nav-icon fas fa-credit-card me-3"></i>
                             <p class="mb-0 fw-medium">Subscriptions</p>
                         </Link>
-                    </li>
+                    </li> -->
                     </template>
 
-                    <li class="nav-item" v-if="showOperationsMenu && can('view settings')">
+                    <li class="nav-item" v-if="isSuperAdmin && isActingAsAdmin">
                         <Link href="/settings" class="nav-link py-3 px-3 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/settings') }">
                             <i class="nav-icon fas fa-cog me-3"></i>
                             <p class="mb-0 fw-medium">Global Settings</p>
@@ -258,7 +258,7 @@
 import { Link } from '@inertiajs/vue3';
 import { usePermissions } from '@/composables/usePermissions';
 
-const { can, showPortalMenu, showSetupMenu, showOperationsMenu } = usePermissions();
+const { can, isSuperAdmin, isActingAsAdmin, showPortalMenu, showSetupMenu, showOperationsMenu } = usePermissions();
 </script>
 
 <style scoped>

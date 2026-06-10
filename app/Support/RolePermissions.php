@@ -13,7 +13,7 @@ class RolePermissions
             'bilties', 'challans', 'delivery_receipts', 'invoices',
             'inward_registers', 'loading_reports', 'vouchers',
             'subscriptions', 'subscription_plans', 'roles', 'users',
-            'settings', 'reports',
+            'reports',
         ];
     }
 
@@ -23,7 +23,7 @@ class RolePermissions
             'branches', 'transporters', 'trucks', 'drivers', 'stations', 'parties',
             'vendors', 'agents', 'groups', 'goods', 'package_types', 'truck_types',
             'bilties', 'challans', 'delivery_receipts', 'invoices',
-            'inward_registers', 'loading_reports', 'vouchers', 'settings', 'reports',
+            'inward_registers', 'loading_reports', 'vouchers', 'reports',
         ];
     }
 

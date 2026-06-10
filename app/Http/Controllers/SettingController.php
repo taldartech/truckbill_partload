@@ -4,22 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Setting;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 
-class SettingController extends Controller implements HasMiddleware
+class SettingController extends Controller
 {
-    public static function middleware(): array
-    {
-        return [
-            new Middleware('permission:view settings', only: ['index']),
-            new Middleware('permission:edit settings', only: ['store']),
-        ];
-    }
-
     public function index()
     {
+        $this->authorizeSuperAdminSettings();
+
         $companyId = $this->companyId();
         $branchId = $this->branchId();
 
@@ -47,6 +39,8 @@ class SettingController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
+        $this->authorizeSuperAdminSettings();
+
         $companyId = $this->companyId();
         $branchId = $this->branchId();
 
@@ -83,5 +77,12 @@ class SettingController extends Controller implements HasMiddleware
         }
 
         return back()->with('success', 'Settings updated successfully.');
+    }
+
+    private function authorizeSuperAdminSettings(): void
+    {
+        if (! $this->tenant()->isSuperAdmin() || ! $this->tenant()->isActingAsAdmin()) {
+            abort(403, 'Global Settings are only accessible to Super Admins.');
+        }
     }
 }
