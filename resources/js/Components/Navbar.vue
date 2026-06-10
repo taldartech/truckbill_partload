@@ -41,7 +41,7 @@
                     </Link>
                 </li>
 
-                <li class="nav-item d-none d-lg-block me-2">
+                <!-- <li class="nav-item d-none d-lg-block me-2">
                     <div class="badge rounded-pill bg-light border text-dark px-3 py-2 d-flex align-items-center small shadow-sm">
                         <i class="far fa-calendar-alt text-success me-2"></i>
                         <span class="text-muted me-1">EXPIRY:</span>
@@ -49,7 +49,7 @@
                             {{ $page.props.auth?.subscription_ends_at || 'Not Subscribed' }}
                         </span>
                     </div>
-                </li>
+                </li> -->
 
                 <li class="nav-item dropdown">
                     <a href="#" class="nav-link dropdown-toggle d-flex align-items-center py-1 px-2 rounded-2 hover-bg" data-bs-toggle="dropdown">
