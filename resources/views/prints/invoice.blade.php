@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    @include('partials.favicon')
     <title>Invoice - {{ $invoice->invoice_no }}</title>
     <style>
         body { font-family: Arial, sans-serif; font-size: 13px; margin: 0; padding: 20px; }

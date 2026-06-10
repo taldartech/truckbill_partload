@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    @include('partials.favicon')
     <title>Loading Report - {{ $loading_report->date ? date('d-m-Y', strtotime($loading_report->date)) : '' }}</title>
     <style>
         * { box-sizing: border-box; }

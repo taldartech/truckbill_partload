@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    @include('partials.favicon')
     <title>Challan - {{ $challan->challan_number }}</title>
     <style>
         body { font-family: Arial, sans-serif; font-size: 12px; margin: 0; padding: 20px; }
