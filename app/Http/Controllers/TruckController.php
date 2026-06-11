@@ -76,6 +76,10 @@ class TruckController extends Controller implements HasMiddleware
             'permit_expiry_date' => 'nullable|date',
         ]));
 
+        if (! empty($validated['truck_number'])) {
+            $validated['truck_number'] = strtoupper($validated['truck_number']);
+        }
+
         Truck::create($validated);
         return redirect()->route('trucks.index')->with('success', 'Truck created successfully.');
     }
@@ -120,6 +124,10 @@ class TruckController extends Controller implements HasMiddleware
             'permit_no' => 'nullable|string',
             'permit_expiry_date' => 'nullable|date',
         ]));
+
+        if (! empty($validated['truck_number'])) {
+            $validated['truck_number'] = strtoupper($validated['truck_number']);
+        }
 
         $truck->update($validated);
         return redirect()->route('trucks.index')->with('success', 'Truck updated successfully.');

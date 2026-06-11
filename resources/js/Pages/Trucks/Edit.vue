@@ -22,7 +22,14 @@
                                 </div>
                                 <div class="col-md-4 form-group mb-3">
                                     <label>Truck Number *</label>
-                                    <input type="text" class="form-control text-uppercase" v-model="form.truck_number" placeholder="e.g. MH 04 AB 1234" required>
+                                    <input
+                                        type="text"
+                                        class="form-control text-uppercase"
+                                        :value="form.truck_number"
+                                        placeholder="e.g. MH04AB1234"
+                                        required
+                                        @input="onTruckNumberInput"
+                                    >
                                     <div v-if="form.errors.truck_number" class="text-danger small">{{ form.errors.truck_number }}</div>
                                 </div>
                                 <div class="col-md-4 form-group mb-3">
@@ -116,7 +123,7 @@
                                     <label>RC Expiry Date</label>
                                     <input type="date" class="form-control" v-model="form.rc_expiry_date">
                                 </div>
-                                
+
                                 <div class="col-md-3 form-group mb-3">
                                     <label>Insurance No.</label>
                                     <input type="text" class="form-control" v-model="form.insurance_no">
@@ -185,7 +192,7 @@ const props = defineProps({
 
 const form = useForm({
     transporter_id: props.truck.transporter_id || '',
-    truck_number: props.truck.truck_number || '',
+    truck_number: (props.truck.truck_number || '').toUpperCase(),
     truck_type_id: props.truck.truck_type_id || '',
     status: props.truck.status || 'Available',
     current_state_id: props.truck.current_state_id || '',
@@ -233,7 +240,12 @@ watch(() => form.current_city_id, (newVal, oldVal) => {
     }
 });
 
+const onTruckNumberInput = (event) => {
+    form.truck_number = event.target.value.toUpperCase();
+};
+
 const submit = () => {
+    form.truck_number = form.truck_number.toUpperCase();
     form.put(`/trucks/${props.truck.id}`);
 };
 </script>
