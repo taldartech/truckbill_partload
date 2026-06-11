@@ -165,7 +165,7 @@ class BranchController extends Controller implements HasMiddleware
             $validated['gst_number'] = null;
             $validated['gst_type'] = null;
             $validated['gst_scheme'] = null;
-            $validated['gst_slab'] = null;
+            $validated['gst_slab'] = 0;
         }
 
         $validated['bilty_initial'] = $validated['bilty_initial'] ?: 'BLT-';

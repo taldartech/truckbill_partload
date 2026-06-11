@@ -404,7 +404,7 @@ const props = defineProps({
     stations: Array,
     goods: Array,
     package_types: Array,
-    default_gst_percent: { type: Number, default: 18 },
+    default_gst_percent: { type: Number, default: 0 },
 });
 
 partyOptions.value = [...props.parties];

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BiltyRequest;
 use App\Models\Bilty;
+use App\Models\Branch;
 use App\Models\Party;
 use App\Models\Vendor;
 use App\Models\Station;
@@ -56,9 +57,7 @@ class BiltyController extends Controller implements HasMiddleware
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
             'next_bilty_number' => $nextNumber,
-            'default_gst_percent' => $branch && $branch->has_gst
-                ? (float) ($branch->gst_slab ?? 18)
-                : 18,
+            'default_gst_percent' => $this->defaultGstPercent($branch),
         ]);
     }
 
@@ -106,9 +105,7 @@ class BiltyController extends Controller implements HasMiddleware
             'stations' => Station::all(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
-            'default_gst_percent' => $branch && $branch->has_gst
-                ? (float) ($branch->gst_slab ?? 18)
-                : 18,
+            'default_gst_percent' => $this->defaultGstPercent($branch),
         ]);
     }
 
@@ -316,5 +313,14 @@ class BiltyController extends Controller implements HasMiddleware
         } else {
             $bilty->ewayBills()->whereNotIn('id', $keptIds)->delete();
         }
+    }
+
+    private function defaultGstPercent(?Branch $branch): float
+    {
+        if (! $branch || ! $branch->has_gst) {
+            return 0;
+        }
+
+        return (float) ($branch->gst_slab ?? 0);
     }
 }
