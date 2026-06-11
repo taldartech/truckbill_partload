@@ -8,6 +8,7 @@ use App\Services\SuperAdminOnboardingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 
 class OnboardingController extends Controller
@@ -136,7 +137,7 @@ class OnboardingController extends Controller
         $user = $request->attributes->get('onboarding_user');
 
         $validated = $request->validate([
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
         $this->onboarding->complete($user, $validated['password']);

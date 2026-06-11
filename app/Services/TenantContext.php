@@ -273,7 +273,12 @@ class TenantContext
             }
         }
 
-        return in_array($routeName, ['logout', 'dashboard'], true);
+        return in_array($routeName, [
+            'logout',
+            'dashboard',
+            'password.edit',
+            'password.update',
+        ], true);
     }
 
     public function isPortalRoute(string $routeName): bool
@@ -290,7 +295,12 @@ class TenantContext
             }
         }
 
-        return in_array($routeName, ['logout', 'dashboard'], true);
+        return in_array($routeName, [
+            'logout',
+            'dashboard',
+            'password.edit',
+            'password.update',
+        ], true);
     }
 
     public function requiresBranchSelection(string $routeName): bool

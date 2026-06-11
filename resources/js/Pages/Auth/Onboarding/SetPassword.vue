@@ -33,6 +33,10 @@
                             required
                         />
 
+                        <p class="text-muted small mb-4">
+                            Use at least 8 characters with uppercase and lowercase letters, a number, and a symbol (e.g. ! @ # $).
+                        </p>
+
                         <button
                             type="submit"
                             class="btn btn-primary btn-lg w-100 py-3 fw-bold rounded-3"

@@ -59,12 +59,12 @@
                         <span class="fw-bold text-dark small">{{ $page.props.auth?.user?.name || 'User' }}</span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 py-2" style="min-width: 200px;">
-                        <a href="#" class="dropdown-item py-2">
+                        <!-- <a href="#" class="dropdown-item py-2">
                             <i class="fas fa-user-circle me-2 text-muted"></i> Profile
-                        </a>
-                        <a href="#" class="dropdown-item py-2">
+                        </a> -->
+                        <Link href="/password" class="dropdown-item py-2">
                             <i class="fas fa-key me-2 text-muted"></i> Change Password
-                        </a>
+                        </Link>
                         <div class="dropdown-divider"></div>
                         <Link href="/logout" method="post" as="button" class="dropdown-item py-2 text-danger">
                             <i class="fas fa-sign-out-alt me-2"></i> Sign out

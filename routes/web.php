@@ -26,6 +26,7 @@ use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\BranchContextController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\PasswordController;
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
@@ -48,6 +49,12 @@ Route::middleware('guest')->group(function () {
         Route::get('onboarding/password', [OnboardingController::class, 'password'])->name('onboarding.password');
         Route::post('onboarding/password', [OnboardingController::class, 'setPassword'])->name('onboarding.set-password');
     });
+});
+
+// Password change — any authenticated user
+Route::middleware('auth')->group(function () {
+    Route::get('password', [PasswordController::class, 'edit'])->name('password.edit');
+    Route::put('password', [PasswordController::class, 'update'])->name('password.update');
 });
 
 // Authenticated Routes
