@@ -178,7 +178,7 @@
 
                     <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small" v-if="showPortalMenu">PORTAL</li>
                     <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small" v-else-if="showSetupMenu">SETUP</li>
-                    <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small" v-else-if="showOperationsMenu">ADMINISTRATION</li>
+                    <!-- <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small" v-else-if="showOperationsMenu">ADMINISTRATION</li> -->
 
                     <template v-if="showPortalMenu">
                     <li class="nav-item" v-if="can('view users')">
