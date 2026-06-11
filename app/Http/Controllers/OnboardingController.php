@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Services\SuperAdminOnboardingService;
+use App\Services\SingleDeviceLoginService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
@@ -15,6 +16,7 @@ class OnboardingController extends Controller
 {
     public function __construct(
         private readonly SuperAdminOnboardingService $onboarding,
+        private readonly SingleDeviceLoginService $singleDeviceLogin,
     ) {}
 
     public function verify(Request $request, User $user)
@@ -143,9 +145,15 @@ class OnboardingController extends Controller
         $this->onboarding->complete($user, $validated['password']);
 
         $request->session()->forget('onboarding_user_id');
-        $request->session()->regenerate();
 
         Auth::login($user);
+        $request->session()->regenerate();
+
+        $this->singleDeviceLogin->enforce(
+            $user,
+            $request->session()->getId(),
+            false,
+        );
 
         return redirect()->route('dashboard')
             ->with('success', 'Welcome to TruckBill! Your account is ready.');

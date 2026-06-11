@@ -3,12 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\SingleDeviceLoginService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private readonly SingleDeviceLoginService $singleDeviceLogin,
+    ) {}
+
     public function showLogin()
     {
         return Inertia::render('Auth/Login');
@@ -31,6 +36,12 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+
+            $this->singleDeviceLogin->enforce(
+                Auth::user(),
+                $request->session()->getId(),
+                $request->boolean('remember'),
+            );
 
             return redirect()->intended('/');
         }
