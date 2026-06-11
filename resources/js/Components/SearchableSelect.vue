@@ -131,6 +131,18 @@ const filteredOptions = computed(() => {
     });
 });
 
+const resolveDropdownZIndex = () => {
+    const modal = trigger.value?.closest('.modal');
+
+    if (!modal) {
+        return 1050;
+    }
+
+    const modalZIndex = Number.parseInt(window.getComputedStyle(modal).zIndex, 10);
+
+    return (Number.isFinite(modalZIndex) ? modalZIndex : 1055) + 10;
+};
+
 const updateDropdownPosition = () => {
     if (!trigger.value) return;
 
@@ -145,7 +157,7 @@ const updateDropdownPosition = () => {
         position: 'fixed',
         left: `${rect.left}px`,
         width: `${rect.width}px`,
-        zIndex: 1050,
+        zIndex: resolveDropdownZIndex(),
         maxHeight: `${Math.min(maxHeight, Math.max(availableHeight, 120))}px`,
         overflowY: 'auto',
         top: openUpward ? 'auto' : `${rect.bottom}px`,
@@ -330,6 +342,8 @@ onUnmounted(() => {
     border: 1px solid var(--brand-border);
     border-radius: 0.375rem;
     background-color: #fff;
+    /* Above Bootstrap modal (1055) when teleported to body */
+    z-index: 1065;
 }
 
 .searchable-select__dropdown .dropdown-item:active {
