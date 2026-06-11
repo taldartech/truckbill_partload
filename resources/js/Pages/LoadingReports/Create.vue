@@ -13,7 +13,7 @@
                                 <div class="col-md-4">
                                     <div class="d-flex align-items-center">
                                         <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Date<span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control form-control-sm border-secondary shadow-none" v-model="form.date">
+                                        <input type="date" class="form-control form-control-sm" v-model="form.date">
                                     </div>
                                     <div v-if="form.errors.date" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.date }}</div>
                                 </div>
@@ -132,10 +132,10 @@
                                                 {{ detail.goods_name || '--' }}
                                             </td>
                                             <td>
-                                                <input type="number" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" v-model="detail.no_of_packages" readonly>
+                                                <input type="number" class="form-control form-control-sm text-center" v-model="detail.no_of_packages" readonly>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" v-model="detail.gross_weight" readonly>
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-center" v-model="detail.gross_weight" readonly>
                                             </td>
                                             <td class="text-center align-middle">
                                                 <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeRow(index)" v-if="form.details.length > 1">
@@ -160,14 +160,14 @@
                         <div class="card-body pt-3 pb-2">
                             <div class="row align-items-center mb-1">
                                 <div class="col-md-2 text-end"><label class="mb-0 fw-bold small text-dark">Total Packages</label></div>
-                                <div class="col-md-2"><input type="number" class="form-control form-control-sm border-secondary shadow-none" :value="totalPackages" readonly></div>
+                                <div class="col-md-2"><input type="number" class="form-control form-control-sm" :value="totalPackages" readonly></div>
                                 
                                 <div class="col-md-2 text-end"><label class="mb-0 fw-bold small text-dark">Total Weight</label></div>
-                                <div class="col-md-2"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none" :value="totalWeight" readonly></div>
+                                <div class="col-md-2"><input type="number" step="0.01" class="form-control form-control-sm" :value="totalWeight" readonly></div>
                             </div>
                             <div class="row align-items-start mt-3">
                                 <div class="col-md-2 text-end"><label class="mb-0 fw-bold small text-dark mt-1">Remarks</label></div>
-                                <div class="col-md-10"><textarea class="form-control form-control-sm border-secondary shadow-none" rows="2" v-model="form.remark"></textarea></div>
+                                <div class="col-md-10"><textarea class="form-control form-control-sm" rows="2" v-model="form.remark"></textarea></div>
                             </div>
                         </div>
 

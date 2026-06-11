@@ -4,7 +4,7 @@
             :id="id"
             ref="trigger"
             type="text"
-            class="searchable-select__trigger form-select border-secondary shadow-none"
+            class="searchable-select__trigger form-select"
             :class="{ 'is-invalid': error, 'form-select-sm': small, 'bg-light text-muted': disabled }"
             :value="displayValue"
             :placeholder="placeholder"
@@ -21,14 +21,14 @@
 
         <div
             v-if="isOpen"
-            class="dropdown-menu show w-100 p-0 shadow-sm border-secondary"
+            class="dropdown-menu show w-100 p-0 shadow-sm"
             role="listbox"
             style="position: absolute; z-index: 1050; max-height: 250px; overflow-y: auto;"
         >
             <div class="p-2 border-bottom sticky-top bg-white">
                 <input
                     type="text"
-                    class="form-control form-control-sm shadow-none border-secondary"
+                    class="form-control form-control-sm"
                     v-model="searchQuery"
                     placeholder="Search..."
                     ref="searchInput"
@@ -266,6 +266,7 @@ onUnmounted(() => {
     cursor: pointer;
     background-color: #fff;
     caret-color: transparent;
+    border: 1px solid var(--brand-border);
 }
 
 .searchable-select__trigger:disabled {

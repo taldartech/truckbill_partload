@@ -13,11 +13,11 @@
                             <div class="row align-items-center mb-2">
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark text-nowrap" style="min-width: 90px;">Challan No.</label>
-                                    <input type="text" class="form-control form-control-sm shadow-none" v-model="form.challan_number">
+                                    <input type="text" class="form-control form-control-sm" v-model="form.challan_number">
                                 </div>
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 60px;">Date</label>
-                                    <input type="date" class="form-control form-control-sm shadow-none" v-model="form.date">
+                                    <input type="date" class="form-control form-control-sm" v-model="form.date">
                                 </div>
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark text-nowrap" style="min-width: 60px;">From <span class="text-danger">*</span></label>
@@ -108,14 +108,14 @@
                                             </td>
                                             <td class="align-middle">{{ detail.to_station_name || '--' }}</td>
                                             <td>
-                                                <input type="number" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" v-model="detail.nugs" readonly>
+                                                <input type="number" class="form-control form-control-sm text-center" v-model="detail.nugs" readonly>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" v-model="detail.weight" readonly>
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-center" v-model="detail.weight" readonly>
                                             </td>
                                             <td class="align-middle">{{ detail.goods_name || '--' }}</td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-end bg-transparent" v-model="detail.freight" readonly>
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" v-model="detail.freight" readonly>
                                             </td>
                                             <td class="align-middle text-center">{{ detail.bob || '--' }}</td>
                                             <td class="align-middle text-center">{{ detail.row_type === 'bilty' ? 'Booking' : 'Crossing' }}</td>
@@ -256,7 +256,7 @@
                             <div class="row m-0 p-2 border-top border-dark">
                                 <div class="col-md-12 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold small text-dark text-nowrap">Remark :-</label>
-                                    <input type="text" class="form-control form-control-sm shadow-none" v-model="form.remark">
+                                    <input type="text" class="form-control form-control-sm" v-model="form.remark">
                                 </div>
                             </div>
                         </div>

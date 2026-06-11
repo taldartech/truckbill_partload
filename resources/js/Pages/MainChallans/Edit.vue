@@ -13,11 +13,11 @@
                             <div class="row align-items-center mb-2">
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark text-nowrap" style="min-width: 110px;">Main Chal.No.</label>
-                                    <input type="text" class="form-control form-control-sm shadow-none" v-model="form.main_challan_number">
+                                    <input type="text" class="form-control form-control-sm" v-model="form.main_challan_number">
                                 </div>
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 60px;">Date</label>
-                                    <input type="date" class="form-control form-control-sm shadow-none" v-model="form.date">
+                                    <input type="date" class="form-control form-control-sm" v-model="form.date">
                                 </div>
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark text-nowrap" style="min-width: 60px;">From <span class="text-danger">*</span></label>
@@ -90,25 +90,25 @@
                                             <td class="align-middle">{{ detail.challan_number || '--' }}</td>
                                             <td class="align-middle">{{ detail.to_station_name || '--' }}</td>
                                             <td>
-                                                <input type="number" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" v-model="detail.nugs" readonly>
+                                                <input type="number" class="form-control form-control-sm text-center" v-model="detail.nugs" readonly>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" v-model="detail.weight" readonly>
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-center" v-model="detail.weight" readonly>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-end bg-transparent" v-model="detail.to_pay" readonly>
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" v-model="detail.to_pay" readonly>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-end bg-transparent" v-model="detail.paid_amount" readonly>
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" v-model="detail.paid_amount" readonly>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-end bg-transparent" v-model="detail.crossing" readonly>
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" v-model="detail.crossing" readonly>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-end bg-transparent" v-model="detail.cartage" readonly>
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" v-model="detail.cartage" readonly>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-end bg-transparent" v-model="detail.labour" readonly>
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" v-model="detail.labour" readonly>
                                             </td>
                                             <td class="text-center align-middle">
                                                 <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeRow(index)">
@@ -224,7 +224,7 @@
                             <div class="row m-0 p-2 border-top border-dark">
                                 <div class="col-md-12 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold small text-dark text-nowrap">Remark :-</label>
-                                    <input type="text" class="form-control form-control-sm shadow-none" v-model="form.remark">
+                                    <input type="text" class="form-control form-control-sm" v-model="form.remark">
                                 </div>
                             </div>
                         </div>

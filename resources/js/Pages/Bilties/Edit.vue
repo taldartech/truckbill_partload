@@ -15,20 +15,20 @@
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Bilty No.</label>
                                     <div class="w-100">
-                                        <input type="text" class="form-control form-control-sm border-secondary shadow-none" :class="{ 'is-invalid': form.errors.bilty_number }" v-model="form.bilty_number">
+                                        <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.bilty_number }" v-model="form.bilty_number">
                                         <div v-if="form.errors.bilty_number" class="text-danger small mt-1">{{ form.errors.bilty_number }}</div>
                                     </div>
                                 </div>
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Date</label>
                                     <div class="w-100">
-                                        <input type="date" class="form-control form-control-sm border-secondary shadow-none" :class="{ 'is-invalid': form.errors.date }" v-model="form.date">
+                                        <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date">
                                         <div v-if="form.errors.date" class="invalid-feedback d-block">{{ form.errors.date }}</div>
                                     </div>
                                 </div>
                                 <div class="col-md-3 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Payment</label>
-                                    <select class="form-select form-select-sm border-secondary shadow-none" v-model="form.payment_type">
+                                    <select class="form-select form-select-sm" v-model="form.payment_type">
                                         <option value="To Pay">To Pay</option>
                                         <option value="Paid">Paid</option>
                                         <option value="TBB">TBB</option>
@@ -132,19 +132,19 @@
                                                 <div v-if="detailError(index, 'package_type_id')" class="text-danger small">{{ detailError(index, 'package_type_id') }}</div>
                                             </td>
                                             <td>
-                                                <input type="number" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" :class="{ 'is-invalid': detailError(index, 'no_of_packages') }" v-model="detail.no_of_packages" @input="calculateGridRow(index)">
+                                                <input type="number" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'no_of_packages') }" v-model="detail.no_of_packages" @input="calculateGridRow(index)">
                                                 <div v-if="detailError(index, 'no_of_packages')" class="text-danger small">{{ detailError(index, 'no_of_packages') }}</div>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" :class="{ 'is-invalid': detailError(index, 'gross_weight') }" v-model="detail.gross_weight" @input="calculateGridRow(index)">
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'gross_weight') }" v-model="detail.gross_weight" @input="calculateGridRow(index)">
                                                 <div v-if="detailError(index, 'gross_weight')" class="text-danger small">{{ detailError(index, 'gross_weight') }}</div>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" :class="{ 'is-invalid': detailError(index, 'charged_weight') }" v-model="detail.charged_weight" @input="calculateGridRow(index)">
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'charged_weight') }" v-model="detail.charged_weight" @input="calculateGridRow(index)">
                                                 <div v-if="detailError(index, 'charged_weight')" class="text-danger small">{{ detailError(index, 'charged_weight') }}</div>
                                             </td>
                                             <td>
-                                                <select class="form-select form-select-sm border-0 shadow-none text-center bg-transparent" :class="{ 'is-invalid': detailError(index, 'rate_type') }" v-model="detail.rate_type" @change="calculateGridRow(index)">
+                                                <select class="form-select form-select-sm text-center" :class="{ 'is-invalid': detailError(index, 'rate_type') }" v-model="detail.rate_type" @change="calculateGridRow(index)">
                                                     <option value="Fixed">Fixed</option>
                                                     <option value="Per Actual Weight">Per Actual Weight</option>
                                                     <option value="Per Charged Weight">Per Charged Weight</option>
@@ -153,7 +153,7 @@
                                                 <div v-if="detailError(index, 'rate_type')" class="text-danger small">{{ detailError(index, 'rate_type') }}</div>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-0 shadow-none text-center bg-transparent" :class="{ 'is-invalid': detailError(index, 'rate') }" v-model="detail.rate" @input="calculateGridRow(index)">
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'rate') }" v-model="detail.rate" @input="calculateGridRow(index)">
                                                 <div v-if="detailError(index, 'rate')" class="text-danger small">{{ detailError(index, 'rate') }}</div>
                                             </td>
                                             <td class="text-center align-middle fw-bold">
@@ -196,12 +196,12 @@
 
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">GST Tax (%)</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-light" v-model="form.gst" readonly></div>
+                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.gst" readonly></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Liabilities By</label></div>
                                         <div class="col-7">
-                                            <select class="form-select form-select-sm border-secondary shadow-none" v-model="form.gst_liability_by">
+                                            <select class="form-select form-select-sm" v-model="form.gst_liability_by">
                                                 <option value="">Select</option>
                                                 <option value="Consignor">Consignor</option>
                                                 <option value="Consignee">Consignee</option>
@@ -215,15 +215,15 @@
 
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Weight Actual</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.weight_actual"></div>
+                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.weight_actual"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Declared Value <span class="text-muted fw-normal">(Optional)</span></label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.declared_value"></div>
+                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.declared_value"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Invoice No. <span class="text-muted fw-normal">(Optional)</span></label></div>
-                                        <div class="col-7"><input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.invoice_number"></div>
+                                        <div class="col-7"><input type="text" class="form-control form-control-sm bg-white" v-model="form.invoice_number"></div>
                                     </div>
                                     <div class="mb-2">
                                         <div class="row align-items-center mb-1">
@@ -241,11 +241,11 @@
                                                 </button>
                                             </div>
                                             <div class="col-4">
-                                                <input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" :class="{ 'is-invalid': ewayError(index, 'eway_bill_no') }" v-model="eway.eway_bill_no" placeholder="E-Way Bill No">
+                                                <input type="text" class="form-control form-control-sm bg-white" :class="{ 'is-invalid': ewayError(index, 'eway_bill_no') }" v-model="eway.eway_bill_no" placeholder="E-Way Bill No">
                                                 <div v-if="ewayError(index, 'eway_bill_no')" class="text-danger small">{{ ewayError(index, 'eway_bill_no') }}</div>
                                             </div>
                                             <div class="col-7">
-                                                <input type="date" class="form-control form-control-sm border-secondary shadow-none bg-white" :class="{ 'is-invalid': ewayError(index, 'eway_bill_valid_till') }" v-model="eway.eway_bill_valid_till" placeholder="Valid Till">
+                                                <input type="date" class="form-control form-control-sm bg-white" :class="{ 'is-invalid': ewayError(index, 'eway_bill_valid_till') }" v-model="eway.eway_bill_valid_till" placeholder="Valid Till">
                                                 <div v-if="ewayError(index, 'eway_bill_valid_till')" class="text-danger small">{{ ewayError(index, 'eway_bill_valid_till') }}</div>
                                             </div>
                                         </div>
@@ -256,12 +256,12 @@
                                 <div class="col-md-3 border-start border-end border-secondary">
                                     <div class="row mb-1">
                                         <div class="col-12"><label class="mb-0 fw-bold small text-dark">Cartage</label></div>
-                                        <div class="col-12"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none" v-model="form.cartage" @input="onCartageChange"></div>
+                                        <div class="col-12"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.cartage" @input="onCartageChange"></div>
                                     </div>
                                     <div v-if="showCartageOptions" class="row mb-1">
                                         <div class="col-12"><label class="mb-0 fw-bold small text-dark">Cartage Type</label></div>
                                         <div class="col-12">
-                                            <select class="form-select form-select-sm border-secondary shadow-none" v-model="form.cartage_type" @change="onCartageTypeChange">
+                                            <select class="form-select form-select-sm" v-model="form.cartage_type" @change="onCartageTypeChange">
                                                 <option value="">Select</option>
                                                 <option value="Paid">Paid</option>
                                                 <option value="Due">Due</option>
@@ -283,16 +283,16 @@
                                     </div>
                                     <div class="row mb-1">
                                         <div class="col-12"><label class="mb-0 fw-bold small text-dark">Private Marka</label></div>
-                                        <div class="col-12"><input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.private_marka"></div>
+                                        <div class="col-12"><input type="text" class="form-control form-control-sm bg-white" v-model="form.private_marka"></div>
                                     </div>
                                     <div class="row mb-1">
                                         <div class="col-12"><label class="mb-0 fw-bold small text-dark">Delivery At</label></div>
-                                        <div class="col-12"><input type="text" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.delivery_at"></div>
+                                        <div class="col-12"><input type="text" class="form-control form-control-sm bg-white" v-model="form.delivery_at"></div>
                                     </div>
                                     <div class="row mb-1 mt-3">
                                         <div class="col-12"><label class="mb-0 fw-bold small text-dark">Status</label></div>
                                         <div class="col-12">
-                                            <select class="form-select form-select-sm border-secondary shadow-none bg-white" v-model="form.status">
+                                            <select class="form-select form-select-sm bg-white" v-model="form.status">
                                                 <option value="Pending">Pending</option>
                                                 <option value="In Transit">In Transit</option>
                                                 <option value="Delivered">Delivered</option>
@@ -305,23 +305,23 @@
                                 <div class="col-md-4">
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Total Freight</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-light fw-bold" v-model="form.freight" readonly></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-light fw-bold" v-model="form.freight" readonly></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">BILTY CHARGE</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.bilty_charge" @input="calculateFinalTotal"></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.bilty_charge" @input="calculateFinalTotal"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">SURCHARGE</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.surcharge" @input="calculateFinalTotal"></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.surcharge" @input="calculateFinalTotal"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">HANDLING CH.</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.handling_charge" @input="calculateFinalTotal"></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.handling_charge" @input="calculateFinalTotal"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">RISK/DD</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.risk_dd_charge" @input="calculateFinalTotal"></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.risk_dd_charge" @input="calculateFinalTotal"></div>
                                     </div>
                                     <div class="mb-2">
                                         <div class="row align-items-center mb-1">
@@ -339,26 +339,26 @@
                                                 </button>
                                             </div>
                                             <div class="col-5">
-                                                <input type="text" class="form-control form-control-sm border-secondary shadow-none" v-model="charge.particulars" placeholder="Particulars" @input="calculateFinalTotal">
+                                                <input type="text" class="form-control form-control-sm" v-model="charge.particulars" placeholder="Particulars" @input="calculateFinalTotal">
                                             </div>
                                             <div class="col-6">
-                                                <input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none" v-model="charge.amount" placeholder="Amount" @input="calculateFinalTotal">
+                                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="charge.amount" placeholder="Amount" @input="calculateFinalTotal">
                                             </div>
                                         </div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Less Adv.Rec</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-white" v-model="form.less_advance_received" @input="calculateFinalTotal"></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.less_advance_received" @input="calculateFinalTotal"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">GST Amount</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-secondary shadow-none bg-light" :value="gstAmount" readonly></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-light" :value="gstAmount" readonly></div>
                                     </div>
 
                                     <hr class="my-2 border-secondary">
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold text-danger">TOTAL AMOUNT</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-danger shadow-none bg-white fw-bold text-danger" v-model="form.amount" readonly></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-danger bg-white fw-bold text-danger" v-model="form.amount" readonly></div>
                                     </div>
                                 </div>
                             </div>
@@ -665,20 +665,3 @@ const submit = () => {
 const detailError = (index, field) => form.errors[`details.${index}.${field}`];
 </script>
 
-<style scoped>
-.bilty-form {
-    font-size: 0.85rem;
-}
-.bilty-form label {
-    font-size: 0.85rem;
-    white-space: nowrap;
-}
-.bilty-form .form-control-sm, .bilty-form .form-select-sm {
-    font-size: 0.85rem;
-    padding: 0.25rem 0.5rem;
-}
-.table-grid th, .table-grid td {
-    border-color: #dee2e6;
-    font-size: 0.85rem;
-}
-</style>
