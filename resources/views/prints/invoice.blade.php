@@ -20,7 +20,7 @@
         .text-center { text-align: center; }
         .footer { margin-top: 40px; display: flex; justify-content: space-between; padding-top: 50px; }
         .signature { text-align: center; width: 30%; border-top: 1px solid #000; padding-top: 5px; }
-        
+
         @media print {
             body { padding: 0; }
             .print-container { border: none; }
@@ -32,7 +32,7 @@
         <div class="header">
             <h1>{{ $company->name ?? 'TRANSPORT COMPANY' }}</h1>
             <h3>TAX INVOICE</h3>
-            <p style="margin:5px 0;">Phone: {{ $company->phone ?? '__________' }} | GSTIN: {{ $company->gst_number ?? '__________' }}</p>
+            <p style="margin:5px 0;">Phone: {{ $branch->contact_number ?? $company->contact_number ?? '__________' }} | GSTIN: {{ ($branch && $branch->has_gst) ? ($branch->gst_number ?? '__________') : '__________' }}</p>
         </div>
 
         <div class="row">

@@ -35,7 +35,7 @@
         <div class="header">
             <h1>{{ $company->name ?? 'TRANSPORT COMPANY' }}</h1>
             <h3>CONSIGNMENT NOTE / LORRY RECEIPT</h3>
-            <p style="margin:2px 0;">Phone: {{ $company->phone ?? '__________' }} | GSTIN: {{ $company->gst_number ?? '__________' }}</p>
+            <p style="margin:2px 0;">Phone: {{ $branch->contact_number ?? $company->contact_number ?? '__________' }} | GSTIN: {{ ($branch && $branch->has_gst) ? ($branch->gst_number ?? '__________') : '__________' }}</p>
         </div>
 
         <div class="row">

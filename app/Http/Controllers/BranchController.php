@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class BranchController extends Controller implements HasMiddleware
@@ -30,7 +31,7 @@ class BranchController extends Controller implements HasMiddleware
     public function index()
     {
         $context = app(TenantContext::class);
-        $query = Branch::with(['company', 'station'])->latest();
+        $query = Branch::with(['company', 'station', 'city'])->latest();
 
         if ($context->isSuperAdmin()) {
             $query->whereIn('company_id', $context->ownedCompanyIds());
@@ -51,22 +52,13 @@ class BranchController extends Controller implements HasMiddleware
             'countries' => Country::all(),
             'states' => State::all(),
             'cities' => City::all(),
+            'defaultCountryId' => $this->defaultCountryId(),
         ]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
-            'name' => 'nullable|string',
-            'address' => 'nullable|string',
-            'country_id' => 'nullable|exists:countries,id',
-            'state_id' => 'nullable|exists:states,id',
-            'city_id' => 'nullable|exists:cities,id',
-            'pin_code' => 'nullable|string|max:10',
-            'station_id' => 'required|exists:stations,id',
-            'is_head_office' => 'boolean',
-        ]);
+        $validated = $this->validateBranch($request);
 
         $companyId = $validated['company_id'] ?? app(TenantContext::class)->activeCompanyId();
         $this->authorizeCompanyId($companyId);
@@ -74,6 +66,8 @@ class BranchController extends Controller implements HasMiddleware
         $this->validateStationForOwner($validated['station_id']);
 
         $validated['company_id'] = $companyId;
+        $validated = $this->normalizeBranchPayload($request, $validated);
+
         Branch::create($validated);
 
         return redirect()->route('branches.index')->with('success', 'Branch created successfully.');
@@ -84,12 +78,13 @@ class BranchController extends Controller implements HasMiddleware
         $this->authorizeBranch($branch);
 
         return Inertia::render('Branches/Edit', [
-            'branch' => $branch->load('station'),
+            'branch' => $branch->load(['station', 'company:id,company_logo']),
             'companies' => $this->availableCompanies(),
             'stations' => $this->availableStations(),
             'countries' => Country::all(),
             'states' => State::all(),
             'cities' => City::all(),
+            'defaultCountryId' => $this->defaultCountryId(),
         ]);
     }
 
@@ -97,23 +92,15 @@ class BranchController extends Controller implements HasMiddleware
     {
         $this->authorizeBranch($branch);
 
-        $validated = $request->validate([
-            'company_id' => 'nullable|exists:companies,id',
-            'name' => 'nullable|string',
-            'address' => 'nullable|string',
-            'country_id' => 'nullable|exists:countries,id',
-            'state_id' => 'nullable|exists:states,id',
-            'city_id' => 'nullable|exists:cities,id',
-            'pin_code' => 'nullable|string|max:10',
-            'station_id' => 'required|exists:stations,id',
-            'is_head_office' => 'boolean',
-        ]);
+        $validated = $this->validateBranch($request);
 
         if (! empty($validated['company_id'])) {
             $this->authorizeCompanyId($validated['company_id']);
         }
 
         $this->validateStationForOwner($validated['station_id']);
+
+        $validated = $this->normalizeBranchPayload($request, $validated, $branch);
 
         $branch->update($validated);
 
@@ -126,6 +113,78 @@ class BranchController extends Controller implements HasMiddleware
         $branch->delete();
 
         return redirect()->route('branches.index')->with('success', 'Branch deleted successfully.');
+    }
+
+    private function validateBranch(Request $request): array
+    {
+        return $request->validate([
+            'company_id' => [
+                'nullable',
+                'exists:companies,id',
+                Rule::requiredIf(function () {
+                    $context = app(TenantContext::class);
+
+                    return auth()->user()?->isSuperAdmin() && ! $context->activeCompanyId();
+                }),
+            ],
+            'name' => 'required|string|max:255',
+            'address' => 'required|string',
+            'country_id' => 'required|exists:countries,id',
+            'state_id' => 'required|exists:states,id',
+            'city_id' => 'required|exists:cities,id',
+            'pin_code' => 'required|string|max:10',
+            'station_id' => 'required|exists:stations,id',
+            'is_head_office' => 'boolean',
+            'has_gst' => 'boolean',
+            'gst_number' => 'nullable|required_if:has_gst,true|string|max:15',
+            'gst_type' => 'nullable|required_if:has_gst,true|string|max:50',
+            'gst_scheme' => 'nullable|required_if:has_gst,true|string|max:50',
+            'gst_slab' => 'nullable|required_if:has_gst,true|numeric',
+            'bank_name' => 'nullable|string|max:255',
+            'account_number' => 'nullable|string|max:50',
+            'ifsc_code' => 'nullable|string|max:20',
+            'contact_person' => 'required|string|max:100',
+            'contact_number' => 'required|string|max:20',
+            'email' => 'required|email|max:255',
+            'bilty_initial' => 'nullable|string|max:20',
+            'challan_initial' => 'nullable|string|max:20',
+            'main_challan_initial' => 'nullable|string|max:20',
+            'invoice_initial' => 'nullable|string|max:20',
+            'inward_register_initial' => 'nullable|string|max:20',
+            'use_company_logo' => 'boolean',
+            'branch_logo' => 'nullable|image|max:2048',
+        ]);
+    }
+
+    private function normalizeBranchPayload(Request $request, array $validated, ?Branch $branch = null): array
+    {
+        $validated['has_gst'] = (bool) ($validated['has_gst'] ?? false);
+        $validated['use_company_logo'] = (bool) ($validated['use_company_logo'] ?? true);
+
+        if (! $validated['has_gst']) {
+            $validated['gst_number'] = null;
+            $validated['gst_type'] = null;
+            $validated['gst_scheme'] = null;
+            $validated['gst_slab'] = null;
+        }
+
+        $validated['bilty_initial'] = $validated['bilty_initial'] ?: 'BLT-';
+        $validated['challan_initial'] = $validated['challan_initial'] ?: 'CHL-';
+        $validated['main_challan_initial'] = $validated['main_challan_initial'] ?: 'MCH-';
+        $validated['invoice_initial'] = $validated['invoice_initial'] ?: 'INV-';
+        $validated['inward_register_initial'] = $validated['inward_register_initial'] ?: 'IR-';
+
+        if ($request->hasFile('branch_logo')) {
+            $path = $request->file('branch_logo')->store('branch_logos', 'public');
+            $validated['branch_logo'] = '/storage/'.$path;
+            $validated['use_company_logo'] = false;
+        } elseif ($validated['use_company_logo']) {
+            $validated['branch_logo'] = null;
+        } else {
+            unset($validated['branch_logo']);
+        }
+
+        return $validated;
     }
 
     private function availableCompanies()
@@ -206,5 +265,10 @@ class BranchController extends Controller implements HasMiddleware
         if ($currentCount >= $subscription->max_branches) {
             abort(422, 'Branch limit reached for the active subscription plan.');
         }
+    }
+
+    private function defaultCountryId(): ?int
+    {
+        return Country::query()->where('name', 'India')->value('id');
     }
 }

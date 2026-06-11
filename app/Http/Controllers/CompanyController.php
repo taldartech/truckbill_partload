@@ -27,7 +27,7 @@ class CompanyController extends Controller implements HasMiddleware
     public function index()
     {
         $context = app(TenantContext::class);
-        $query = Company::query()->latest();
+        $query = Company::query()->with(['city', 'state'])->latest();
 
         if ($context->isSuperAdmin()) {
             $query->where('user_id', auth()->id());
@@ -44,37 +44,20 @@ class CompanyController extends Controller implements HasMiddleware
             'countries' => Country::all(),
             'states' => State::all(),
             'cities' => City::all(),
+            'defaultCountryId' => $this->defaultCountryId(),
         ]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'short_name' => 'nullable|string|max:100',
-            'company_type' => 'nullable|string|max:100',
-            'email' => 'nullable|email|unique:companies,email',
-            'phone' => 'nullable|string|max:20',
-            'mobile' => 'nullable|string|max:20',
-            'contact_person' => 'nullable|string|max:100',
-            'contact_number' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'country_id' => 'nullable|exists:countries,id',
-            'state_id' => 'nullable|exists:states,id',
-            'city_id' => 'nullable|exists:cities,id',
-            'pin_code' => 'nullable|string|max:10',
-            'gst_number' => 'nullable|string|max:15',
-            'gst_scheme' => 'nullable|string|max:50',
-            'gst_type' => 'nullable|string|max:50',
-            'pan_no' => 'nullable|string|max:20',
-            'bank' => 'nullable|string|max:255',
-            'account_number' => 'nullable|string|max:50',
-            'ifsc' => 'nullable|string|max:20',
-            'invoice_template' => 'nullable|string|max:50',
-            'lr_copy_template' => 'nullable|string|max:50',
-            'gst_slab' => 'nullable|numeric',
-            'status' => 'boolean',
-        ]);
+        $validated = $request->validate($this->companyRules());
+
+        if ($request->hasFile('company_logo')) {
+            $path = $request->file('company_logo')->store('company_logos', 'public');
+            $validated['company_logo'] = '/storage/'.$path;
+        } else {
+            unset($validated['company_logo']);
+        }
 
         if (auth()->user()?->isSuperAdmin()) {
             $validated['user_id'] = auth()->id();
@@ -94,6 +77,7 @@ class CompanyController extends Controller implements HasMiddleware
             'countries' => Country::all(),
             'states' => State::all(),
             'cities' => City::all(),
+            'defaultCountryId' => $this->defaultCountryId(),
         ]);
     }
 
@@ -101,32 +85,14 @@ class CompanyController extends Controller implements HasMiddleware
     {
         $this->authorizeCompany($company);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'short_name' => 'nullable|string|max:100',
-            'company_type' => 'nullable|string|max:100',
-            'email' => 'nullable|email|unique:companies,email,'.$company->id,
-            'phone' => 'nullable|string|max:20',
-            'mobile' => 'nullable|string|max:20',
-            'contact_person' => 'nullable|string|max:100',
-            'contact_number' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'country_id' => 'nullable|exists:countries,id',
-            'state_id' => 'nullable|exists:states,id',
-            'city_id' => 'nullable|exists:cities,id',
-            'pin_code' => 'nullable|string|max:10',
-            'gst_number' => 'nullable|string|max:15',
-            'gst_scheme' => 'nullable|string|max:50',
-            'gst_type' => 'nullable|string|max:50',
-            'pan_no' => 'nullable|string|max:20',
-            'bank' => 'nullable|string|max:255',
-            'account_number' => 'nullable|string|max:50',
-            'ifsc' => 'nullable|string|max:20',
-            'invoice_template' => 'nullable|string|max:50',
-            'lr_copy_template' => 'nullable|string|max:50',
-            'gst_slab' => 'nullable|numeric',
-            'status' => 'boolean',
-        ]);
+        $validated = $request->validate($this->companyRules($company));
+
+        if ($request->hasFile('company_logo')) {
+            $path = $request->file('company_logo')->store('company_logos', 'public');
+            $validated['company_logo'] = '/storage/'.$path;
+        } else {
+            unset($validated['company_logo']);
+        }
 
         $company->update($validated);
 
@@ -146,5 +112,32 @@ class CompanyController extends Controller implements HasMiddleware
         if (auth()->user()?->isSuperAdmin() && (int) $company->user_id !== (int) auth()->id()) {
             abort(403);
         }
+    }
+
+    private function defaultCountryId(): ?int
+    {
+        return Country::query()->where('name', 'India')->value('id');
+    }
+
+    private function companyRules(?Company $company = null): array
+    {
+        $emailRule = 'required|email|max:255|unique:companies,email';
+        if ($company) {
+            $emailRule .= ','.$company->id;
+        }
+
+        return [
+            'name' => 'required|string|max:255',
+            'email' => $emailRule,
+            'address' => 'required|string',
+            'country_id' => 'required|exists:countries,id',
+            'state_id' => 'required|exists:states,id',
+            'city_id' => 'required|exists:cities,id',
+            'pin_code' => 'required|string|max:10',
+            'contact_person' => 'required|string|max:100',
+            'contact_number' => 'required|string|max:20',
+            'pan_no' => 'nullable|string|max:20',
+            'company_logo' => 'nullable|image|max:2048',
+        ];
     }
 }

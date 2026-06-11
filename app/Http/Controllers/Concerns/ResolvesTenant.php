@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Concerns;
 
-use App\Models\Setting;
+use App\Models\Branch;
 use App\Services\TenantContext;
 
 trait ResolvesTenant
@@ -29,12 +29,8 @@ trait ResolvesTenant
         return $validated;
     }
 
-    protected function branchSetting(string $key, mixed $default = null): mixed
+    protected function activeBranch(): ?Branch
     {
-        $value = Setting::query()
-            ->where('key', $key)
-            ->value('value');
-
-        return $value ?? $default;
+        return $this->tenant()->activeBranch();
     }
 }

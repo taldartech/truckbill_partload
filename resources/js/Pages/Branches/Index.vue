@@ -14,9 +14,9 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Company</th>
                                     <th>Name</th>
-                                    <th>PIN Code</th>
+                                    <th>Station</th>
+                                    <th>City</th>
                                     <th>Type</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
@@ -24,9 +24,9 @@
                             <tbody>
                                 <tr v-for="branch in branches.data" :key="branch.id">
                                     <td>{{ branch.id }}</td>
-                                    <td>{{ branch.company ? branch.company.name : 'N/A' }}</td>
                                     <td>{{ branch.name || 'N/A' }}</td>
-                                    <td>{{ branch.pin_code || 'N/A' }}</td>
+                                    <td>{{ branch.station?.name || 'N/A' }}</td>
+                                    <td>{{ branch.city?.name || 'N/A' }}</td>
                                     <td>
                                         <span v-if="branch.is_head_office" class="badge bg-primary">Head Office</span>
                                         <span v-else class="badge bg-secondary">Branch</span>
@@ -53,17 +53,16 @@
 </template>
 
 <script setup>
-import {  Link, useForm , usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-
 
 const page = usePage();
 const can = (permission) => {
     return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
 };
 
-const props = defineProps({
-    branches: Object
+defineProps({
+    branches: Object,
 });
 
 const form = useForm({});

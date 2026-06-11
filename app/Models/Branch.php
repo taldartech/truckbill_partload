@@ -13,6 +13,12 @@ class Branch extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'has_gst' => 'boolean',
+        'use_company_logo' => 'boolean',
+        'is_head_office' => 'boolean',
+    ];
+
     public function company()
     {
         return $this->belongsTo(Company::class);
@@ -21,5 +27,23 @@ class Branch extends Model
     public function station()
     {
         return $this->belongsTo(Station::class);
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function resolvedLogo(): ?string
+    {
+        if ($this->use_company_logo) {
+            $company = $this->relationLoaded('company')
+                ? $this->company
+                : $this->company()->first(['id', 'company_logo']);
+
+            return $company?->company_logo;
+        }
+
+        return $this->branch_logo;
     }
 }

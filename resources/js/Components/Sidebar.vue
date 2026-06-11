@@ -262,13 +262,6 @@
                         </Link>
                     </li> -->
                     </template>
-
-                    <li class="nav-item" v-if="isSuperAdmin && isActingAsAdmin">
-                        <Link href="/settings" class="nav-link py-2 px-2 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/settings') }">
-                            <i class="nav-icon fas fa-cog me-3"></i>
-                            <p class="mb-0 fw-medium">Global Settings</p>
-                        </Link>
-                    </li>
                 </ul>
             </nav>
         </div>

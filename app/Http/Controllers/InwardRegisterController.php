@@ -135,7 +135,8 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
     private function nextInwardRegisterNumber(): string
     {
-        $initial = $this->branchSetting('inward_register_initial', 'IR-');
+        $branch = $this->activeBranch();
+        $initial = $branch?->inward_register_initial ?: 'IR-';
 
         $last = InwardRegister::query()
             ->where('inward_register_no', 'like', $initial.'%')

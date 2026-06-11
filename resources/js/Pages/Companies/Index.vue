@@ -16,9 +16,9 @@
                                     <th>ID</th>
                                     <th>Name</th>
                                     <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>GST Number</th>
-                                    <th>Status</th>
+                                    <th>City</th>
+                                    <th>Contact Person</th>
+                                    <th>Contact Number</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
@@ -27,12 +27,9 @@
                                     <td>{{ company.id }}</td>
                                     <td>{{ company.name }}</td>
                                     <td>{{ company.email || 'N/A' }}</td>
-                                    <td>{{ company.phone || 'N/A' }}</td>
-                                    <td>{{ company.gst_number || 'N/A' }}</td>
-                                    <td>
-                                        <span v-if="company.status" class="badge bg-success">Active</span>
-                                        <span v-else class="badge bg-danger">Inactive</span>
-                                    </td>
+                                    <td>{{ company.city?.name || 'N/A' }}</td>
+                                    <td>{{ company.contact_person || 'N/A' }}</td>
+                                    <td>{{ company.contact_number || 'N/A' }}</td>
                                     <td class="text-end">
                                         <Link :href="`/companies/${company.id}/edit`" class="btn btn-edit btn-sm me-2">
                                             <i class="fas fa-edit"></i>
@@ -48,7 +45,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- Pagination can be added here if needed using companies.links -->
                 </div>
             </div>
         </div>
@@ -56,17 +52,16 @@
 </template>
 
 <script setup>
-import {  Link, useForm , usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-
 
 const page = usePage();
 const can = (permission) => {
     return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
 };
 
-const props = defineProps({
-    companies: Object
+defineProps({
+    companies: Object,
 });
 
 const form = useForm({});

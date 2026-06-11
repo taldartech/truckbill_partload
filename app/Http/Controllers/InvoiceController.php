@@ -34,7 +34,7 @@ class InvoiceController extends Controller implements HasMiddleware
     {
         $invoicedBiltyIds = InvoiceDetail::pluck('bilty_id')->toArray();
         $pendingBilties = Bilty::whereNotIn('id', $invoicedBiltyIds)->with(['fromStation', 'toStation'])->get();
-        
+
         return Inertia::render('Invoices/Create', [
             'parties' => Party::all(),
             'bilties' => $pendingBilties
@@ -110,12 +110,13 @@ class InvoiceController extends Controller implements HasMiddleware
         $invoice->delete();
         return redirect()->route('invoices.index')->with('success', 'Invoice deleted successfully.');
     }
-    
+
     public function print(Invoice $invoice)
     {
-        $invoice->load(['party', 'details.bilty.fromStation', 'details.bilty.toStation']);
+        $invoice->load(['party', 'details.bilty.fromStation', 'details.bilty.toStation', 'branch']);
         $company = \App\Models\Company::find($invoice->company_id);
-        
-        return view('prints.invoice', compact('invoice', 'company'));
+        $branch = $invoice->branch;
+
+        return view('prints.invoice', compact('invoice', 'company', 'branch'));
     }
 }

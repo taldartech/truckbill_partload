@@ -38,7 +38,8 @@ class BiltyController extends Controller implements HasMiddleware
 
     public function create()
     {
-        $initial = $this->branchSetting('bilty_initial', 'BLT-');
+        $branch = $this->activeBranch();
+        $initial = $branch?->bilty_initial ?: 'BLT-';
         $prefixLength = Str::length($initial);
         $maxSequence = Bilty::query()
             ->where('bilty_number', 'like', $initial.'%')
@@ -55,7 +56,9 @@ class BiltyController extends Controller implements HasMiddleware
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
             'next_bilty_number' => $nextNumber,
-            'default_gst_percent' => (float) $this->branchSetting('default_gst_percent', 18),
+            'default_gst_percent' => $branch && $branch->has_gst
+                ? (float) ($branch->gst_slab ?? 18)
+                : 18,
         ]);
     }
 
@@ -94,6 +97,7 @@ class BiltyController extends Controller implements HasMiddleware
     public function edit(Bilty $bilty)
     {
         $bilty->load(['biltyDetails', 'ewayBills']);
+        $branch = $this->activeBranch();
 
         return Inertia::render('Bilties/Edit', [
             'bilty' => $bilty,
@@ -102,7 +106,9 @@ class BiltyController extends Controller implements HasMiddleware
             'stations' => Station::all(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
-            'default_gst_percent' => (float) $this->branchSetting('default_gst_percent', 18),
+            'default_gst_percent' => $branch && $branch->has_gst
+                ? (float) ($branch->gst_slab ?? 18)
+                : 18,
         ]);
     }
 
@@ -147,11 +153,12 @@ class BiltyController extends Controller implements HasMiddleware
 
     public function print(Bilty $bilty)
     {
-        $bilty->load(['fromStation', 'toStation', 'consignor', 'consignee', 'vendor', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills']);
+        $bilty->load(['fromStation', 'toStation', 'consignor', 'consignee', 'vendor', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills', 'branch.company']);
         $company = \App\Models\Company::find($bilty->company_id);
+        $branch = $bilty->branch;
         $printData = $this->buildPrintData($bilty);
 
-        return view('prints.bilty', compact('bilty', 'company', 'printData'));
+        return view('prints.bilty', compact('bilty', 'company', 'branch', 'printData'));
     }
 
     private function buildPrintData(Bilty $bilty): array

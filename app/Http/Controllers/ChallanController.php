@@ -40,7 +40,8 @@ class ChallanController extends Controller implements HasMiddleware
 
     public function create()
     {
-        $initial = $this->branchSetting('challan_initial', 'CHL-');
+        $branch = $this->activeBranch();
+        $initial = $branch?->challan_initial ?: 'CHL-';
         $lastChallan = Challan::orderBy('id', 'desc')->first();
         $nextId = $lastChallan ? $lastChallan->id + 1 : 1;
         $nextNumber = $initial.str_pad($nextId, 4, '0', STR_PAD_LEFT);

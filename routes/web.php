@@ -57,7 +57,7 @@ Route::middleware(['auth', 'onboarding.complete'])->group(function () {
     Route::get('select-branch', [BranchContextController::class, 'select'])->name('branch-context.select');
     Route::post('session/branch', [BranchContextController::class, 'store'])->name('branch-context.store');
     Route::delete('session/branch', [BranchContextController::class, 'destroy'])->name('branch-context.destroy');
-    
+
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('companies', CompanyController::class);
@@ -77,10 +77,10 @@ Route::middleware(['auth', 'onboarding.complete'])->group(function () {
     Route::resource('stations', StationController::class);
     Route::get('bilties/{bilty}/print', [BiltyController::class, 'print'])->name('bilties.print');
     Route::resource('bilties', BiltyController::class);
-    
+
     Route::get('challans/{challan}/print', [ChallanController::class, 'print'])->name('challans.print');
     Route::resource('challans', ChallanController::class);
-    
+
     Route::get('main-challans/{main_challan}/print', [MainChallanController::class, 'print'])->name('main-challans.print');
     Route::resource('main-challans', MainChallanController::class);
 
@@ -100,21 +100,19 @@ Route::middleware(['auth', 'onboarding.complete'])->group(function () {
     Route::resource('loading-reports', LoadingReportController::class);
     Route::resource('vouchers', VoucherController::class);
     Route::resource('inward-registers', InwardRegisterController::class);
-    
+
     Route::get('delivery-receipts/{delivery_receipt}/print', [DeliveryReceiptController::class, 'print'])->name('delivery-receipts.print');
     Route::resource('delivery-receipts', DeliveryReceiptController::class);
-    
+
     Route::get('invoices/{invoice}/print', [\App\Http\Controllers\InvoiceController::class, 'print'])->name('invoices.print');
     Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
-    
+
     // Reports
     Route::get('reports/bilty-register', [\App\Http\Controllers\ReportController::class, 'biltyRegister'])->name('reports.bilty-register');
     Route::get('reports/challan-register', [\App\Http\Controllers\ReportController::class, 'challanRegister'])->name('reports.challan-register');
     Route::get('reports/party-ledger', [\App\Http\Controllers\ReportController::class, 'partyLedger'])->name('reports.party-ledger');
-    
+
     Route::resource('roles', RoleController::class);
     Route::resource('subscriptions', SubscriptionPlanController::class);
-    
-    Route::get('settings', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
-    Route::post('settings', [\App\Http\Controllers\SettingController::class, 'store'])->name('settings.store');
+
 });

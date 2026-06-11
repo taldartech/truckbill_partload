@@ -35,7 +35,8 @@ class MainChallanController extends Controller implements HasMiddleware
 
     public function create()
     {
-        $initial = $this->branchSetting('main_challan_initial', 'MCH-');
+        $branch = $this->activeBranch();
+        $initial = $branch?->main_challan_initial ?: 'MCH-';
         $lastChallan = MainChallan::orderBy('id', 'desc')->first();
         $nextId = $lastChallan ? $lastChallan->id + 1 : 1;
         $nextNumber = $initial . str_pad($nextId, 4, '0', STR_PAD_LEFT);
@@ -99,7 +100,7 @@ class MainChallanController extends Controller implements HasMiddleware
             'details.challan.details.inwardRegisterDetail',
             'details.challan.toStation',
         ]);
-        
+
         return Inertia::render('MainChallans/Edit', [
             'main_challan' => $main_challan,
             'stations' => Station::all(),
