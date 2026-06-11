@@ -19,44 +19,47 @@
             @keydown="onTriggerKeydown"
         >
 
-        <div
-            v-if="isOpen"
-            class="dropdown-menu show w-100 p-0 shadow-sm"
-            role="listbox"
-            style="position: absolute; z-index: 1050; max-height: 250px; overflow-y: auto;"
-        >
-            <div class="p-2 border-bottom sticky-top bg-white">
-                <input
-                    type="text"
-                    class="form-control form-control-sm"
-                    v-model="searchQuery"
-                    placeholder="Search..."
-                    ref="searchInput"
-                    tabindex="-1"
-                    @keydown="onSearchKeydown"
-                >
+        <Teleport to="body">
+            <div
+                v-if="isOpen"
+                ref="dropdown"
+                class="searchable-select__dropdown dropdown-menu show p-0 shadow-sm"
+                role="listbox"
+                :style="dropdownStyle"
+            >
+                <div class="p-2 border-bottom sticky-top bg-white">
+                    <input
+                        type="text"
+                        class="form-control form-control-sm"
+                        v-model="searchQuery"
+                        placeholder="Search..."
+                        ref="searchInput"
+                        tabindex="-1"
+                        @keydown="onSearchKeydown"
+                    >
+                </div>
+                <ul class="list-unstyled mb-0">
+                    <li v-if="filteredOptions.length === 0" class="p-2 text-muted small text-center">
+                        No results found
+                    </li>
+                    <li
+                        v-for="(option, index) in filteredOptions"
+                        :key="option[valueKey]"
+                        role="option"
+                        :aria-selected="String(modelValue) === String(option[valueKey])"
+                        @mousedown.prevent="selectOption(option)"
+                        class="p-2 dropdown-item small"
+                        :class="{
+                            'active bg-primary text-white': String(modelValue) === String(option[valueKey]),
+                            'bg-light': highlightedIndex === index,
+                        }"
+                        style="cursor: pointer;"
+                    >
+                        {{ option[labelKey] }}
+                    </li>
+                </ul>
             </div>
-            <ul class="list-unstyled mb-0">
-                <li v-if="filteredOptions.length === 0" class="p-2 text-muted small text-center">
-                    No results found
-                </li>
-                <li
-                    v-for="(option, index) in filteredOptions"
-                    :key="option[valueKey]"
-                    role="option"
-                    :aria-selected="String(modelValue) === String(option[valueKey])"
-                    @mousedown.prevent="selectOption(option)"
-                    class="p-2 dropdown-item small"
-                    :class="{
-                        'active bg-primary text-white': String(modelValue) === String(option[valueKey]),
-                        'bg-light': highlightedIndex === index,
-                    }"
-                    style="cursor: pointer;"
-                >
-                    {{ option[labelKey] }}
-                </li>
-            </ul>
-        </div>
+        </Teleport>
     </div>
 </template>
 
@@ -108,8 +111,10 @@ const isOpen = ref(false);
 const searchQuery = ref('');
 const highlightedIndex = ref(-1);
 const container = ref(null);
+const dropdown = ref(null);
 const searchInput = ref(null);
 const trigger = ref(null);
+const dropdownStyle = ref({});
 
 const selectedItem = computed(() => {
     return props.options.find(opt => String(opt[props.valueKey]) === String(props.modelValue)) || null;
@@ -126,12 +131,35 @@ const filteredOptions = computed(() => {
     });
 });
 
+const updateDropdownPosition = () => {
+    if (!trigger.value) return;
+
+    const rect = trigger.value.getBoundingClientRect();
+    const maxHeight = 250;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const openUpward = spaceBelow < maxHeight && spaceAbove > spaceBelow;
+    const availableHeight = openUpward ? spaceAbove - 8 : spaceBelow - 8;
+
+    dropdownStyle.value = {
+        position: 'fixed',
+        left: `${rect.left}px`,
+        width: `${rect.width}px`,
+        zIndex: 1050,
+        maxHeight: `${Math.min(maxHeight, Math.max(availableHeight, 120))}px`,
+        overflowY: 'auto',
+        top: openUpward ? 'auto' : `${rect.bottom}px`,
+        bottom: openUpward ? `${window.innerHeight - rect.top}px` : 'auto',
+    };
+};
+
 const openDropdown = () => {
     if (props.disabled || isOpen.value) return;
     isOpen.value = true;
     highlightedIndex.value = filteredOptions.value.length ? 0 : -1;
     searchQuery.value = '';
     nextTick(() => {
+        updateDropdownPosition();
         searchInput.value?.focus();
     });
 };
@@ -238,13 +266,28 @@ const onSearchKeydown = (event) => {
 };
 
 const handleClickOutside = (event) => {
-    if (container.value && !container.value.contains(event.target)) {
-        closeDropdown();
+    if (
+        container.value?.contains(event.target) ||
+        dropdown.value?.contains(event.target)
+    ) {
+        return;
     }
+
+    closeDropdown();
 };
 
 watch(searchQuery, () => {
     highlightedIndex.value = filteredOptions.value.length ? 0 : -1;
+});
+
+watch(isOpen, (open) => {
+    if (open) {
+        window.addEventListener('scroll', updateDropdownPosition, true);
+        window.addEventListener('resize', updateDropdownPosition);
+    } else {
+        window.removeEventListener('scroll', updateDropdownPosition, true);
+        window.removeEventListener('resize', updateDropdownPosition);
+    }
 });
 
 onMounted(() => {
@@ -253,6 +296,8 @@ onMounted(() => {
 
 onUnmounted(() => {
     document.removeEventListener('mousedown', handleClickOutside);
+    window.removeEventListener('scroll', updateDropdownPosition, true);
+    window.removeEventListener('resize', updateDropdownPosition);
 });
 </script>
 
@@ -277,18 +322,23 @@ onUnmounted(() => {
     border-color: var(--brand-primary);
     box-shadow: 0 0 0 0.25rem var(--brand-input-focus-shadow);
 }
+</style>
 
-.dropdown-item:active {
+<style>
+.searchable-select__dropdown {
+    display: block;
+    border: 1px solid var(--brand-border);
+    border-radius: 0.375rem;
+    background-color: #fff;
+}
+
+.searchable-select__dropdown .dropdown-item:active {
     background-color: #f8f9fa;
     color: #212529;
 }
 
-.dropdown-item.active {
+.searchable-select__dropdown .dropdown-item.active {
     background-color: var(--brand-primary) !important;
     color: #fff !important;
-}
-
-.dropdown-menu {
-    border-radius: 0.375rem;
 }
 </style>
