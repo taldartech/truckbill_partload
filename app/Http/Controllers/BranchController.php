@@ -168,11 +168,10 @@ class BranchController extends Controller implements HasMiddleware
             $validated['gst_slab'] = 0;
         }
 
-        $validated['bilty_initial'] = $validated['bilty_initial'] ?: 'BLT-';
-        $validated['challan_initial'] = $validated['challan_initial'] ?: 'CHL-';
-        $validated['main_challan_initial'] = $validated['main_challan_initial'] ?: 'MCH-';
-        $validated['invoice_initial'] = $validated['invoice_initial'] ?: 'INV-';
-        $validated['inward_register_initial'] = $validated['inward_register_initial'] ?: 'IR-';
+        foreach (['bilty_initial', 'challan_initial', 'main_challan_initial', 'invoice_initial', 'inward_register_initial'] as $field) {
+            $value = trim((string) ($validated[$field] ?? ''));
+            $validated[$field] = $value !== '' ? $value : null;
+        }
 
         if ($request->hasFile('branch_logo')) {
             $path = $request->file('branch_logo')->store('branch_logos', 'public');

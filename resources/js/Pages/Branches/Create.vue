@@ -155,27 +155,27 @@
                                 </div>
                             </div>
 
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Document Initials <small class="text-muted fw-normal">(optional — defaults apply)</small></h5>
+                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Document Initials <small class="text-muted fw-normal">(optional — leave blank for no prefix)</small></h5>
                             <div class="row">
                                 <div class="col-md-3 form-group mb-3">
                                     <label>Bilty Initial</label>
-                                    <input type="text" class="form-control" v-model="form.bilty_initial" placeholder="BLT-">
+                                    <input type="text" class="form-control" v-model="form.bilty_initial" placeholder="e.g. BLT-">
                                 </div>
                                 <div class="col-md-3 form-group mb-3">
                                     <label>Challan Initial</label>
-                                    <input type="text" class="form-control" v-model="form.challan_initial" placeholder="CHL-">
+                                    <input type="text" class="form-control" v-model="form.challan_initial" placeholder="e.g. CHL-">
                                 </div>
                                 <div class="col-md-3 form-group mb-3">
                                     <label>Main Challan Initial</label>
-                                    <input type="text" class="form-control" v-model="form.main_challan_initial" placeholder="MCH-">
+                                    <input type="text" class="form-control" v-model="form.main_challan_initial" placeholder="e.g. MCH-">
                                 </div>
                                 <div class="col-md-3 form-group mb-3">
                                     <label>Invoice Initial</label>
-                                    <input type="text" class="form-control" v-model="form.invoice_initial" placeholder="INV-">
+                                    <input type="text" class="form-control" v-model="form.invoice_initial" placeholder="e.g. INV-">
                                 </div>
                                 <div class="col-md-3 form-group mb-3">
                                     <label>Inward Register Initial</label>
-                                    <input type="text" class="form-control" v-model="form.inward_register_initial" placeholder="IR-">
+                                    <input type="text" class="form-control" v-model="form.inward_register_initial" placeholder="e.g. IR-">
                                 </div>
                             </div>
 
@@ -239,11 +239,11 @@ const form = useForm({
     contact_person: '',
     contact_number: '',
     email: '',
-    bilty_initial: 'BLT-',
-    challan_initial: 'CHL-',
-    main_challan_initial: 'MCH-',
-    invoice_initial: 'INV-',
-    inward_register_initial: 'IR-',
+    bilty_initial: '',
+    challan_initial: '',
+    main_challan_initial: '',
+    invoice_initial: '',
+    inward_register_initial: '',
     use_company_logo: true,
     branch_logo: null,
 });

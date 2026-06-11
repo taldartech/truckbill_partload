@@ -155,7 +155,7 @@
                                 </div>
                             </div>
 
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Document Initials <small class="text-muted fw-normal">(optional — defaults apply)</small></h5>
+                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Document Initials <small class="text-muted fw-normal">(optional — leave blank for no prefix)</small></h5>
                             <div class="row">
                                 <div class="col-md-3 form-group mb-3">
                                     <label>Bilty Initial</label>
@@ -248,11 +248,11 @@ const form = useForm({
     contact_person: props.branch.contact_person || '',
     contact_number: props.branch.contact_number || '',
     email: props.branch.email || '',
-    bilty_initial: props.branch.bilty_initial || 'BLT-',
-    challan_initial: props.branch.challan_initial || 'CHL-',
-    main_challan_initial: props.branch.main_challan_initial || 'MCH-',
-    invoice_initial: props.branch.invoice_initial || 'INV-',
-    inward_register_initial: props.branch.inward_register_initial || 'IR-',
+    bilty_initial: props.branch.bilty_initial ?? '',
+    challan_initial: props.branch.challan_initial ?? '',
+    main_challan_initial: props.branch.main_challan_initial ?? '',
+    invoice_initial: props.branch.invoice_initial ?? '',
+    inward_register_initial: props.branch.inward_register_initial ?? '',
     use_company_logo: props.branch.use_company_logo !== false,
     branch_logo: null,
 });

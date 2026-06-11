@@ -36,10 +36,11 @@ class MainChallanController extends Controller implements HasMiddleware
     public function create()
     {
         $branch = $this->activeBranch();
-        $initial = $branch?->main_challan_initial ?: 'MCH-';
-        $lastChallan = MainChallan::orderBy('id', 'desc')->first();
-        $nextId = $lastChallan ? $lastChallan->id + 1 : 1;
-        $nextNumber = $initial . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+        $nextNumber = \App\Support\DocumentNumber::next(
+            MainChallan::query(),
+            'main_challan_number',
+            $branch?->main_challan_initial
+        );
 
         return Inertia::render('MainChallans/Create', [
             'stations' => Station::all(),

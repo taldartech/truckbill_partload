@@ -87,11 +87,15 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 const props = defineProps({
     parties: Array,
-    bilties: Array
+    bilties: Array,
+    next_invoice_no: {
+        type: String,
+        default: '',
+    },
 });
 
 const form = useForm({
-    invoice_no: 'INV-' + Date.now().toString().slice(-6),
+    invoice_no: props.next_invoice_no || '',
     date: new Date().toISOString().substr(0, 10),
     party_id: '',
     status: 'Unpaid',

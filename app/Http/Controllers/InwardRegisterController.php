@@ -136,20 +136,12 @@ class InwardRegisterController extends Controller implements HasMiddleware
     private function nextInwardRegisterNumber(): string
     {
         $branch = $this->activeBranch();
-        $initial = $branch?->inward_register_initial ?: 'IR-';
 
-        $last = InwardRegister::query()
-            ->where('inward_register_no', 'like', $initial.'%')
-            ->orderByDesc('id')
-            ->value('inward_register_no');
-
-        if (!$last) {
-            return $initial . '0001';
-        }
-
-        $sequence = (int) preg_replace('/\D/', '', substr($last, strlen($initial)));
-
-        return $initial . str_pad($sequence + 1, 4, '0', STR_PAD_LEFT);
+        return \App\Support\DocumentNumber::next(
+            InwardRegister::query(),
+            'inward_register_no',
+            $branch?->inward_register_initial
+        );
     }
 
     private function validateInwardRegister(Request $request, ?int $inwardRegisterId = null): array

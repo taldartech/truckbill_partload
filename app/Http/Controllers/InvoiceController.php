@@ -32,12 +32,18 @@ class InvoiceController extends Controller implements HasMiddleware
 
     public function create()
     {
+        $branch = $this->activeBranch();
         $invoicedBiltyIds = InvoiceDetail::pluck('bilty_id')->toArray();
         $pendingBilties = Bilty::whereNotIn('id', $invoicedBiltyIds)->with(['fromStation', 'toStation'])->get();
 
         return Inertia::render('Invoices/Create', [
             'parties' => Party::all(),
-            'bilties' => $pendingBilties
+            'bilties' => $pendingBilties,
+            'next_invoice_no' => \App\Support\DocumentNumber::next(
+                Invoice::query(),
+                'invoice_no',
+                $branch?->invoice_initial
+            ),
         ]);
     }
 

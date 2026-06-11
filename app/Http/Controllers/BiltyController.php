@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
-use Illuminate\Support\Str;
 
 class BiltyController extends Controller implements HasMiddleware
 {
@@ -40,15 +39,11 @@ class BiltyController extends Controller implements HasMiddleware
     public function create()
     {
         $branch = $this->activeBranch();
-        $initial = $branch?->bilty_initial ?: 'BLT-';
-        $prefixLength = Str::length($initial);
-        $maxSequence = Bilty::query()
-            ->where('bilty_number', 'like', $initial.'%')
-            ->whereRaw('SUBSTRING(bilty_number, ?) REGEXP "^[0-9]+$"', [$prefixLength + 1])
-            ->selectRaw('MAX(CAST(SUBSTRING(bilty_number, ?) AS UNSIGNED)) as max_seq', [$prefixLength + 1])
-            ->value('max_seq') ?? 0;
-
-        $nextNumber = $initial.str_pad($maxSequence + 1, 4, '0', STR_PAD_LEFT);
+        $nextNumber = \App\Support\DocumentNumber::next(
+            Bilty::query(),
+            'bilty_number',
+            $branch?->bilty_initial
+        );
 
         return Inertia::render('Bilties/Create', [
             'parties' => Party::all(),
