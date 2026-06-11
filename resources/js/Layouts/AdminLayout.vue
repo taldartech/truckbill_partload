@@ -3,7 +3,7 @@
         <Navbar />
         <Sidebar />
         <main class="app-main py-4">
-            <div class="app-content-header mb-4">
+            <!-- <div class="app-content-header mb-4">
                 <div class="container-fluid px-4">
                     <div class="row align-items-center">
                         <div class="col-sm-6">
@@ -11,7 +11,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
             <div class="app-content">
                 <div class="container-fluid px-4">
                     <slot />
