@@ -25,7 +25,7 @@ class StationController extends Controller implements HasMiddleware
 
     public function index()
     {
-        $stations = Station::latest()->paginate(10);
+        $stations = Station::with('city', 'state')->latest()->paginate(10);
 
         return Inertia::render('Stations/Index', [
             'stations' => $stations,

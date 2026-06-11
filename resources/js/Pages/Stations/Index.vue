@@ -24,8 +24,8 @@
                                 <tr v-for="station in stations.data" :key="station.id">
                                     <td>{{ station.id }}</td>
                                     <td>{{ station.name || 'N/A' }}</td>
-                                    <td>{{ station.city || 'N/A' }}</td>
-                                    <td>{{ station.state || 'N/A' }}</td>
+                                    <td>{{ station.city?.name || 'N/A' }}</td>
+                                    <td>{{ station.state?.name || 'N/A' }}</td>
                                     <td class="text-end">
                                         <Link :href="`/stations/${station.id}/edit`" class="btn btn-edit btn-sm me-2">
                                             <i class="fas fa-edit"></i>
