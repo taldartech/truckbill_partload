@@ -16,6 +16,7 @@
             :aria-expanded="isOpen"
             aria-haspopup="listbox"
             @click.stop="openDropdown"
+            @focus="onTriggerFocus"
             @keydown="onTriggerKeydown"
         >
 
@@ -115,6 +116,7 @@ const dropdown = ref(null);
 const searchInput = ref(null);
 const trigger = ref(null);
 const dropdownStyle = ref({});
+let suppressFocusOpen = false;
 
 const selectedItem = computed(() => {
     return props.options.find(opt => String(opt[props.valueKey]) === String(props.modelValue)) || null;
@@ -176,6 +178,17 @@ const openDropdown = () => {
     });
 };
 
+const onTriggerFocus = () => {
+    if (props.disabled) return;
+
+    if (suppressFocusOpen) {
+        suppressFocusOpen = false;
+        return;
+    }
+
+    openDropdown();
+};
+
 const closeDropdown = () => {
     isOpen.value = false;
     highlightedIndex.value = -1;
@@ -186,6 +199,7 @@ const selectOption = (option) => {
     emit('update:modelValue', option[props.valueKey]);
     emit('change', option[props.valueKey]);
     closeDropdown();
+    suppressFocusOpen = true;
     nextTick(() => {
         trigger.value?.focus();
     });
@@ -242,15 +256,37 @@ const onTriggerKeydown = (event) => {
     }
 };
 
+const focusRelative = (element, backwards = false) => {
+    const focusable = Array.from(
+        document.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+    ).filter((el) => el.getClientRects().length > 0);
+
+    const index = focusable.indexOf(element);
+    if (index === -1) return;
+
+    const next = focusable[index + (backwards ? -1 : 1)];
+    next?.focus();
+};
+
 const onSearchKeydown = (event) => {
     if (event.key === 'Tab') {
+        event.preventDefault();
+        const backwards = event.shiftKey;
         closeDropdown();
+        suppressFocusOpen = true;
+        nextTick(() => {
+            trigger.value?.focus();
+            focusRelative(trigger.value, backwards);
+        });
         return;
     }
 
     if (event.key === 'Escape') {
         event.preventDefault();
         closeDropdown();
+        suppressFocusOpen = true;
         trigger.value?.focus();
         return;
     }
