@@ -109,6 +109,8 @@
             <div class="signature">Receiver's Signature & Seal</div>
             <div class="signature">For {{ $company->name ?? 'Company' }}<br><br><br>Auth. Signatory</div>
         </div>
+
+        @include('partials.print-brand-footer')
     </div>
 </body>
 </html>

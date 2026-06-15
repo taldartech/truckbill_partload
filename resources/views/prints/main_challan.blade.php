@@ -166,6 +166,8 @@
             <div class="signature">Driver Signature</div>
             <div class="signature">For {{ $company->name ?? 'Company' }}</div>
         </div>
+
+        @include('partials.print-brand-footer')
     </div>
 </body>
 </html>

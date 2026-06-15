@@ -181,6 +181,8 @@
         @if($loading_report->remark)
         <p style="margin-top: 14px;"><strong>Remark:</strong> {{ $loading_report->remark }}</p>
         @endif
+
+        @include('partials.print-brand-footer')
     </div>
 </body>
 </html>

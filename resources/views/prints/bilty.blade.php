@@ -196,6 +196,8 @@
             <div class="signature">Driver / Received By</div>
             <div class="signature">For {{ $company->name ?? 'Company' }}</div>
         </div>
+
+        @include('partials.print-brand-footer')
     </div>
 </body>
 </html>
