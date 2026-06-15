@@ -143,8 +143,18 @@ class BiltyRequest extends FormRequest
             'details.*.no_of_packages' => 'required|numeric|min:0',
             'details.*.gross_weight' => 'required|numeric|min:0',
             'details.*.charged_weight' => 'required|numeric|min:0',
-            'details.*.rate_type' => 'required|string|in:Fixed,Per Package,Per KG,Per Actual Weight,Per Charged Weight',
-            'details.*.rate' => 'required|numeric|min:0',
+            'details.*.rate_type' => [
+                Rule::requiredIf(fn () => $this->input('payment_type') !== 'TBB'),
+                'nullable',
+                'string',
+                'in:Fixed,Per Package,Per KG,Per Actual Weight,Per Charged Weight',
+            ],
+            'details.*.rate' => [
+                Rule::requiredIf(fn () => $this->input('payment_type') !== 'TBB'),
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
         ];
     }
 

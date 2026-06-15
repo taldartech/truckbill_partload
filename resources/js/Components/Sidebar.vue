@@ -60,19 +60,19 @@
                         </Link>
                     </li>
 
-                    <!-- <li class="nav-item">
+                    <li class="nav-item">
                         <Link href="/delivery-receipts" class="nav-link py-2 px-2 d-flex align-items-center" :class="{ active: $page.url.startsWith('/delivery-receipts') }">
                             <i class="nav-icon fas fa-receipt me-3"></i>
                             <p class="mb-0 fw-medium">Delivery Receipts</p>
                         </Link>
-                    </li> -->
+                    </li>
 
-                    <!-- <li class="nav-item">
+                    <li class="nav-item">
                         <Link href="/invoices" class="nav-link py-2 px-2 d-flex align-items-center" :class="{ active: $page.url.startsWith('/invoices') }">
                             <i class="nav-icon fas fa-file-invoice-dollar me-3"></i>
                             <p class="mb-0 fw-medium">Tax Invoices</p>
                         </Link>
-                    </li> -->
+                    </li>
 
                     <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small">MASTER DATA</li>
 

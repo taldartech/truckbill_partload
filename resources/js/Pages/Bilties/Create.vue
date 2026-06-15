@@ -104,8 +104,8 @@
                                             <th width="10%" class="text-center">No.Of Pkg</th>
                                             <th width="10%" class="text-center">Actual Wt(Kg)</th>
                                             <th width="10%" class="text-center">Charged Wt(Kg)</th>
-                                            <th width="10%" class="text-center">Frt.Type</th>
-                                            <th width="10%" class="text-center">Frt.Rate</th>
+                                            <th width="10%" class="text-center">Frt.Type<span v-if="!isTbb" class="text-danger">*</span></th>
+                                            <th width="10%" class="text-center">Frt.Rate<span v-if="!isTbb" class="text-danger">*</span></th>
                                             <th width="11%" class="text-center">Goods Frt</th>
                                             <th width="2%" class="text-center"><i class="fas fa-cog"></i></th>
                                         </tr>
@@ -439,6 +439,8 @@ const form = useForm({
     amount: 0,
     status: 'Pending'
 });
+
+const isTbb = computed(() => form.payment_type === 'TBB');
 
 const getConsignorGST = () => {
     if(!form.consignor_id) return '';
