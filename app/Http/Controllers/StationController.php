@@ -43,7 +43,7 @@ class StationController extends Controller implements HasMiddleware
     public function store(Request $request)
     {
         $validated = $this->stripTenantFields($request->validate([
-            'name' => 'nullable|string',
+            'name' => 'required|string|max:255',
             'city_id' => 'nullable|exists:cities,id',
             'state_id' => 'nullable|exists:states,id',
         ]));
@@ -103,7 +103,7 @@ class StationController extends Controller implements HasMiddleware
     public function update(Request $request, Station $station)
     {
         $validated = $this->stripTenantFields($request->validate([
-            'name' => 'nullable|string',
+            'name' => 'required|string|max:255',
             'city_id' => 'nullable|exists:cities,id',
             'state_id' => 'nullable|exists:states,id',
         ]));

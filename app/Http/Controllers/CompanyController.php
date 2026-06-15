@@ -50,7 +50,25 @@ class CompanyController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
-        $validated = $request->validate($this->companyRules());
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:companies,email',
+            'address' => 'required|string',
+            'country_id' => 'required|exists:countries,id',
+            'state_id' => 'required|exists:states,id',
+            'city_id' => 'required|exists:cities,id',
+            'pin_code' => 'required|string|digits:6',
+            'contact_person' => 'required|string|max:100',
+            'contact_number' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'pan_no' => 'nullable|string|size:10|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i',
+            'company_logo' => 'nullable|image|max:2048',
+        ], [
+            'contact_number.digits' => 'Contact number must be exactly 10 digits.',
+            'contact_number.regex' => 'Contact number must be a valid 10-digit Indian mobile number.',
+            'pin_code.digits' => 'PIN code must be exactly 6 digits.',
+            'pan_no.size' => 'PAN must be exactly 10 characters.',
+            'pan_no.regex' => 'PAN format is invalid.',
+        ]);
 
         if ($request->hasFile('company_logo')) {
             $path = $request->file('company_logo')->store('company_logos', 'public');
@@ -85,7 +103,25 @@ class CompanyController extends Controller implements HasMiddleware
     {
         $this->authorizeCompany($company);
 
-        $validated = $request->validate($this->companyRules($company));
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:companies,email,'.$company->id,
+            'address' => 'required|string',
+            'country_id' => 'required|exists:countries,id',
+            'state_id' => 'required|exists:states,id',
+            'city_id' => 'required|exists:cities,id',
+            'pin_code' => 'required|string|digits:6',
+            'contact_person' => 'required|string|max:100',
+            'contact_number' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'pan_no' => 'nullable|string|size:10|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i',
+            'company_logo' => 'nullable|image|max:2048',
+        ], [
+            'contact_number.digits' => 'Contact number must be exactly 10 digits.',
+            'contact_number.regex' => 'Contact number must be a valid 10-digit Indian mobile number.',
+            'pin_code.digits' => 'PIN code must be exactly 6 digits.',
+            'pan_no.size' => 'PAN must be exactly 10 characters.',
+            'pan_no.regex' => 'PAN format is invalid.',
+        ]);
 
         if ($request->hasFile('company_logo')) {
             $path = $request->file('company_logo')->store('company_logos', 'public');
@@ -117,27 +153,5 @@ class CompanyController extends Controller implements HasMiddleware
     private function defaultCountryId(): ?int
     {
         return Country::query()->where('name', 'India')->value('id');
-    }
-
-    private function companyRules(?Company $company = null): array
-    {
-        $emailRule = 'required|email|max:255|unique:companies,email';
-        if ($company) {
-            $emailRule .= ','.$company->id;
-        }
-
-        return [
-            'name' => 'required|string|max:255',
-            'email' => $emailRule,
-            'address' => 'required|string',
-            'country_id' => 'required|exists:countries,id',
-            'state_id' => 'required|exists:states,id',
-            'city_id' => 'required|exists:cities,id',
-            'pin_code' => 'required|string|max:10',
-            'contact_person' => 'required|string|max:100',
-            'contact_number' => 'required|string|max:20',
-            'pan_no' => 'nullable|string|max:20',
-            'company_logo' => 'nullable|image|max:2048',
-        ];
     }
 }

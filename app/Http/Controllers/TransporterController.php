@@ -37,10 +37,15 @@ class TransporterController extends Controller implements HasMiddleware
     public function store(Request $request)
     {
         $validated = $this->stripTenantFields($request->validate([
-            'name' => 'nullable|string',
-            'short_name' => 'nullable|string',
-            'gst_number' => 'nullable|string',
-            'pan_number' => 'nullable|string',
+            'name' => 'required|string|max:255',
+            'short_name' => 'nullable|string|max:50',
+            'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+            'pan_number' => 'nullable|string|size:10|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i',
+        ], [
+            'gst_number.size' => 'GST number must be exactly 15 characters.',
+            'gst_number.regex' => 'GST number format is invalid.',
+            'pan_number.size' => 'PAN must be exactly 10 characters.',
+            'pan_number.regex' => 'PAN format is invalid.',
         ]));
 
         Transporter::create($validated);
@@ -58,10 +63,15 @@ class TransporterController extends Controller implements HasMiddleware
     public function update(Request $request, Transporter $transporter)
     {
         $validated = $this->stripTenantFields($request->validate([
-            'name' => 'nullable|string',
-            'short_name' => 'nullable|string',
-            'gst_number' => 'nullable|string',
-            'pan_number' => 'nullable|string',
+            'name' => 'required|string|max:255',
+            'short_name' => 'nullable|string|max:50',
+            'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+            'pan_number' => 'nullable|string|size:10|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i',
+        ], [
+            'gst_number.size' => 'GST number must be exactly 15 characters.',
+            'gst_number.regex' => 'GST number format is invalid.',
+            'pan_number.size' => 'PAN must be exactly 10 characters.',
+            'pan_number.regex' => 'PAN format is invalid.',
         ]));
 
         $transporter->update($validated);

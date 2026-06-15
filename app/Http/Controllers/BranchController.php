@@ -58,7 +58,52 @@ class BranchController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
-        $validated = $this->validateBranch($request);
+        $validated = $request->validate([
+            'company_id' => [
+                'nullable',
+                'exists:companies,id',
+                Rule::requiredIf(function () {
+                    $context = app(TenantContext::class);
+
+                    return auth()->user()?->isSuperAdmin() && ! $context->activeCompanyId();
+                }),
+            ],
+            'name' => 'required|string|max:255',
+            'address' => 'required|string',
+            'country_id' => 'required|exists:countries,id',
+            'state_id' => 'required|exists:states,id',
+            'city_id' => 'required|exists:cities,id',
+            'pin_code' => 'required|string|digits:6',
+            'station_id' => 'required|exists:stations,id',
+            'is_head_office' => 'boolean',
+            'has_gst' => 'boolean',
+            'gst_number' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+            'gst_type' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|string|max:50',
+            'gst_scheme' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|string|max:50',
+            'gst_slab' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|numeric|min:0|max:100',
+            'bank_name' => 'nullable|string|max:255',
+            'account_number' => 'nullable|string|regex:/^\d{9,18}$/',
+            'ifsc_code' => 'nullable|string|size:11|regex:/^[A-Z]{4}0[A-Z0-9]{6}$/i',
+            'contact_person' => 'required|string|max:100',
+            'contact_number' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'email' => 'required|string|email|max:255',
+            'bilty_initial' => 'nullable|string|max:20',
+            'challan_initial' => 'nullable|string|max:20',
+            'main_challan_initial' => 'nullable|string|max:20',
+            'invoice_initial' => 'nullable|string|max:20',
+            'inward_register_initial' => 'nullable|string|max:20',
+            'use_company_logo' => 'boolean',
+            'branch_logo' => 'nullable|image|max:2048',
+        ], [
+            'contact_number.digits' => 'Contact number must be exactly 10 digits.',
+            'contact_number.regex' => 'Contact number must be a valid 10-digit Indian mobile number.',
+            'pin_code.digits' => 'PIN code must be exactly 6 digits.',
+            'gst_number.size' => 'GST number must be exactly 15 characters.',
+            'gst_number.regex' => 'GST number format is invalid.',
+            'ifsc_code.size' => 'IFSC code must be exactly 11 characters.',
+            'ifsc_code.regex' => 'IFSC code format is invalid.',
+            'account_number.regex' => 'Account number must be between 9 and 18 digits.',
+        ]);
 
         $companyId = $validated['company_id'] ?? app(TenantContext::class)->activeCompanyId();
         $this->authorizeCompanyId($companyId);
@@ -92,7 +137,52 @@ class BranchController extends Controller implements HasMiddleware
     {
         $this->authorizeBranch($branch);
 
-        $validated = $this->validateBranch($request);
+        $validated = $request->validate([
+            'company_id' => [
+                'nullable',
+                'exists:companies,id',
+                Rule::requiredIf(function () {
+                    $context = app(TenantContext::class);
+
+                    return auth()->user()?->isSuperAdmin() && ! $context->activeCompanyId();
+                }),
+            ],
+            'name' => 'required|string|max:255',
+            'address' => 'required|string',
+            'country_id' => 'required|exists:countries,id',
+            'state_id' => 'required|exists:states,id',
+            'city_id' => 'required|exists:cities,id',
+            'pin_code' => 'required|string|digits:6',
+            'station_id' => 'required|exists:stations,id',
+            'is_head_office' => 'boolean',
+            'has_gst' => 'boolean',
+            'gst_number' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+            'gst_type' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|string|max:50',
+            'gst_scheme' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|string|max:50',
+            'gst_slab' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|numeric|min:0|max:100',
+            'bank_name' => 'nullable|string|max:255',
+            'account_number' => 'nullable|string|regex:/^\d{9,18}$/',
+            'ifsc_code' => 'nullable|string|size:11|regex:/^[A-Z]{4}0[A-Z0-9]{6}$/i',
+            'contact_person' => 'required|string|max:100',
+            'contact_number' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'email' => 'required|string|email|max:255',
+            'bilty_initial' => 'nullable|string|max:20',
+            'challan_initial' => 'nullable|string|max:20',
+            'main_challan_initial' => 'nullable|string|max:20',
+            'invoice_initial' => 'nullable|string|max:20',
+            'inward_register_initial' => 'nullable|string|max:20',
+            'use_company_logo' => 'boolean',
+            'branch_logo' => 'nullable|image|max:2048',
+        ], [
+            'contact_number.digits' => 'Contact number must be exactly 10 digits.',
+            'contact_number.regex' => 'Contact number must be a valid 10-digit Indian mobile number.',
+            'pin_code.digits' => 'PIN code must be exactly 6 digits.',
+            'gst_number.size' => 'GST number must be exactly 15 characters.',
+            'gst_number.regex' => 'GST number format is invalid.',
+            'ifsc_code.size' => 'IFSC code must be exactly 11 characters.',
+            'ifsc_code.regex' => 'IFSC code format is invalid.',
+            'account_number.regex' => 'Account number must be between 9 and 18 digits.',
+        ]);
 
         if (! empty($validated['company_id'])) {
             $this->authorizeCompanyId($validated['company_id']);
@@ -113,47 +203,6 @@ class BranchController extends Controller implements HasMiddleware
         $branch->delete();
 
         return redirect()->route('branches.index')->with('success', 'Branch deleted successfully.');
-    }
-
-    private function validateBranch(Request $request): array
-    {
-        return $request->validate([
-            'company_id' => [
-                'nullable',
-                'exists:companies,id',
-                Rule::requiredIf(function () {
-                    $context = app(TenantContext::class);
-
-                    return auth()->user()?->isSuperAdmin() && ! $context->activeCompanyId();
-                }),
-            ],
-            'name' => 'required|string|max:255',
-            'address' => 'required|string',
-            'country_id' => 'required|exists:countries,id',
-            'state_id' => 'required|exists:states,id',
-            'city_id' => 'required|exists:cities,id',
-            'pin_code' => 'required|string|max:10',
-            'station_id' => 'required|exists:stations,id',
-            'is_head_office' => 'boolean',
-            'has_gst' => 'boolean',
-            'gst_number' => 'nullable|required_if:has_gst,true|string|max:15',
-            'gst_type' => 'nullable|required_if:has_gst,true|string|max:50',
-            'gst_scheme' => 'nullable|required_if:has_gst,true|string|max:50',
-            'gst_slab' => 'nullable|required_if:has_gst,true|numeric',
-            'bank_name' => 'nullable|string|max:255',
-            'account_number' => 'nullable|string|max:50',
-            'ifsc_code' => 'nullable|string|max:20',
-            'contact_person' => 'required|string|max:100',
-            'contact_number' => 'required|string|max:20',
-            'email' => 'required|email|max:255',
-            'bilty_initial' => 'nullable|string|max:20',
-            'challan_initial' => 'nullable|string|max:20',
-            'main_challan_initial' => 'nullable|string|max:20',
-            'invoice_initial' => 'nullable|string|max:20',
-            'inward_register_initial' => 'nullable|string|max:20',
-            'use_company_logo' => 'boolean',
-            'branch_logo' => 'nullable|image|max:2048',
-        ]);
     }
 
     private function normalizeBranchPayload(Request $request, array $validated, ?Branch $branch = null): array

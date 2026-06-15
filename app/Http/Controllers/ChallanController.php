@@ -60,7 +60,39 @@ class ChallanController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
-        $validated = $this->stripTenantFields($request->validate($this->challanRules()));
+        $validated = $this->stripTenantFields($request->validate([
+            'from_station_id' => 'required|exists:stations,id',
+            'to_station_id' => 'required|exists:stations,id',
+            'driver_id' => 'required|exists:drivers,id',
+            'truck_id' => 'required|exists:trucks,id',
+            'challan_number' => 'nullable|string',
+            'date' => 'nullable|date',
+            'labour_charge' => 'nullable|numeric',
+            'kat' => 'nullable|numeric',
+            'home_delivery_charge' => 'nullable|numeric',
+            'other_charge' => 'nullable|numeric',
+            'add_to_main_challan' => 'nullable|boolean',
+            'truck_freight' => 'nullable|numeric',
+            'cash_received' => 'nullable|numeric',
+            'cash_payment' => 'nullable|numeric',
+            'total_amount' => 'nullable|numeric',
+            'pay_by_agent_id' => 'nullable|exists:agents,id',
+            'delivery_at_agent_id' => 'nullable|exists:agents,id',
+            'total_weight' => 'nullable|numeric',
+            'total_packages' => 'nullable|numeric',
+            'to_pay_amount' => 'nullable|numeric',
+            'paid_amount' => 'nullable|numeric',
+            'crossing_freight' => 'nullable|numeric',
+            'booking_freight' => 'nullable|numeric',
+            'cartage_dalali_pf' => 'nullable|numeric',
+            'gst' => 'nullable|numeric',
+            'remark' => 'nullable|string',
+            'status' => 'nullable|string',
+            'details' => 'required|array|min:1',
+            'details.*.row_type' => 'nullable|in:bilty,inward',
+            'details.*.bilty_id' => 'nullable|exists:bilties,id',
+            'details.*.inward_register_detail_id' => 'nullable|exists:inward_register_details,id',
+        ]));
 
         $details = $validated['details'] ?? [];
         unset($validated['details']);
@@ -100,7 +132,39 @@ class ChallanController extends Controller implements HasMiddleware
 
     public function update(Request $request, Challan $challan)
     {
-        $validated = $this->stripTenantFields($request->validate($this->challanRules()));
+        $validated = $this->stripTenantFields($request->validate([
+            'from_station_id' => 'required|exists:stations,id',
+            'to_station_id' => 'required|exists:stations,id',
+            'driver_id' => 'required|exists:drivers,id',
+            'truck_id' => 'required|exists:trucks,id',
+            'challan_number' => 'nullable|string',
+            'date' => 'nullable|date',
+            'labour_charge' => 'nullable|numeric',
+            'kat' => 'nullable|numeric',
+            'home_delivery_charge' => 'nullable|numeric',
+            'other_charge' => 'nullable|numeric',
+            'add_to_main_challan' => 'nullable|boolean',
+            'truck_freight' => 'nullable|numeric',
+            'cash_received' => 'nullable|numeric',
+            'cash_payment' => 'nullable|numeric',
+            'total_amount' => 'nullable|numeric',
+            'pay_by_agent_id' => 'nullable|exists:agents,id',
+            'delivery_at_agent_id' => 'nullable|exists:agents,id',
+            'total_weight' => 'nullable|numeric',
+            'total_packages' => 'nullable|numeric',
+            'to_pay_amount' => 'nullable|numeric',
+            'paid_amount' => 'nullable|numeric',
+            'crossing_freight' => 'nullable|numeric',
+            'booking_freight' => 'nullable|numeric',
+            'cartage_dalali_pf' => 'nullable|numeric',
+            'gst' => 'nullable|numeric',
+            'remark' => 'nullable|string',
+            'status' => 'nullable|string',
+            'details' => 'required|array|min:1',
+            'details.*.row_type' => 'nullable|in:bilty,inward',
+            'details.*.bilty_id' => 'nullable|exists:bilties,id',
+            'details.*.inward_register_detail_id' => 'nullable|exists:inward_register_details,id',
+        ]));
 
         $details = $validated['details'] ?? [];
         unset($validated['details']);
@@ -153,43 +217,6 @@ class ChallanController extends Controller implements HasMiddleware
         $company = \App\Models\Company::find($challan->company_id);
 
         return view('prints.challan', compact('challan', 'company'));
-    }
-
-    private function challanRules(): array
-    {
-        return [
-            'from_station_id' => 'required|exists:stations,id',
-            'to_station_id' => 'required|exists:stations,id',
-            'driver_id' => 'required|exists:drivers,id',
-            'truck_id' => 'required|exists:trucks,id',
-            'challan_number' => 'nullable|string',
-            'date' => 'nullable|date',
-            'labour_charge' => 'nullable|numeric',
-            'kat' => 'nullable|numeric',
-            'home_delivery_charge' => 'nullable|numeric',
-            'other_charge' => 'nullable|numeric',
-            'add_to_main_challan' => 'nullable|boolean',
-            'truck_freight' => 'nullable|numeric',
-            'cash_received' => 'nullable|numeric',
-            'cash_payment' => 'nullable|numeric',
-            'total_amount' => 'nullable|numeric',
-            'pay_by_agent_id' => 'nullable|exists:agents,id',
-            'delivery_at_agent_id' => 'nullable|exists:agents,id',
-            'total_weight' => 'nullable|numeric',
-            'total_packages' => 'nullable|numeric',
-            'to_pay_amount' => 'nullable|numeric',
-            'paid_amount' => 'nullable|numeric',
-            'crossing_freight' => 'nullable|numeric',
-            'booking_freight' => 'nullable|numeric',
-            'cartage_dalali_pf' => 'nullable|numeric',
-            'gst' => 'nullable|numeric',
-            'remark' => 'nullable|string',
-            'status' => 'nullable|string',
-            'details' => 'required|array|min:1',
-            'details.*.row_type' => 'nullable|in:bilty,inward',
-            'details.*.bilty_id' => 'nullable|exists:bilties,id',
-            'details.*.inward_register_detail_id' => 'nullable|exists:inward_register_details,id',
-        ];
     }
 
     private function validateChallanDetails(array $details): void

@@ -43,13 +43,20 @@ class AgentController extends Controller implements HasMiddleware
     {
         $validated = $this->stripTenantFields($request->validate([
             'name' => 'required|string|max:255',
-            'address' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:500',
             'city_id' => 'nullable|exists:cities,id',
             'state_id' => 'nullable|exists:states,id',
-            'mobile' => 'nullable|string|max:255',
-            'mobile_sms' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'gst_no' => 'nullable|string|max:255',
+            'mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'mobile_sms' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'email' => 'nullable|string|email|max:255',
+            'gst_no' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+        ], [
+            'mobile.digits' => 'Mobile number must be exactly 10 digits.',
+            'mobile.regex' => 'Mobile number must be a valid 10-digit Indian mobile number.',
+            'mobile_sms.digits' => 'SMS mobile number must be exactly 10 digits.',
+            'mobile_sms.regex' => 'SMS mobile number must be a valid 10-digit Indian mobile number.',
+            'gst_no.size' => 'GST number must be exactly 15 characters.',
+            'gst_no.regex' => 'GST number format is invalid.',
         ]));
 
         Agent::create($validated);
@@ -70,13 +77,20 @@ class AgentController extends Controller implements HasMiddleware
     {
         $validated = $this->stripTenantFields($request->validate([
             'name' => 'required|string|max:255',
-            'address' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:500',
             'city_id' => 'nullable|exists:cities,id',
             'state_id' => 'nullable|exists:states,id',
-            'mobile' => 'nullable|string|max:255',
-            'mobile_sms' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'gst_no' => 'nullable|string|max:255',
+            'mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'mobile_sms' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'email' => 'nullable|string|email|max:255',
+            'gst_no' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+        ], [
+            'mobile.digits' => 'Mobile number must be exactly 10 digits.',
+            'mobile.regex' => 'Mobile number must be a valid 10-digit Indian mobile number.',
+            'mobile_sms.digits' => 'SMS mobile number must be exactly 10 digits.',
+            'mobile_sms.regex' => 'SMS mobile number must be a valid 10-digit Indian mobile number.',
+            'gst_no.size' => 'GST number must be exactly 15 characters.',
+            'gst_no.regex' => 'GST number format is invalid.',
         ]));
 
         $agent->update($validated);

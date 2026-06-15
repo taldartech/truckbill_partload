@@ -43,12 +43,17 @@ class VendorController extends Controller implements HasMiddleware
     {
         $validated = $this->stripTenantFields($request->validate([
             'name' => 'required|string|max:255',
-            'address' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:500',
             'city_id' => 'nullable|exists:cities,id',
             'state_id' => 'nullable|exists:states,id',
-            'mobile' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'gst_number' => 'nullable|string|max:50',
+            'mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'email' => 'nullable|string|email|max:255',
+            'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+        ], [
+            'mobile.digits' => 'Mobile number must be exactly 10 digits.',
+            'mobile.regex' => 'Mobile number must be a valid 10-digit Indian mobile number.',
+            'gst_number.size' => 'GST number must be exactly 15 characters.',
+            'gst_number.regex' => 'GST number format is invalid.',
         ]));
 
         Vendor::create($validated);
@@ -69,12 +74,17 @@ class VendorController extends Controller implements HasMiddleware
     {
         $validated = $this->stripTenantFields($request->validate([
             'name' => 'required|string|max:255',
-            'address' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:500',
             'city_id' => 'nullable|exists:cities,id',
             'state_id' => 'nullable|exists:states,id',
-            'mobile' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'gst_number' => 'nullable|string|max:50',
+            'mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'email' => 'nullable|string|email|max:255',
+            'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+        ], [
+            'mobile.digits' => 'Mobile number must be exactly 10 digits.',
+            'mobile.regex' => 'Mobile number must be a valid 10-digit Indian mobile number.',
+            'gst_number.size' => 'GST number must be exactly 15 characters.',
+            'gst_number.regex' => 'GST number format is invalid.',
         ]));
 
         $vendor->update($validated);

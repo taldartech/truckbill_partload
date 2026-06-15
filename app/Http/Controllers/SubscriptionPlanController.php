@@ -30,11 +30,11 @@ class SubscriptionPlanController extends Controller implements HasMiddleware
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string',
-            'max_users' => 'required|integer',
-            'max_branches' => 'required|integer',
-            'price' => 'required|numeric',
-            'duration_days' => 'required|integer'
+            'name' => 'required|string|max:255',
+            'max_users' => 'required|integer|min:1',
+            'max_branches' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
+            'duration_days' => 'required|integer|min:1',
         ]);
 
         SubscriptionPlan::create($validated);
@@ -44,11 +44,11 @@ class SubscriptionPlanController extends Controller implements HasMiddleware
     public function update(Request $request, SubscriptionPlan $subscription)
     {
         $validated = $request->validate([
-            'name' => 'required|string',
-            'max_users' => 'required|integer',
-            'max_branches' => 'required|integer',
-            'price' => 'required|numeric',
-            'duration_days' => 'required|integer'
+            'name' => 'required|string|max:255',
+            'max_users' => 'required|integer|min:1',
+            'max_branches' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
+            'duration_days' => 'required|integer|min:1',
         ]);
 
         $subscription->update($validated);
