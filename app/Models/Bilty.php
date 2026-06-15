@@ -62,4 +62,9 @@ class Bilty extends Model
     {
         return $this->hasMany(ChallanDetail::class);
     }
+
+    public function invoiceDetails()
+    {
+        return $this->hasMany(InvoiceDetail::class);
+    }
 }

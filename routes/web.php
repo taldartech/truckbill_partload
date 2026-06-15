@@ -111,6 +111,9 @@ Route::middleware(['auth', 'onboarding.complete'])->group(function () {
     Route::get('delivery-receipts/{delivery_receipt}/print', [DeliveryReceiptController::class, 'print'])->name('delivery-receipts.print');
     Route::resource('delivery-receipts', DeliveryReceiptController::class);
 
+    Route::get('invoices/pending-bilties', [\App\Http\Controllers\InvoiceController::class, 'pendingBilties'])->name('invoices.pending-bilties');
+    Route::get('invoices/{invoice}/payments', [\App\Http\Controllers\InvoiceController::class, 'payments'])->name('invoices.payments.index');
+    Route::post('invoices/{invoice}/payments', [\App\Http\Controllers\InvoiceController::class, 'storePayment'])->name('invoices.payments.store');
     Route::get('invoices/{invoice}/print', [\App\Http\Controllers\InvoiceController::class, 'print'])->name('invoices.print');
     Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
 

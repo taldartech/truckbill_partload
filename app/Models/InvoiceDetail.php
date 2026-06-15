@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class InvoiceDetail extends Model
 {
-    use \App\Traits\BelongsToCompany;
-    use \App\Traits\BelongsToBranch;
     protected $guarded = [];
 
     public function invoice()

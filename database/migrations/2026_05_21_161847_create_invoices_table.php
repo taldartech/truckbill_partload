@@ -21,7 +21,7 @@ return new class extends Migration
             $table->decimal('gst_amount', 10, 2)->default(0);
             $table->decimal('net_amount', 12, 2)->default(0);
             $table->text('remark')->nullable();
-            $table->string('status')->default('Unpaid'); // Unpaid, Paid
+            $table->string('status')->default('Pending'); // Pending, Partial, Paid
             $table->timestamps();
         });
     }
