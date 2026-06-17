@@ -6,7 +6,6 @@ use App\Enums\UserRole;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\User;
-use App\Services\SuperAdminOnboardingService;
 use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -26,7 +25,6 @@ class UserController extends Controller implements HasMiddleware
             new Middleware('permission:create users', only: ['create', 'store']),
             new Middleware('permission:edit users', only: ['edit', 'update']),
             new Middleware('permission:delete users', only: ['destroy']),
-            new Middleware('permission:edit users', only: ['resendInvitation']),
         ];
     }
 
@@ -47,8 +45,6 @@ class UserController extends Controller implements HasMiddleware
         return Inertia::render('Users/Index', [
             'users' => $query->paginate(10)->through(fn (User $user) => array_merge($user->toArray(), [
                 'can_manage' => $this->canManageUser($user),
-                'onboarding_status' => $user->onboardingStatusLabel(),
-                'requires_onboarding' => $user->requiresOnboarding(),
             ])),
             'roles' => Role::whereIn('name', $context->assignableRolesFor(auth()->user()))->get(),
             'companies' => $this->availableCompanies(),
@@ -61,37 +57,17 @@ class UserController extends Controller implements HasMiddleware
     {
         $context = app(TenantContext::class);
         $assignableRoles = $context->assignableRolesFor(auth()->user());
-        $isSuperAdminInvite = $context->isMasterAdmin()
-            && $request->input('role') === UserRole::SuperAdmin->value;
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => [$isSuperAdminInvite ? 'nullable' : 'required', 'string', 'min:8'],
+            'password' => ['required', 'string', 'min:8'],
             'role' => ['required', Rule::in($assignableRoles)],
             'company_id' => 'nullable|exists:companies,id',
             'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $this->validateAssignment($validated);
-
-        if ($isSuperAdminInvite) {
-            $onboarding = app(SuperAdminOnboardingService::class);
-
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => $onboarding->unusablePassword(),
-                'company_id' => null,
-                'branch_id' => null,
-            ]);
-
-            $user->assignRole($validated['role']);
-            $onboarding->invite($user);
-
-            return redirect()->route('users.index')
-                ->with('success', 'Super Admin invited successfully. An onboarding email has been sent.');
-        }
 
         $user = User::create([
             'name' => $validated['name'],
@@ -112,6 +88,10 @@ class UserController extends Controller implements HasMiddleware
 
         $context = app(TenantContext::class);
         $assignableRoles = $context->assignableRolesFor(auth()->user());
+
+        if ($context->isMasterAdmin() && $user->hasRole(UserRole::SuperAdmin->value)) {
+            $assignableRoles = [UserRole::SuperAdmin->value];
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -146,27 +126,6 @@ class UserController extends Controller implements HasMiddleware
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'User deleted successfully.');
-    }
-
-    public function resendInvitation(User $user)
-    {
-        if (! auth()->user()?->isMasterAdmin()) {
-            abort(403);
-        }
-
-        if (! $user->hasRole(UserRole::SuperAdmin->value)) {
-            abort(404);
-        }
-
-        if ($user->hasCompletedOnboarding()) {
-            return redirect()->route('users.index')
-                ->with('error', 'This Super Admin has already completed onboarding.');
-        }
-
-        app(SuperAdminOnboardingService::class)->invite($user);
-
-        return redirect()->route('users.index')
-            ->with('success', 'Onboarding invitation resent successfully.');
     }
 
     private function availableCompanies()
@@ -211,13 +170,9 @@ class UserController extends Controller implements HasMiddleware
         $role = $validated['role'];
 
         if ($role === UserRole::SuperAdmin->value) {
-            if (! empty($validated['company_id']) || ! empty($validated['branch_id'])) {
-                throw ValidationException::withMessages([
-                    'company_id' => 'Super Admin users cannot be assigned to a company or branch.',
-                ]);
-            }
-
-            return;
+            throw ValidationException::withMessages([
+                'role' => 'Super Admin accounts are provisioned through the central onboarding API.',
+            ]);
         }
 
         if (in_array($role, UserRole::requiresBranchAssignment(), true)) {

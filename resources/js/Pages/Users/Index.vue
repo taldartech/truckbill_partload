@@ -6,7 +6,7 @@
                     <div class="card-header">
                         <h3 class="card-title">{{ $page.props.auth.is_master_admin ? 'Super Admins' : 'Users List' }}</h3>
                         <div class="card-tools">
-                            <button v-if="can('create users')" class="btn btn-primary btn-sm" @click="openModal()">
+                            <button v-if="canCreateUsers" class="btn btn-primary btn-sm" @click="openModal()">
                                 <i class="fas fa-plus"></i> Add New User
                             </button>
                         </div>
@@ -21,7 +21,6 @@
                                     <th>Company</th>
                                     <th>Branch</th>
                                     <th>Role</th>
-                                    <th v-if="invitesSuperAdmin">Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -37,22 +36,7 @@
                                             {{ role.name }}
                                         </span>
                                     </td>
-                                    <td v-if="invitesSuperAdmin">
-                                        <span
-                                            class="badge"
-                                            :class="user.requires_onboarding ? 'bg-warning text-dark' : 'bg-success'"
-                                        >
-                                            {{ user.onboarding_status }}
-                                        </span>
-                                    </td>
                                     <td>
-                                        <button
-                                            v-if="invitesSuperAdmin && user.requires_onboarding && can('edit users')"
-                                            class="btn btn-outline-primary btn-sm me-2"
-                                            @click="resendInvitation(user.id)"
-                                        >
-                                            Resend Invite
-                                        </button>
                                         <button v-if="can('edit users') && user.can_manage" class="btn btn-edit btn-sm me-2" @click="editUser(user)">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -106,7 +90,7 @@
                                 </select>
                                 <div v-if="form.errors.branch_id" class="text-danger small">{{ form.errors.branch_id }}</div>
                             </div>
-                            <div class="form-group mb-3" v-if="!invitesSuperAdmin">
+                            <div class="form-group mb-3">
                                 <label>Role</label>
                                 <select class="form-control" v-model="form.role" required>
                                     <option value="">Select Role</option>
@@ -116,11 +100,10 @@
                                 </select>
                             </div>
                             <PasswordInput
-                                v-if="showPasswordField"
                                 v-model="form.password"
                                 :label="editMode ? 'New Password (Leave blank to keep current)' : 'Password'"
                                 wrapper-class="form-group mb-3"
-                                :required="passwordRequired"
+                                :required="!editMode"
                                 :error="form.errors.password"
                             />
                         </div>
@@ -162,13 +145,9 @@ const managesOperationalUsers = computed(() =>
     && props.assignable_roles.every((role) => operationalRoles.includes(role))
 );
 
-const invitesSuperAdmin = computed(() =>
-    (props.assignable_roles ?? []).length === 1
-    && props.assignable_roles[0] === 'super_admin'
+const canCreateUsers = computed(() =>
+    can('create users') && (props.assignable_roles ?? []).length > 0
 );
-
-const showPasswordField = computed(() => !invitesSuperAdmin.value || editMode.value);
-const passwordRequired = computed(() => !editMode.value && !invitesSuperAdmin.value);
 
 const form = useForm({
     id: null,
@@ -237,10 +216,6 @@ const openModal = () => {
         form.branch_id = defaultBranchId(companyId);
     }
 
-    if (invitesSuperAdmin.value) {
-        form.role = 'super_admin';
-    }
-
     modal.show();
 };
 
@@ -275,12 +250,6 @@ const submit = () => {
 const deleteUser = (id) => {
     if (confirm('Are you sure you want to delete this user?')) {
         router.delete(`/users/${id}`);
-    }
-};
-
-const resendInvitation = (id) => {
-    if (confirm('Resend onboarding invitation email with a new OTP?')) {
-        router.post(`/users/${id}/resend-invitation`);
     }
 };
 </script>

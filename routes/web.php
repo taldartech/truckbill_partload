@@ -24,31 +24,21 @@ use App\Http\Controllers\TruckTypeController;
 use App\Http\Controllers\LoadingReportController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\BranchContextController;
-use App\Http\Controllers\OnboardingController;
-use App\Http\Controllers\VendorController;
 use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\Api\OnboardingController as ApiOnboardingController;
+
+Route::prefix('api/onboarding')
+    ->middleware(['onboarding.signature'])
+    ->group(function (): void {
+        Route::post('create-user', [ApiOnboardingController::class, 'createUser']);
+        Route::post('update-user', [ApiOnboardingController::class, 'updateUser']);
+        Route::get('status', [ApiOnboardingController::class, 'status']);
+    });
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('login', [AuthController::class, 'login']);
-
-    Route::get('onboarding/verify/{user}', [OnboardingController::class, 'verify'])
-        ->name('onboarding.verify');
-    Route::post('onboarding/verify/{user}/otp', [OnboardingController::class, 'verifyOtp'])
-        ->name('onboarding.verify-otp');
-    Route::post('onboarding/send-otp/{user}', [OnboardingController::class, 'sendOtp'])
-        ->name('onboarding.send-otp');
-
-    Route::middleware('onboarding.session:policy')->group(function () {
-        Route::get('onboarding/policy', [OnboardingController::class, 'policy'])->name('onboarding.policy');
-        Route::post('onboarding/policy', [OnboardingController::class, 'acceptPolicy'])->name('onboarding.accept-policy');
-    });
-
-    Route::middleware('onboarding.session:password')->group(function () {
-        Route::get('onboarding/password', [OnboardingController::class, 'password'])->name('onboarding.password');
-        Route::post('onboarding/password', [OnboardingController::class, 'setPassword'])->name('onboarding.set-password');
-    });
 });
 
 // Password change — any authenticated user
@@ -58,7 +48,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Authenticated Routes
-Route::middleware(['auth', 'onboarding.complete'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('select-branch', [BranchContextController::class, 'select'])->name('branch-context.select');
@@ -101,8 +91,6 @@ Route::middleware(['auth', 'onboarding.complete'])->group(function () {
 
     // Administration
     Route::resource('users', UserController::class);
-    Route::post('users/{user}/resend-invitation', [UserController::class, 'resendInvitation'])
-        ->name('users.resend-invitation');
     Route::get('loading-reports/{loading_report}/print', [LoadingReportController::class, 'print'])->name('loading-reports.print');
     Route::resource('loading-reports', LoadingReportController::class);
     Route::resource('vouchers', VoucherController::class);

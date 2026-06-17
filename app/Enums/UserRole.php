@@ -22,7 +22,7 @@ enum UserRole: string
 
     public static function assignableByMasterAdmin(): array
     {
-        return [self::SuperAdmin->value];
+        return [];
     }
 
     public static function assignableBySuperAdmin(): array

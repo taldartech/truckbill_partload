@@ -11,6 +11,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->validateCsrfTokens(except: [
+            'api/onboarding/create-user',
+            'api/onboarding/update-user',
+            'api/onboarding/status',
+        ]);
+
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\EnsureBranchContext::class,
@@ -19,8 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-            'onboarding.session' => \App\Http\Middleware\EnsureOnboardingSession::class,
-            'onboarding.complete' => \App\Http\Middleware\EnsureOnboardingComplete::class,
+            'onboarding.signature' => \App\Http\Middleware\VerifyOnboardingSignature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
