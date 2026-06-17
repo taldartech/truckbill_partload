@@ -25,7 +25,6 @@ class OnboardingController extends Controller
             'policy_accepted_at' => ['nullable', 'date'],
             'policy_version' => ['nullable', 'string', 'max:50'],
             'role' => ['required', 'in:super_admin'],
-            'company_name' => ['required', 'string', 'max:255'],
         ]);
 
         $response = $this->provisioning->createUser($validated);
@@ -45,7 +44,6 @@ class OnboardingController extends Controller
             'email_verified_at' => ['nullable', 'date'],
             'policy_accepted_at' => ['nullable', 'date'],
             'policy_version' => ['nullable', 'string', 'max:50'],
-            'company_name' => ['nullable', 'string', 'max:255'],
         ]);
 
         return response()->json($this->provisioning->updateUser($validated));

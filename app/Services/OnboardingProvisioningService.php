@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Enums\UserRole;
-use App\Models\Company;
 use App\Models\OnboardingProvisioningLog;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -51,23 +50,11 @@ class OnboardingProvisioningService
                 'completed_at' => now(),
             ]);
 
-            $companyId = null;
-
-            if (! empty($payload['company_name'])) {
-                $company = Company::create([
-                    'name' => $payload['company_name'],
-                    'user_id' => $user->id,
-                    'mobile' => $payload['mobile'] ?? null,
-                ]);
-                $companyId = $company->id;
-            }
-
             $response = [
                 'status' => 'created',
                 'user_id' => $user->id,
                 'email' => $user->email,
                 'role' => UserRole::SuperAdmin->value,
-                'company_id' => $companyId,
             ];
 
             OnboardingProvisioningLog::query()->updateOrCreate(
@@ -108,23 +95,6 @@ class OnboardingProvisioningService
 
         if ($updates !== []) {
             $user->update($updates);
-        }
-
-        if (! empty($payload['company_name'])) {
-            $company = $user->ownedCompanies()->orderBy('id')->first();
-
-            if ($company !== null) {
-                $company->update(array_filter([
-                    'name' => $payload['company_name'],
-                    'mobile' => $payload['mobile'] ?? null,
-                ], fn ($value) => $value !== null));
-            } else {
-                Company::create([
-                    'name' => $payload['company_name'],
-                    'user_id' => $user->id,
-                    'mobile' => $payload['mobile'] ?? null,
-                ]);
-            }
         }
 
         return $this->statusFor($user->fresh(['roles', 'onboarding', 'ownedCompanies']));
