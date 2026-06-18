@@ -3,7 +3,7 @@
 return [
     'name' => 'TruckBill',
     'website' => 'https://www.truckbill.in',
-    'support_email' => 'team@taldartechconsultancy.com',
+    'support_email' => 'support@truckbill.in',
     'logo_url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/logo.png',
     'colors' => [
         'primary' => '#2FB36F',
