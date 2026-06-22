@@ -87,7 +87,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('goods', App\Http\Controllers\GoodController::class);
     Route::resource('package-types', App\Http\Controllers\PackageTypeController::class);
     Route::resource('agents', App\Http\Controllers\AgentController::class);
-    Route::resource('vendors', VendorController::class);
+    Route::resource('vendors', App\Http\Controllers\VendorController::class);
 
     // Administration
     Route::resource('users', UserController::class);

@@ -94,6 +94,7 @@ class BranchController extends Controller implements HasMiddleware
             'inward_register_initial' => 'nullable|string|max:20',
             'use_company_logo' => 'boolean',
             'branch_logo' => 'nullable|image|max:2048',
+            ...$this->biltyPrintConfigRules(),
         ], [
             'contact_number.digits' => 'Contact number must be exactly 10 digits.',
             'contact_number.regex' => 'Contact number must be a valid 10-digit Indian mobile number.',
@@ -123,7 +124,9 @@ class BranchController extends Controller implements HasMiddleware
         $this->authorizeBranch($branch);
 
         return Inertia::render('Branches/Edit', [
-            'branch' => $branch->load(['station', 'company:id,company_logo']),
+            'branch' => tap($branch->load(['station', 'company:id,company_logo']), function (Branch $branch) {
+                $branch->setAttribute('bilty_print_config', $branch->resolvedBiltyPrintConfig());
+            }),
             'companies' => $this->availableCompanies(),
             'stations' => $this->availableStations(),
             'countries' => Country::all(),
@@ -173,6 +176,7 @@ class BranchController extends Controller implements HasMiddleware
             'inward_register_initial' => 'nullable|string|max:20',
             'use_company_logo' => 'boolean',
             'branch_logo' => 'nullable|image|max:2048',
+            ...$this->biltyPrintConfigRules(),
         ], [
             'contact_number.digits' => 'Contact number must be exactly 10 digits.',
             'contact_number.regex' => 'Contact number must be a valid 10-digit Indian mobile number.',
@@ -232,7 +236,77 @@ class BranchController extends Controller implements HasMiddleware
             unset($validated['branch_logo']);
         }
 
+        $validated['bilty_print_config'] = $this->normalizeBiltyPrintConfig($validated['bilty_print_config'] ?? null);
+
         return $validated;
+    }
+
+    private function biltyPrintConfigRules(): array
+    {
+        $rules = [
+            'bilty_print_config' => 'nullable|array',
+            'bilty_print_config.ask_amount_at_print' => 'boolean',
+            'bilty_print_config.note' => 'nullable|string|max:1000',
+        ];
+
+        foreach (array_keys(Branch::defaultBiltyPrintConfig()['copies']) as $copy) {
+            $rules["bilty_print_config.copies.{$copy}.enabled"] = 'boolean';
+            $rules["bilty_print_config.copies.{$copy}.show_amount"] = 'boolean';
+        }
+
+        return $rules;
+    }
+
+    private function normalizeBiltyPrintConfig(?array $config): array
+    {
+        $defaults = Branch::defaultBiltyPrintConfig();
+        $config = is_array($config) ? $config : [];
+
+        $normalized = [
+            'ask_amount_at_print' => (bool) ($config['ask_amount_at_print'] ?? $defaults['ask_amount_at_print']),
+            'note' => $this->resolveBiltyPrintNoteFromPayload($config),
+            'copies' => [],
+        ];
+
+        foreach ($defaults['copies'] as $key => $defaultCopy) {
+            $storedCopy = is_array($config['copies'][$key] ?? null) ? $config['copies'][$key] : [];
+
+            $normalized['copies'][$key] = [
+                'enabled' => filter_var($storedCopy['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'show_amount' => filter_var($storedCopy['show_amount'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            ];
+        }
+
+        $enabledCount = collect($normalized['copies'])->filter(fn ($copy) => $copy['enabled'])->count();
+
+        if ($enabledCount === 0) {
+            abort(422, 'At least one bilty print copy must be enabled.');
+        }
+
+        return $normalized;
+    }
+
+    private function resolveBiltyPrintNoteFromPayload(array $config): string
+    {
+        $note = trim((string) ($config['note'] ?? ''));
+
+        if ($note !== '') {
+            return $note;
+        }
+
+        foreach ($config['copies'] ?? [] as $copy) {
+            if (! is_array($copy)) {
+                continue;
+            }
+
+            $legacyNote = trim((string) ($copy['note'] ?? ''));
+
+            if ($legacyNote !== '') {
+                return $legacyNote;
+            }
+        }
+
+        return '';
     }
 
     private function availableCompanies()

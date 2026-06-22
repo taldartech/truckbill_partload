@@ -5,199 +5,157 @@
     @include('partials.favicon')
     <title>Bilty - {{ $bilty->bilty_number }}</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; margin: 0; padding: 20px; }
-        .print-container { width: 100%; max-width: 900px; margin: 0 auto; border: 1px solid #000; padding: 10px; }
-        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 10px; }
-        .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
-        .header h3 { margin: 5px 0 0; font-size: 14px; }
-        .row { display: flex; flex-wrap: wrap; margin-bottom: 10px; }
-        .col-6 { width: 50%; box-sizing: border-box; }
-        .col-12 { width: 100%; box-sizing: border-box; }
-        .box { padding: 5px; border: 1px solid #000; height: 100%; box-sizing: border-box; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        table th, table td { border: 1px solid #000; padding: 5px; text-align: left; vertical-align: top; }
-        table th { background-color: #f0f0f0; }
-        .text-right { text-align: right; }
+        * { box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 9px; margin: 0; padding: 8px; color: #000; }
+        .print-page { width: 100%; max-width: 920px; margin: 0 auto; page-break-after: always; }
+        .print-page:last-child { page-break-after: auto; }
+        .print-copy { height: calc(50vh - 6px); min-height: 520px; margin-bottom: 6px; }
+        .print-copy:last-child { margin-bottom: 0; }
+        .lr-sheet {
+            width: 100%;
+            height: 100%;
+            border: 2px solid #000;
+            position: relative;
+            padding: 4px 4px 18px;
+            overflow: hidden;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .lr-fixed-top { flex: 0 0 auto; }
+        .lr-items-wrap {
+            flex: 1 1 auto;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+        .lr-fixed-bottom { flex: 0 0 auto; }
+        .lr-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .lr-table td, .lr-table th { border: 1px solid #000; padding: 2px 4px; vertical-align: top; }
+        .lr-table th { font-weight: bold; text-align: center; }
+        .no-border { border: none !important; }
+        .company-name { font-size: 18px; font-weight: bold; text-transform: uppercase; line-height: 1.1; }
+        .company-sub { font-size: 8px; font-weight: bold; text-transform: uppercase; }
+        .branch-text { font-size: 8px; line-height: 1.25; margin-top: 2px; }
+        .gstin-title { font-size: 10px; font-weight: bold; text-align: center; }
+        .gstin-value { font-size: 11px; font-weight: bold; text-align: center; }
+        .from-to-label { font-weight: bold; font-size: 10px; line-height: 1.2; }
+        .from-to-value { font-size: 12px; font-weight: bold; }
+        .header-table .logo-cell { width: 52px; vertical-align: middle; padding: 2px; }
+        .header-table .company-cell { width: auto; }
+        .header-table .gstin-cell { width: 18%; text-align: center; vertical-align: middle; }
+        .header-table .from-to-cell { width: 14%; vertical-align: middle; padding: 2px 3px; }
+        .field-label { font-weight: bold; font-size: 8px; white-space: nowrap; }
+        .field-value { min-height: 14px; font-size: 9px; }
+        .items-table {
+            width: 100%;
+            height: 100%;
+            flex: 1 1 auto;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border: 1px solid #000;
+        }
+        .items-table tbody {
+            height: 100%;
+        }
+        .items-table thead th {
+            border: 1px solid #000;
+            font-weight: bold;
+        }
+        .items-table tbody td {
+            border-top: none;
+            border-bottom: none;
+            border-right: none;
+            border-left: 1px solid #000;
+            vertical-align: top;
+            padding: 2px 4px;
+        }
+        .items-table tbody td:first-child {
+            border-left: none;
+        }
+        .items-table tbody tr.items-fill {
+            height: 100%;
+        }
+        .items-table tbody tr.items-fill td {
+            height: 100%;
+        }
+        .items-head { text-align: center; font-size: 8px; }
+        .copy-stamp {
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 0.5px;
+            padding: 4px 0;
+        }
+        .checkbox-row { font-size: 7px; white-space: nowrap; }
+        .checkbox-box {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border: 1px solid #000;
+            text-align: center;
+            line-height: 8px;
+            font-size: 8px;
+            margin-right: 2px;
+            vertical-align: middle;
+        }
+        .checkbox-box.checked::after { content: '✓'; font-weight: bold; }
+        .risk-text { font-size: 7px; font-weight: bold; text-align: center; padding: 2px 0; }
+        .charges-side td { font-size: 8px; padding: 1px 3px; }
+        .charges-side .label { font-weight: bold; text-transform: uppercase; }
+        .charges-side .money { text-align: right; width: 70px; }
+        .grand-row td { font-weight: bold; }
+        .note-text { font-size: 7px; line-height: 1.25; }
+        .footer-sign { text-align: right; font-size: 13px; padding-top: 8px; }
+        .footer-sign .entered-by-line { font-size: 10px; margin-bottom: 24px; }
+        .footer-sign .for-line { font-weight: bold; margin-top: 0; }
+        .brand-border {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            text-align: right;
+            font-size: 9px;
+            /* border-top: 1px solid #000; */
+            padding: 2px;
+        }
+        .branch-logo { max-height: 40px; max-width: 48px; display: block; margin: 0 auto; }
         .text-center { text-align: center; }
-        .footer { margin-top: 20px; display: flex; justify-content: space-between; padding-top: 50px; }
-        .signature { text-align: center; width: 30%; border-top: 1px solid #000; padding-top: 5px; }
-        .muted { color: #444; }
-        .info-line { margin-bottom: 3px; }
+        .text-right { text-align: right; }
+        .w-8 { width: 8%; }
+        .w-12 { width: 12%; }
+        .w-15 { width: 15%; }
+        .w-20 { width: 20%; }
+        .w-25 { width: 25%; }
+        .w-30 { width: 30%; }
+        .w-35 { width: 35%; }
+        .w-40 { width: 40%; }
+        .w-50 { width: 50%; }
+        .w-58 { width: 58%; }
+        .w-42 { width: 42%; }
 
         @media print {
             body { padding: 0; }
-            .print-container { border: none; }
+            .print-page { max-width: none; }
+            .print-copy { height: calc(50vh - 3mm); min-height: 0; margin-bottom: 2mm; }
         }
+        .border-top-none td, .border-top-none th { border-top: none !important; }
+        .border-bottom-none td, .border-bottom-none th { border-bottom: none !important; }
+        .border-right-none td, .border-right-none th { border-right: none !important; }
+        .border-left-none td, .border-left-none th { border-left: none !important; }
     </style>
 </head>
 <body onload="window.print()">
-    <div class="print-container">
-        <div class="header">
-            <h1>{{ $company->name ?? 'TRANSPORT COMPANY' }}</h1>
-            <h3>CONSIGNMENT NOTE / LORRY RECEIPT</h3>
-            <p style="margin:2px 0;">Phone: {{ $branch->contact_number ?? $company->contact_number ?? '__________' }} | GSTIN: {{ ($branch && $branch->has_gst) ? ($branch->gst_number ?? '__________') : '__________' }}</p>
+    @foreach($copyPages as $pageCopies)
+        <div class="print-page">
+            @foreach($pageCopies as $copy)
+                @include('prints.partials.bilty-copy', [
+                    'copyLabel' => $copy['label'],
+                    'showAmount' => $copy['show_amount'],
+                ])
+            @endforeach
         </div>
-
-        <div class="row">
-            <div class="col-6">
-                <div class="box" style="border-right: none;">
-                    <div class="info-line"><strong>Bilty No:</strong> {{ $bilty->bilty_number ?? '—' }}</div>
-                    <div class="info-line"><strong>Date:</strong> {{ $bilty->date ? date('d-M-Y', strtotime($bilty->date)) : '—' }}</div>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="box">
-                    <div class="info-line"><strong>Payment Type:</strong> {{ $bilty->payment_type ?? '—' }}</div>
-                    @if($bilty->vendor && in_array(strtolower((string) ($bilty->cartage_type ?? '')), ['due']))
-                        <div class="info-line"><strong>Cartage Vendor:</strong> {{ $bilty->vendor->name }}</div>
-                    @endif
-                    @if($bilty->ewayBills->isNotEmpty())
-                        @foreach($bilty->ewayBills as $eway)
-                            <div class="info-line">
-                                <strong>E-Way Bill:</strong> {{ $eway->eway_bill_no ?? '—' }}
-                                @if($eway->eway_bill_valid_till)
-                                    | <strong>Valid Till:</strong> {{ date('d-M-Y', strtotime($eway->eway_bill_valid_till)) }}
-                                @endif
-                            </div>
-                        @endforeach
-                    @elseif($bilty->eway_bill_no)
-                        <div class="info-line"><strong>E-Way Bill:</strong> {{ $bilty->eway_bill_no }}</div>
-                        @if($bilty->eway_bill_expiry_date)
-                            <div class="info-line"><strong>Valid Till:</strong> {{ date('d-M-Y', strtotime($bilty->eway_bill_expiry_date)) }}</div>
-                        @endif
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        <div class="row" style="margin-top:-1px;">
-            <div class="col-6">
-                <div class="box" style="border-right: none; border-top: none;">
-                    <strong>CONSIGNOR</strong><br>
-                    {{ $bilty->consignor->name ?? '—' }}<br>
-                    @if($bilty->consignor?->address)
-                        <span class="muted">{{ $bilty->consignor->address }}</span><br>
-                    @endif
-                    @if($bilty->consignor?->mobile)
-                        <span class="muted">Mobile: {{ $bilty->consignor->mobile }}</span><br>
-                    @endif
-                    <strong>GSTIN:</strong> {{ $bilty->consignor->gst_number ?? '—' }} <br>
-                    <strong>Address:</strong> {{ $bilty->consignor->address ?? '—' }}
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="box" style="border-top: none;">
-                    <strong>CONSIGNEE</strong><br>
-                    {{ $bilty->consignee->name ?? '—' }}<br>
-                    @if($bilty->consignee?->address)
-                        <span class="muted">{{ $bilty->consignee->address }}</span><br>
-                    @endif
-                    @if($bilty->consignee?->mobile)
-                        <span class="muted">Mobile: {{ $bilty->consignee->mobile }}</span><br>
-                    @endif
-                    <strong>GSTIN:</strong> {{ $bilty->consignee->gst_number ?? '—' }} <br>
-                    <strong>Address:</strong> {{ $bilty->consignee->address ?? '—' }}
-                </div>
-            </div>
-        </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Sr.</th>
-                    <th>Goods</th>
-                    <th>Packing</th>
-                    <th class="text-right">Packages</th>
-                    <th class="text-right">Actual Wt (Kg)</th>
-                    <th class="text-right">Charged Wt (Kg)</th>
-                    <th>Frt. Type</th>
-                    <th class="text-right">Rate</th>
-                    <th class="text-right">Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($printData['detail_rows'] as $index => $detail)
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $detail['good'] }}</td>
-                        <td>{{ $detail['package_type'] }}</td>
-                        <td class="text-right">{{ $detail['no_of_packages'] ?? '—' }}</td>
-                        <td class="text-right">{{ $detail['gross_weight'] !== null ? number_format((float) $detail['gross_weight'], 2) : '—' }}</td>
-                        <td class="text-right">{{ $detail['charged_weight'] !== null ? number_format((float) $detail['charged_weight'], 2) : '—' }}</td>
-                        <td>{{ $detail['rate_type'] }}</td>
-                        <td class="text-right">{{ $detail['rate'] !== null ? number_format((float) $detail['rate'], 2) : '—' }}</td>
-                        <td class="text-right">₹ {{ number_format($detail['amount'], 2) }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="9" class="text-center muted">No goods details</td>
-                    </tr>
-                @endforelse
-                @if($printData['detail_rows']->isNotEmpty())
-                    <tr>
-                        <td colspan="3" class="text-right"><strong>Total</strong></td>
-                        <td class="text-right"><strong>{{ number_format($printData['detail_totals']['no_of_packages'], 0) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($printData['detail_totals']['gross_weight'], 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($printData['detail_totals']['charged_weight'], 2) }}</strong></td>
-                        <td colspan="2"></td>
-                        <td class="text-right"><strong>₹ {{ number_format($printData['detail_totals']['amount'], 2) }}</strong></td>
-                    </tr>
-                @endif
-            </tbody>
-        </table>
-
-        <div class="row">
-            <div class="col-6">
-                <div class="box" style="border-right: none; height: auto;">
-                    @if($bilty->private_marka)
-                        <div class="info-line"><strong>Private Marka:</strong> {{ $bilty->private_marka }}</div>
-                    @endif
-                    @if($bilty->remark)
-                        <div class="info-line"><strong>Remark:</strong> {{ $bilty->remark }}</div>
-                    @endif
-                    @if($bilty->delivery_at)
-                        <div class="info-line"><strong>Delivery At:</strong> {{ $bilty->delivery_at }}</div>
-                    @endif
-                    @if($bilty->weight_actual)
-                        <div class="info-line"><strong>Weight Actual:</strong> {{ number_format((float) $bilty->weight_actual, 2) }} Kg</div>
-                    @endif
-                    @if($bilty->declared_value)
-                        <div class="info-line"><strong>Declared Value:</strong> ₹ {{ number_format((float) $bilty->declared_value, 2) }}</div>
-                    @endif
-                    @if ($bilty->invoice_number)
-                        <div class="info-line"><strong>Invoice No:</strong> {{ $bilty->invoice_number }}</div>
-                    @endif
-                    @if($bilty->gst_liability_by)
-                        <div class="info-line"><strong>GST Liability By:</strong> {{ $bilty->gst_liability_by }}</div>
-                    @endif
-                </div>
-            </div>
-            <div class="col-6">
-                <table style="margin-bottom: 0;">
-                    @forelse($printData['charges'] as $charge)
-                        <tr>
-                            <td><strong>{{ $charge['label'] }}</strong></td>
-                            <td class="text-right">₹ {{ number_format($charge['amount'], 2) }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="2" class="text-center muted">No charges</td>
-                        </tr>
-                    @endforelse
-                    <tr>
-                        <td><strong>Total Amount</strong></td>
-                        <td class="text-right"><strong>₹ {{ number_format($printData['total_amount'], 2) }}</strong></td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-
-        <div class="footer">
-            <div class="signature">Driver / Received By</div>
-            <div class="signature">For {{ $company->name ?? 'Company' }}</div>
-        </div>
-
-        @include('partials.print-brand-footer')
-    </div>
+    @endforeach
 </body>
 </html>

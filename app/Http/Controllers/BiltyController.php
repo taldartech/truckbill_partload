@@ -10,6 +10,8 @@ use App\Models\Vendor;
 use App\Models\Station;
 use App\Models\Good;
 use App\Models\PackageType;
+use App\Support\BiltyPrint;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -60,6 +62,7 @@ class BiltyController extends Controller implements HasMiddleware
     {
         $validated = $request->validated();
         $validated['status'] = $validated['status'] ?? 'Pending';
+        $validated['created_by'] = auth()->id();
 
         DB::transaction(function () use ($validated) {
             $details = $validated['details'] ?? [];
@@ -143,14 +146,23 @@ class BiltyController extends Controller implements HasMiddleware
         return redirect()->route('bilties.index')->with('success', 'Bilty deleted successfully.');
     }
 
-    public function print(Bilty $bilty)
+    public function print(Request $request, Bilty $bilty)
     {
-        $bilty->load(['fromStation', 'toStation', 'consignor', 'consignee', 'vendor', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills', 'branch.company']);
+        $bilty->load(['fromStation', 'toStation', 'consignor', 'consignee', 'vendor', 'creator', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills', 'branch.company', 'branch.city', 'branch.state']);
         $company = \App\Models\Company::find($bilty->company_id);
-        $branch = $bilty->branch;
+        $branch = $bilty->branch ?? new Branch;
         $printData = $this->buildPrintData($bilty);
 
-        return view('prints.bilty', compact('bilty', 'company', 'branch', 'printData'));
+        $printShowAmount = null;
+        if ($request->has('show_amount')) {
+            $printShowAmount = $request->boolean('show_amount');
+        }
+
+        $copiesToPrint = BiltyPrint::copiesToPrint($branch, $bilty, $printShowAmount);
+        $copyPages = array_chunk($copiesToPrint, 2);
+        $biltyNote = $branch->resolvedBiltyPrintConfig()['note'] ?? '';
+
+        return view('prints.bilty', compact('bilty', 'company', 'branch', 'printData', 'copyPages', 'biltyNote'));
     }
 
     private function buildPrintData(Bilty $bilty): array
@@ -236,6 +248,47 @@ class BiltyController extends Controller implements HasMiddleware
             ];
         }
 
+        $cgst = (float) ($bilty->cgst ?? 0);
+        $sgst = (float) ($bilty->sgst ?? 0);
+        $igst = (float) ($bilty->igst ?? 0);
+
+        if ($cgst == 0 && $sgst == 0 && $igst == 0 && $gstAmount != 0) {
+            if ((float) ($bilty->igst ?? 0) > 0) {
+                $igst = (float) $bilty->igst;
+            } else {
+                $cgst = round($gstAmount / 2, 2);
+                $sgst = round($gstAmount - $cgst, 2);
+            }
+        }
+
+        $lrChargeLines = [];
+
+        $pushCharge = function (string $label, $value) use (&$lrChargeLines) {
+            if ((float) $value != 0) {
+                $lrChargeLines[] = ['label' => $label, 'amount' => (float) $value];
+            }
+        };
+
+        $pushCharge('FREIGHT', $bilty->freight);
+        $pushCharge('HANDLING', $bilty->handling_charge);
+        $pushCharge('CARTAGE', $bilty->cartage);
+        $pushCharge('STATIONERY CHAR.', $bilty->bilty_charge);
+        $pushCharge('SURCHARGE', $bilty->surcharge);
+        $pushCharge('RISK / DD CHAR.', $bilty->risk_dd_charge);
+        $pushCharge('OTHER CHAR.', $bilty->other_charge);
+
+        foreach ($bilty->addon_charges ?? [] as $addon) {
+            $amount = (float) ($addon['amount'] ?? 0);
+            if ($amount == 0) {
+                continue;
+            }
+
+            $lrChargeLines[] = [
+                'label' => strtoupper($addon['particulars'] ?? $addon['description'] ?? 'ADDON'),
+                'amount' => $amount,
+            ];
+        }
+
         return [
             'detail_rows' => $detailRows,
             'detail_totals' => [
@@ -245,6 +298,12 @@ class BiltyController extends Controller implements HasMiddleware
                 'amount' => $detailRows->sum(fn ($row) => (float) ($row['amount'] ?? 0)),
             ],
             'charges' => $charges,
+            'lr_charge_lines' => $lrChargeLines,
+            'charge_total' => round($subtotal, 2),
+            'sgst' => round($sgst, 2),
+            'cgst' => round($cgst, 2),
+            'igst' => round($igst, 2),
+            'less_advance' => (float) ($bilty->less_advance_received ?? 0),
             'subtotal' => $subtotal,
             'gst_amount' => $gstAmount,
             'gst_rate' => $gstRate,

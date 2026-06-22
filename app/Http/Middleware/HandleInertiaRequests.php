@@ -45,6 +45,7 @@ class HandleInertiaRequests extends Middleware
                     'name' => $activeBranch->name,
                     'station_id' => $activeBranch->station_id,
                     'station_name' => $activeBranch->station?->name,
+                    'bilty_print_config' => $activeBranch->resolvedBiltyPrintConfig(),
                 ] : null,
                 'active_company' => $activeCompany ? $activeCompany->only(['id', 'name']) : null,
                 'subscription_ends_at' => function () use ($request, $context) {

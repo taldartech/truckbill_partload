@@ -179,6 +179,63 @@
                                 </div>
                             </div>
 
+                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Bilty Print Settings</h5>
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>Copy</th>
+                                            <th class="text-center">Enabled</th>
+                                            <th class="text-center">Show Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="copy in biltyPrintCopies" :key="copy.key">
+                                            <td>{{ copy.label }}</td>
+                                            <td class="text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    class="form-check-input"
+                                                    v-model="form.bilty_print_config.copies[copy.key].enabled"
+                                                >
+                                            </td>
+                                            <td class="text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    class="form-check-input"
+                                                    v-model="form.bilty_print_config.copies[copy.key].show_amount"
+                                                    :disabled="!form.bilty_print_config.copies[copy.key].enabled"
+                                                >
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Bilty Print Note</label>
+                                <textarea
+                                    class="form-control"
+                                    rows="3"
+                                    v-model="form.bilty_print_config.note"
+                                    placeholder="Optional note printed on all bilty copies"
+                                ></textarea>
+                                <small class="text-muted">This note appears on every bilty copy when printing.</small>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input"
+                                    id="ask_amount_at_print"
+                                    v-model="form.bilty_print_config.ask_amount_at_print"
+                                >
+                                <label class="form-check-label" for="ask_amount_at_print">
+                                    Ask amount at print time
+                                </label>
+                                <small class="text-muted d-block">
+                                    When enabled, user can choose to show or hide amounts for the entire print job.
+                                </small>
+                            </div>
+
                             <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Logo</h5>
                             <div class="form-check mb-3">
                                 <input type="checkbox" class="form-check-input" id="use_company_logo" v-model="form.use_company_logo">
@@ -227,6 +284,58 @@ const props = defineProps({
     defaultCountryId: [Number, String, null],
 });
 
+const defaultBiltyPrintConfig = () => ({
+    ask_amount_at_print: false,
+    note: '',
+    copies: {
+        consignor: { enabled: true, show_amount: true },
+        consignee: { enabled: true, show_amount: false },
+        driver: { enabled: true, show_amount: false },
+        office: { enabled: true, show_amount: true },
+    },
+});
+
+const resolveBiltyPrintConfig = (stored) => {
+    const defaults = defaultBiltyPrintConfig();
+
+    if (!stored) {
+        return defaults;
+    }
+
+    let note = stored.note ?? '';
+
+    if (!note) {
+        for (const key of Object.keys(defaults.copies)) {
+            const legacyNote = stored.copies?.[key]?.note;
+            if (legacyNote) {
+                note = legacyNote;
+                break;
+            }
+        }
+    }
+
+    return {
+        ask_amount_at_print: !!stored.ask_amount_at_print,
+        note,
+        copies: Object.fromEntries(
+            biltyPrintCopies.map(({ key }) => [
+                key,
+                {
+                    enabled: stored.copies?.[key]?.enabled ?? defaults.copies[key].enabled,
+                    show_amount: stored.copies?.[key]?.show_amount ?? defaults.copies[key].show_amount,
+                },
+            ])
+        ),
+    };
+};
+
+const biltyPrintCopies = [
+    { key: 'consignor', label: 'Consignor Copy' },
+    { key: 'consignee', label: 'Consignee Copy' },
+    { key: 'driver', label: 'Driver Copy' },
+    { key: 'office', label: 'Office Copy' },
+];
+
 const form = useForm({
     company_id: props.branch.company_id || '',
     station_id: props.branch.station_id || '',
@@ -253,6 +362,7 @@ const form = useForm({
     main_challan_initial: props.branch.main_challan_initial ?? '',
     invoice_initial: props.branch.invoice_initial ?? '',
     inward_register_initial: props.branch.inward_register_initial ?? '',
+    bilty_print_config: resolveBiltyPrintConfig(props.branch.bilty_print_config),
     use_company_logo: props.branch.use_company_logo !== false,
     branch_logo: null,
 });
@@ -275,10 +385,25 @@ const onLogoChange = (event) => {
     form.branch_logo = event.target.files[0];
 };
 
+const normalizeBiltyPrintConfigPayload = (config) => ({
+    ask_amount_at_print: !!config?.ask_amount_at_print,
+    note: config?.note ?? '',
+    copies: Object.fromEntries(
+        biltyPrintCopies.map(({ key }) => [
+            key,
+            {
+                enabled: !!config?.copies?.[key]?.enabled,
+                show_amount: !!config?.copies?.[key]?.show_amount,
+            },
+        ])
+    ),
+});
+
 const submit = () => {
     form.transform((data) => ({
         ...data,
         _method: 'put',
+        bilty_print_config: normalizeBiltyPrintConfigPayload(data.bilty_print_config),
     })).post(`/branches/${props.branch.id}`, {
         forceFormData: true,
     });

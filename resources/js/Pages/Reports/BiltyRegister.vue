@@ -65,7 +65,12 @@
                                 <tr v-for="bilty in bilties" :key="bilty.id">
                                     <td>{{ bilty.date }}</td>
                                     <td>
-                                        <a :href="`/bilties/${bilty.id}/print`" target="_blank" class="fw-bold">{{ bilty.bilty_number }}</a>
+                                        <BiltyPrintButton
+                                            :bilty-id="bilty.id"
+                                            variant="link"
+                                            :link-text="bilty.bilty_number"
+                                            title="Print Bilty"
+                                        />
                                     </td>
                                     <td>{{ bilty.from_station?.name }}</td>
                                     <td>{{ bilty.to_station?.name }}</td>
@@ -95,6 +100,7 @@
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import BiltyPrintButton from '@/Components/BiltyPrintButton.vue';
 import { computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';

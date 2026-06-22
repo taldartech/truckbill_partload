@@ -47,9 +47,13 @@
                                         }">{{ bilty.status }}</span>
                                     </td>
                                     <td class="text-end">
-                                        <a :href="`/bilties/${bilty.id}/print`" target="_blank" class="btn btn-sm btn-outline-info me-2" title="Print Bilty">
+                                        <BiltyPrintButton
+                                            :bilty-id="bilty.id"
+                                            button-class="btn btn-sm btn-outline-info me-2"
+                                            title="Print Bilty"
+                                        >
                                             <i class="fas fa-print"></i>
-                                        </a>
+                                        </BiltyPrintButton>
                                         <Link :href="`/bilties/${bilty.id}/edit`" class="btn btn-sm btn-info text-white me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>
@@ -73,6 +77,7 @@
 <script setup>
 import {  Link, useForm , usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import BiltyPrintButton from '@/Components/BiltyPrintButton.vue';
 
 
 const page = usePage();
