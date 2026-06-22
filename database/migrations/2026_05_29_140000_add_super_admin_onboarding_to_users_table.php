@@ -10,7 +10,6 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->timestamp('policy_accepted_at')->nullable()->after('email_verified_at');
-            $table->string('policy_version')->nullable()->after('policy_accepted_at');
         });
 
         Schema::create('user_onboardings', function (Blueprint $table) {
@@ -29,10 +28,7 @@ return new class extends Migration
         Schema::dropIfExists('user_onboardings');
 
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn([
-                'policy_accepted_at',
-                'policy_version',
-            ]);
+            $table->dropColumn('policy_accepted_at');
         });
     }
 };

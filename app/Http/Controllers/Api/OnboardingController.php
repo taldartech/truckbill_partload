@@ -23,7 +23,6 @@ class OnboardingController extends Controller
             'password' => ['required', 'string', 'min:8'],
             'email_verified_at' => ['nullable', 'date'],
             'policy_accepted_at' => ['nullable', 'date'],
-            'policy_version' => ['nullable', 'string', 'max:50'],
             'role' => ['required', 'in:super_admin'],
         ]);
 
@@ -43,7 +42,6 @@ class OnboardingController extends Controller
             'password' => ['sometimes', 'string', 'min:8'],
             'email_verified_at' => ['nullable', 'date'],
             'policy_accepted_at' => ['nullable', 'date'],
-            'policy_version' => ['nullable', 'string', 'max:50'],
         ]);
 
         return response()->json($this->provisioning->updateUser($validated));

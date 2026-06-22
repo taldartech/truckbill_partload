@@ -12,10 +12,6 @@ return new class extends Migration
             if (! Schema::hasColumn('users', 'policy_accepted_at')) {
                 $table->timestamp('policy_accepted_at')->nullable()->after('email_verified_at');
             }
-
-            if (! Schema::hasColumn('users', 'policy_version')) {
-                $table->string('policy_version')->nullable()->after('policy_accepted_at');
-            }
         });
 
         Schema::create('onboarding_provisioning_logs', function (Blueprint $table): void {
@@ -34,10 +30,6 @@ return new class extends Migration
         Schema::dropIfExists('onboarding_provisioning_logs');
 
         Schema::table('users', function (Blueprint $table): void {
-            if (Schema::hasColumn('users', 'policy_version')) {
-                $table->dropColumn('policy_version');
-            }
-
             if (Schema::hasColumn('users', 'policy_accepted_at')) {
                 $table->dropColumn('policy_accepted_at');
             }
