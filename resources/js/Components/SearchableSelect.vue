@@ -238,7 +238,7 @@ const onTriggerKeydown = (event) => {
         return;
     }
 
-    if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    if (event.key === ' ' || event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault();
 
         if (!isOpen.value) {
@@ -250,7 +250,14 @@ const onTriggerKeydown = (event) => {
             moveHighlight(1);
         } else if (event.key === 'ArrowUp') {
             moveHighlight(-1);
-        } else if (event.key === 'Enter' || event.key === ' ') {
+        } else if (event.key === ' ') {
+            selectHighlightedOption();
+        }
+    }
+
+    if (event.key === 'Enter') {
+        if (isOpen.value) {
+            event.preventDefault();
             selectHighlightedOption();
         }
     }
