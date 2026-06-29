@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\User;
+use App\Services\SubscriptionGuard;
 use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -18,6 +19,10 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        private readonly SubscriptionGuard $subscriptionGuard,
+    ) {}
+
     public static function middleware(): array
     {
         return [
@@ -68,6 +73,11 @@ class UserController extends Controller implements HasMiddleware
         ]);
 
         $this->validateAssignment($validated);
+
+        if (! empty($validated['company_id']) && ! empty($validated['branch_id'])) {
+            $company = Company::query()->with('subscription')->findOrFail($validated['company_id']);
+            $this->subscriptionGuard->assertCanAssignUserToBranch($company, (int) $validated['branch_id']);
+        }
 
         $user = User::create([
             'name' => $validated['name'],

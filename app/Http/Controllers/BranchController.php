@@ -8,16 +8,20 @@ use App\Models\Country;
 use App\Models\State;
 use App\Models\City;
 use App\Models\Station;
+use App\Services\SubscriptionGuard;
 use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class BranchController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        private readonly SubscriptionGuard $subscriptionGuard,
+    ) {}
+
     public static function middleware(): array
     {
         return [
@@ -108,7 +112,10 @@ class BranchController extends Controller implements HasMiddleware
 
         $companyId = $validated['company_id'] ?? app(TenantContext::class)->activeCompanyId();
         $this->authorizeCompanyId($companyId);
-        $this->enforceBranchLimit($companyId);
+        if ($companyId) {
+            $company = Company::query()->with('subscription')->findOrFail($companyId);
+            $this->subscriptionGuard->assertCanCreateBranch($company);
+        }
         $this->validateStationForOwner($validated['station_id']);
 
         $validated['company_id'] = $companyId;
@@ -364,30 +371,6 @@ class BranchController extends Controller implements HasMiddleware
         }
     }
 
-    private function enforceBranchLimit(?int $companyId): void
-    {
-        if (! $companyId) {
-            return;
-        }
-
-        $subscription = DB::table('subscriptions')
-            ->join('subscription_plans', 'subscriptions.subscription_plan_id', '=', 'subscription_plans.id')
-            ->where('subscriptions.company_id', $companyId)
-            ->where('subscriptions.status', 'active')
-            ->orderByDesc('subscriptions.ends_at')
-            ->select('subscription_plans.max_branches')
-            ->first();
-
-        if (! $subscription || ! $subscription->max_branches) {
-            return;
-        }
-
-        $currentCount = Branch::where('company_id', $companyId)->count();
-
-        if ($currentCount >= $subscription->max_branches) {
-            abort(422, 'Branch limit reached for the active subscription plan.');
-        }
-    }
 
     private function defaultCountryId(): ?int
     {

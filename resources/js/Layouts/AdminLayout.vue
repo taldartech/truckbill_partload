@@ -14,6 +14,8 @@
             </div> -->
             <div class="app-content">
                 <div class="container-fluid px-4">
+                    <div v-if="$page.props.flash?.success" class="alert alert-success">{{ $page.props.flash.success }}</div>
+                    <div v-if="$page.props.flash?.error" class="alert alert-danger">{{ $page.props.flash.error }}</div>
                     <slot />
                 </div>
             </div>

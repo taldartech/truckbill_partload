@@ -19,13 +19,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\TruckTypeController;
 use App\Http\Controllers\LoadingReportController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\BranchContextController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\Api\OnboardingController as ApiOnboardingController;
+use App\Http\Controllers\SubscriptionController;
 
 Route::prefix('api/onboarding')
     ->middleware(['onboarding.signature'])
@@ -58,6 +58,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('companies', CompanyController::class);
+
+    Route::middleware('role:super_admin')->group(function () {
+        Route::prefix('subscription')->name('subscription.')->group(function () {
+            Route::get('/', [SubscriptionController::class, 'index'])->name('index');
+            Route::get('/manage', [SubscriptionController::class, 'show'])->name('show');
+            Route::get('/checkout', [SubscriptionController::class, 'checkoutForm'])->name('checkout.form');
+            Route::get('/history', [SubscriptionController::class, 'history'])->name('history');
+            Route::post('/quote', [SubscriptionController::class, 'quote'])->name('quote');
+            Route::post('/promo/validate', [SubscriptionController::class, 'validatePromo'])->name('promo.validate');
+            Route::post('/checkout', [SubscriptionController::class, 'checkout'])->name('checkout');
+            Route::post('/callback', [SubscriptionController::class, 'callback'])->name('callback');
+        });
+    });
+
+    Route::middleware('subscription.active')->group(function () {
     Route::resource('branches', BranchController::class);
     Route::resource('transporters', TransporterController::class);
     Route::put('trucks/{truck}/complete-tour', [TruckController::class, 'completeTour'])->name('trucks.complete-tour');
@@ -111,6 +126,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reports/party-ledger', [\App\Http\Controllers\ReportController::class, 'partyLedger'])->name('reports.party-ledger');
 
     Route::resource('roles', RoleController::class);
-    Route::resource('subscriptions', SubscriptionPlanController::class);
-
+    });
 });

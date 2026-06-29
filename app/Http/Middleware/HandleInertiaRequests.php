@@ -55,17 +55,12 @@ class HandleInertiaRequests extends Middleware
                         return null;
                     }
 
-                    $sub = \Illuminate\Support\Facades\DB::table('subscriptions')
-                        ->where('company_id', $companyId)
-                        ->where('status', 'active')
-                        ->orderBy('ends_at', 'desc')
-                        ->first();
+                    $endsOn = \App\Models\Company::query()
+                        ->with('subscription')
+                        ->find($companyId)
+                        ?->planEndsOn();
 
-                    if ($sub) {
-                        return \Carbon\Carbon::parse($sub->ends_at)->format('d M, Y');
-                    }
-
-                    return null;
+                    return $endsOn?->format('d M, Y');
                 },
             ],
             'flash' => [

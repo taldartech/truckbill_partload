@@ -257,6 +257,7 @@ class TenantContext
             'companies.',
             'branches.',
             'users.',
+            'subscription.',
             'subscriptions.',
             'branch-context.',
         ];
