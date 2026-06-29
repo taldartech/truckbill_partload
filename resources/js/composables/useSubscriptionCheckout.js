@@ -33,6 +33,8 @@ export function useSubscriptionCheckout({
     const promoMessage = ref('');
     const quoteErrors = ref('');
     const lineItems = ref([]);
+    const gstAmount = ref('0.00');
+    const gstRatePercent = ref(0);
     const quoteTotal = ref('0.00');
     const canCheckout = ref(false);
     const paying = ref(false);
@@ -67,11 +69,15 @@ export function useSubscriptionCheckout({
 
             quoteErrors.value = (quote.blocking_errors || []).join(' ');
             lineItems.value = quote.line_items || [];
+            gstAmount.value = Number(quote.gst_amount || 0).toFixed(2);
+            gstRatePercent.value = Number(quote.gst_rate_percent || 0);
             quoteTotal.value = Number(quote.total_amount || 0).toFixed(2);
             canCheckout.value = !!quote.can_checkout;
         } catch (error) {
             quoteErrors.value = error.response?.data?.message || 'Unable to load pricing. Please try again later.';
             lineItems.value = [];
+            gstAmount.value = '0.00';
+            gstRatePercent.value = 0;
             quoteTotal.value = '0.00';
             canCheckout.value = false;
         } finally {
@@ -172,6 +178,8 @@ export function useSubscriptionCheckout({
         promoMessage,
         quoteErrors,
         lineItems,
+        gstAmount,
+        gstRatePercent,
         quoteTotal,
         canCheckout,
         paying,
