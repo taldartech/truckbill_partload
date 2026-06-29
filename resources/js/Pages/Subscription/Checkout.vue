@@ -108,10 +108,11 @@
                                     Apply
                                 </button>
                             </div>
+                            <div v-if="promoError" class="alert alert-danger py-2 mt-2 mb-0">{{ promoError }}</div>
+                            <div v-if="promoMessage" class="alert alert-success py-2 mt-2 mb-0">{{ promoMessage }}</div>
                         </div>
 
                         <div v-if="quoteErrors" class="alert alert-danger py-2">{{ quoteErrors }}</div>
-                        <div v-if="promoMessage" class="alert alert-success py-2">{{ promoMessage }}</div>
 
                         <div class="border rounded p-3 mb-3 bg-light">
                             <div class="text-muted small mb-2">Order summary</div>
@@ -184,6 +185,7 @@ const {
     addonUsers,
     promoCode,
     promoMessage,
+    promoError,
     quoteErrors,
     lineItems,
     gstAmount,

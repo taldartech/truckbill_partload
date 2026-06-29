@@ -31,6 +31,7 @@ export function useSubscriptionCheckout({
     const promoCode = ref('');
     const promoValidated = ref(false);
     const promoMessage = ref('');
+    const promoError = ref('');
     const quoteErrors = ref('');
     const lineItems = ref([]);
     const gstAmount = ref('0.00');
@@ -91,23 +92,22 @@ export function useSubscriptionCheckout({
     }
 
     function onAddonChange() {
-        promoValidated.value = false;
-        promoMessage.value = '';
         scheduleQuote();
     }
 
     function onPromoInput() {
         promoValidated.value = false;
         promoMessage.value = '';
+        promoError.value = '';
     }
 
     async function validatePromo() {
         const code = promoCode.value.trim();
-        quoteErrors.value = '';
+        promoError.value = '';
         promoMessage.value = '';
 
         if (!code) {
-            quoteErrors.value = 'Enter a promo code first.';
+            promoError.value = 'Enter a promo code first.';
             return;
         }
 
@@ -118,11 +118,11 @@ export function useSubscriptionCheckout({
             if (data.valid) {
                 promoMessage.value = 'Promo code applied successfully.';
             } else {
-                quoteErrors.value = data.message || 'Invalid promo code.';
+                promoError.value = data.message || 'Invalid promo code.';
             }
         } catch (error) {
             promoValidated.value = false;
-            quoteErrors.value = error.response?.data?.message || 'Invalid promo code.';
+            promoError.value = error.response?.data?.message || 'Invalid promo code.';
         }
 
         fetchQuote();
@@ -176,6 +176,7 @@ export function useSubscriptionCheckout({
         addonTrucks,
         promoCode,
         promoMessage,
+        promoError,
         quoteErrors,
         lineItems,
         gstAmount,
