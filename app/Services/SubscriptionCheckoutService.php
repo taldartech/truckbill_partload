@@ -175,6 +175,56 @@ class SubscriptionCheckoutService
         });
     }
 
+    public function applyUpcomingForCompany(int $companyId): bool
+    {
+        $today = now()->toDateString();
+
+        $subscription = CompanySubscription::query()
+            ->where('company_id', $companyId)
+            ->first();
+
+        if ($subscription === null || $subscription->ends_on->toDateString() > $today) {
+            return false;
+        }
+
+        $upcoming = UpcomingSubscription::query()
+            ->where('company_id', $companyId)
+            ->where('status', 'pending')
+            ->orderBy('id')
+            ->first();
+
+        if ($upcoming === null) {
+            if ($subscription->status !== 'expired') {
+                $subscription->update(['status' => 'expired']);
+            }
+
+            return false;
+        }
+
+        $term = $this->renewalTermFollowing($subscription->ends_on);
+
+        $subscription->update([
+            'status' => 'active',
+            'starts_on' => $term['starts_on'],
+            'ends_on' => $term['ends_on'],
+            'trial_ends_on' => null,
+            'included_branches' => $upcoming->included_branches,
+            'users_per_branch' => $upcoming->users_per_branch,
+            'included_lr_credits' => 0,
+            'included_trucks' => 0,
+            'addon_branches' => $upcoming->addon_branches,
+            'addon_users' => $upcoming->addon_users,
+            'addon_trucks' => 0,
+            'addon_lr_credits' => 0,
+            'lr_credits_remaining' => 0,
+            'last_renewed_at' => now(),
+        ]);
+
+        $upcoming->update(['status' => 'applied']);
+
+        return true;
+    }
+
     public function applyDueUpcomingSubscriptions(): int
     {
         $applied = 0;
@@ -186,41 +236,9 @@ class SubscriptionCheckoutService
             ->get();
 
         foreach ($subscriptions as $subscription) {
-            $upcoming = UpcomingSubscription::query()
-                ->where('company_id', $subscription->company_id)
-                ->where('status', 'pending')
-                ->orderBy('id')
-                ->first();
-
-            if ($upcoming === null) {
-                if ($subscription->status !== 'expired') {
-                    $subscription->update(['status' => 'expired']);
-                }
-
-                continue;
+            if ($this->applyUpcomingForCompany($subscription->company_id)) {
+                $applied++;
             }
-
-            $term = $this->renewalTermFollowing($subscription->ends_on);
-
-            $subscription->update([
-                'status' => 'active',
-                'starts_on' => $term['starts_on'],
-                'ends_on' => $term['ends_on'],
-                'trial_ends_on' => null,
-                'included_branches' => $upcoming->included_branches,
-                'users_per_branch' => $upcoming->users_per_branch,
-                'included_lr_credits' => 0,
-                'included_trucks' => 0,
-                'addon_branches' => $upcoming->addon_branches,
-                'addon_users' => $upcoming->addon_users,
-                'addon_trucks' => 0,
-                'addon_lr_credits' => 0,
-                'lr_credits_remaining' => 0,
-                'last_renewed_at' => now(),
-            ]);
-
-            $upcoming->update(['status' => 'applied']);
-            $applied++;
         }
 
         return $applied;

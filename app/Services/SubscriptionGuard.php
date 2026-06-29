@@ -14,17 +14,27 @@ class SubscriptionGuard
     public function __construct(
         private readonly SubscriptionUsageService $usageService,
     ) {}
+
+    public function assertCanMutate(Company $company): void
+    {
+        if (! $company->subscriptionCanWrite()) {
+            SubscriptionExpiredResponse::abortUnlessCanMutate(request(), $company);
+        }
+    }
+
     public function assertPlanActive(?CompanySubscription $subscription): void
     {
-        if ($subscription === null || ! $subscription->isActive()) {
-            SubscriptionExpiredResponse::abortUnlessActive(request());
+        if ($subscription === null) {
+            SubscriptionExpiredResponse::abortUnlessCanMutate(request());
         }
+
+        $this->assertCanMutate($subscription->company);
     }
 
     public function assertCanCreateBranch(Company $company): void
     {
         $subscription = $company->subscription;
-        $this->assertPlanActive($subscription);
+        $this->assertCanMutate($company);
 
         $count = Branch::query()->where('company_id', $company->id)->count();
         $max = $subscription->maxBranches();
@@ -40,7 +50,7 @@ class SubscriptionGuard
     public function assertCanAssignUserToBranch(Company $company, int $branchId, ?int $excludingUserId = null): void
     {
         $subscription = $company->subscription;
-        $this->assertPlanActive($subscription);
+        $this->assertCanMutate($company);
 
         $perBranch = $subscription->maxUsersInBranch();
         $addonUsers = (int) $subscription->addon_users;
@@ -67,26 +77,6 @@ class SubscriptionGuard
                     .'). Assign the user to another branch or purchase more user add-ons.',
             ]);
         }
-    }
-
-    public function assertHasLrCredits(Company $company, int $required = 1): void
-    {
-        $subscription = $company->subscription;
-        $this->assertPlanActive($subscription);
-
-        if (($subscription->lr_credits_remaining ?? 0) < $required) {
-            abort(422, 'Insufficient LR credits.');
-        }
-    }
-
-    public function decrementLrCredits(Company $company, int $amount = 1): void
-    {
-        $subscription = $company->subscription;
-        if ($subscription === null) {
-            return;
-        }
-
-        $subscription->decrement('lr_credits_remaining', $amount);
     }
 
     private function effectiveUserCapacity(Company $company, CompanySubscription $subscription): int

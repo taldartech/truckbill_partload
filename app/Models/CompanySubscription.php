@@ -63,6 +63,14 @@ class CompanySubscription extends Model
         }
 
         if (in_array($this->status, ['trial', 'active'], true)) {
+            $company = $this->company;
+            if ($company !== null) {
+                $payload = app(\App\Services\SubscriptionAccessService::class)->accessPayloadForCompany($company);
+                if ($payload['is_in_grace_period'] ?? false) {
+                    return 'grace';
+                }
+            }
+
             return 'expired';
         }
 

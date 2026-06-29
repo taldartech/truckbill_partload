@@ -48,6 +48,11 @@ class HandleInertiaRequests extends Middleware
                     'bilty_print_config' => $activeBranch->resolvedBiltyPrintConfig(),
                 ] : null,
                 'active_company' => $activeCompany ? $activeCompany->only(['id', 'name']) : null,
+                'subscription' => function () use ($context) {
+                    $company = $context->activeCompany();
+
+                    return $company ? $company->subscriptionAccessPayload() : null;
+                },
                 'subscription_ends_at' => function () use ($request, $context) {
                     $companyId = $context->activeCompanyId() ?? $request->user()?->company_id;
 

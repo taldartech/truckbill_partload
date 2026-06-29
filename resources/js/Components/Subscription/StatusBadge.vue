@@ -24,6 +24,8 @@ const badgeClass = computed(() => {
         case 'expired':
         case 'cancelled':
             return 'bg-danger';
+        case 'grace':
+            return 'bg-warning text-dark';
         default:
             return 'bg-secondary';
     }
