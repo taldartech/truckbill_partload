@@ -87,92 +87,149 @@ class SubscriptionCheckoutService
                 'razorpay_signature' => $payload['razorpay_signature'],
             ]);
 
-            $company = $payment->company;
-            $catalog = $payment->catalog_snapshot ?? [];
+            return $this->fulfillCompletedPayment($payment, $actorUserId, 'payment_completed');
+        });
+    }
 
-            $subscription = $company->subscription ?? CompanySubscription::create([
+    /**
+     * @param  array<string, mixed>  $input
+     */
+    public function recordOfflinePurchase(Company $company, array $input, ?int $actorUserId = null): SubscriptionPayment
+    {
+        $quoteInput = [
+            'purchase_type' => $input['purchase_type'],
+            'addon_branches' => (int) ($input['addon_branches'] ?? 0),
+            'addon_users' => (int) ($input['addon_users'] ?? 0),
+            'addon_trucks' => 0,
+            'addon_lr_credits' => 0,
+            'promo_code' => null,
+            'promo_validated' => false,
+        ];
+
+        $quote = $this->pricingService->quote($company, $quoteInput);
+
+        if (! ($input['force'] ?? false) && ! $quote['can_checkout']) {
+            throw new \InvalidArgumentException(implode(' ', $quote['blocking_errors'] ?: ['Checkout is not available.']));
+        }
+
+        return DB::transaction(function () use ($company, $input, $quote, $actorUserId) {
+            $payment = SubscriptionPayment::create([
                 'company_id' => $company->id,
-                'status' => 'expired',
-                'starts_on' => now()->toDateString(),
-                'ends_on' => now()->toDateString(),
-                'included_branches' => (int) ($catalog['included_branches'] ?? 0),
-                'users_per_branch' => (int) ($catalog['users_per_branch'] ?? 0),
+                'type' => $input['purchase_type'],
+                'status' => 'completed',
+                'promo_code' => null,
+                'quantities' => $quote['quantities'],
+                'subtotal' => $quote['subtotal'],
+                'promo_discount' => $quote['promo_discount'],
+                'gst_amount' => $quote['gst_amount'],
+                'total_amount' => $quote['total_amount'],
+                'catalog_snapshot' => $quote['catalog_snapshot'],
+                'usage_snapshot_at_purchase' => $quote['current_usage'],
+                'razorpay_response' => [
+                    'offline' => true,
+                    'reference' => $input['reference'] ?? null,
+                    'notes' => $input['notes'] ?? null,
+                ],
             ]);
 
-            $quantities = $payment->quantities ?? [];
+            return $this->fulfillCompletedPayment($payment, $actorUserId, 'offline_payment_recorded', [
+                'reference' => $input['reference'] ?? null,
+                'admin_user_id' => $input['admin_user_id'] ?? null,
+            ]);
+        });
+    }
 
-            if ($payment->type === 'addon') {
-                $subscription->update([
-                    'addon_branches' => $subscription->addon_branches + (int) ($quantities['addon_branches'] ?? 0),
-                    'addon_users' => $subscription->addon_users + (int) ($quantities['addon_users'] ?? 0),
+    private function fulfillCompletedPayment(
+        SubscriptionPayment $payment,
+        ?int $actorUserId,
+        string $eventType,
+        array $eventMetadata = [],
+    ): SubscriptionPayment {
+        $company = $payment->company;
+        $catalog = $payment->catalog_snapshot ?? [];
+
+        $subscription = $company->subscription ?? CompanySubscription::create([
+            'company_id' => $company->id,
+            'status' => 'expired',
+            'starts_on' => now()->toDateString(),
+            'ends_on' => now()->toDateString(),
+            'included_branches' => (int) ($catalog['included_branches'] ?? 0),
+            'users_per_branch' => (int) ($catalog['users_per_branch'] ?? 0),
+        ]);
+
+        $quantities = $payment->quantities ?? [];
+
+        if ($payment->type === 'addon') {
+            $subscription->update([
+                'addon_branches' => $subscription->addon_branches + (int) ($quantities['addon_branches'] ?? 0),
+                'addon_users' => $subscription->addon_users + (int) ($quantities['addon_users'] ?? 0),
+            ]);
+        } else {
+            $isActive = $subscription->isActive();
+
+            $snapshot = [
+                'included_branches' => (int) $catalog['included_branches'],
+                'users_per_branch' => (int) $catalog['users_per_branch'],
+                'included_lr_credits' => 0,
+                'included_trucks' => 0,
+                'addon_branches' => (int) ($quantities['addon_branches'] ?? 0),
+                'addon_users' => (int) ($quantities['addon_users'] ?? 0),
+                'addon_trucks' => 0,
+                'addon_lr_credits' => 0,
+            ];
+
+            if ($isActive) {
+                UpcomingSubscription::create([
+                    'company_id' => $company->id,
+                    'payment_id' => $payment->id,
+                    'status' => 'pending',
+                    'catalog_snapshot' => $catalog,
+                    'promo_snapshot' => $payment->promo_code ? ['code' => $payment->promo_code] : null,
+                    ...$snapshot,
                 ]);
             } else {
-                $isActive = $subscription->isActive();
+                $term = $this->renewalTermFollowing(
+                    $subscription->isActive()
+                        ? $subscription->ends_on
+                        : now()->subDay()->toDateString(),
+                );
 
-                $snapshot = [
-                    'included_branches' => (int) $catalog['included_branches'],
-                    'users_per_branch' => (int) $catalog['users_per_branch'],
+                $subscription->update([
+                    'status' => 'active',
+                    'starts_on' => $term['starts_on'],
+                    'ends_on' => $term['ends_on'],
+                    'trial_ends_on' => null,
+                    'included_branches' => $snapshot['included_branches'],
+                    'users_per_branch' => $snapshot['users_per_branch'],
                     'included_lr_credits' => 0,
                     'included_trucks' => 0,
-                    'addon_branches' => (int) ($quantities['addon_branches'] ?? 0),
-                    'addon_users' => (int) ($quantities['addon_users'] ?? 0),
+                    'addon_branches' => $snapshot['addon_branches'],
+                    'addon_users' => $snapshot['addon_users'],
                     'addon_trucks' => 0,
                     'addon_lr_credits' => 0,
-                ];
-
-                if ($isActive) {
-                    UpcomingSubscription::create([
-                        'company_id' => $company->id,
-                        'payment_id' => $payment->id,
-                        'status' => 'pending',
-                        'catalog_snapshot' => $catalog,
-                        'promo_snapshot' => $payment->promo_code ? ['code' => $payment->promo_code] : null,
-                        ...$snapshot,
-                    ]);
-                } else {
-                    $term = $this->renewalTermFollowing(
-                        $subscription->isActive()
-                            ? $subscription->ends_on
-                            : now()->subDay()->toDateString(),
-                    );
-
-                    $subscription->update([
-                        'status' => 'active',
-                        'starts_on' => $term['starts_on'],
-                        'ends_on' => $term['ends_on'],
-                        'trial_ends_on' => null,
-                        'included_branches' => $snapshot['included_branches'],
-                        'users_per_branch' => $snapshot['users_per_branch'],
-                        'included_lr_credits' => 0,
-                        'included_trucks' => 0,
-                        'addon_branches' => $snapshot['addon_branches'],
-                        'addon_users' => $snapshot['addon_users'],
-                        'addon_trucks' => 0,
-                        'addon_lr_credits' => 0,
-                        'lr_credits_remaining' => 0,
-                        'last_renewed_at' => now(),
-                    ]);
-                }
+                    'lr_credits_remaining' => 0,
+                    'last_renewed_at' => now(),
+                ]);
             }
+        }
 
-            if ($payment->promo_code) {
-                try {
-                    $this->adminApi->incrementPromoUse($payment->promo_code);
-                } catch (\Throwable) {
-                    // Promo increment failure should not block payment completion.
-                }
+        if ($payment->promo_code) {
+            try {
+                $this->adminApi->incrementPromoUse($payment->promo_code);
+            } catch (\Throwable) {
+                // Promo increment failure should not block payment completion.
             }
+        }
 
-            SubscriptionEvent::create([
-                'company_id' => $company->id,
-                'event_type' => 'payment_completed',
-                'payment_id' => $payment->id,
-                'actor_user_id' => $actorUserId,
-                'metadata' => ['type' => $payment->type],
-            ]);
+        SubscriptionEvent::create([
+            'company_id' => $company->id,
+            'event_type' => $eventType,
+            'payment_id' => $payment->id,
+            'actor_user_id' => $actorUserId,
+            'metadata' => array_merge(['type' => $payment->type], $eventMetadata),
+        ]);
 
-            return $payment->fresh();
-        });
+        return $payment->fresh();
     }
 
     public function applyUpcomingForCompany(int $companyId): bool
