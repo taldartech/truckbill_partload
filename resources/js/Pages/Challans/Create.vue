@@ -37,16 +37,18 @@
                             
                             <!-- HEADER ROW 2 -->
                             <div class="row align-items-center mb-2 mt-2">
-                                <div class="col-md-3 d-flex align-items-center">
+                                <div class="col-md-4 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-primary text-nowrap" style="min-width: 90px;">Add For</label>
                                     <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="fetch_station_id" :options="destinationStationOptions" placeholder="Station Wise" />
+                                        <SearchableSelect
+                                            ref="fetchStationSelect"
+                                            :small="true"
+                                            v-model="fetch_station_id"
+                                            :options="destinationStationOptions"
+                                            placeholder="Station Wise"
+                                            @change="onFetchStationChange"
+                                        />
                                     </div>
-                                </div>
-                                <div class="col-md-1 d-flex align-items-center">
-                                    <button type="button" class="btn btn-sm btn-primary text-nowrap shadow-sm w-100" @click="fetchByStation" :disabled="!fetch_station_id">
-                                        <i class="fas fa-magic"></i> Add
-                                    </button>
                                 </div>
                                 <div class="col-md-4 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark text-nowrap" style="min-width: 90px;">Driver Name <span class="text-danger">*</span></label>
@@ -183,29 +185,22 @@
                                         </div>
                                     </div>
                                     <hr class="border-dark my-1">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-3">
-                                            <label class="mb-0 fw-bold small text-dark">Less :-</label>
-                                        </div>
-                                        <div class="col-md-9">
-                                            <div class="d-flex align-items-center mb-1">
-                                                <label class="mb-0 fw-bold small text-dark text-end me-2" style="width: 120px;">Labour Comm.</label>
-                                                <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.labour_charge" @input="calculateTotal">
-                                            </div>
-                                            <div class="d-flex align-items-center mb-1">
-                                                <label class="mb-0 fw-bold small text-dark text-end me-2" style="width: 120px;">Kat</label>
-                                                <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.kat" @input="calculateTotal">
-                                            </div>
-                                            <div class="d-flex align-items-center mb-1">
-                                                <label class="mb-0 fw-bold small text-dark text-end me-2" style="width: 120px;">Home Delivery</label>
-                                                <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.home_delivery_charge" @input="calculateTotal">
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
 
                                 <!-- Right side Financials -->
                                 <div class="col-md-4">
+                                    <div class="d-flex align-items-center mb-1 justify-content-between">
+                                        <label class="mb-0 fw-bold small text-dark me-2" style="width: 120px;">Labour Comm.</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.labour_charge" @input="calculateTotal">
+                                    </div>
+                                    <div class="d-flex align-items-center mb-1 justify-content-between">
+                                        <label class="mb-0 fw-bold small text-dark me-2" style="width: 120px;">Kat</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.kat" @input="calculateTotal">
+                                    </div>
+                                    <div class="d-flex align-items-center mb-1 justify-content-between">
+                                        <label class="mb-0 fw-bold small text-dark me-2" style="width: 120px;">Home Delivery</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.home_delivery_charge" @input="calculateTotal">
+                                    </div>
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label class="mb-0 fw-bold small text-dark">Truck Freight</label>
                                         <input type="number" step="0.01" class="form-control form-control-sm w-50 p-1" v-model="form.truck_freight" @input="calculateTotal">
@@ -290,6 +285,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref, watch } from 'vue';
 
 const fetch_station_id = ref('');
+const fetchStationSelect = ref(null);
 
 const ALL_STATIONS_VALUE = 'all';
 
@@ -481,7 +477,7 @@ const fetchInwardDetails = (index) => {
 };
 
 const fetchByStation = () => {
-    if (!fetch_station_id.value) return;
+    if (!fetch_station_id.value) return false;
 
     const stationId = fetch_station_id.value;
     const isAll = stationId === ALL_STATIONS_VALUE;
@@ -506,7 +502,8 @@ const fetchByStation = () => {
         alert(isAll
             ? 'No pending bilties or inward entries found.'
             : 'No pending bilties or inward entries found for this station.');
-        return;
+        fetch_station_id.value = '';
+        return false;
     }
 
     const biltiesToAdd = matchingBilties.filter((b) => !existingBiltyIds.includes(b.id));
@@ -514,8 +511,9 @@ const fetchByStation = () => {
 
     if (biltiesToAdd.length === 0 && inwardToAdd.length === 0) {
         alert('All pending entries for this selection are already in the grid.');
+        fetch_station_id.value = '';
         if (form.details.length === 0) addBiltyRow();
-        return;
+        return false;
     }
 
     if (form.details.length === 1 && !form.details[0].bilty_id && !form.details[0].inward_register_detail_id) {
@@ -535,7 +533,28 @@ const fetchByStation = () => {
     });
 
     syncFreightTotals();
-    fetch_station_id.value = '';
+    return true;
+};
+
+const onFetchStationChange = () => {
+    if (!fetch_station_id.value) return;
+
+    const success = fetchByStation();
+    if (success) {
+        setTimeout(() => {
+            if (confirm('Do you want to add bilties/inward for another station?')) {
+                fetch_station_id.value = '';
+                setTimeout(() => {
+                    const triggerInput = fetchStationSelect.value?.$el?.querySelector('input.searchable-select__trigger');
+                    if (triggerInput) {
+                        triggerInput.click();
+                    }
+                }, 50);
+            } else {
+                fetch_station_id.value = '';
+            }
+        }, 100);
+    }
 };
 
 const totalPackages = computed(() =>

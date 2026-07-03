@@ -194,10 +194,10 @@
 
                                     <hr class="my-2 border-secondary">
 
-                                    <div class="row align-items-center mb-1">
+                                    <!-- <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">GST Tax (%)</label></div>
                                         <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.gst" readonly></div>
-                                    </div>
+                                    </div> -->
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Liabilities By</label></div>
                                         <div class="col-7">
@@ -225,7 +225,7 @@
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Invoice No. <span class="text-muted fw-normal">(Optional)</span></label></div>
                                         <div class="col-7"><input type="text" class="form-control form-control-sm bg-white" v-model="form.invoice_number"></div>
                                     </div>
-                                    <div class="mb-2">
+                                    <div class="mb-2 dynamic-grid">
                                         <div class="row align-items-center mb-1">
                                             <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-Way Bills</label></div>
                                             <div class="col-7 text-end">
@@ -234,7 +234,7 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <div v-for="(eway, index) in form.eway_bills" :key="eway.id ?? `new-${index}`" class="row mb-1 align-items-center">
+                                        <div v-for="(eway, index) in form.eway_bills" :key="eway.id ?? `new-${index}`" class="row mb-1 align-items-center dynamic-row">
                                             <div class="col-1 text-end">
                                                 <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeEwayBill(index)">
                                                     <i class="fas fa-times"></i>
@@ -287,7 +287,16 @@
                                     </div>
                                     <div class="row mb-1">
                                         <div class="col-12"><label class="mb-0 fw-bold small text-dark">Delivery At</label></div>
-                                        <div class="col-12"><input type="text" class="form-control form-control-sm bg-white" v-model="form.delivery_at"></div>
+                                        <div class="col-12">
+                                            <SearchableSelect
+                                                :small="true"
+                                                v-model="form.delivery_at"
+                                                :options="filteredAgents"
+                                                valueKey="name"
+                                                labelKey="name"
+                                                placeholder="Select Delivery Agent"
+                                            />
+                                        </div>
                                     </div>
                                     <div class="row mb-1 mt-3">
                                         <div class="col-12"><label class="mb-0 fw-bold small text-dark">Status</label></div>
@@ -323,7 +332,7 @@
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">RISK/DD</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.risk_dd_charge" @input="calculateFinalTotal"></div>
                                     </div>
-                                    <div class="mb-2">
+                                    <div class="mb-2 dynamic-grid">
                                         <div class="row align-items-center mb-1">
                                             <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Addon Charges</label></div>
                                             <div class="col-6 text-end">
@@ -332,7 +341,7 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <div v-for="(charge, index) in form.addon_charges" :key="index" class="row mb-1 align-items-center">
+                                        <div v-for="(charge, index) in form.addon_charges" :key="index" class="row mb-1 align-items-center dynamic-row">
                                             <div class="col-1 text-end">
                                                 <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeAddonCharge(index)">
                                                     <i class="fas fa-times"></i>
@@ -350,10 +359,10 @@
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Less Adv.Rec</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.less_advance_received" @input="calculateFinalTotal"></div>
                                     </div>
-                                    <div class="row align-items-center mb-1">
+                                    <!-- <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">GST Amount</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-light" :value="gstAmount" readonly></div>
-                                    </div>
+                                    </div> -->
 
                                     <hr class="my-2 border-secondary">
                                     <div class="row align-items-center mb-1">
@@ -404,6 +413,7 @@ const props = defineProps({
     stations: Array,
     goods: Array,
     package_types: Array,
+    agents: Array,
     default_gst_percent: { type: Number, default: 0 },
 });
 
@@ -516,6 +526,18 @@ const form = useForm({
 });
 
 const isTbb = computed(() => form.payment_type === 'TBB');
+
+const filteredAgents = computed(() => {
+    if (!form.to_station_id) {
+        return props.agents || [];
+    }
+    const station = stationOptions.value.find(s => s.id === form.to_station_id);
+    if (!station || !station.city_id) {
+        return props.agents || [];
+    }
+    const filtered = (props.agents || []).filter(agent => agent.city_id === station.city_id);
+    return filtered.length > 0 ? filtered : (props.agents || []);
+});
 
 const getConsignorGST = () => {
     if(!form.consignor_id) return '';

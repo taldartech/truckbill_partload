@@ -10,6 +10,7 @@ use App\Models\Vendor;
 use App\Models\Station;
 use App\Models\Good;
 use App\Models\PackageType;
+use App\Models\Agent;
 use App\Support\BiltyPrint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +54,7 @@ class BiltyController extends Controller implements HasMiddleware
             'stations' => Station::all(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
+            'agents' => Agent::orderBy('name')->get(),
             'next_bilty_number' => $nextNumber,
             'default_gst_percent' => $this->defaultGstPercent($branch),
         ]);
@@ -103,6 +105,7 @@ class BiltyController extends Controller implements HasMiddleware
             'stations' => Station::all(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
+            'agents' => Agent::orderBy('name')->get(),
             'default_gst_percent' => $this->defaultGstPercent($branch),
         ]);
     }

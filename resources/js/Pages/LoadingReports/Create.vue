@@ -84,14 +84,13 @@
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-primary" style="min-width: 90px;">Add Bilties For:</label>
                                     <SearchableSelect
+                                        ref="fetchStationSelect"
                                         :small="true"
                                         v-model="fetch_station_id"
                                         :options="destinationStationOptions"
                                         placeholder="Select Destination Station"
+                                        @change="onFetchStationChange"
                                     />
-                                    <button type="button" class="btn btn-sm btn-primary ms-3 text-nowrap shadow-sm" @click="fetchBiltiesByStation" :disabled="!fetch_station_id">
-                                        <i class="fas fa-magic"></i> Add All
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -192,6 +191,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref } from 'vue';
 
 const fetch_station_id = ref('');
+const fetchStationSelect = ref(null);
 
 const ALL_STATIONS_VALUE = 'all';
 
@@ -222,7 +222,7 @@ const form = useForm({
 });
 
 const fetchBiltiesByStation = () => {
-    if (!fetch_station_id.value) return;
+    if (!fetch_station_id.value) return false;
 
     const matchingBilties = fetch_station_id.value === ALL_STATIONS_VALUE
         ? props.bilties
@@ -232,7 +232,8 @@ const fetchBiltiesByStation = () => {
         alert(fetch_station_id.value === ALL_STATIONS_VALUE
             ? 'No pending bilties found.'
             : 'No pending bilties found headed to this station.');
-        return;
+        fetch_station_id.value = '';
+        return false;
     }
     
     if (form.details.length === 1 && !form.details[0].bilty_id) {
@@ -253,11 +254,34 @@ const fetchBiltiesByStation = () => {
     }
     
     if (addedCount > 0) {
-        fetch_station_id.value = ''; // Reset after adding
+        return true;
     } else {
         alert(fetch_station_id.value === ALL_STATIONS_VALUE
             ? 'All pending bilties are already added to the grid.'
             : 'All bilties for this station are already added to the grid.');
+        fetch_station_id.value = '';
+        return false;
+    }
+};
+
+const onFetchStationChange = () => {
+    if (!fetch_station_id.value) return;
+
+    const success = fetchBiltiesByStation();
+    if (success) {
+        setTimeout(() => {
+            if (confirm('Do you want to add bilties for another station?')) {
+                fetch_station_id.value = '';
+                setTimeout(() => {
+                    const triggerInput = fetchStationSelect.value?.$el?.querySelector('input.searchable-select__trigger');
+                    if (triggerInput) {
+                        triggerInput.click();
+                    }
+                }, 50);
+            } else {
+                fetch_station_id.value = '';
+            }
+        }, 100);
     }
 };
 

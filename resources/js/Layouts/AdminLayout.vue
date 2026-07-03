@@ -127,124 +127,130 @@
         <Transition name="fade">
             <div v-if="isSummaryModalOpen" class="shortcut-modal-overlay" @click.self="closeSummaryModal">
                 <div class="shortcut-modal-card summary-modal-card">
-                    <div class="shortcut-modal-header bg-success text-white py-3 px-4 d-flex align-items-center justify-content-between">
+                    <div class="shortcut-modal-header bg-success text-white py-2 px-3 d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-2">
-                            <i class="fas fa-clipboard-check fs-4 text-white"></i>
-                            <h5 class="m-0 fw-bold text-white">Confirm Details</h5>
+                            <i class="fas fa-clipboard-check fs-5 text-white"></i>
+                            <h6 class="m-0 fw-bold text-white">Confirm Details</h6>
                         </div>
                         <button class="btn-close-custom text-white" @click="closeSummaryModal" aria-label="Close" style="color: white !important;">
                             <i class="fas fa-times text-white"></i>
                         </button>
                     </div>
-                    <div class="shortcut-modal-body summary-modal-body bg-white p-4">
-                        <div class="summary-form-layout">
-                            
-                            <!-- 1. Header Information Section -->
-                            <div class="summary-section mb-4">
-                                <h6 class="summary-section-title text-uppercase text-success fw-bold mb-3 d-flex align-items-center gap-2">
-                                    <i class="fas fa-info-circle"></i> Document Details
-                                </h6>
-                                <div class="row g-3">
-                                    <div v-for="field in headerFields" :key="field.rawKey" class="col-6 col-md-4">
-                                        <div class="header-info-box p-3 rounded border">
-                                            <span class="d-block text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">{{ field.label }}</span>
-                                            <span class="d-block text-dark fw-bold text-truncate" style="font-size: 0.95rem;">{{ field.value }}</span>
+                    <div class="shortcut-modal-body summary-modal-body bg-white p-3">
+                        <div class="container-fluid p-0">
+                            <div class="row g-3">
+                                <!-- Left Column: Document Info & Cargo Grid -->
+                                <div class="col-md-7 d-flex flex-column gap-3">
+                                    <!-- 1. Header Information Section -->
+                                    <div class="summary-section">
+                                        <h6 class="summary-section-title text-uppercase text-success fw-bold mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
+                                            <i class="fas fa-info-circle"></i> Document Details
+                                        </h6>
+                                        <div class="row g-2">
+                                            <div v-for="field in headerFields" :key="field.rawKey" class="col-6 col-sm-4">
+                                                <div class="header-info-box p-2 rounded border bg-light">
+                                                    <span class="d-block text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.65rem; letter-spacing: 0.05em;">{{ field.label }}</span>
+                                                    <span class="d-block text-dark fw-bold text-truncate" style="font-size: 0.85rem;">{{ field.value }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. Grid Items Section -->
+                                    <div v-if="detailsFields.length > 0" class="summary-section">
+                                        <h6 class="summary-section-title text-uppercase text-success fw-bold mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
+                                            <i class="fas fa-list-alt"></i> Cargo & Grid Items
+                                        </h6>
+                                        <div v-for="field in detailsFields" :key="field.rawKey" class="table-responsive rounded border shadow-sm" style="max-height: 250px; overflow-y: auto;">
+                                            <table class="table table-sm table-striped table-hover mb-0 text-nowrap" style="font-size: 0.8rem;">
+                                                <thead class="bg-light sticky-top">
+                                                    <tr class="border-bottom text-muted text-uppercase font-monospace" style="font-size: 0.68rem;">
+                                                        <th class="ps-2 py-2">#</th>
+                                                        <th v-for="col in getArrayColumns(field.value)" :key="col" class="py-2">{{ col }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="(row, idx) in field.value" :key="idx" class="align-middle">
+                                                        <td class="ps-2 fw-bold text-muted">{{ idx + 1 }}</td>
+                                                        <td v-for="col in getArrayColumns(field.value)" :key="col" class="fw-bold text-dark">
+                                                            {{ typeof row === 'object' ? row[col] : row }}
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- 2. Grid Items Section -->
-                            <div v-if="detailsFields.length > 0" class="summary-section mb-4">
-                                <h6 class="summary-section-title text-uppercase text-success fw-bold mb-3 d-flex align-items-center gap-2">
-                                    <i class="fas fa-list-alt"></i> Cargo & Grid Items
-                                </h6>
-                                <div v-for="field in detailsFields" :key="field.rawKey" class="table-responsive rounded border shadow-sm">
-                                    <table class="table table-striped table-hover mb-0 text-nowrap">
-                                        <thead class="bg-light">
-                                            <tr class="border-bottom text-muted text-uppercase font-monospace" style="font-size: 0.72rem;">
-                                                <th class="ps-3 py-3">#</th>
-                                                <th v-for="col in getArrayColumns(field.value)" :key="col" class="py-3">{{ col }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="(row, idx) in field.value" :key="idx" class="align-middle">
-                                                <td class="ps-3 fw-bold text-muted">{{ idx + 1 }}</td>
-                                                <td v-for="col in getArrayColumns(field.value)" :key="col" class="fw-bold text-dark">
-                                                    {{ typeof row === 'object' ? row[col] : row }}
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <!-- 3. Financials & Totals Section -->
-                            <div class="summary-section mb-4">
-                                <h6 class="summary-section-title text-uppercase text-success fw-bold mb-3 d-flex align-items-center gap-2">
-                                    <i class="fas fa-rupee-sign"></i> Financials & Charges
-                                </h6>
-                                <div class="row g-3">
-                                    <!-- List of charges -->
-                                    <div class="col-md-8">
-                                        <div class="p-3 bg-light rounded border">
-                                            <div class="row g-2">
-                                                <template v-for="field in financialFields" :key="field.rawKey">
-                                                    <div v-if="field.rawKey !== 'total_amount' && field.rawKey !== 'amount'" class="col-6 d-flex justify-content-between align-items-center py-1 px-3 border-bottom">
-                                                        <span class="text-muted small fw-semibold">{{ field.label }}:</span>
-                                                        <span class="text-dark fw-bold small">₹ {{ field.value }}</span>
+                                <!-- Right Column: Financials & Other Info -->
+                                <div class="col-md-5 d-flex flex-column gap-3">
+                                    <!-- 3. Financials & Totals Section -->
+                                    <div class="summary-section">
+                                        <h6 class="summary-section-title text-uppercase text-success fw-bold mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
+                                            <i class="fas fa-rupee-sign"></i> Financials & Charges
+                                        </h6>
+                                        <div class="row g-2">
+                                            <!-- List of charges -->
+                                            <div class="col-12">
+                                                <div class="p-2 bg-light rounded border" style="max-height: 180px; overflow-y: auto;">
+                                                    <div class="row g-1">
+                                                        <template v-for="field in financialFields" :key="field.rawKey">
+                                                            <div v-if="field.rawKey !== 'total_amount' && field.rawKey !== 'amount'" class="col-6 d-flex justify-content-between align-items-center py-1 px-2 border-bottom">
+                                                                <span class="text-muted small fw-semibold" style="font-size: 0.75rem;">{{ field.label }}:</span>
+                                                                <span class="text-dark fw-bold" style="font-size: 0.75rem;">₹{{ field.value }}</span>
+                                                            </div>
+                                                        </template>
                                                     </div>
-                                                </template>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Big Final Total Box -->
+                                            <div class="col-12">
+                                                <div class="final-total-box p-2 rounded text-center d-flex flex-column justify-content-center border border-success" style="background: rgba(39, 174, 96, 0.05); border-style: dashed !important;">
+                                                    <span class="text-success text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Total Amount</span>
+                                                    <span class="text-success fw-extrabold fs-4">
+                                                        ₹ {{ getFinalTotalValue() }}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <!-- Big Final Total Box -->
-                                    <div class="col-md-4">
-                                        <div class="final-total-box p-3 rounded text-center d-flex flex-column justify-content-center h-100" style="background: rgba(39, 174, 96, 0.1); border: 2px dashed #27AE60;">
-                                            <span class="text-success text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 0.05em;">Total Amount</span>
-                                            <span class="text-success fw-extrabold fs-3">
-                                                ₹ {{ getFinalTotalValue() }}
-                                            </span>
+
+                                    <!-- 4. Other Details Section (Remarks, E-way, Addon) -->
+                                    <div v-if="otherFields.length > 0" class="summary-section">
+                                        <h6 class="summary-section-title text-uppercase text-success fw-bold mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
+                                            <i class="fas fa-file-alt"></i> Other Information
+                                        </h6>
+                                        <div class="p-2 bg-light rounded border" style="max-height: 150px; overflow-y: auto;">
+                                            <div class="row g-2">
+                                                <div v-for="field in otherFields" :key="field.rawKey" class="col-12">
+                                                    <div class="d-flex align-items-start gap-2">
+                                                        <span class="text-muted fw-semibold small text-nowrap" style="min-width: 90px; font-size: 0.75rem;">{{ field.label }}:</span>
+                                                        <span class="text-dark fw-medium small text-wrap" style="font-size: 0.75rem;">
+                                                            <template v-if="field.isRawArray">
+                                                                <span v-if="field.value.length === 0" class="text-muted italic">None</span>
+                                                                <ul v-else class="mb-0 ps-3">
+                                                                    <li v-for="(item, idx) in field.value" :key="idx" class="small">
+                                                                        {{ typeof item === 'object' ? JSON.stringify(item) : item }}
+                                                                    </li>
+                                                                </ul>
+                                                            </template>
+                                                            <template v-else>
+                                                                {{ field.value }}
+                                                            </template>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- 4. Other Details Section (Remarks, E-way, Addon) -->
-                            <div v-if="otherFields.length > 0" class="summary-section">
-                                <h6 class="summary-section-title text-uppercase text-success fw-bold mb-3 d-flex align-items-center gap-2">
-                                    <i class="fas fa-file-alt"></i> Other Information
-                                </h6>
-                                <div class="p-3 bg-light rounded border">
-                                    <div class="row g-3">
-                                        <div v-for="field in otherFields" :key="field.rawKey" class="col-12 col-md-6">
-                                            <div class="d-flex align-items-start gap-2">
-                                                <span class="text-muted fw-semibold small text-nowrap" style="min-width: 120px;">{{ field.label }}:</span>
-                                                <span class="text-dark fw-medium small text-wrap">
-                                                    <template v-if="field.isRawArray">
-                                                        <span v-if="field.value.length === 0" class="text-muted italic">None</span>
-                                                        <ul v-else class="mb-0 ps-3">
-                                                            <li v-for="(item, idx) in field.value" :key="idx" class="small">
-                                                                {{ typeof item === 'object' ? JSON.stringify(item) : item }}
-                                                            </li>
-                                                        </ul>
-                                                    </template>
-                                                    <template v-else>
-                                                        {{ field.value }}
-                                                    </template>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
                     </div>
-                    <div class="shortcut-modal-footer gap-2 bg-light border-top">
-                        <button class="btn btn-secondary px-4 py-2 fw-semibold" @click="closeSummaryModal">Cancel</button>
-                        <button class="btn btn-primary btn-success px-4 py-2 fw-bold d-flex align-items-center gap-2" @click="executeConfirmedVisit" style="background-color: #27AE60 !important; border-color: #27AE60 !important;">
+                    <div class="shortcut-modal-footer gap-2 bg-light border-top py-2 px-3">
+                        <button class="btn btn-sm btn-secondary px-3 py-1-5 fw-semibold" @click="closeSummaryModal">Cancel</button>
+                        <button class="btn btn-sm btn-primary btn-success px-4 py-1-5 fw-bold d-flex align-items-center gap-2" @click="executeConfirmedVisit" style="background-color: #27AE60 !important; border-color: #27AE60 !important;">
                             <i class="fas fa-check-circle"></i> Confirm & Save
                         </button>
                     </div>
@@ -255,7 +261,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
 import Navbar from '@/Components/Navbar.vue';
 import Sidebar from '@/Components/Sidebar.vue';
@@ -275,6 +281,14 @@ const summaryFields = ref([]);
 let pendingVisit = null;
 let isConfirmed = false;
 let unregisterBefore = null;
+
+watch([isSummaryModalOpen, isShortcutModalOpen], ([summaryOpen, shortcutOpen]) => {
+    if (summaryOpen || shortcutOpen) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+});
 
 const headerKeys = [
     'bilty_number', 'challan_number', 'date', 'payment_type', 
@@ -493,8 +507,8 @@ const handleEnterAsTab = (event) => {
     event.preventDefault();
 
     // Check if we are inside a table row of a dynamic grid
-    const tr = activeEl.closest('tr');
-    const table = tr ? tr.closest('table') : null;
+    const tr = activeEl.closest('tr') || activeEl.closest('.dynamic-row');
+    const table = tr ? (tr.closest('table') || tr.closest('.dynamic-grid')) : null;
     
     if (tr && table) {
         const rowInputs = Array.from(
@@ -507,18 +521,18 @@ const handleEnterAsTab = (event) => {
         const isLastInputInRow = rowInputs.indexOf(activeEl) === rowInputs.length - 1;
 
         if (isLastInputInRow) {
-            // Find all rows in the table that contain inputs
-            const allRowsWithInputs = Array.from(table.querySelectorAll('tr')).filter(row => {
+            // Find all rows in the table/grid that contain inputs
+            const allRowsWithInputs = Array.from(table.querySelectorAll('tr, .dynamic-row')).filter(row => {
                 return row.querySelectorAll('input:not([type="hidden"]):not([disabled]), select:not([disabled])').length > 0;
             });
             const isLastRow = allRowsWithInputs.indexOf(tr) === allRowsWithInputs.length - 1;
 
             if (isLastRow) {
-                // Find "Add Row" button in the same table
+                // Find "Add Row" button in the same table/grid
                 const buttons = Array.from(table.querySelectorAll('button, a'));
                 const addRowBtn = buttons.find(btn => {
                     const text = btn.textContent.toLowerCase();
-                    return text.includes('add row') || text.includes('add bilty');
+                    return text.includes('add row') || text.includes('add bilty') || text.includes('add e-way') || text.includes('add eway') || text.includes('add addon') || text.includes('add charge') || text.trim() === 'add';
                 });
 
                 if (addRowBtn) {
@@ -528,7 +542,7 @@ const handleEnterAsTab = (event) => {
                         
                         // Wait for Vue to render the new row, then focus its first input
                         setTimeout(() => {
-                            const updatedRows = Array.from(table.querySelectorAll('tr')).filter(row => {
+                            const updatedRows = Array.from(table.querySelectorAll('tr, .dynamic-row')).filter(row => {
                                 return row.querySelectorAll('input:not([type="hidden"]):not([disabled]), select:not([disabled])').length > 0;
                             });
                             if (updatedRows.length > 0) {
@@ -548,7 +562,7 @@ const handleEnterAsTab = (event) => {
                         }, 100);
                         return;
                     } else {
-                        // User chose "No" -> Focus the first element AFTER the table
+                        // User chose "No" -> Focus the first element AFTER the table/grid
                         const form = activeEl.closest('form') || document.body;
                         const allFocusable = Array.from(
                             form.querySelectorAll(
@@ -892,16 +906,43 @@ onUnmounted(() => {
 
 /* Summary Modal Styles */
 .summary-modal-card {
-    max-width: 800px;
+    max-width: 950px;
     width: 95%;
-    max-height: 90vh;
+    max-height: 95vh;
     display: flex;
     flex-direction: column;
 }
 
 .summary-modal-body {
     overflow-y: auto;
-    max-height: 65vh;
+    max-height: 80vh;
+}
+
+/* Styled scrollbars for a premium feel */
+.summary-modal-body::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar,
+.summary-modal-body *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.summary-modal-body::-webkit-scrollbar-track,
+.table-responsive::-webkit-scrollbar-track,
+.summary-modal-body *::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.summary-modal-body::-webkit-scrollbar-thumb,
+.table-responsive::-webkit-scrollbar-thumb,
+.summary-modal-body *::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.summary-modal-body::-webkit-scrollbar-thumb:hover,
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.summary-modal-body *::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 .summary-section-title {

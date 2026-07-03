@@ -51,16 +51,19 @@
                                     </div>
                                     <div v-if="form.errors.truck_id" class="text-danger small mt-1">{{ form.errors.truck_id }}</div>
                                 </div>
-                                <div class="col-md-3 d-flex align-items-center">
+                                <div class="col-md-4 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-primary text-nowrap" style="min-width: 90px;">Add Challan</label>
                                     <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="fetch_challan_id" :options="challans" labelKey="challan_number" placeholder="Select Challan" />
+                                        <SearchableSelect
+                                            ref="fetchChallanSelect"
+                                            :small="true"
+                                            v-model="fetch_challan_id"
+                                            :options="challans"
+                                            labelKey="challan_number"
+                                            placeholder="Select Challan"
+                                            @change="onFetchChallanChange"
+                                        />
                                     </div>
-                                </div>
-                                <div class="col-md-1 d-flex align-items-center">
-                                    <button type="button" class="btn btn-sm btn-primary text-nowrap shadow-sm w-100" @click="addChallan" :disabled="!fetch_challan_id">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -255,6 +258,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref, watch, onMounted } from 'vue';
 
 const fetch_challan_id = ref('');
+const fetchChallanSelect = ref(null);
 
 const props = defineProps({
     main_challan: Object,
@@ -360,19 +364,42 @@ const removeRow = (index) => {
 };
 
 const addChallan = () => {
-    if (!fetch_challan_id.value) return;
+    if (!fetch_challan_id.value) return false;
 
     const existing = form.details.find((d) => d.challan_id === fetch_challan_id.value);
     if (existing) {
         alert('This challan is already added.');
-        return;
+        fetch_challan_id.value = '';
+        return false;
     }
 
     const challan = props.challans.find((c) => c.id === fetch_challan_id.value);
     if (challan) {
         form.details.push(challanToDetailRow(challan));
-        fetch_challan_id.value = '';
         syncTotals();
+        return true;
+    }
+    return false;
+};
+
+const onFetchChallanChange = () => {
+    if (!fetch_challan_id.value) return;
+
+    const success = addChallan();
+    if (success) {
+        setTimeout(() => {
+            if (confirm('Do you want to add another challan?')) {
+                fetch_challan_id.value = '';
+                setTimeout(() => {
+                    const triggerInput = fetchChallanSelect.value?.$el?.querySelector('input.searchable-select__trigger');
+                    if (triggerInput) {
+                        triggerInput.click();
+                    }
+                }, 50);
+            } else {
+                fetch_challan_id.value = '';
+            }
+        }, 100);
     }
 };
 
