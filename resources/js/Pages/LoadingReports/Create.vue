@@ -181,17 +181,31 @@
                 </div>
             </div>
         </div>
+
+        <LoadingReportConfirmModal
+            :show="showConfirm"
+            :form="form"
+            :stations="stations"
+            :trucks="trucks"
+            :drivers="drivers"
+            :totals="confirmTotals"
+            @cancel="closeConfirm"
+            @confirm="confirmSave"
+        />
     </AdminLayout>
 </template>
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import LoadingReportConfirmModal from '@/Components/FormConfirm/LoadingReportConfirmModal.vue';
+import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref } from 'vue';
 
 const fetch_station_id = ref('');
 const fetchStationSelect = ref(null);
+const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
 const ALL_STATIONS_VALUE = 'all';
 
@@ -338,8 +352,17 @@ const totalWeight = computed(() => {
     return form.details.reduce((sum, row) => sum + parseFloat(row.gross_weight || 0), 0).toFixed(2);
 });
 
+const confirmTotals = computed(() => ({
+    totalPackages: totalPackages.value,
+    totalWeight: totalWeight.value,
+}));
+
 const submit = () => {
-    form.post('/loading-reports');
+    openConfirm();
+};
+
+const confirmSave = () => {
+    confirmAndRun(() => form.post('/loading-reports'));
 };
 </script>
 

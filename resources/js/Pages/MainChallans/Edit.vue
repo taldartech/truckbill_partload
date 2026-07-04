@@ -248,17 +248,31 @@
                 </div>
             </div>
         </div>
+
+        <MainChallanConfirmModal
+            :show="showConfirm"
+            :form="form"
+            :stations="stations"
+            :trucks="trucks"
+            :drivers="drivers"
+            :totals="confirmTotals"
+            @cancel="closeConfirm"
+            @confirm="confirmSave"
+        />
     </AdminLayout>
 </template>
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import MainChallanConfirmModal from '@/Components/FormConfirm/MainChallanConfirmModal.vue';
+import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref, watch, onMounted } from 'vue';
 
 const fetch_challan_id = ref('');
 const fetchChallanSelect = ref(null);
+const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
 const props = defineProps({
     main_challan: Object,
@@ -420,6 +434,13 @@ const gstTotal = computed(() => sumDetailField('gst'));
 const cashReceivedTotal = computed(() => sumDetailField('cash_received'));
 const cashPaidTotal = computed(() => sumDetailField('cash_paid'));
 
+const confirmTotals = computed(() => ({
+    totalPackages: totalPackages.value,
+    totalWeight: totalWeight.value,
+    toPayAmount: toPayAmount.value,
+    crossingFreight: crossingFreight.value,
+}));
+
 const labourDisplay = computed(() => labourTotal.value.toFixed(2));
 const katDisplay = computed(() => katTotal.value.toFixed(2));
 const homeDeliveryDisplay = computed(() => homeDeliveryTotal.value.toFixed(2));
@@ -466,10 +487,15 @@ const calculateTotal = () => {
 };
 
 const submit = () => {
-    syncTotals();
-    form.total_amount = parseFloat(form.total_amount);
+    openConfirm();
+};
 
-    form.put('/main-challans/' + props.main_challan.id);
+const confirmSave = () => {
+    confirmAndRun(() => {
+        syncTotals();
+        form.total_amount = parseFloat(form.total_amount);
+        form.put('/main-challans/' + props.main_challan.id);
+    });
 };
 </script>
 

@@ -249,16 +249,30 @@
                 </div>
             </div>
         </div>
+
+        <InwardRegisterConfirmModal
+            :show="showConfirm"
+            :form="form"
+            :stations="stations"
+            :trucks="trucks"
+            :drivers="drivers"
+            :totals="confirmTotals"
+            @cancel="closeConfirm"
+            @confirm="confirmSave"
+        />
     </AdminLayout>
 </template>
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import InwardRegisterConfirmModal from '@/Components/FormConfirm/InwardRegisterConfirmModal.vue';
+import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref } from 'vue';
 
 const page = usePage();
+const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
 const props = defineProps({
     stations: Array,
@@ -400,11 +414,23 @@ const deleteSelectedRow = () => {
     deleteRow(selectedRowIndex.value);
 };
 
+const confirmTotals = computed(() => ({
+    totalPackages: totalPackages.value,
+    totalDeliveryFreight: totalDeliveryFreight.value,
+    totalCrossingFreight: totalCrossingFreight.value,
+}));
+
 const submit = () => {
-    form.total_packages = totalPackages.value;
-    form.total_delivery_freight = totalDeliveryFreight.value;
-    form.total_crossing_freight = totalCrossingFreight.value;
-    form.post('/inward-registers');
+    openConfirm();
+};
+
+const confirmSave = () => {
+    confirmAndRun(() => {
+        form.total_packages = totalPackages.value;
+        form.total_delivery_freight = totalDeliveryFreight.value;
+        form.total_crossing_freight = totalCrossingFreight.value;
+        form.post('/inward-registers');
+    });
 };
 </script>
 

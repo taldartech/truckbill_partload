@@ -275,17 +275,31 @@
                 </div>
             </div>
         </div>
+
+        <ChallanConfirmModal
+            :show="showConfirm"
+            :form="form"
+            :stations="stations"
+            :trucks="trucks"
+            :drivers="drivers"
+            :totals="confirmTotals"
+            @cancel="closeConfirm"
+            @confirm="confirmSave"
+        />
     </AdminLayout>
 </template>
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import ChallanConfirmModal from '@/Components/FormConfirm/ChallanConfirmModal.vue';
+import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref, watch } from 'vue';
 
 const fetch_station_id = ref('');
 const fetchStationSelect = ref(null);
+const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
 const ALL_STATIONS_VALUE = 'all';
 
@@ -613,6 +627,13 @@ const paidAmountDisplay = computed(() => paidAmount.value.toFixed(2));
 const cartageDisplay = computed(() => cartageTotal.value.toFixed(2));
 const gstDisplay = computed(() => gstTotal.value.toFixed(2));
 
+const confirmTotals = computed(() => ({
+    totalPackages: totalPackages.value,
+    totalWeight: totalWeight.value,
+    toPayAmount: toPayAmount.value,
+    crossingFreight: crossingFreightTotal.value,
+}));
+
 const syncFreightTotals = () => {
     form.booking_freight = bookingFreightTotal.value;
     form.to_pay_amount = toPayAmount.value;
@@ -650,16 +671,22 @@ const calculateTotal = () => {
 };
 
 const submit = () => {
-    form.transform((data) => ({
-        ...data,
-        details: data.details
-            .filter((row) => row.bilty_id || row.inward_register_detail_id)
-            .map((row) => ({
-                row_type: row.row_type,
-                bilty_id: row.row_type === 'bilty' ? row.bilty_id : null,
-                inward_register_detail_id: row.row_type === 'inward' ? row.inward_register_detail_id : null,
-            })),
-    })).post('/challans');
+    openConfirm();
+};
+
+const confirmSave = () => {
+    confirmAndRun(() => {
+        form.transform((data) => ({
+            ...data,
+            details: data.details
+                .filter((row) => row.bilty_id || row.inward_register_detail_id)
+                .map((row) => ({
+                    row_type: row.row_type,
+                    bilty_id: row.row_type === 'bilty' ? row.bilty_id : null,
+                    inward_register_detail_id: row.row_type === 'inward' ? row.inward_register_detail_id : null,
+                })),
+        })).post('/challans');
+    });
 };
 </script>
 

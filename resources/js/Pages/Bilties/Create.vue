@@ -381,6 +381,18 @@
             @party-created="onPartyCreated"
             @station-created="onStationCreated"
         />
+
+        <BiltyConfirmModal
+            :show="showConfirm"
+            :form="form"
+            :parties="partyOptions"
+            :stations="stationOptions"
+            :goods="goods"
+            :package-types="package_types"
+            :vendors="vendors"
+            @cancel="closeConfirm"
+            @confirm="confirmSave"
+        />
     </AdminLayout>
 </template>
 
@@ -388,6 +400,8 @@
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import SelectWithActions from '@/Components/SelectWithActions.vue';
 import BiltyEntityModals from '@/Components/Bilty/BiltyEntityModals.vue';
+import BiltyConfirmModal from '@/Components/FormConfirm/BiltyConfirmModal.vue';
+import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { watch, ref, onMounted, computed } from 'vue';
@@ -396,6 +410,7 @@ const gstAmount = ref('0.00');
 const entityModals = ref(null);
 const partyOptions = ref([]);
 const stationOptions = ref([]);
+const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
 const props = defineProps({
     parties: Array,
@@ -608,7 +623,11 @@ const calculateFinalTotal = () => {
 };
 
 const submit = () => {
-    form.post('/bilties');
+    openConfirm();
+};
+
+const confirmSave = () => {
+    confirmAndRun(() => form.post('/bilties'));
 };
 
 const detailError = (index, field) => form.errors[`details.${index}.${field}`];

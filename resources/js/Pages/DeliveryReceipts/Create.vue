@@ -137,17 +137,29 @@
                 </div>
             </div>
         </div>
+
+        <DeliveryReceiptConfirmModal
+            :show="showConfirm"
+            :form="form"
+            :parties="parties"
+            @cancel="closeConfirm"
+            @confirm="confirmSave"
+        />
     </AdminLayout>
 </template>
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import DeliveryReceiptConfirmModal from '@/Components/FormConfirm/DeliveryReceiptConfirmModal.vue';
+import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 const props = defineProps({
     parties: Array
 });
+
+const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
 const form = useForm({
     delivery_receipt_no: '',
@@ -189,5 +201,14 @@ const calculateTotals = () => {
     
     let finalTotal = subTotal + parseFloat(form.gst || 0) - parseFloat(form.less || 0);
     form.final_amount = finalTotal.toFixed(2);
+};
+
+const submit = () => {
+    calculateTotals();
+    openConfirm();
+};
+
+const confirmSave = () => {
+    confirmAndRun(() => form.post('/delivery-receipts'));
 };
 </script>

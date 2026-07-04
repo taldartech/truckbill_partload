@@ -265,16 +265,30 @@
                 </div>
             </div>
         </div>
+
+        <InwardRegisterConfirmModal
+            :show="showConfirm"
+            :form="form"
+            :stations="stations"
+            :trucks="trucks"
+            :drivers="drivers"
+            :totals="confirmTotals"
+            @cancel="closeConfirm"
+            @confirm="confirmSave"
+        />
     </AdminLayout>
 </template>
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import InwardRegisterConfirmModal from '@/Components/FormConfirm/InwardRegisterConfirmModal.vue';
+import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref } from 'vue';
 
 const page = usePage();
+const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
 const props = defineProps({
     register: Object,
@@ -375,6 +389,12 @@ const totalPackages = computed(() => form.details.reduce((sum, row) => sum + (pa
 const totalDeliveryFreight = computed(() => form.details.reduce((sum, row) => sum + (parseFloat(row.home_delivery_charge) || 0), 0).toFixed(2));
 const totalCrossingFreight = computed(() => form.details.reduce((sum, row) => sum + (parseFloat(row.freight) || 0), 0).toFixed(2));
 
+const confirmTotals = computed(() => ({
+    totalPackages: totalPackages.value,
+    totalDeliveryFreight: totalDeliveryFreight.value,
+    totalCrossingFreight: totalCrossingFreight.value,
+}));
+
 const clearEntry = () => {
     entry.value = emptyEntry();
     editingRowIndex.value = null;
@@ -447,10 +467,16 @@ const deleteSelectedRow = () => {
 };
 
 const submit = () => {
-    form.total_packages = totalPackages.value;
-    form.total_delivery_freight = totalDeliveryFreight.value;
-    form.total_crossing_freight = totalCrossingFreight.value;
-    form.put(`/inward-registers/${props.register.id}`);
+    openConfirm();
+};
+
+const confirmSave = () => {
+    confirmAndRun(() => {
+        form.total_packages = totalPackages.value;
+        form.total_delivery_freight = totalDeliveryFreight.value;
+        form.total_crossing_freight = totalCrossingFreight.value;
+        form.put(`/inward-registers/${props.register.id}`);
+    });
 };
 </script>
 

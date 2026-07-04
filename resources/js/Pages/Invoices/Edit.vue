@@ -223,11 +223,22 @@
                 </div>
             </div>
         </div>
+
+        <InvoiceConfirmModal
+            :show="showConfirm"
+            :form="form"
+            :parties="parties"
+            :breakdown="invoiceBreakdown"
+            @cancel="closeConfirm"
+            @confirm="confirmSave"
+        />
     </AdminLayout>
 </template>
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import InvoiceConfirmModal from '@/Components/FormConfirm/InvoiceConfirmModal.vue';
+import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import http from '@/utils/http';
@@ -241,6 +252,7 @@ const props = defineProps({
 const bilties = ref([]);
 const loadingBilties = ref(false);
 const freightModalEl = ref(null);
+const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 const modalBilty = ref(null);
 const freightDetailInputs = ref([]);
 const freightModalErrors = ref({});
@@ -569,7 +581,13 @@ const submit = () => {
         return;
     }
 
-    prepareFreightPayload();
-    form.put(`/invoices/${props.invoice.id}`);
+    openConfirm();
+};
+
+const confirmSave = () => {
+    confirmAndRun(() => {
+        prepareFreightPayload();
+        form.put(`/invoices/${props.invoice.id}`);
+    });
 };
 </script>

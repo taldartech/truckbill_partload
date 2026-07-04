@@ -125,141 +125,6 @@
                 </div>
             </div>
         </Transition>
-
-        <!-- Form Submission Summary Modal -->
-        <Transition name="fade">
-            <div v-if="isSummaryModalOpen" class="shortcut-modal-overlay" @click.self="closeSummaryModal">
-                <div class="shortcut-modal-card summary-modal-card">
-                    <div class="shortcut-modal-header bg-success text-white py-2 px-3 d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="fas fa-clipboard-check fs-5 text-white"></i>
-                            <h6 class="m-0 fw-bold text-white">Confirm Details</h6>
-                        </div>
-                        <button class="btn-close-custom text-white" @click="closeSummaryModal" aria-label="Close" style="color: white !important;">
-                            <i class="fas fa-times text-white"></i>
-                        </button>
-                    </div>
-                    <div class="shortcut-modal-body summary-modal-body bg-white p-3">
-                        <div class="container-fluid p-0">
-                            <div class="row g-3">
-                                <!-- Left Column: Document Info & Cargo Grid -->
-                                <div class="col-md-7 d-flex flex-column gap-3">
-                                    <!-- 1. Header Information Section -->
-                                    <div class="summary-section">
-                                        <h6 class="summary-section-title text-uppercase text-success fw-bold mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
-                                            <i class="fas fa-info-circle"></i> Document Details
-                                        </h6>
-                                        <div class="row g-2">
-                                            <div v-for="field in headerFields" :key="field.rawKey" class="col-6 col-sm-4">
-                                                <div class="header-info-box p-2 rounded border bg-light">
-                                                    <span class="d-block text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.65rem; letter-spacing: 0.05em;">{{ field.label }}</span>
-                                                    <span class="d-block text-dark fw-bold text-truncate" style="font-size: 0.85rem;">{{ field.value }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- 2. Grid Items Section -->
-                                    <div v-if="detailsFields.length > 0" class="summary-section">
-                                        <h6 class="summary-section-title text-uppercase text-success fw-bold mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
-                                            <i class="fas fa-list-alt"></i> Cargo & Grid Items
-                                        </h6>
-                                        <div v-for="field in detailsFields" :key="field.rawKey" class="table-responsive rounded border shadow-sm" style="max-height: 250px; overflow-y: auto;">
-                                            <table class="table table-sm table-striped table-hover mb-0 text-nowrap" style="font-size: 0.8rem;">
-                                                <thead class="bg-light sticky-top">
-                                                    <tr class="border-bottom text-muted text-uppercase font-monospace" style="font-size: 0.68rem;">
-                                                        <th class="ps-2 py-2">#</th>
-                                                        <th v-for="col in getArrayColumns(field.value)" :key="col" class="py-2">{{ col }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="(row, idx) in field.value" :key="idx" class="align-middle">
-                                                        <td class="ps-2 fw-bold text-muted">{{ idx + 1 }}</td>
-                                                        <td v-for="col in getArrayColumns(field.value)" :key="col" class="fw-bold text-dark">
-                                                            {{ typeof row === 'object' ? row[col] : row }}
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Right Column: Financials & Other Info -->
-                                <div class="col-md-5 d-flex flex-column gap-3">
-                                    <!-- 3. Financials & Totals Section -->
-                                    <div class="summary-section">
-                                        <h6 class="summary-section-title text-uppercase text-success fw-bold mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
-                                            <i class="fas fa-rupee-sign"></i> Financials & Charges
-                                        </h6>
-                                        <div class="row g-2">
-                                            <!-- List of charges -->
-                                            <div class="col-12">
-                                                <div class="p-2 bg-light rounded border" style="max-height: 180px; overflow-y: auto;">
-                                                    <div class="row g-1">
-                                                        <template v-for="field in financialFields" :key="field.rawKey">
-                                                            <div v-if="field.rawKey !== 'total_amount' && field.rawKey !== 'amount'" class="col-6 d-flex justify-content-between align-items-center py-1 px-2 border-bottom">
-                                                                <span class="text-muted small fw-semibold" style="font-size: 0.75rem;">{{ field.label }}:</span>
-                                                                <span class="text-dark fw-bold" style="font-size: 0.75rem;">₹{{ field.value }}</span>
-                                                            </div>
-                                                        </template>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Big Final Total Box -->
-                                            <div class="col-12">
-                                                <div class="final-total-box p-2 rounded text-center d-flex flex-column justify-content-center border border-success" style="background: rgba(39, 174, 96, 0.05); border-style: dashed !important;">
-                                                    <span class="text-success text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Total Amount</span>
-                                                    <span class="text-success fw-extrabold fs-4">
-                                                        ₹ {{ getFinalTotalValue() }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- 4. Other Details Section (Remarks, E-way, Addon) -->
-                                    <div v-if="otherFields.length > 0" class="summary-section">
-                                        <h6 class="summary-section-title text-uppercase text-success fw-bold mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
-                                            <i class="fas fa-file-alt"></i> Other Information
-                                        </h6>
-                                        <div class="p-2 bg-light rounded border" style="max-height: 150px; overflow-y: auto;">
-                                            <div class="row g-2">
-                                                <div v-for="field in otherFields" :key="field.rawKey" class="col-12">
-                                                    <div class="d-flex align-items-start gap-2">
-                                                        <span class="text-muted fw-semibold small text-nowrap" style="min-width: 90px; font-size: 0.75rem;">{{ field.label }}:</span>
-                                                        <span class="text-dark fw-medium small text-wrap" style="font-size: 0.75rem;">
-                                                            <template v-if="field.isRawArray">
-                                                                <span v-if="field.value.length === 0" class="text-muted italic">None</span>
-                                                                <ul v-else class="mb-0 ps-3">
-                                                                    <li v-for="(item, idx) in field.value" :key="idx" class="small">
-                                                                        {{ typeof item === 'object' ? JSON.stringify(item) : item }}
-                                                                    </li>
-                                                                </ul>
-                                                            </template>
-                                                            <template v-else>
-                                                                {{ field.value }}
-                                                            </template>
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="shortcut-modal-footer gap-2 bg-light border-top py-2 px-3">
-                        <button class="btn btn-sm btn-secondary px-3 py-1-5 fw-semibold" @click="closeSummaryModal">Cancel</button>
-                        <button class="btn btn-sm btn-primary btn-success px-4 py-1-5 fw-bold d-flex align-items-center gap-2" @click="executeConfirmedVisit" style="background-color: #27AE60 !important; border-color: #27AE60 !important;">
-                            <i class="fas fa-check-circle"></i> Confirm & Save
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </Transition>
     </div>
 </template>
 
@@ -280,58 +145,10 @@ defineProps({
 
 const page = usePage();
 const isShortcutModalOpen = ref(false);
-const isSummaryModalOpen = ref(false);
-const summaryFields = ref([]);
-let pendingVisit = null;
-let isConfirmed = false;
-let unregisterBefore = null;
 
-watch([isSummaryModalOpen, isShortcutModalOpen], ([summaryOpen, shortcutOpen]) => {
-    if (summaryOpen || shortcutOpen) {
-        document.body.style.overflow = 'hidden';
-    } else {
-        document.body.style.overflow = '';
-    }
+watch(isShortcutModalOpen, (shortcutOpen) => {
+    document.body.style.overflow = shortcutOpen ? 'hidden' : '';
 });
-
-const headerKeys = [
-    'bilty_number', 'challan_number', 'date', 'payment_type', 
-    'from_station_id', 'to_station_id', 'consignor_id', 'consignee_id', 
-    'driver_id', 'truck_id'
-];
-
-const totalKeys = [
-    'freight', 'bilty_charge', 'surcharge', 'handling_charge', 
-    'risk_dd_charge', 'cartage', 'cartage_dalali_pf', 'kat', 
-    'labour_charge', 'home_delivery_charge', 'gst', 'paid_amount', 
-    'to_pay_amount', 'less_advance_received', 'cash_received', 
-    'cash_payment', 'total_amount', 'amount'
-];
-
-const headerFields = computed(() => {
-    return summaryFields.value.filter(f => headerKeys.includes(f.rawKey));
-});
-
-const detailsFields = computed(() => {
-    return summaryFields.value.filter(f => f.isRawArray && f.rawKey === 'details');
-});
-
-const financialFields = computed(() => {
-    return summaryFields.value.filter(f => totalKeys.includes(f.rawKey));
-});
-
-const otherFields = computed(() => {
-    return summaryFields.value.filter(f => 
-        !headerKeys.includes(f.rawKey) && 
-        !totalKeys.includes(f.rawKey) && 
-        f.rawKey !== 'details'
-    );
-});
-
-const getFinalTotalValue = () => {
-    const totalField = summaryFields.value.find(f => f.rawKey === 'total_amount' || f.rawKey === 'amount');
-    return totalField ? totalField.value : '0.00';
-};
 
 const auth = computed(() => page.props.auth || {});
 
@@ -343,145 +160,6 @@ const canCreateDelivery = computed(() => !!(auth.value.is_admin || (auth.value.p
 
 const closeShortcutModal = () => {
     isShortcutModalOpen.value = false;
-};
-
-const closeSummaryModal = () => {
-    isSummaryModalOpen.value = false;
-    pendingVisit = null;
-};
-
-const formatKey = (key) => {
-    return key
-        .replace(/_id$/, '') // Remove trailing _id
-        .replace(/_/g, ' ')  // Replace underscores with spaces
-        .replace(/\b\w/g, c => c.toUpperCase()); // Capitalize first letters
-};
-
-const resolveIdFromProps = (key, id) => {
-    if (!page.props) return null;
-
-    const mappings = {
-        station: 'stations',
-        good: 'goods',
-        package_type: 'package_types',
-        party: 'parties',
-        consignor: 'parties',
-        consignee: 'parties',
-        vendor: 'vendors',
-        driver: 'drivers',
-        truck: 'trucks',
-        bilty: 'bilties',
-        agent: 'agents',
-        user: 'users'
-    };
-
-    const keyLower = key.toLowerCase();
-    let propListName = null;
-    
-    for (const [sub, prop] of Object.entries(mappings)) {
-        if (keyLower.includes(sub)) {
-            propListName = prop;
-            break;
-        }
-    }
-
-    if (propListName && page.props[propListName]) {
-        const list = page.props[propListName];
-        if (Array.isArray(list)) {
-            const item = list.find(item => String(item.id) === String(id));
-            if (item) {
-                return item.name || item.title || item.label || item.truck_no || item.truck_number || item.bilty_number || item.gr_no || null;
-            }
-        }
-    }
-
-    return null;
-};
-
-const formatValue = (key, value) => {
-    if (value === null || value === undefined || value === '') {
-        return '—';
-    }
-    if (typeof value === 'boolean') {
-        return value ? 'Yes' : 'No';
-    }
-    if (Array.isArray(value)) {
-        if (value.length === 0) return [];
-        return value.map(item => {
-            if (typeof item === 'object') {
-                const formattedItem = {};
-                for (const [k, v] of Object.entries(item)) {
-                    if (!['id', 'created_at', 'updated_at', 'company_id', 'branch_id'].includes(k)) {
-                        formattedItem[formatKey(k)] = formatValue(k, v);
-                    }
-                }
-                return formattedItem;
-            }
-            return String(item);
-        });
-    }
-
-    if (key.endsWith('_id') || key.endsWith('Id')) {
-        const resolvedText = resolveIdFromProps(key, value);
-        if (resolvedText) {
-            return resolvedText;
-        }
-
-        const option = document.querySelector(`option[value="${value}"]`);
-        if (option && option.textContent) {
-            return option.textContent.trim();
-        }
-    }
-
-    return String(value);
-};
-
-const getSummaryFields = (data) => {
-    if (!data) return [];
-    
-    const ignoredKeys = [
-        'id', 'password', 'password_confirmation', 'remember', 
-        '_method', 'created_at', 'updated_at', 'csrf_token', 'company_id', 'branch_id'
-    ];
-
-    return Object.entries(data)
-        .filter(([key, val]) => !ignoredKeys.includes(key))
-        .map(([key, val]) => {
-            return {
-                rawKey: key,
-                label: formatKey(key),
-                value: formatValue(key, val),
-                isRawArray: Array.isArray(val)
-            };
-        });
-};
-
-const getArrayColumns = (arrayVal) => {
-    if (!Array.isArray(arrayVal) || arrayVal.length === 0) return [];
-    const firstRow = arrayVal[0];
-    if (typeof firstRow === 'object') {
-        return Object.keys(firstRow);
-    }
-    return ['Item'];
-};
-
-const executeConfirmedVisit = () => {
-    if (pendingVisit) {
-        isConfirmed = true;
-        isSummaryModalOpen.value = false;
-        
-        router.visit(pendingVisit.url, {
-            method: pendingVisit.method,
-            data: pendingVisit.data,
-            headers: pendingVisit.headers,
-            preserveScroll: pendingVisit.preserveScroll,
-            preserveState: pendingVisit.preserveState,
-            onFinish: () => {
-                isConfirmed = false;
-                pendingVisit = null;
-            }
-        });
-    }
 };
 
 const navigateTo = (url) => {
@@ -616,13 +294,8 @@ const handleKeyDown = (event) => {
         if (isShortcutModalOpen.value) {
             event.preventDefault();
             closeShortcutModal();
-            return;
         }
-        if (isSummaryModalOpen.value) {
-            event.preventDefault();
-            closeSummaryModal();
-            return;
-        }
+        return;
     }
 
     // F3 -> toggle shortcut modal
@@ -693,42 +366,11 @@ onMounted(() => {
 
     window.removeEventListener('keydown', handleEnterAsTab);
     window.addEventListener('keydown', handleEnterAsTab);
-
-    unregisterBefore = router.on('before', (event) => {
-        const method = event.detail.visit.method.toLowerCase();
-        if (['post', 'put', 'patch'].includes(method)) {
-            if (isConfirmed) {
-                isConfirmed = false;
-                return;
-            }
-
-            const url = event.detail.visit.url;
-            const pathname = typeof url === 'string' ? new URL(url, window.location.origin).pathname : url.pathname;
-
-            if (pathname.endsWith('/logout')) {
-                return;
-            }
-
-            const fields = getSummaryFields(event.detail.visit.data);
-            if (fields.length === 0) {
-                return;
-            }
-
-            // Intercept
-            event.preventDefault();
-            pendingVisit = event.detail.visit;
-            summaryFields.value = fields;
-            isSummaryModalOpen.value = true;
-        }
-    });
 });
 
 onUnmounted(() => {
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keydown', handleEnterAsTab);
-    if (unregisterBefore) {
-        unregisterBefore();
-    }
 });
 </script>
 
@@ -906,66 +548,5 @@ onUnmounted(() => {
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
-}
-
-/* Summary Modal Styles */
-.summary-modal-card {
-    max-width: 950px;
-    width: 95%;
-    max-height: 95vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.summary-modal-body {
-    overflow-y: auto;
-    max-height: 80vh;
-}
-
-/* Styled scrollbars for a premium feel */
-.summary-modal-body::-webkit-scrollbar,
-.table-responsive::-webkit-scrollbar,
-.summary-modal-body *::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-.summary-modal-body::-webkit-scrollbar-track,
-.table-responsive::-webkit-scrollbar-track,
-.summary-modal-body *::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.summary-modal-body::-webkit-scrollbar-thumb,
-.table-responsive::-webkit-scrollbar-thumb,
-.summary-modal-body *::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
-}
-
-.summary-modal-body::-webkit-scrollbar-thumb:hover,
-.table-responsive::-webkit-scrollbar-thumb:hover,
-.summary-modal-body *::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-}
-
-.summary-section-title {
-    font-size: 0.85rem;
-    border-left: 4px solid var(--color-brand-primary, #27AE60);
-    padding-left: 8px;
-    letter-spacing: 0.05em;
-}
-
-.header-info-box {
-    background: rgba(248, 250, 252, 0.8);
-    border-color: #e2e8f0 !important;
-}
-
-.final-total-box {
-    min-height: 100px;
-}
-
-.fw-extrabold {
-    font-weight: 800;
 }
 </style>
