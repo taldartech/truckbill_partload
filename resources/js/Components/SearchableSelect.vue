@@ -5,7 +5,7 @@
             ref="trigger"
             type="text"
             class="searchable-select__trigger form-select"
-            :class="{ 'is-invalid': error, 'form-select-sm': small, 'bg-light text-muted': disabled }"
+            :class="{ 'is-invalid': error, 'form-select-sm': small, 'bg-light text-muted': disabled, 'text-muted': !hasSelection }"
             :value="displayValue"
             :placeholder="placeholder"
             :disabled="disabled"
@@ -40,19 +40,20 @@
                     >
                 </div>
                 <ul class="list-unstyled mb-0">
-                    <li v-if="filteredOptions.length === 0" class="p-2 text-muted small text-center">
+                    <li v-if="dropdownOptions.length === 0" class="p-2 text-muted small text-center">
                         No results found
                     </li>
                     <li
-                        v-for="(option, index) in filteredOptions"
-                        :key="option[valueKey]"
+                        v-for="(option, index) in dropdownOptions"
+                        :key="option.__isPlaceholder ? '__placeholder__' : option[valueKey]"
                         role="option"
-                        :aria-selected="String(modelValue) === String(option[valueKey])"
+                        :aria-selected="isOptionSelected(option)"
                         @mousedown.prevent="selectOption(option)"
                         class="p-2 dropdown-item small"
                         :class="{
-                            'active bg-primary text-white': String(modelValue) === String(option[valueKey]),
+                            'active bg-primary text-white': isOptionSelected(option),
                             'bg-light': highlightedIndex === index,
+                            'text-muted': option.__isPlaceholder,
                         }"
                         style="cursor: pointer;"
                     >
@@ -82,7 +83,7 @@ const props = defineProps({
     },
     placeholder: {
         type: String,
-        default: 'Select...'
+        default: 'Select an option'
     },
     valueKey: {
         type: String,
@@ -122,6 +123,8 @@ const selectedItem = computed(() => {
     return props.options.find(opt => String(opt[props.valueKey]) === String(props.modelValue)) || null;
 });
 
+const hasSelection = computed(() => selectedItem.value !== null);
+
 const displayValue = computed(() => selectedItem.value?.[props.labelKey] ?? '');
 
 const filteredOptions = computed(() => {
@@ -132,6 +135,32 @@ const filteredOptions = computed(() => {
         return label.toLowerCase().includes(lowerQuery);
     });
 });
+
+const dropdownOptions = computed(() => {
+    const showPlaceholder = !searchQuery.value
+        || props.placeholder.toLowerCase().includes(searchQuery.value.toLowerCase());
+
+    if (!showPlaceholder) {
+        return filteredOptions.value;
+    }
+
+    return [
+        {
+            [props.valueKey]: '',
+            [props.labelKey]: props.placeholder,
+            __isPlaceholder: true,
+        },
+        ...filteredOptions.value,
+    ];
+});
+
+const isOptionSelected = (option) => {
+    if (option.__isPlaceholder) {
+        return !hasSelection.value;
+    }
+
+    return String(props.modelValue) === String(option[props.valueKey]);
+};
 
 const resolveDropdownZIndex = () => {
     const modal = trigger.value?.closest('.modal');
@@ -170,7 +199,7 @@ const updateDropdownPosition = () => {
 const openDropdown = () => {
     if (props.disabled || isOpen.value) return;
     isOpen.value = true;
-    highlightedIndex.value = filteredOptions.value.length ? 0 : -1;
+    highlightedIndex.value = dropdownOptions.value.length ? 0 : -1;
     searchQuery.value = '';
     nextTick(() => {
         updateDropdownPosition();
@@ -196,8 +225,13 @@ const closeDropdown = () => {
 };
 
 const selectOption = (option) => {
-    emit('update:modelValue', option[props.valueKey]);
-    emit('change', option[props.valueKey]);
+    if (option.__isPlaceholder) {
+        emit('update:modelValue', '');
+        emit('change', '');
+    } else {
+        emit('update:modelValue', option[props.valueKey]);
+        emit('change', option[props.valueKey]);
+    }
     closeDropdown();
     suppressFocusOpen = true;
     nextTick(() => {
@@ -206,22 +240,22 @@ const selectOption = (option) => {
 };
 
 const selectHighlightedOption = () => {
-    const option = filteredOptions.value[highlightedIndex.value];
+    const option = dropdownOptions.value[highlightedIndex.value];
     if (option) {
         selectOption(option);
     }
 };
 
 const moveHighlight = (direction) => {
-    if (!filteredOptions.value.length) return;
+    if (!dropdownOptions.value.length) return;
 
     if (highlightedIndex.value === -1) {
-        highlightedIndex.value = direction > 0 ? 0 : filteredOptions.value.length - 1;
+        highlightedIndex.value = direction > 0 ? 0 : dropdownOptions.value.length - 1;
         return;
     }
 
-    highlightedIndex.value = (highlightedIndex.value + direction + filteredOptions.value.length)
-        % filteredOptions.value.length;
+    highlightedIndex.value = (highlightedIndex.value + direction + dropdownOptions.value.length)
+        % dropdownOptions.value.length;
 };
 
 const onTriggerKeydown = (event) => {
@@ -332,7 +366,7 @@ const handleClickOutside = (event) => {
 };
 
 watch(searchQuery, () => {
-    highlightedIndex.value = filteredOptions.value.length ? 0 : -1;
+    highlightedIndex.value = dropdownOptions.value.length ? 0 : -1;
 });
 
 watch(isOpen, (open) => {

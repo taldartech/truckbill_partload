@@ -45,7 +45,7 @@ defineProps({
     },
     placeholder: {
         type: String,
-        default: 'Select...',
+        default: 'Select an option',
     },
     labelKey: {
         type: String,
