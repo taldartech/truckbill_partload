@@ -50,7 +50,6 @@
                         <div>
                             <div class="dash-stat-card__value">{{ dashboard.stats.active_subscriptions }}</div>
                             <div class="dash-stat-card__label">Active Subscriptions</div>
-                            <Link href="/subscriptions" class="dash-stat-card__link">Manage <i class="fas fa-arrow-right"></i></Link>
                         </div>
                     </div>
                 </div>
@@ -316,11 +315,11 @@ const { can } = usePermissions();
 const portalActions = [
     { label: 'Manage Super Admins', desc: 'Create and manage platform super admins', href: '/users', icon: 'fa-users-cog', tone: 'primary' },
     { label: 'Roles & Permissions', desc: 'Configure role-based access', href: '/roles', icon: 'fa-user-shield', tone: 'info' },
-    { label: 'Subscriptions', desc: 'Manage company subscriptions', href: '/subscriptions', icon: 'fa-credit-card', tone: 'success' },
 ];
 
 const setupActions = [
     { label: 'Companies', desc: 'Register and manage companies', href: '/companies', icon: 'fa-building', tone: 'primary' },
+    { label: 'Subscription', desc: 'Renew plan and purchase add-ons', href: '/subscription', icon: 'fa-credit-card', tone: 'success' },
     { label: 'Branches', desc: 'Add branches and head offices', href: '/branches', icon: 'fa-code-branch', tone: 'info' },
     { label: 'Users', desc: 'Invite branch staff', href: '/users', icon: 'fa-users', tone: 'success' },
     // { label: 'Subscriptions', desc: 'View subscription plans', href: '/subscriptions', icon: 'fa-credit-card', tone: 'secondary' },

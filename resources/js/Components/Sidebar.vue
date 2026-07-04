@@ -211,6 +211,13 @@
                         </Link>
                     </li>
 
+                    <li class="nav-item" v-if="isSuperAdmin">
+                        <Link href="/subscription" class="nav-link py-2 px-2 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/subscription') }">
+                            <i class="nav-icon fas fa-credit-card me-3"></i>
+                            <p class="mb-0 fw-medium">Subscription</p>
+                        </Link>
+                    </li>
+
                     <li class="nav-item" v-if="can('view branches')">
                         <Link href="/branches" class="nav-link py-2 px-2 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/branches') }">
                             <i class="nav-icon fas fa-code-branch me-3"></i>

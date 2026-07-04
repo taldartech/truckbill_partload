@@ -26,6 +26,54 @@ class Company extends Model
         return $this->hasMany(Branch::class);
     }
 
+    public function subscription()
+    {
+        return $this->hasOne(CompanySubscription::class);
+    }
+
+    public function pendingUpcomingRenewals()
+    {
+        return $this->hasMany(UpcomingSubscription::class)->where('status', 'pending');
+    }
+
+    public function hasPendingUpcomingRenewal(): bool
+    {
+        return UpcomingSubscription::query()
+            ->where('company_id', $this->id)
+            ->where('status', 'pending')
+            ->exists();
+    }
+
+    public function isPlanActive(): bool
+    {
+        return $this->subscription?->isActive() ?? false;
+    }
+
+    public function subscriptionAccessPayload(): array
+    {
+        return app(\App\Services\SubscriptionAccessService::class)->accessPayloadForCompany($this);
+    }
+
+    public function subscriptionCanWrite(): bool
+    {
+        return $this->subscriptionAccessPayload()['can_write'] ?? false;
+    }
+
+    public function subscriptionCanExport(): bool
+    {
+        return $this->subscriptionAccessPayload()['can_export'] ?? false;
+    }
+
+    public function subscriptionCanPrint(): bool
+    {
+        return $this->subscriptionAccessPayload()['can_print'] ?? false;
+    }
+
+    public function planEndsOn(): ?\Illuminate\Support\Carbon
+    {
+        return $this->subscription?->ends_on;
+    }
+
     public function city()
     {
         return $this->belongsTo(City::class);

@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\Country;
 use App\Models\State;
 use App\Models\City;
+use App\Services\SubscriptionPricingService;
 use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -14,6 +15,10 @@ use Inertia\Inertia;
 
 class CompanyController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        private readonly SubscriptionPricingService $pricingService,
+    ) {}
+
     public static function middleware(): array
     {
         return [
@@ -81,7 +86,8 @@ class CompanyController extends Controller implements HasMiddleware
             $validated['user_id'] = auth()->id();
         }
 
-        Company::create($validated);
+        $company = Company::create($validated);
+        $this->pricingService->createTrialSubscription($company);
 
         return redirect()->route('companies.index')->with('success', 'Company created successfully.');
     }

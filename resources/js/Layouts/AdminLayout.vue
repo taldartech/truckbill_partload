@@ -14,6 +14,9 @@
             </div> -->
             <div class="app-content">
                 <div class="container-fluid px-4">
+                    <div v-if="$page.props.flash?.success" class="alert alert-success">{{ $page.props.flash.success }}</div>
+                    <div v-if="$page.props.flash?.error" class="alert alert-danger">{{ $page.props.flash.error }}</div>
+                    <SubscriptionAccessBanner />
                     <slot />
                 </div>
             </div>
@@ -266,6 +269,7 @@ import { usePage, router } from '@inertiajs/vue3';
 import Navbar from '@/Components/Navbar.vue';
 import Sidebar from '@/Components/Sidebar.vue';
 import Footer from '@/Components/Footer.vue';
+import SubscriptionAccessBanner from '@/Components/Subscription/SubscriptionAccessBanner.vue';
 
 defineProps({
     title: {

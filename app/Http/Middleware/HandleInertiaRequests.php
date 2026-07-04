@@ -48,6 +48,11 @@ class HandleInertiaRequests extends Middleware
                     'bilty_print_config' => $activeBranch->resolvedBiltyPrintConfig(),
                 ] : null,
                 'active_company' => $activeCompany ? $activeCompany->only(['id', 'name']) : null,
+                'subscription' => function () use ($context) {
+                    $company = $context->activeCompany();
+
+                    return $company ? $company->subscriptionAccessPayload() : null;
+                },
                 'subscription_ends_at' => function () use ($request, $context) {
                     $companyId = $context->activeCompanyId() ?? $request->user()?->company_id;
 
@@ -55,17 +60,12 @@ class HandleInertiaRequests extends Middleware
                         return null;
                     }
 
-                    $sub = \Illuminate\Support\Facades\DB::table('subscriptions')
-                        ->where('company_id', $companyId)
-                        ->where('status', 'active')
-                        ->orderBy('ends_at', 'desc')
-                        ->first();
+                    $endsOn = \App\Models\Company::query()
+                        ->with('subscription')
+                        ->find($companyId)
+                        ?->planEndsOn();
 
-                    if ($sub) {
-                        return \Carbon\Carbon::parse($sub->ends_at)->format('d M, Y');
-                    }
-
-                    return null;
+                    return $endsOn?->format('d M, Y');
                 },
             ],
             'flash' => [
