@@ -177,16 +177,16 @@ const chargeLines = computed(() => {
         }
     });
 
-    const lessAdvance = parseFloat(props.form.less_advance_received || 0);
-    if (lessAdvance !== 0) {
-        lines.push({ label: 'Less Advance', amount: -Math.abs(lessAdvance) });
-    }
-
     const chargeSubtotal = lines.reduce((sum, line) => sum + line.amount, 0);
     const gstRate = props.form.gst_liability_by === 'Exempted' ? 0 : parseFloat(props.form.gst || 0);
     const gstAmount = chargeSubtotal * (gstRate / 100);
     if (gstAmount !== 0) {
         lines.push({ label: `GST (${gstRate}%)`, amount: gstAmount });
+    }
+
+    const lessAdvance = parseFloat(props.form.less_advance_received || 0);
+    if (lessAdvance !== 0) {
+        lines.push({ label: 'Less Advance', amount: -Math.abs(lessAdvance) });
     }
 
     return lines;

@@ -5,7 +5,7 @@
                 <div class="card ops-form-card">
                     <!-- Title Bar -->
                     <div class="card-header">
-                        <h3 class="card-title">Booking Bilty (Edit)</h3>
+                        <h3 class="card-title">Booking Bilty</h3>
                     </div>
 
                     <form @submit.prevent="submit" class="bilty-form">
@@ -94,20 +94,20 @@
 
                         <!-- Mid Section: Goods Grid -->
                         <div class="card-body p-0 border-bottom">
-                            <div class="table-responsive" style="min-height: 200px;">
+                            <div class="table-responsive">
                                 <table class="table table-bordered table-sm m-0 table-grid">
                                     <thead class="bg-light">
                                         <tr>
                                             <th width="5%" class="text-center">Sr.No.</th>
-                                            <th width="30%">Goods Name</th>
-                                            <th width="20%">Packing</th>
+                                            <th width="16%">Goods Name</th>
+                                            <th width="16%">Packing</th>
                                             <th width="10%" class="text-center">No.Of Pkg</th>
                                             <th width="10%" class="text-center">Actual Wt(Kg)</th>
                                             <th width="10%" class="text-center">Charged Wt(Kg)</th>
                                             <th width="10%" class="text-center">Frt.Type<span v-if="!isTbb" class="text-danger">*</span></th>
                                             <th width="10%" class="text-center">Frt.Rate<span v-if="!isTbb" class="text-danger">*</span></th>
-                                            <th width="10%" class="text-center">Goods Frt</th>
-                                            <th width="5%" class="text-center"><i class="fas fa-cog"></i></th>
+                                            <th width="11%" class="text-center">Goods Frt</th>
+                                            <th width="2%" class="text-center"><i class="fas fa-cog"></i></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -115,20 +115,20 @@
                                             <td class="text-center align-middle">{{ index + 1 }}</td>
                                             <td>
                                                 <SearchableSelect
-    :small="true"
-    v-model="detail.good_id"
-    :options="goods"
-    placeholder="Select Good"
-/>
+                                                    :small="true"
+                                                    v-model="detail.good_id"
+                                                    :options="goods"
+                                                    placeholder="Select Good"
+                                                />
                                                 <div v-if="detailError(index, 'good_id')" class="text-danger small">{{ detailError(index, 'good_id') }}</div>
                                             </td>
                                             <td>
                                                 <SearchableSelect
-    :small="true"
-    v-model="detail.package_type_id"
-    :options="package_types"
-    placeholder="Select Packing"
-/>
+                                                    :small="true"
+                                                    v-model="detail.package_type_id"
+                                                    :options="package_types"
+                                                    placeholder="Select Packing"
+                                                />
                                                 <div v-if="detailError(index, 'package_type_id')" class="text-danger small">{{ detailError(index, 'package_type_id') }}</div>
                                             </td>
                                             <td>
@@ -182,7 +182,7 @@
                         <div class="card-body pt-3 pb-2">
                             <div class="row">
                                 <!-- Left Column: GST, EWay, Weight -->
-                                <div class="col-md-5">
+                                <div class="col-md-7">
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Consignor GST No:</label></div>
                                         <div class="col-7"><span class="small fw-bold text-muted">{{ getConsignorGST() }}</span></div>
@@ -194,10 +194,6 @@
 
                                     <hr class="my-2 border-secondary">
 
-                                    <!-- <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">GST Tax (%)</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.gst" readonly></div>
-                                    </div> -->
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Liabilities By</label></div>
                                         <div class="col-7">
@@ -208,6 +204,26 @@
                                                 <option value="Transporter">Transporter</option>
                                                 <option value="Exempted">Exempted</option>
                                             </select>
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-2 border-secondary">
+
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Private Marka</label></div>
+                                        <div class="col-7"><input type="text" class="form-control form-control-sm bg-white" v-model="form.private_marka"></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Delivery At</label></div>
+                                        <div class="col-7">
+                                            <SearchableSelect
+                                                :small="true"
+                                                v-model="form.delivery_at"
+                                                :options="filteredAgents"
+                                                valueKey="name"
+                                                labelKey="name"
+                                                placeholder="Select Delivery Agent"
+                                            />
                                         </div>
                                     </div>
 
@@ -252,15 +268,27 @@
                                     </div>
                                 </div>
 
-                                <!-- Middle Column: Cartage, Marka, Delivery -->
-                                <div class="col-md-3 border-start border-end border-secondary">
-                                    <div class="row mb-1">
-                                        <div class="col-12"><label class="mb-0 fw-bold small text-dark">Cartage</label></div>
-                                        <div class="col-12"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.cartage" @input="onCartageChange"></div>
+                                <!-- Right Column: Freight & Totals -->
+                                <div class="col-md-5">
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Total Freight</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-light fw-bold" v-model="form.freight" readonly></div>
                                     </div>
-                                    <div v-if="showCartageOptions" class="row mb-1">
-                                        <div class="col-12"><label class="mb-0 fw-bold small text-dark">Cartage Type</label></div>
-                                        <div class="col-12">
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Bilty Charge</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.bilty_charge" @input="calculateFinalTotal"></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Surcharge</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.surcharge" @input="calculateFinalTotal"></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Cartage</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.cartage" @input="onCartageChange"></div>
+                                    </div>
+                                    <div v-if="showCartageOptions" class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Cartage Type</label></div>
+                                        <div class="col-6">
                                             <select class="form-select form-select-sm" v-model="form.cartage_type" @change="onCartageTypeChange">
                                                 <option value="">Select</option>
                                                 <option value="Paid">Paid</option>
@@ -269,9 +297,9 @@
                                             <div v-if="form.errors.cartage_type" class="text-danger small">{{ form.errors.cartage_type }}</div>
                                         </div>
                                     </div>
-                                    <div v-if="showCartageOptions && form.cartage_type === 'Due'" class="row mb-1">
-                                        <div class="col-12"><label class="mb-0 fw-bold small text-dark">Vendor</label></div>
-                                        <div class="col-12">
+                                    <div v-if="showCartageOptions && form.cartage_type === 'Due'" class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Vendor</label></div>
+                                        <div class="col-6">
                                             <SearchableSelect
                                                 :small="true"
                                                 v-model="form.vendor_id"
@@ -281,55 +309,12 @@
                                             <div v-if="form.errors.vendor_id" class="text-danger small">{{ form.errors.vendor_id }}</div>
                                         </div>
                                     </div>
-                                    <div class="row mb-1">
-                                        <div class="col-12"><label class="mb-0 fw-bold small text-dark">Private Marka</label></div>
-                                        <div class="col-12"><input type="text" class="form-control form-control-sm bg-white" v-model="form.private_marka"></div>
-                                    </div>
-                                    <div class="row mb-1">
-                                        <div class="col-12"><label class="mb-0 fw-bold small text-dark">Delivery At</label></div>
-                                        <div class="col-12">
-                                            <SearchableSelect
-                                                :small="true"
-                                                v-model="form.delivery_at"
-                                                :options="filteredAgents"
-                                                valueKey="name"
-                                                labelKey="name"
-                                                placeholder="Select Delivery Agent"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="row mb-1 mt-3">
-                                        <div class="col-12"><label class="mb-0 fw-bold small text-dark">Status</label></div>
-                                        <div class="col-12">
-                                            <select class="form-select form-select-sm bg-white" v-model="form.status">
-                                                <option value="Pending">Pending</option>
-                                                <option value="In Transit">In Transit</option>
-                                                <option value="Delivered">Delivered</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Right Column: Freight & Totals -->
-                                <div class="col-md-4">
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Total Freight</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-light fw-bold" v-model="form.freight" readonly></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">BILTY CHARGE</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.bilty_charge" @input="calculateFinalTotal"></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">SURCHARGE</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.surcharge" @input="calculateFinalTotal"></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">HANDLING CH.</label></div>
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Handling Charge</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.handling_charge" @input="calculateFinalTotal"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">RISK/DD</label></div>
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Risk/Door Delivery</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.risk_dd_charge" @input="calculateFinalTotal"></div>
                                     </div>
                                     <div class="mb-2 dynamic-grid">
@@ -355,19 +340,21 @@
                                             </div>
                                         </div>
                                     </div>
+
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Less Adv.Rec</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.less_advance_received" @input="calculateFinalTotal"></div>
-                                    </div>
-                                    <!-- <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">GST Amount</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-light" :value="gstAmount" readonly></div>
-                                    </div> -->
+                                    </div>
+
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Less Advance Received</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.less_advance_received" @input="calculateFinalTotal"></div>
+                                    </div>
 
                                     <hr class="my-2 border-secondary">
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold text-danger">TOTAL AMOUNT</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm border-danger bg-white fw-bold text-danger" v-model="form.amount" readonly></div>
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold">TOTAL AMOUNT</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white fw-bold" v-model="form.amount" readonly></div>
                                     </div>
                                 </div>
                             </div>
@@ -376,7 +363,7 @@
                         <!-- Action Buttons (Bottom Bar) -->
                         <div class="card-footer bg-light d-flex justify-content-center gap-2 border-top-0 pt-3 pb-3">
                             <Link href="/bilties" class="btn btn-outline-secondary px-4"><i class="fas fa-times me-1"></i> Exit</Link>
-                            <button type="submit" class="btn btn-warning px-5 fw-bold shadow-sm" :disabled="form.processing">
+                            <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm" :disabled="form.processing">
                                 <i class="fas fa-save me-1"></i> Update
                             </button>
                         </div>
@@ -687,14 +674,15 @@ const calculateFinalTotal = () => {
         parseFloat(form.handling_charge || 0) +
         parseFloat(form.risk_dd_charge || 0) +
         parseFloat(form.cartage || 0) +
-        totalAddonCharges() -
-        parseFloat(form.less_advance_received || 0);
+        totalAddonCharges();
 
     const gstRate = form.gst_liability_by === 'Exempted' ? 0 : (parseFloat(form.gst) || 0);
     const gstValue = subtotal * (gstRate / 100);
 
     gstAmount.value = gstValue.toFixed(2);
-    form.amount = (subtotal + gstValue).toFixed(2);
+
+    const lessAdvanceReceived = parseFloat(form.less_advance_received || 0);
+    form.amount = (subtotal + gstValue - lessAdvanceReceived).toFixed(2);
 };
 
 const submit = () => {

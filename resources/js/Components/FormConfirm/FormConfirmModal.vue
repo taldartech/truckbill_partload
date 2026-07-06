@@ -5,7 +5,7 @@
                 <div class="form-confirm-header">
                     <div class="d-flex align-items-center gap-2">
                         <i class="fas fa-clipboard-check"></i>
-                        <h6 class="m-0 fw-bold">{{ title }}</h6>
+                        <h3 class="m-0 fw-bold">{{ title }}</h3>
                     </div>
                     <button type="button" class="form-confirm-close" @click="$emit('cancel')" aria-label="Close">
                         <i class="fas fa-times"></i>
@@ -63,8 +63,8 @@ defineEmits(['cancel', 'confirm']);
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1rem;
-    background: #27ae60;
-    color: #fff;
+    background: var(--brand-gradient);
+    color: #fff !important  ;
 }
 
 .form-confirm-close {
