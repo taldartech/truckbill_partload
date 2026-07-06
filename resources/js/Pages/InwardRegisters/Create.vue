@@ -206,7 +206,7 @@
                                             <td class="text-center align-middle">{{ detail.no_of_packages || 0 }}</td>
                                             <td class="text-center align-middle">{{ detail.weight || 0 }}</td>
                                             <td class="text-center align-middle">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" @click.stop="deleteRow(index)">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click.stop="deleteRow(index)">
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </td>

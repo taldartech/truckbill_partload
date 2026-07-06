@@ -34,7 +34,7 @@
                                     <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
                                 </div>
                             </div>
-                            
+
                             <!-- HEADER ROW 2 -->
                             <div class="row align-items-center mb-2 mt-2">
                                 <div class="col-md-4 d-flex align-items-center">
@@ -122,7 +122,7 @@
                                             <td class="align-middle text-center">{{ detail.bob || '--' }}</td>
                                             <td class="align-middle text-center">{{ detail.row_type === 'bilty' ? 'Booking' : 'Crossing' }}</td>
                                             <td class="text-center align-middle">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeRow(index)" v-if="form.details.length > 1">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)" v-if="form.details.length > 1">
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </td>
@@ -246,7 +246,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Remark Section -->
                             <div class="row m-0 p-2 border-top border-dark">
                                 <div class="col-md-12 d-flex align-items-center">

@@ -47,7 +47,7 @@
                                     <div v-if="form.errors.driver_id" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.driver_id }}</div>
                                 </div>
                             </div>
-                            
+
                             <div class="row align-items-start mb-2">
                                 <div class="col-md-6">
                                     <div class="d-flex align-items-center">
@@ -78,7 +78,7 @@
                                     <div v-if="form.errors.to_station_id" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.to_station_id }}</div>
                                 </div>
                             </div>
-                            
+
                             <!-- Fetch Bilties by Destination Station -->
                             <div class="row align-items-center mt-3 mb-1">
                                 <div class="col-md-6 d-flex align-items-center">
@@ -137,7 +137,7 @@
                                                 <input type="number" step="0.01" class="form-control form-control-sm text-center" v-model="detail.gross_weight" readonly>
                                             </td>
                                             <td class="text-center align-middle">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeRow(index)" v-if="form.details.length > 1">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)" v-if="form.details.length > 1">
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </td>
@@ -160,7 +160,7 @@
                             <div class="row align-items-center mb-1">
                                 <div class="col-md-2 text-end"><label class="mb-0 fw-bold small text-dark">Total Packages</label></div>
                                 <div class="col-md-2"><input type="number" class="form-control form-control-sm" :value="totalPackages" readonly></div>
-                                
+
                                 <div class="col-md-2 text-end"><label class="mb-0 fw-bold small text-dark">Total Weight</label></div>
                                 <div class="col-md-2"><input type="number" step="0.01" class="form-control form-control-sm" :value="totalWeight" readonly></div>
                             </div>
@@ -228,7 +228,7 @@ const form = useForm({
     driver_id: '',
     date: new Date().toISOString().substr(0, 10),
     remark: '',
-    
+
     // Details Grid
     details: [
         { bilty_id: '', good_id: '', package_type_id: '', consignee_id: '', consignee_name: '', goods_name: '', no_of_packages: '', gross_weight: '' }
@@ -249,24 +249,24 @@ const fetchBiltiesByStation = () => {
         fetch_station_id.value = '';
         return false;
     }
-    
+
     if (form.details.length === 1 && !form.details[0].bilty_id) {
         form.details.splice(0, 1);
     }
-    
+
     let addedCount = 0;
     matchingBilties.forEach(bilty => {
         if (form.details.some(d => d.bilty_id === bilty.id)) return;
-        
+
         form.details.push({ bilty_id: bilty.id, good_id: '', package_type_id: '', consignee_id: '', consignee_name: '', goods_name: '', no_of_packages: '', gross_weight: '' });
         fetchBiltyDetails(form.details.length - 1);
         addedCount++;
     });
-    
+
     if (form.details.length === 0) {
         addRow();
     }
-    
+
     if (addedCount > 0) {
         return true;
     } else {
@@ -313,7 +313,7 @@ const fetchBiltyDetails = (index) => {
     if (selectedBilty) {
         row.consignee_id = selectedBilty.consignee_id;
         row.consignee_name = selectedBilty.consignee ? selectedBilty.consignee.name : 'Unknown';
-        
+
         // Use the first detail for simplicity, or aggregate
         if(selectedBilty.bilty_details && selectedBilty.bilty_details.length > 0) {
             const bDetail = selectedBilty.bilty_details[0];
@@ -321,8 +321,8 @@ const fetchBiltyDetails = (index) => {
             row.package_type_id = bDetail.package_type_id;
             // You might need a relation lookup for the actual good name, but let's assume we can fetch it or just display ID for now.
             // For a robust system, we would pass Goods to this view as well. Let's just use raw weight/packages.
-            row.goods_name = 'Good ID: ' + bDetail.good_id; 
-            
+            row.goods_name = 'Good ID: ' + bDetail.good_id;
+
             // Calculate total packages and weight from this bilty
             let sumPkg = 0;
             let sumWt = 0;

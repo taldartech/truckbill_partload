@@ -160,7 +160,7 @@
                                                 {{ detail.amount || '0.00' }}
                                             </td>
                                             <td class="text-center align-middle">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeRow(index)" v-if="form.details.length > 1">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)" v-if="form.details.length > 1">
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </td>
@@ -252,7 +252,7 @@
                                         </div>
                                         <div v-for="(eway, index) in form.eway_bills" :key="eway.id ?? `new-${index}`" class="row mb-1 align-items-center dynamic-row">
                                             <div class="col-1 text-end">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeEwayBill(index)">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeEwayBill(index)">
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </div>
@@ -328,7 +328,7 @@
                                         </div>
                                         <div v-for="(charge, index) in form.addon_charges" :key="index" class="row mb-1 align-items-center dynamic-row">
                                             <div class="col-1 text-end">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeAddonCharge(index)">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeAddonCharge(index)">
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </div>
