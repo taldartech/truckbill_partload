@@ -95,7 +95,7 @@
                         <!-- Mid Section: Goods Grid -->
                         <div class="card-body p-0 border-bottom">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-sm m-0 table-grid">
+                                <table class="table table-bordered table-sm m-0 table-grid" data-dynamic-add-message="Do you want to add another item?">
                                     <thead class="bg-light">
                                         <tr>
                                             <th width="5%" class="text-center">Sr.No.</th>
@@ -241,7 +241,7 @@
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Invoice No. <span class="text-muted fw-normal">(Optional)</span></label></div>
                                         <div class="col-7"><input type="text" class="form-control form-control-sm bg-white" v-model="form.invoice_number" data-dynamic-grid-trigger="eway"></div>
                                     </div>
-                                    <div class="mb-2 dynamic-grid" data-dynamic-grid="eway">
+                                    <div class="mb-2 dynamic-grid" data-dynamic-grid="eway" data-dynamic-add-message="Do you want to add another e-way bill?">
                                         <div class="row align-items-center mb-1">
                                             <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-Way Bills</label></div>
                                             <div class="col-7 text-end">
@@ -317,7 +317,7 @@
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Risk/Door Delivery</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.risk_dd_charge" @input="calculateFinalTotal" data-dynamic-grid-trigger="addon"></div>
                                     </div>
-                                    <div class="mb-2 dynamic-grid" data-dynamic-grid="addon">
+                                    <div class="mb-2 dynamic-grid" data-dynamic-grid="addon" data-dynamic-add-message="Do you want to add another addon charge?">
                                         <div class="row align-items-center mb-1">
                                             <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Addon Charges</label></div>
                                             <div class="col-6 text-end">

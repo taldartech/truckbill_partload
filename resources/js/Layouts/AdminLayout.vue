@@ -139,6 +139,12 @@ import Footer from '@/Components/Footer.vue';
 import SubscriptionAccessBanner from '@/Components/Subscription/SubscriptionAccessBanner.vue';
 import KeyboardConfirmModal from '@/Components/KeyboardConfirmModal.vue';
 import { askKeyboardConfirm, isKeyboardConfirmOpen } from '@/composables/useKeyboardConfirm';
+import {
+    findAddRowButton,
+    getRowsWithInputs,
+    getVisibleRowInputs,
+    resolveAddMoreMessage,
+} from '@/utils/dynamicGrid';
 
 defineProps({
     title: {
@@ -174,39 +180,9 @@ const navigateTo = (url) => {
     }
 };
 
-const ADD_MORE_DETAILS_MESSAGE = 'Do you want to add more details?';
-
-const getVisibleRowInputs = (row) => {
-    return Array.from(
-        row.querySelectorAll('input:not([type="hidden"]):not([disabled]), select:not([disabled])')
-    ).filter(el => {
-        const style = window.getComputedStyle(el);
-        return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0;
-    });
-};
-
-const getRowsWithInputs = (container) => {
-    return Array.from(container.querySelectorAll('tr, .dynamic-row')).filter(row => getVisibleRowInputs(row).length > 0);
-};
-
-const findAddRowButton = (container) => {
-    return container.querySelector('[data-dynamic-add]') ||
-        Array.from(container.querySelectorAll('button, a')).find(btn => {
-            const text = btn.textContent.toLowerCase().trim();
-            return text.includes('add row') || text.includes('add bilty') || text.includes('add e-way') ||
-                text.includes('add eway') || text.includes('add addon') || text.includes('add charge') || text === 'add';
-        });
-};
-
-const focusFirstInputInLastRow = (container) => {
-    const rows = getRowsWithInputs(container);
-    if (rows.length === 0) return;
-    const inputs = getVisibleRowInputs(rows[rows.length - 1]);
-    if (inputs.length > 0) inputs[0].focus();
-};
-
 const promptAddDynamicRow = async (container, addBtn, activeEl) => {
-    const yes = await askKeyboardConfirm(ADD_MORE_DETAILS_MESSAGE, {
+    const message = resolveAddMoreMessage(container, addBtn, activeEl);
+    const yes = await askKeyboardConfirm(message, {
         from: activeEl,
         skipContainer: container,
     });
@@ -217,6 +193,13 @@ const promptAddDynamicRow = async (container, addBtn, activeEl) => {
     }
 
     return true;
+};
+
+const focusFirstInputInLastRow = (container) => {
+    const rows = getRowsWithInputs(container);
+    if (rows.length === 0) return;
+    const inputs = getVisibleRowInputs(rows[rows.length - 1]);
+    if (inputs.length > 0) inputs[0].focus();
 };
 
 const handleEnterAsTab = async (event) => {
@@ -264,7 +247,7 @@ const handleEnterAsTab = async (event) => {
             const isLastRow = allRowsWithInputs.indexOf(tr) === allRowsWithInputs.length - 1;
 
             if (isLastRow) {
-                const addRowBtn = findAddRowButton(table);
+                const addRowBtn = findAddRowButton(table, tr);
                 if (addRowBtn) {
                     await promptAddDynamicRow(table, addRowBtn, activeEl);
                     return;

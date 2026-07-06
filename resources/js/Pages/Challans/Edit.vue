@@ -93,7 +93,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="(detail, index) in form.details" :key="index" :data-detail-index="index" class="bg-white">
+                                        <tr v-for="(detail, index) in form.details" :key="index" :data-detail-index="index" :data-detail-row-type="detail.row_type" class="bg-white">
                                             <td class="text-center align-middle">{{ index + 1 }}</td>
                                             <td>
                                                 <template v-if="detail.row_type === 'bilty'">
@@ -144,10 +144,10 @@
                                         </tr>
                                         <tr>
                                             <td colspan="10" class="bg-light p-1 text-center">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 me-1" @click="addBiltyRow">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 me-1" data-dynamic-add data-dynamic-add-for="bilty" data-dynamic-add-message="Do you want to add another bilty?" @click="addBiltyRow">
                                                     <i class="fas fa-plus"></i> Add Bilty
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addInwardRow">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" data-dynamic-add data-dynamic-add-for="inward" data-dynamic-add-message="Do you want to add another inward entry?" @click="addInwardRow">
                                                     <i class="fas fa-plus"></i> Add Inward
                                                 </button>
                                                 <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>

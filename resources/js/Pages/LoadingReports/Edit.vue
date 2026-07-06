@@ -99,7 +99,7 @@
                         <!-- Grid Section: Loaded Bilties -->
                         <div class="card-body p-0 border-bottom">
                             <div class="table-responsive" style="min-height: 200px;">
-                                <table class="table table-bordered table-sm m-0 table-grid">
+                                <table class="table table-bordered table-sm m-0 table-grid" data-dynamic-add-message="Do you want to add another bilty?">
                                     <thead class="bg-light">
                                         <tr>
                                             <th width="5%" class="text-center">Sr.No.</th>
@@ -148,7 +148,7 @@
                                         </tr>
                                         <tr>
                                             <td colspan="7" class="bg-light p-1 text-center">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addRow">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" data-dynamic-add data-dynamic-add-message="Do you want to add another bilty?" @click="addRow">
                                                     <i class="fas fa-plus"></i> Add Bilty
                                                 </button>
                                                 <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
