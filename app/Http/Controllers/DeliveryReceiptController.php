@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DeliveryReceipt;
 use App\Models\Party;
+use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -11,6 +12,8 @@ use Inertia\Inertia;
 
 class DeliveryReceiptController extends Controller implements HasMiddleware
 {
+    use RedirectsWithOptionalPrint;
+
     public static function middleware(): array
     {
         return [
@@ -65,9 +68,15 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'cartage_charge' => 'nullable|numeric|min:0',
         ]);
 
-        DeliveryReceipt::create($validated);
+        $receipt = DeliveryReceipt::create($validated);
 
-        return redirect()->route('delivery-receipts.index')->with('success', 'Delivery Receipt created successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'delivery-receipts.index',
+            'delivery-receipts.print',
+            $receipt,
+            'Delivery Receipt created successfully.',
+        );
     }
 
     public function edit(DeliveryReceipt $deliveryReceipt)
@@ -107,7 +116,13 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
 
         $deliveryReceipt->update($validated);
 
-        return redirect()->route('delivery-receipts.index')->with('success', 'Delivery Receipt updated successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'delivery-receipts.index',
+            'delivery-receipts.print',
+            $deliveryReceipt,
+            'Delivery Receipt updated successfully.',
+        );
     }
 
     public function destroy(DeliveryReceipt $deliveryReceipt)

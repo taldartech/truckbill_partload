@@ -1,5 +1,12 @@
 <template>
-    <FormConfirmModal :show="show" title="Confirm Inward Register" @cancel="$emit('cancel')" @confirm="$emit('confirm')">
+    <FormConfirmModal
+        :show="show"
+        title="Confirm Inward Register"
+        :show-print-button="false"
+        @cancel="$emit('cancel')"
+        @confirm="$emit('confirm')"
+        @confirm-print="$emit('confirm-print')"
+    >
         <div class="confirm-section-title">Register Details</div>
         <div class="row g-2 mb-3">
             <div class="col-6 col-md-3">
@@ -96,5 +103,5 @@ defineProps({
     },
 });
 
-defineEmits(['cancel', 'confirm']);
+defineEmits(['cancel', 'confirm', 'confirm-print']);
 </script>

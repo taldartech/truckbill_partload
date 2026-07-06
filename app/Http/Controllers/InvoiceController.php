@@ -14,10 +14,13 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Support\RedirectsWithOptionalPrint;
 use Inertia\Inertia;
 
 class InvoiceController extends Controller implements HasMiddleware
 {
+    use RedirectsWithOptionalPrint;
+
     public static function middleware(): array
     {
         return [
@@ -235,7 +238,7 @@ class InvoiceController extends Controller implements HasMiddleware
         $gstAmount = round(collect($preparedBilties)->sum('gst_amount'), 2);
         $netAmount = round(collect($preparedBilties)->sum('amount'), 2);
 
-        DB::transaction(function () use ($validated, $preparedBilties, $invoiceNo, $totalAmount, $gstAmount, $netAmount) {
+        $invoice = DB::transaction(function () use ($validated, $preparedBilties, $invoiceNo, $totalAmount, $gstAmount, $netAmount) {
             $invoice = Invoice::create([
                 'invoice_no' => $invoiceNo,
                 'date' => $validated['date'],
@@ -262,9 +265,17 @@ class InvoiceController extends Controller implements HasMiddleware
                     'amount' => $item['amount'],
                 ]);
             }
+
+            return $invoice;
         });
 
-        return redirect()->route('invoices.index')->with('success', 'Invoice created successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'invoices.index',
+            'invoices.print',
+            $invoice,
+            'Invoice created successfully.',
+        );
     }
 
     public function show(Invoice $invoice)
@@ -492,7 +503,13 @@ class InvoiceController extends Controller implements HasMiddleware
             ]);
         });
 
-        return redirect()->route('invoices.index')->with('success', 'Invoice updated successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'invoices.index',
+            'invoices.print',
+            $invoice,
+            'Invoice updated successfully.',
+        );
     }
 
     public function destroy(Invoice $invoice)

@@ -388,6 +388,7 @@
             :vendors="vendors"
             @cancel="closeConfirm"
             @confirm="confirmSave"
+            @confirm-print="confirmSaveAndPrint"
         />
     </AdminLayout>
 </template>
@@ -398,6 +399,7 @@ import SelectWithActions from '@/Components/SelectWithActions.vue';
 import BiltyEntityModals from '@/Components/Bilty/BiltyEntityModals.vue';
 import BiltyConfirmModal from '@/Components/FormConfirm/BiltyConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
+import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { watch, ref, onMounted, computed } from 'vue';
@@ -689,9 +691,17 @@ const submit = () => {
     openConfirm();
 };
 
-const confirmSave = () => {
-    confirmAndRun(() => form.put(`/bilties/${props.bilty.id}`));
+const biltyPrintUrl = `/bilties/${props.bilty.id}/print`;
+
+const submitBilty = (printAfterSave = false) => {
+    confirmAndRun(() => {
+        form.transform((data) => withPrintFlag(data, printAfterSave))
+            .put(`/bilties/${props.bilty.id}`, withPrintAfterSave(printAfterSave, biltyPrintUrl));
+    });
 };
+
+const confirmSave = () => submitBilty(false);
+const confirmSaveAndPrint = () => submitBilty(true);
 
 const detailError = (index, field) => form.errors[`details.${index}.${field}`];
 </script>

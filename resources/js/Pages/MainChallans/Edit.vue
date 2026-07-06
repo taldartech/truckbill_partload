@@ -253,6 +253,7 @@
             :totals="confirmTotals"
             @cancel="closeConfirm"
             @confirm="confirmSave"
+            @confirm-print="confirmSaveAndPrint"
         />
     </AdminLayout>
 </template>
@@ -261,6 +262,7 @@
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import MainChallanConfirmModal from '@/Components/FormConfirm/MainChallanConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
+import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref, watch, onMounted } from 'vue';
@@ -492,11 +494,17 @@ const submit = () => {
     openConfirm();
 };
 
-const confirmSave = () => {
+const mainChallanPrintUrl = `/main-challans/${props.main_challan.id}/print`;
+
+const submitMainChallan = (printAfterSave = false) => {
     confirmAndRun(() => {
         syncTotals();
         form.total_amount = parseFloat(form.total_amount);
-        form.put('/main-challans/' + props.main_challan.id);
+        form.transform((data) => withPrintFlag(data, printAfterSave))
+            .put('/main-challans/' + props.main_challan.id, withPrintAfterSave(printAfterSave, mainChallanPrintUrl));
     });
 };
+
+const confirmSave = () => submitMainChallan(false);
+const confirmSaveAndPrint = () => submitMainChallan(true);
 </script>

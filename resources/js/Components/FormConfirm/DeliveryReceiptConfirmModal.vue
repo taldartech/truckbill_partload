@@ -1,5 +1,12 @@
 <template>
-    <FormConfirmModal :show="show" title="Confirm Delivery Receipt" @cancel="$emit('cancel')" @confirm="$emit('confirm')">
+    <FormConfirmModal
+        :show="show"
+        title="Confirm Delivery Receipt"
+        :show-print-button="showPrintButton"
+        @cancel="$emit('cancel')"
+        @confirm="$emit('confirm')"
+        @confirm-print="$emit('confirm-print')"
+    >
         <div class="confirm-section-title">Receipt Details</div>
         <div class="row g-2 mb-3">
             <div class="col-6 col-md-3">
@@ -53,9 +60,10 @@ import { formatConfirmDate, formatConfirmMoney, lookupLabel } from '@/utils/form
 
 defineProps({
     show: { type: Boolean, default: false },
+    showPrintButton: { type: Boolean, default: true },
     form: { type: Object, required: true },
     parties: { type: Array, default: () => [] },
 });
 
-defineEmits(['cancel', 'confirm']);
+defineEmits(['cancel', 'confirm', 'confirm-print']);
 </script>

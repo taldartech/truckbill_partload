@@ -12,6 +12,7 @@ use App\Models\Good;
 use App\Models\PackageType;
 use App\Models\Agent;
 use App\Support\BiltyPrint;
+use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -20,6 +21,8 @@ use Inertia\Inertia;
 
 class BiltyController extends Controller implements HasMiddleware
 {
+    use RedirectsWithOptionalPrint;
+
     public static function middleware(): array
     {
         return [
@@ -66,7 +69,7 @@ class BiltyController extends Controller implements HasMiddleware
         $validated['status'] = $validated['status'] ?? 'Pending';
         $validated['created_by'] = auth()->id();
 
-        DB::transaction(function () use ($validated) {
+        $bilty = DB::transaction(function () use ($validated) {
             $details = $validated['details'] ?? [];
             $ewayBills = $validated['eway_bills'] ?? [];
             unset($validated['details'], $validated['eway_bills'], $validated['eway_bill_no'], $validated['eway_bill_expiry_date']);
@@ -88,9 +91,17 @@ class BiltyController extends Controller implements HasMiddleware
             }
 
             $this->syncEwayBills($bilty, $ewayBills);
+
+            return $bilty;
         });
 
-        return redirect()->route('bilties.index')->with('success', 'Bilty created successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'bilties.index',
+            'bilties.print',
+            $bilty,
+            'Bilty created successfully.',
+        );
     }
 
     public function edit(Bilty $bilty)
@@ -139,7 +150,13 @@ class BiltyController extends Controller implements HasMiddleware
             $this->syncEwayBills($bilty, $ewayBills);
         });
 
-        return redirect()->route('bilties.index')->with('success', 'Bilty updated successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'bilties.index',
+            'bilties.print',
+            $bilty,
+            'Bilty updated successfully.',
+        );
     }
 
     public function destroy(Bilty $bilty)

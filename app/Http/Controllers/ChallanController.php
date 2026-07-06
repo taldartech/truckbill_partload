@@ -10,6 +10,7 @@ use App\Models\Station;
 use App\Models\Driver;
 use App\Models\Truck;
 use App\Models\Agent;
+use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -19,6 +20,8 @@ use Inertia\Inertia;
 
 class ChallanController extends Controller implements HasMiddleware
 {
+    use RedirectsWithOptionalPrint;
+
     public static function middleware(): array
     {
         return [
@@ -100,12 +103,20 @@ class ChallanController extends Controller implements HasMiddleware
         $this->validateChallanDetails($details);
         $this->syncChallanAgentFields($validated);
 
-        DB::transaction(function () use ($validated, $details) {
+        $challan = DB::transaction(function () use ($validated, $details) {
             $challan = Challan::create($validated);
             $this->syncChallanDetails($challan, $details);
+
+            return $challan;
         });
 
-        return redirect()->route('challans.index')->with('success', 'Challan created successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'challans.index',
+            'challans.print',
+            $challan,
+            'Challan created successfully.',
+        );
     }
 
     public function edit(Challan $challan)
@@ -177,7 +188,13 @@ class ChallanController extends Controller implements HasMiddleware
             $this->syncChallanDetails($challan, $details);
         });
 
-        return redirect()->route('challans.index')->with('success', 'Challan updated successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'challans.index',
+            'challans.print',
+            $challan,
+            'Challan updated successfully.',
+        );
     }
 
     public function destroy(Challan $challan)

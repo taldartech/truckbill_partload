@@ -195,6 +195,7 @@
             :totals="confirmTotals"
             @cancel="closeConfirm"
             @confirm="confirmSave"
+            @confirm-print="confirmSaveAndPrint"
         />
     </AdminLayout>
 </template>
@@ -203,6 +204,7 @@
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import LoadingReportConfirmModal from '@/Components/FormConfirm/LoadingReportConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
+import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref, nextTick } from 'vue';
@@ -384,9 +386,15 @@ const submit = () => {
     openConfirm();
 };
 
-const confirmSave = () => {
-    confirmAndRun(() => form.post('/loading-reports'));
+const submitLoadingReport = (printAfterSave = false) => {
+    confirmAndRun(() => {
+        form.transform((data) => withPrintFlag(data, printAfterSave))
+            .post('/loading-reports', withPrintAfterSave(printAfterSave));
+    });
 };
+
+const confirmSave = () => submitLoadingReport(false);
+const confirmSaveAndPrint = () => submitLoadingReport(true);
 </script>
 
 <style scoped>

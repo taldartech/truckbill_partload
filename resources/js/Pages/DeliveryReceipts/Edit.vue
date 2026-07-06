@@ -144,6 +144,7 @@
             :parties="parties"
             @cancel="closeConfirm"
             @confirm="confirmSave"
+            @confirm-print="confirmSaveAndPrint"
         />
     </AdminLayout>
 </template>
@@ -152,6 +153,7 @@
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import DeliveryReceiptConfirmModal from '@/Components/FormConfirm/DeliveryReceiptConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
+import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
@@ -209,7 +211,15 @@ const submit = () => {
     openConfirm();
 };
 
-const confirmSave = () => {
-    confirmAndRun(() => form.put(`/delivery-receipts/${props.receipt.id}`));
+const receiptPrintUrl = `/delivery-receipts/${props.receipt.id}/print`;
+
+const submitReceipt = (printAfterSave = false) => {
+    confirmAndRun(() => {
+        form.transform((data) => withPrintFlag(data, printAfterSave))
+            .put(`/delivery-receipts/${props.receipt.id}`, withPrintAfterSave(printAfterSave, receiptPrintUrl));
+    });
 };
+
+const confirmSave = () => submitReceipt(false);
+const confirmSaveAndPrint = () => submitReceipt(true);
 </script>

@@ -7,6 +7,7 @@ use App\Models\Station;
 use App\Models\Truck;
 use App\Models\Driver;
 use App\Models\Bilty;
+use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 
 class LoadingReportController extends Controller implements HasMiddleware
 {
+    use RedirectsWithOptionalPrint;
+
     public static function middleware(): array
     {
         return [
@@ -63,7 +66,7 @@ class LoadingReportController extends Controller implements HasMiddleware
             'details.*.gross_weight' => 'nullable|numeric'
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $report = DB::transaction(function () use ($validated) {
             $details = $validated['details'];
             unset($validated['details']);
 
@@ -79,9 +82,17 @@ class LoadingReportController extends Controller implements HasMiddleware
 
             // Update Truck Status
             Truck::where('id', $validated['truck_id'])->update(['status' => 'Booked']);
+
+            return $report;
         });
 
-        return redirect()->route('loading-reports.index')->with('success', 'Loading Report created successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'loading-reports.index',
+            'loading-reports.print',
+            $report,
+            'Loading Report created successfully.',
+        );
     }
 
     public function edit(LoadingReport $loadingReport)
@@ -130,7 +141,13 @@ class LoadingReportController extends Controller implements HasMiddleware
             }
         });
 
-        return redirect()->route('loading-reports.index')->with('success', 'Loading Report updated successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'loading-reports.index',
+            'loading-reports.print',
+            $loadingReport,
+            'Loading Report updated successfully.',
+        );
     }
 
     public function destroy(LoadingReport $loadingReport)

@@ -211,6 +211,7 @@
             :breakdown="invoiceBreakdown"
             @cancel="closeConfirm"
             @confirm="confirmSave"
+            @confirm-print="confirmSaveAndPrint"
         />
     </AdminLayout>
 </template>
@@ -219,6 +220,7 @@
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import InvoiceConfirmModal from '@/Components/FormConfirm/InvoiceConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
+import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import http from '@/utils/http';
@@ -523,10 +525,14 @@ const submit = () => {
     openConfirm();
 };
 
-const confirmSave = () => {
+const submitInvoice = (printAfterSave = false) => {
     confirmAndRun(() => {
         prepareFreightPayload();
-        form.post('/invoices');
+        form.transform((data) => withPrintFlag(data, printAfterSave))
+            .post('/invoices', withPrintAfterSave(printAfterSave));
     });
 };
+
+const confirmSave = () => submitInvoice(false);
+const confirmSaveAndPrint = () => submitInvoice(true);
 </script>

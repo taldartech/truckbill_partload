@@ -7,6 +7,7 @@ use App\Models\Challan;
 use App\Models\Station;
 use App\Models\Driver;
 use App\Models\Truck;
+use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -15,6 +16,8 @@ use Inertia\Inertia;
 
 class MainChallanController extends Controller implements HasMiddleware
 {
+    use RedirectsWithOptionalPrint;
+
     public static function middleware(): array
     {
         return [
@@ -86,12 +89,20 @@ class MainChallanController extends Controller implements HasMiddleware
         $details = $validated['details'] ?? [];
         unset($validated['details']);
 
-        DB::transaction(function () use ($validated, $details) {
-            $main_challan = MainChallan::create($validated);
-            $this->syncMainChallanDetails($main_challan, $details);
+        $mainChallan = DB::transaction(function () use ($validated, $details) {
+            $mainChallan = MainChallan::create($validated);
+            $this->syncMainChallanDetails($mainChallan, $details);
+
+            return $mainChallan;
         });
 
-        return redirect()->route('main-challans.index')->with('success', 'Main Challan created successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'main-challans.index',
+            'main-challans.print',
+            $mainChallan,
+            'Main Challan created successfully.',
+        );
     }
 
     public function edit(MainChallan $main_challan)
@@ -151,7 +162,13 @@ class MainChallanController extends Controller implements HasMiddleware
             $this->syncMainChallanDetails($main_challan, $details);
         });
 
-        return redirect()->route('main-challans.index')->with('success', 'Main Challan updated successfully.');
+        return $this->indexRedirectWithOptionalPrint(
+            $request,
+            'main-challans.index',
+            'main-challans.print',
+            $main_challan,
+            'Main Challan updated successfully.',
+        );
     }
 
     public function destroy(MainChallan $main_challan)

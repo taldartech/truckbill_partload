@@ -277,6 +277,7 @@
             :totals="confirmTotals"
             @cancel="closeConfirm"
             @confirm="confirmSave"
+            @confirm-print="confirmSaveAndPrint"
         />
     </AdminLayout>
 </template>
@@ -285,6 +286,7 @@
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import ChallanConfirmModal from '@/Components/FormConfirm/ChallanConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
+import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref, watch, nextTick } from 'vue';
@@ -727,18 +729,24 @@ const submit = () => {
     openConfirm();
 };
 
-const confirmSave = () => {
+const challanPayload = (printAfterSave) => (data) => withPrintFlag({
+    ...data,
+    details: data.details
+        .filter((row) => row.bilty_id || row.inward_register_detail_id)
+        .map((row) => ({
+            row_type: row.row_type,
+            bilty_id: row.row_type === 'bilty' ? row.bilty_id : null,
+            inward_register_detail_id: row.row_type === 'inward' ? row.inward_register_detail_id : null,
+        })),
+}, printAfterSave);
+
+const submitChallan = (printAfterSave = false) => {
     confirmAndRun(() => {
-        form.transform((data) => ({
-            ...data,
-            details: data.details
-                .filter((row) => row.bilty_id || row.inward_register_detail_id)
-                .map((row) => ({
-                    row_type: row.row_type,
-                    bilty_id: row.row_type === 'bilty' ? row.bilty_id : null,
-                    inward_register_detail_id: row.row_type === 'inward' ? row.inward_register_detail_id : null,
-                })),
-        })).post('/challans');
+        form.transform(challanPayload(printAfterSave))
+            .post('/challans', withPrintAfterSave(printAfterSave));
     });
 };
+
+const confirmSave = () => submitChallan(false);
+const confirmSaveAndPrint = () => submitChallan(true);
 </script>

@@ -1,5 +1,12 @@
 <template>
-    <FormConfirmModal :show="show" title="Confirm Bilty" @cancel="$emit('cancel')" @confirm="$emit('confirm')">
+    <FormConfirmModal
+        :show="show"
+        title="Confirm Bilty"
+        :show-print-button="showPrintButton"
+        @cancel="$emit('cancel')"
+        @confirm="$emit('confirm')"
+        @confirm-print="$emit('confirm-print')"
+    >
         <div class="bilty-confirm">
             <div class="bilty-kv-grid mb-2">
                 <div class="bilty-kv"><span class="k">Bilty No.</span><span class="v fw-bold">{{ form.bilty_number || '—' }}</span></div>
@@ -98,9 +105,10 @@ const props = defineProps({
     goods: { type: Array, default: () => [] },
     packageTypes: { type: Array, default: () => [] },
     vendors: { type: Array, default: () => [] },
+    showPrintButton: { type: Boolean, default: true },
 });
 
-defineEmits(['cancel', 'confirm']);
+defineEmits(['cancel', 'confirm', 'confirm-print']);
 
 const partyGst = (partyId) => {
     const party = props.parties.find((item) => String(item.id) === String(partyId));

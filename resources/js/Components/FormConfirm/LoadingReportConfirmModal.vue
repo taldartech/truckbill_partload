@@ -1,5 +1,12 @@
 <template>
-    <FormConfirmModal :show="show" title="Confirm Loading Report" @cancel="$emit('cancel')" @confirm="$emit('confirm')">
+    <FormConfirmModal
+        :show="show"
+        title="Confirm Loading Report"
+        :show-print-button="showPrintButton"
+        @cancel="$emit('cancel')"
+        @confirm="$emit('confirm')"
+        @confirm-print="$emit('confirm-print')"
+    >
         <div class="confirm-section-title">Report Details</div>
         <div class="row g-2 mb-3">
             <div class="col-6 col-md-3">
@@ -65,6 +72,7 @@ import { formatConfirmDate, lookupLabel } from '@/utils/formConfirm';
 
 const props = defineProps({
     show: { type: Boolean, default: false },
+    showPrintButton: { type: Boolean, default: true },
     form: { type: Object, required: true },
     stations: { type: Array, default: () => [] },
     trucks: { type: Array, default: () => [] },
@@ -78,7 +86,7 @@ const props = defineProps({
     },
 });
 
-defineEmits(['cancel', 'confirm']);
+defineEmits(['cancel', 'confirm', 'confirm-print']);
 
 const activeRows = computed(() =>
     (props.form.details || []).filter((row) => row.bilty_id),

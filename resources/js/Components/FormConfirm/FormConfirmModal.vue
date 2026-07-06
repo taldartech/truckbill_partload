@@ -1,13 +1,18 @@
 <template>
     <Transition name="fade">
-        <div v-if="show" class="form-confirm-overlay" @click.self="$emit('cancel')">
-            <div class="form-confirm-card">
+        <div v-if="show" class="form-confirm-overlay" @click.self="onCancel">
+            <div
+                class="form-confirm-card"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="form-confirm-title"
+            >
                 <div class="form-confirm-header">
                     <div class="d-flex align-items-center gap-2">
                         <i class="fas fa-clipboard-check"></i>
-                        <h5 class="m-0 fw-bold text-white">{{ title }}</h5>
+                        <h5 id="form-confirm-title" class="m-0 fw-bold text-white">{{ title }}</h5>
                     </div>
-                    <button type="button" class="form-confirm-close" @click="$emit('cancel')" aria-label="Close">
+                    <button type="button" class="form-confirm-close" @click="onCancel" aria-label="Close">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -15,9 +20,35 @@
                     <slot />
                 </div>
                 <div class="form-confirm-footer">
-                    <button type="button" class="btn btn-sm btn-secondary px-3" @click="$emit('cancel')">Cancel</button>
-                    <button type="button" class="btn btn-sm btn-success px-4 fw-bold" @click="$emit('confirm')">
-                        <i class="fas fa-check-circle me-1"></i> Confirm & Save
+                    <button type="button" class="btn btn-sm btn-secondary px-3" @click="onCancel">
+                        Cancel
+                        <span class="form-confirm-kbd-group">
+                            <kbd>N</kbd>
+                            <kbd>Esc</kbd>
+                        </span>
+                    </button>
+                    <button
+                        v-if="showPrintButton"
+                        type="button"
+                        class="btn btn-sm btn-outline-info px-3 fw-bold"
+                        @click="onConfirmPrint"
+                    >
+                        <i class="fas fa-print me-1"></i> Save &amp; Print
+                        <span class="form-confirm-kbd-group">
+                            <kbd>P</kbd>
+                        </span>
+                    </button>
+                    <button
+                        ref="confirmButtonRef"
+                        type="button"
+                        class="btn btn-sm btn-success px-4 fw-bold"
+                        @click="onConfirm"
+                    >
+                        <i class="fas fa-check-circle me-1"></i> Confirm &amp; Save
+                        <span class="form-confirm-kbd-group">
+                            <kbd>Y</kbd>
+                            <kbd>Enter</kbd>
+                        </span>
                     </button>
                 </div>
             </div>
@@ -26,12 +57,77 @@
 </template>
 
 <script setup>
-defineProps({
+import { ref, watch, onUnmounted, nextTick } from 'vue';
+
+const props = defineProps({
     show: { type: Boolean, default: false },
     title: { type: String, default: 'Confirm Details' },
+    showPrintButton: { type: Boolean, default: true },
 });
 
-defineEmits(['cancel', 'confirm']);
+const emit = defineEmits(['cancel', 'confirm', 'confirm-print']);
+
+const confirmButtonRef = ref(null);
+
+const onCancel = () => emit('cancel');
+const onConfirm = () => emit('confirm');
+const onConfirmPrint = () => emit('confirm-print');
+
+const handleKeydown = (event) => {
+    if (!props.show) return;
+
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        onCancel();
+        return;
+    }
+
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        onConfirm();
+        return;
+    }
+
+    if (event.key === 'y' || event.key === 'Y') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        onConfirm();
+        return;
+    }
+
+    if ((event.key === 'p' || event.key === 'P') && props.showPrintButton) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        onConfirmPrint();
+        return;
+    }
+
+    if (event.key === 'n' || event.key === 'N') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        onCancel();
+    }
+};
+
+watch(() => props.show, (open) => {
+    document.body.style.overflow = open ? 'hidden' : '';
+
+    if (open) {
+        window.addEventListener('keydown', handleKeydown, true);
+        nextTick(() => confirmButtonRef.value?.focus());
+    } else {
+        window.removeEventListener('keydown', handleKeydown, true);
+    }
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown, true);
+    if (props.show) {
+        document.body.style.overflow = '';
+    }
+});
 </script>
 
 <style scoped>
@@ -82,10 +178,27 @@ defineEmits(['cancel', 'confirm']);
 .form-confirm-footer {
     display: flex;
     justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     background: #f8fafc;
+}
+
+.form-confirm-kbd-group {
+    display: inline-flex;
+    gap: 0.2rem;
+    margin-left: 0.35rem;
+    vertical-align: middle;
+}
+
+.form-confirm-kbd-group kbd {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.2rem;
+    background: rgba(0, 0, 0, 0.06);
+    color: inherit;
+    font-weight: 600;
 }
 
 :deep(.confirm-section-title) {
