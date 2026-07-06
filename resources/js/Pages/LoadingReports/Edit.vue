@@ -177,9 +177,6 @@
                         <!-- Action Buttons -->
                         <div class="card-footer bg-light d-flex justify-content-center gap-2 border-top-0 pt-3 pb-3">
                             <Link href="/loading-reports" class="btn btn-outline-secondary px-4"><i class="fas fa-times me-1"></i> Exit</Link>
-                            <a :href="`/loading-reports/${report.id}/print`" target="_blank" class="btn btn-outline-info px-4">
-                                <i class="fas fa-print me-1"></i> Print
-                            </a>
                             <button type="submit" class="btn btn-warning px-5 fw-bold shadow-sm" :disabled="form.processing">
                                 <i class="fas fa-save me-1"></i> Update
                             </button>

@@ -5,7 +5,7 @@
                 <div class="form-confirm-header">
                     <div class="d-flex align-items-center gap-2">
                         <i class="fas fa-clipboard-check"></i>
-                        <h3 class="m-0 fw-bold">{{ title }}</h3>
+                        <h5 class="m-0 fw-bold text-white">{{ title }}</h5>
                     </div>
                     <button type="button" class="form-confirm-close" @click="$emit('cancel')" aria-label="Close">
                         <i class="fas fa-times"></i>

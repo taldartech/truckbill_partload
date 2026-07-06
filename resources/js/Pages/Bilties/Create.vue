@@ -363,7 +363,6 @@
                         <!-- Action Buttons (Bottom Bar) -->
                         <div class="card-footer bg-light d-flex justify-content-center gap-2 border-top-0 pt-3 pb-3">
                             <Link href="/bilties" class="btn btn-outline-secondary px-4"><i class="fas fa-times me-1"></i> Exit</Link>
-                            <button type="button" class="btn btn-outline-info px-4" @click="form.reset()"><i class="fas fa-eraser me-1"></i> Clear</button>
                             <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm" :disabled="form.processing">
                                 <i class="fas fa-save me-1"></i> Save
                             </button>

@@ -4,95 +4,103 @@
             <div class="col-md-12 mx-auto">
                 <div class="card ops-form-card">
                     <div class="card-header">
-                        <h3 class="card-title mb-0">CHALLAN Add/New</h3>
+                        <h3 class="card-title">Challan</h3>
                     </div>
 
                     <form @submit.prevent="submit" class="bilty-form">
-                        <!-- HEADER ROW 1 -->
-                        <div class="card-body pt-3 pb-2 border-bottom bg-light">
+                        <!-- Top Section: Core Details -->
+                        <div class="card-body pt-3 pb-2 border-bottom">
                             <div class="row align-items-center mb-2">
                                 <div class="col-md-3 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark text-nowrap" style="min-width: 90px;">Challan No.</label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.challan_number">
-                                </div>
-                                <div class="col-md-3 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 60px;">Date</label>
-                                    <input type="date" class="form-control form-control-sm" v-model="form.date">
-                                </div>
-                                <div class="col-md-3 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark text-nowrap" style="min-width: 60px;">From <span class="text-danger">*</span></label>
-                                    <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="form.from_station_id" :options="stations" placeholder="Select Station" />
+                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Challan No.</label>
+                                    <div class="w-100">
+                                        <input type="text" class="form-control form-control-sm" v-model="form.challan_number">
                                     </div>
-                                    <div v-if="form.errors.from_station_id" class="text-danger small mt-1">{{ form.errors.from_station_id }}</div>
                                 </div>
                                 <div class="col-md-3 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark text-nowrap" style="min-width: 60px;">To <span class="text-danger">*</span></label>
-                                    <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="form.to_station_id" :options="stations" placeholder="Select Station" />
+                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Date</label>
+                                    <div class="w-100">
+                                        <input type="date" class="form-control form-control-sm" v-model="form.date">
                                     </div>
-                                    <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
                                 </div>
                             </div>
 
-                            <!-- HEADER ROW 2 -->
-                            <div class="row align-items-center mb-2 mt-2">
+                            <div class="row align-items-center mb-2">
+                                <div class="col-md-6 d-flex align-items-center">
+                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">From St.</label>
+                                    <div class="flex-grow-1">
+                                        <SearchableSelect :small="true" v-model="form.from_station_id" :options="stations" placeholder="Select Station" />
+                                    </div>
+                                    <div v-if="form.errors.from_station_id" class="text-danger small ms-2">{{ form.errors.from_station_id }}</div>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-center">
+                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">To St.</label>
+                                    <div class="flex-grow-1">
+                                        <SearchableSelect :small="true" v-model="form.to_station_id" :options="stations" placeholder="Select Station" />
+                                    </div>
+                                    <div v-if="form.errors.to_station_id" class="text-danger small ms-2">{{ form.errors.to_station_id }}</div>
+                                </div>
+                            </div>
+
+                            <div class="row align-items-center mb-2">
                                 <div class="col-md-4 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-primary text-nowrap" style="min-width: 90px;">Add For</label>
+                                    <label class="me-2 mb-0 fw-bold text-primary" style="min-width: 85px;">Add For</label>
                                     <div class="flex-grow-1">
                                         <SearchableSelect
                                             ref="fetchStationSelect"
                                             :small="true"
                                             v-model="fetch_station_id"
                                             :options="destinationStationOptions"
-                                            placeholder="Station Wise"
+                                            placeholder="Select Station"
+                                            open-on-enter
                                             @change="onFetchStationChange"
                                         />
                                     </div>
                                 </div>
                                 <div class="col-md-4 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark text-nowrap" style="min-width: 90px;">Driver Name <span class="text-danger">*</span></label>
+                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Driver</label>
                                     <div class="flex-grow-1">
                                         <SearchableSelect :small="true" v-model="form.driver_id" :options="drivers" placeholder="Select Driver" />
                                     </div>
-                                    <div v-if="form.errors.driver_id" class="text-danger small mt-1">{{ form.errors.driver_id }}</div>
+                                    <div v-if="form.errors.driver_id" class="text-danger small ms-2">{{ form.errors.driver_id }}</div>
                                 </div>
                                 <div class="col-md-4 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark text-nowrap" style="min-width: 90px;">Truck No. <span class="text-danger">*</span></label>
+                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Truck No.</label>
                                     <div class="flex-grow-1">
                                         <SearchableSelect :small="true" v-model="form.truck_id" :options="trucks" labelKey="truck_number" placeholder="Select Truck" />
                                     </div>
-                                    <div v-if="form.errors.truck_id" class="text-danger small mt-1">{{ form.errors.truck_id }}</div>
+                                    <div v-if="form.errors.truck_id" class="text-danger small ms-2">{{ form.errors.truck_id }}</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- GRID SECTION -->
-                        <div class="card-body p-0 border-bottom bg-white">
-                            <div class="table-responsive" style="min-height: 250px;">
-                                <table class="table table-bordered table-sm m-0 table-grid ops-form-table">
-                                    <thead>
+                        <!-- Mid Section: Details Grid -->
+                        <div class="card-body p-0 border-bottom">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm m-0 table-grid">
+                                    <thead class="bg-light">
                                         <tr>
-                                            <th width="4%" class="text-center">Sr.No.</th>
+                                            <th width="5%" class="text-center">Sr.No.</th>
                                             <th width="15%">GR/Bilty No.<span class="text-danger">*</span></th>
-                                            <th width="15%">Station(To)</th>
+                                            <th width="14%">Station(To)</th>
                                             <th width="8%" class="text-center">Nugs</th>
                                             <th width="8%" class="text-center">Weight</th>
-                                            <th width="15%">Goods Name</th>
-                                            <th width="10%" class="text-end">Freight</th>
+                                            <th width="14%">Goods Name</th>
+                                            <th width="10%" class="text-center">Freight</th>
                                             <th width="10%" class="text-center">B.O.B.</th>
                                             <th width="10%" class="text-center">Type</th>
-                                            <th width="5%" class="text-center"><i class="fas fa-cog"></i></th>
+                                            <th width="6%" class="text-center"><i class="fas fa-cog"></i></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="(detail, index) in form.details" :key="index" :data-detail-index="index" :class="index % 2 === 0 ? 'bg-light' : 'bg-white'">
+                                        <tr v-for="(detail, index) in form.details" :key="index" :data-detail-index="index" class="bg-white">
                                             <td class="text-center align-middle">{{ index + 1 }}</td>
                                             <td>
                                                 <template v-if="detail.row_type === 'bilty'">
                                                     <SearchableSelect
                                                         v-if="!detail.bilty_id"
                                                         :small="true"
+                                                        :open-on-focus="false"
                                                         @change="fetchBiltyDetails(index)"
                                                         v-model="detail.bilty_id"
                                                         :options="bilties"
@@ -105,6 +113,7 @@
                                                     <SearchableSelect
                                                         v-if="!detail.inward_register_detail_id"
                                                         :small="true"
+                                                        :open-on-focus="false"
                                                         @change="fetchInwardDetails(index)"
                                                         v-model="detail.inward_register_detail_id"
                                                         :options="inwardDetailOptions"
@@ -116,14 +125,14 @@
                                             </td>
                                             <td class="align-middle">{{ detail.to_station_name || '--' }}</td>
                                             <td>
-                                                <input type="number" class="form-control form-control-sm text-center" v-model="detail.nugs" readonly>
+                                                <input type="number" class="form-control form-control-sm text-center bg-light" v-model="detail.nugs" readonly>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-center" v-model="detail.weight" readonly>
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.weight" readonly>
                                             </td>
                                             <td class="align-middle">{{ detail.goods_name || '--' }}</td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" v-model="detail.freight" readonly>
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.freight" readonly>
                                             </td>
                                             <td class="align-middle text-center">{{ detail.bob || '--' }}</td>
                                             <td class="align-middle text-center">{{ detail.row_type === 'bilty' ? 'Booking' : 'Crossing' }}</td>
@@ -134,11 +143,11 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="10" class="bg-white p-1 text-center border-top">
+                                            <td colspan="10" class="bg-light p-1 text-center">
                                                 <button type="button" class="btn btn-sm btn-outline-secondary py-0 me-1" @click="addBiltyRow">
                                                     <i class="fas fa-plus"></i> Add Bilty
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-outline-info py-0" @click="addInwardRow">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addInwardRow">
                                                     <i class="fas fa-plus"></i> Add Inward
                                                 </button>
                                                 <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
@@ -149,133 +158,110 @@
                             </div>
                         </div>
 
-                        <!-- FOOTER TOTALS -->
-                        <div class="card-body p-0 border-top ops-form-summary py-2">
-                            <div class="row m-0 p-2">
-                                <!-- Left side Totals -->
-                                <div class="col-md-8 border-end border-dark">
+                        <!-- Bottom Section: Totals & Charges -->
+                        <div class="card-body pt-3 pb-2">
+                            <div class="row">
+                                <div class="col-md-7">
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-md-4">
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <label class="mb-0 fw-bold small text-dark">Total Weight</label>
-                                                <span class="fw-bold text-primary">{{ totalWeight }}</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between">
-                                                <label class="mb-0 fw-bold small text-dark">Total Nugs</label>
-                                                <span class="fw-bold text-primary">{{ totalPackages }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <label class="mb-0 fw-bold small text-dark">To Pay Amount</label>
-                                                <span class="fw-bold text-primary">{{ toPayAmountDisplay }}</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between">
-                                                <label class="mb-0 fw-bold small text-dark">Paid Amt/Adv.Rec.</label>
-                                                <span class="fw-bold text-primary">{{ paidAmountDisplay }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <label class="mb-0 fw-bold small text-dark">Crossing Freight</label>
-                                                <span class="fw-bold text-primary">{{ crossingFreightDisplay }}</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <label class="mb-0 fw-bold small text-dark text-nowrap">Cartage/Dalali/PF</label>
-                                                <span class="fw-bold text-primary">{{ cartageDisplay }}</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <label class="mb-0 fw-bold small text-dark text-nowrap">GST Tax</label>
-                                                <span class="fw-bold text-primary">{{ gstDisplay }}</span>
-                                            </div>
-                                        </div>
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Total Weight</label></div>
+                                        <div class="col-7"><span class="small fw-bold text-primary">{{ totalWeight }}</span></div>
                                     </div>
-                                    <hr class="border-dark my-1">
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Total Nugs</label></div>
+                                        <div class="col-7"><span class="small fw-bold text-primary">{{ totalPackages }}</span></div>
+                                    </div>
+
+                                    <hr class="my-2 border-secondary">
+
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">To Pay Amount</label></div>
+                                        <div class="col-7"><span class="small fw-bold text-primary">{{ toPayAmountDisplay }}</span></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Paid Amt/Adv.Rec.</label></div>
+                                        <div class="col-7"><span class="small fw-bold text-primary">{{ paidAmountDisplay }}</span></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Crossing Freight</label></div>
+                                        <div class="col-7"><span class="small fw-bold text-primary">{{ crossingFreightDisplay }}</span></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Cartage/Dalali/PF</label></div>
+                                        <div class="col-7"><span class="small fw-bold text-primary">{{ cartageDisplay }}</span></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">GST Tax</label></div>
+                                        <div class="col-7"><span class="small fw-bold text-primary">{{ gstDisplay }}</span></div>
+                                    </div>
+
+                                    <hr class="my-2 border-secondary">
+
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Remark</label></div>
+                                        <div class="col-7"><input type="text" class="form-control form-control-sm bg-white" v-model="form.remark"></div>
+                                    </div>
                                 </div>
 
-                                <!-- Right side Financials -->
-                                <div class="col-md-4">
-                                    <div class="d-flex align-items-center mb-1 justify-content-between">
-                                        <label class="mb-0 fw-bold small text-dark me-2" style="width: 120px;">Labour Comm.</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.labour_charge" @input="calculateTotal">
+                                <div class="col-md-5">
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Labour Comm.</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.labour_charge" @input="calculateTotal"></div>
                                     </div>
-                                    <div class="d-flex align-items-center mb-1 justify-content-between">
-                                        <label class="mb-0 fw-bold small text-dark me-2" style="width: 120px;">Kat</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.kat" @input="calculateTotal">
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Kat</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.kat" @input="calculateTotal"></div>
                                     </div>
-                                    <div class="d-flex align-items-center mb-1 justify-content-between">
-                                        <label class="mb-0 fw-bold small text-dark me-2" style="width: 120px;">Home Delivery</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm w-25 p-1" v-model="form.home_delivery_charge" @input="calculateTotal">
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Home Delivery</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.home_delivery_charge" @input="calculateTotal"></div>
                                     </div>
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <label class="mb-0 fw-bold small text-dark">Truck Freight</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm w-50 p-1" v-model="form.truck_freight" @input="calculateTotal">
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Truck Freight</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.truck_freight" @input="calculateTotal"></div>
                                     </div>
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <label class="mb-0 fw-bold small text-dark">Cash Receive</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm w-50 p-1" v-model="form.cash_received" @input="calculateTotal">
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Cash Receive</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.cash_received" @input="calculateTotal"></div>
                                     </div>
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <label class="mb-0 fw-bold small text-dark">Cash Paid</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm w-50 p-1" v-model="form.cash_payment" @input="calculateTotal">
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Cash Paid</label></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.cash_payment" @input="calculateTotal"></div>
                                     </div>
-                                    <hr class="border-dark my-1">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <label class="mb-0 fw-bold text-dark">TOTAL</label>
-                                        <span class="fw-bold fs-5" :class="form.total_amount < 0 ? 'text-danger' : 'text-dark'">{{ form.total_amount }}</span>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <label class="mb-0 fw-bold small text-dark">Total Balance Amt.</label>
-                                        <span class="fw-bold text-primary">{{ form.total_balance_type }}</span>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <label class="mb-0 fw-bold small text-dark">To (Account)</label>
-                                        <div class="w-50">
-                                            <SearchableSelect
-                                                :small="true"
-                                                v-model="form.pay_by_agent_id"
-                                                :options="agents"
-                                                placeholder="Select Agent"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <label class="mb-0 fw-bold small text-dark">Delivery At</label>
-                                        <div class="w-50">
-                                            <SearchableSelect
-                                                :small="true"
-                                                v-model="form.delivery_at_agent_id"
-                                                :options="agents"
-                                                placeholder="Select Agent"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <!-- Remark Section -->
-                            <div class="row m-0 p-2 border-top border-dark">
-                                <div class="col-md-12 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold small text-dark text-nowrap">Remark :-</label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.remark">
+                                    <hr class="my-2 border-secondary">
+
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold">TOTAL</label></div>
+                                        <div class="col-6">
+                                            <input type="text" class="form-control form-control-sm bg-white fw-bold" :class="form.total_amount < 0 ? 'text-danger' : ''" :value="form.total_amount" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Total Balance Amt.</label></div>
+                                        <div class="col-6"><span class="small fw-bold text-primary">{{ form.total_balance_type }}</span></div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">To (Account)</label></div>
+                                        <div class="col-6">
+                                            <SearchableSelect :small="true" v-model="form.pay_by_agent_id" :options="agents" placeholder="Select Agent" />
+                                        </div>
+                                    </div>
+                                    <div class="row align-items-center mb-1">
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Delivery At</label></div>
+                                        <div class="col-6">
+                                            <SearchableSelect :small="true" v-model="form.delivery_at_agent_id" :options="agents" placeholder="Select Agent" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="card-footer ops-form-footer d-flex justify-content-center gap-3">
-                            <button type="submit" class="btn btn-sm btn-form-action px-4 fw-bold shadow-sm" :disabled="form.processing">
-                                Save
+                        <div class="card-footer bg-light d-flex justify-content-center gap-2 border-top-0 pt-3 pb-3">
+                            <Link href="/challans" class="btn btn-outline-secondary px-4"><i class="fas fa-times me-1"></i> Exit</Link>
+                            <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm" :disabled="form.processing">
+                                <i class="fas fa-save me-1"></i> Save
                             </button>
-                            <button type="button" class="btn btn-sm btn-form-action px-4 fw-bold shadow-sm" onclick="window.print()">
-                                Print
-                            </button>
-                            <button type="button" class="btn btn-sm btn-form-action px-4 fw-bold shadow-sm" @click="form.reset()">
-                                Clear
-                            </button>
-                            <Link href="/challans" class="btn btn-sm btn-form-action px-4 fw-bold shadow-sm">
-                                Exit
-                            </Link>
                         </div>
                     </form>
                 </div>
@@ -756,15 +742,3 @@ const confirmSave = () => {
     });
 };
 </script>
-
-<style scoped>
-.table-grid th, .table-grid td {
-    border-color: #dee2e6;
-    padding: 0.25rem;
-}
-.table-grid th {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #495057;
-}
-</style>
