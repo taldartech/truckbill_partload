@@ -125,6 +125,8 @@
                 </div>
             </div>
         </Transition>
+
+        <KeyboardConfirmModal />
     </div>
 </template>
 
@@ -135,6 +137,8 @@ import Navbar from '@/Components/Navbar.vue';
 import Sidebar from '@/Components/Sidebar.vue';
 import Footer from '@/Components/Footer.vue';
 import SubscriptionAccessBanner from '@/Components/Subscription/SubscriptionAccessBanner.vue';
+import KeyboardConfirmModal from '@/Components/KeyboardConfirmModal.vue';
+import { askKeyboardConfirm, isKeyboardConfirmOpen } from '@/composables/useKeyboardConfirm';
 
 defineProps({
     title: {
@@ -201,40 +205,22 @@ const focusFirstInputInLastRow = (container) => {
     if (inputs.length > 0) inputs[0].focus();
 };
 
-const focusNextOutsideContainer = (activeEl, container) => {
-    const form = activeEl.closest('form') || document.body;
-    const allFocusable = Array.from(
-        form.querySelectorAll(
-            'input:not([type="hidden"]):not([disabled]):not([type="button"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not([type="button"]), [tabindex="0"]'
-        )
-    ).filter((el) => {
-        if (el.tabIndex < 0 || el.getAttribute('tabindex') === '-1') return false;
-        const style = window.getComputedStyle(el);
-        return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0;
+const promptAddDynamicRow = async (container, addBtn, activeEl) => {
+    const yes = await askKeyboardConfirm(ADD_MORE_DETAILS_MESSAGE, {
+        from: activeEl,
+        skipContainer: container,
     });
-
-    const activeIndex = allFocusable.indexOf(activeEl);
-    const nextElement = allFocusable.slice(activeIndex + 1).find(el => !container.contains(el));
-    if (nextElement) {
-        nextElement.focus();
-        return true;
-    }
-    return false;
-};
-
-const promptAddDynamicRow = (container, addBtn, activeEl) => {
-    if (confirm(ADD_MORE_DETAILS_MESSAGE)) {
+    if (yes) {
         addBtn.click();
         setTimeout(() => focusFirstInputInLastRow(container), 100);
         return true;
     }
 
-    focusNextOutsideContainer(activeEl, container);
     return true;
 };
 
-const handleEnterAsTab = (event) => {
-    if (event.key !== 'Enter') return;
+const handleEnterAsTab = async (event) => {
+    if (event.key !== 'Enter' || isKeyboardConfirmOpen.value) return;
 
     const activeEl = document.activeElement;
     if (!activeEl) return;
@@ -258,7 +244,8 @@ const handleEnterAsTab = (event) => {
         const grid = form.querySelector(`[data-dynamic-grid="${gridTrigger}"]`);
         if (grid && getRowsWithInputs(grid).length === 0) {
             const addBtn = findAddRowButton(grid);
-            if (addBtn && promptAddDynamicRow(grid, addBtn, activeEl)) {
+            if (addBtn) {
+                await promptAddDynamicRow(grid, addBtn, activeEl);
                 return;
             }
         }
@@ -278,7 +265,8 @@ const handleEnterAsTab = (event) => {
 
             if (isLastRow) {
                 const addRowBtn = findAddRowButton(table);
-                if (addRowBtn && promptAddDynamicRow(table, addRowBtn, activeEl)) {
+                if (addRowBtn) {
+                    await promptAddDynamicRow(table, addRowBtn, activeEl);
                     return;
                 }
             }
@@ -304,6 +292,8 @@ const handleEnterAsTab = (event) => {
 };
 
 const handleKeyDown = (event) => {
+    if (isKeyboardConfirmOpen.value) return;
+
     // ESC to close modal
     if (event.key === 'Escape') {
         if (isShortcutModalOpen.value) {

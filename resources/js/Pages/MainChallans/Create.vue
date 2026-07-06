@@ -269,6 +269,7 @@ import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref, watch } from 'vue';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const fetch_challan_id = ref('');
 const fetchChallanSelect = ref(null);
@@ -385,16 +386,22 @@ const addChallan = () => {
     return false;
 };
 
+const getFetchChallanTrigger = () =>
+    fetchChallanSelect.value?.$el?.querySelector('input.searchable-select__trigger');
+
 const onFetchChallanChange = () => {
     if (!fetch_challan_id.value) return;
 
     const success = addChallan();
     if (success) {
-        setTimeout(() => {
-            if (confirm('Do you want to add another challan?')) {
+        setTimeout(async () => {
+            const yes = await askKeyboardConfirm('Do you want to add another challan?', {
+                from: getFetchChallanTrigger(),
+            });
+            if (yes) {
                 fetch_challan_id.value = '';
                 setTimeout(() => {
-                    const triggerInput = fetchChallanSelect.value?.$el?.querySelector('input.searchable-select__trigger');
+                    const triggerInput = getFetchChallanTrigger();
                     if (triggerInput) {
                         triggerInput.click();
                     }

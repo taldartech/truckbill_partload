@@ -116,6 +116,7 @@
                                             <td class="text-center align-middle">{{ index + 1 }}</td>
                                             <td>
                                                 <SearchableSelect
+                                                    v-if="!detail.bilty_id"
                                                     :small="true"
                                                     :open-on-focus="false"
                                                     @change="fetchBiltyDetails(index)"
@@ -124,6 +125,7 @@
                                                     labelKey="bilty_number"
                                                     placeholder="Select Bilty"
                                                 />
+                                                <span v-else class="align-middle fw-semibold">{{ detail.bilty_number || biltyLabel(detail.bilty_id) }}</span>
                                                 <div v-if="form.errors['details.' + index + '.bilty_id']" class="text-danger small mt-1 text-start">{{ form.errors['details.' + index + '.bilty_id'] }}</div>
                                             </td>
                                             <td class="align-middle">
@@ -139,7 +141,7 @@
                                                 <input type="number" step="0.01" class="form-control form-control-sm text-center" v-model="detail.gross_weight" readonly>
                                             </td>
                                             <td class="text-center align-middle">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)" v-if="form.details.length > 1">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)">
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </td>
@@ -207,6 +209,7 @@ import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref, onMounted, nextTick } from 'vue';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const fetch_station_id = ref('');
 const fetchStationSelect = ref(null);
@@ -230,6 +233,7 @@ const destinationStationOptions = computed(() => [
 const initialDetails = (props.report.details && props.report.details.length > 0)
     ? props.report.details.map(d => ({
         bilty_id: d.bilty_id || '',
+        bilty_number: d.bilty?.bilty_number || '',
         good_id: d.good_id || '',
         package_type_id: d.package_type_id || '',
         consignee_id: d.consignee_id || '',
@@ -238,7 +242,7 @@ const initialDetails = (props.report.details && props.report.details.length > 0)
         no_of_packages: d.no_of_packages || '',
         gross_weight: d.gross_weight || ''
     }))
-    : [{ bilty_id: '', good_id: '', package_type_id: '', consignee_id: '', consignee_name: '', goods_name: '', no_of_packages: '', gross_weight: '' }];
+    : [{ bilty_id: '', bilty_number: '', good_id: '', package_type_id: '', consignee_id: '', consignee_name: '', goods_name: '', no_of_packages: '', gross_weight: '' }];
 
 
 const form = useForm({
@@ -274,7 +278,7 @@ const fetchBiltiesByStation = () => {
     matchingBilties.forEach(bilty => {
         if (form.details.some(d => d.bilty_id === bilty.id)) return;
 
-        form.details.push({ bilty_id: bilty.id, good_id: '', package_type_id: '', consignee_id: '', consignee_name: '', goods_name: '', no_of_packages: '', gross_weight: '' });
+        form.details.push({ bilty_id: bilty.id, bilty_number: bilty.bilty_number, good_id: '', package_type_id: '', consignee_id: '', consignee_name: '', goods_name: '', no_of_packages: '', gross_weight: '' });
         fetchBiltyDetails(form.details.length - 1);
         addedCount++;
     });
@@ -293,6 +297,11 @@ const fetchBiltiesByStation = () => {
         return false;
     }
 };
+
+const biltyLabel = (id) => props.bilties.find((b) => b.id === id)?.bilty_number ?? '--';
+
+const getFetchStationTrigger = () =>
+    fetchStationSelect.value?.$el?.querySelector('input.searchable-select__trigger');
 
 const refocusFetchStationSelect = () => {
     if (document.activeElement instanceof HTMLElement) {
@@ -313,8 +322,11 @@ const onFetchStationChange = () => {
             fetchStationSelect.value?.focusTrigger?.();
         });
 
-        setTimeout(() => {
-            if (confirm('Do you want to add bilties for another station?')) {
+        setTimeout(async () => {
+            const yes = await askKeyboardConfirm('Do you want to add bilties for another station?', {
+                from: getFetchStationTrigger(),
+            });
+            if (yes) {
                 fetch_station_id.value = '';
                 refocusFetchStationSelect();
             } else {
@@ -332,7 +344,7 @@ onMounted(() => {
 });
 
 const addRow = () => {
-    form.details.push({ bilty_id: '', good_id: '', package_type_id: '', consignee_id: '', consignee_name: '', goods_name: '', no_of_packages: '', gross_weight: '' });
+    form.details.push({ bilty_id: '', bilty_number: '', good_id: '', package_type_id: '', consignee_id: '', consignee_name: '', goods_name: '', no_of_packages: '', gross_weight: '' });
 };
 
 const removeRow = (index) => {
@@ -343,6 +355,7 @@ const fetchBiltyDetails = (index) => {
     const row = form.details[index];
     const selectedBilty = props.bilties.find(b => b.id === row.bilty_id);
     if (selectedBilty) {
+        row.bilty_number = selectedBilty.bilty_number;
         row.consignee_id = selectedBilty.consignee_id;
         row.consignee_name = selectedBilty.consignee ? selectedBilty.consignee.name : 'Unknown';
 
