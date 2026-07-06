@@ -17,6 +17,7 @@
             width: 100%;
             max-width: 820px;
             margin: 0 auto;
+            border: 1px solid #000;
         }
         .company-name {
             text-align: center;
@@ -25,6 +26,7 @@
             letter-spacing: 0.5px;
             margin: 0 0 4px;
             text-transform: uppercase;
+            padding: 0 10px;
         }
         .report-title {
             text-align: center;
@@ -32,12 +34,14 @@
             font-weight: bold;
             margin: 0 0 14px;
             text-transform: uppercase;
+            padding: 0 10px;
         }
         .meta {
             display: flex;
             justify-content: space-between;
             margin-bottom: 12px;
             font-size: 12px;
+            padding: 0 10px;
         }
         .meta-col {
             width: 48%;
@@ -110,6 +114,7 @@
 
         @media print {
             body { padding: 0; }
+            .print-container { padding: 10px; }
         }
     </style>
 </head>
