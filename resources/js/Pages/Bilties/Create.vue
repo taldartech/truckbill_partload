@@ -239,13 +239,13 @@
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Invoice No. <span class="text-muted fw-normal">(Optional)</span></label></div>
-                                        <div class="col-7"><input type="text" class="form-control form-control-sm bg-white" v-model="form.invoice_number"></div>
+                                        <div class="col-7"><input type="text" class="form-control form-control-sm bg-white" v-model="form.invoice_number" data-dynamic-grid-trigger="eway"></div>
                                     </div>
-                                    <div class="mb-2 dynamic-grid">
+                                    <div class="mb-2 dynamic-grid" data-dynamic-grid="eway">
                                         <div class="row align-items-center mb-1">
                                             <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-Way Bills</label></div>
                                             <div class="col-7 text-end">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addEwayBill">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" data-dynamic-add @click="addEwayBill">
                                                     <i class="fas fa-plus"></i> Add
                                                 </button>
                                             </div>
@@ -315,13 +315,13 @@
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Risk/Door Delivery</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.risk_dd_charge" @input="calculateFinalTotal"></div>
+                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.risk_dd_charge" @input="calculateFinalTotal" data-dynamic-grid-trigger="addon"></div>
                                     </div>
-                                    <div class="mb-2 dynamic-grid">
+                                    <div class="mb-2 dynamic-grid" data-dynamic-grid="addon">
                                         <div class="row align-items-center mb-1">
                                             <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Addon Charges</label></div>
                                             <div class="col-6 text-end">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addAddonCharge">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" data-dynamic-add @click="addAddonCharge">
                                                     <i class="fas fa-plus"></i> Add
                                                 </button>
                                             </div>

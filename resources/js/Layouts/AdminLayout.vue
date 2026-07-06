@@ -170,6 +170,69 @@ const navigateTo = (url) => {
     }
 };
 
+const ADD_MORE_DETAILS_MESSAGE = 'Do you want to add more details?';
+
+const getVisibleRowInputs = (row) => {
+    return Array.from(
+        row.querySelectorAll('input:not([type="hidden"]):not([disabled]), select:not([disabled])')
+    ).filter(el => {
+        const style = window.getComputedStyle(el);
+        return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0;
+    });
+};
+
+const getRowsWithInputs = (container) => {
+    return Array.from(container.querySelectorAll('tr, .dynamic-row')).filter(row => getVisibleRowInputs(row).length > 0);
+};
+
+const findAddRowButton = (container) => {
+    return container.querySelector('[data-dynamic-add]') ||
+        Array.from(container.querySelectorAll('button, a')).find(btn => {
+            const text = btn.textContent.toLowerCase().trim();
+            return text.includes('add row') || text.includes('add bilty') || text.includes('add e-way') ||
+                text.includes('add eway') || text.includes('add addon') || text.includes('add charge') || text === 'add';
+        });
+};
+
+const focusFirstInputInLastRow = (container) => {
+    const rows = getRowsWithInputs(container);
+    if (rows.length === 0) return;
+    const inputs = getVisibleRowInputs(rows[rows.length - 1]);
+    if (inputs.length > 0) inputs[0].focus();
+};
+
+const focusNextOutsideContainer = (activeEl, container) => {
+    const form = activeEl.closest('form') || document.body;
+    const allFocusable = Array.from(
+        form.querySelectorAll(
+            'input:not([type="hidden"]):not([disabled]):not([type="button"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not([type="button"]), [tabindex="0"]'
+        )
+    ).filter((el) => {
+        if (el.tabIndex < 0 || el.getAttribute('tabindex') === '-1') return false;
+        const style = window.getComputedStyle(el);
+        return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0;
+    });
+
+    const activeIndex = allFocusable.indexOf(activeEl);
+    const nextElement = allFocusable.slice(activeIndex + 1).find(el => !container.contains(el));
+    if (nextElement) {
+        nextElement.focus();
+        return true;
+    }
+    return false;
+};
+
+const promptAddDynamicRow = (container, addBtn, activeEl) => {
+    if (confirm(ADD_MORE_DETAILS_MESSAGE)) {
+        addBtn.click();
+        setTimeout(() => focusFirstInputInLastRow(container), 100);
+        return true;
+    }
+
+    focusNextOutsideContainer(activeEl, container);
+    return true;
+};
+
 const handleEnterAsTab = (event) => {
     if (event.key !== 'Enter') return;
 
@@ -188,83 +251,35 @@ const handleEnterAsTab = (event) => {
     // Prevent default form submission
     event.preventDefault();
 
-    // Check if we are inside a table row of a dynamic grid
+    // Prompt to add first row when entering an empty e-way / addon section
+    const gridTrigger = activeEl.getAttribute('data-dynamic-grid-trigger');
+    if (gridTrigger) {
+        const form = activeEl.closest('form') || document;
+        const grid = form.querySelector(`[data-dynamic-grid="${gridTrigger}"]`);
+        if (grid && getRowsWithInputs(grid).length === 0) {
+            const addBtn = findAddRowButton(grid);
+            if (addBtn && promptAddDynamicRow(grid, addBtn, activeEl)) {
+                return;
+            }
+        }
+    }
+
+    // Check if we are inside a table row or dynamic-grid row
     const tr = activeEl.closest('tr') || activeEl.closest('.dynamic-row');
     const table = tr ? (tr.closest('table') || tr.closest('.dynamic-grid')) : null;
     
     if (tr && table) {
-        const rowInputs = Array.from(
-            tr.querySelectorAll('input:not([type="hidden"]):not([disabled]), select:not([disabled])')
-        ).filter(el => {
-            const style = window.getComputedStyle(el);
-            return style.display !== 'none' && style.visibility !== 'hidden';
-        });
-
+        const rowInputs = getVisibleRowInputs(tr);
         const isLastInputInRow = rowInputs.indexOf(activeEl) === rowInputs.length - 1;
 
         if (isLastInputInRow) {
-            // Find all rows in the table/grid that contain inputs
-            const allRowsWithInputs = Array.from(table.querySelectorAll('tr, .dynamic-row')).filter(row => {
-                return row.querySelectorAll('input:not([type="hidden"]):not([disabled]), select:not([disabled])').length > 0;
-            });
+            const allRowsWithInputs = getRowsWithInputs(table);
             const isLastRow = allRowsWithInputs.indexOf(tr) === allRowsWithInputs.length - 1;
 
             if (isLastRow) {
-                // Find "Add Row" button in the same table/grid
-                const buttons = Array.from(table.querySelectorAll('button, a'));
-                const addRowBtn = buttons.find(btn => {
-                    const text = btn.textContent.toLowerCase();
-                    return text.includes('add row') || text.includes('add bilty') || text.includes('add e-way') || text.includes('add eway') || text.includes('add addon') || text.includes('add charge') || text.trim() === 'add';
-                });
-
-                if (addRowBtn) {
-                    // Prompt user
-                    if (confirm('Do you want to add more details?')) {
-                        addRowBtn.click();
-                        
-                        // Wait for Vue to render the new row, then focus its first input
-                        setTimeout(() => {
-                            const updatedRows = Array.from(table.querySelectorAll('tr, .dynamic-row')).filter(row => {
-                                return row.querySelectorAll('input:not([type="hidden"]):not([disabled]), select:not([disabled])').length > 0;
-                            });
-                            if (updatedRows.length > 0) {
-                                const newLastRow = updatedRows[updatedRows.length - 1];
-                                const newRowInputs = Array.from(
-                                    newLastRow.querySelectorAll('input:not([type="hidden"]):not([disabled]), select:not([disabled])')
-                                ).filter(el => {
-                                    const style = window.getComputedStyle(el);
-                                    return style.display !== 'none' && style.visibility !== 'hidden';
-                                });
-                                
-                                if (newRowInputs.length > 0) {
-                                    const firstInput = newRowInputs[0];
-                                    firstInput.focus();
-                                }
-                            }
-                        }, 100);
-                        return;
-                    } else {
-                        // User chose "No" -> Focus the first element AFTER the table/grid
-                        const form = activeEl.closest('form') || document.body;
-                        const allFocusable = Array.from(
-                            form.querySelectorAll(
-                                'input:not([type="hidden"]):not([disabled]):not([type="button"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not([type="button"]), [tabindex="0"]'
-                            )
-                        ).filter((el) => {
-                            if (el.tabIndex < 0 || el.getAttribute('tabindex') === '-1') return false;
-                            const style = window.getComputedStyle(el);
-                            return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0;
-                        });
-
-                        const lastTableInput = rowInputs[rowInputs.length - 1];
-                        const lastIndex = allFocusable.indexOf(lastTableInput);
-                        
-                        const nextElement = allFocusable.slice(lastIndex + 1).find(el => !table.contains(el));
-                        if (nextElement) {
-                            nextElement.focus();
-                            return;
-                        }
-                    }
+                const addRowBtn = findAddRowButton(table);
+                if (addRowBtn && promptAddDynamicRow(table, addRowBtn, activeEl)) {
+                    return;
                 }
             }
         }
