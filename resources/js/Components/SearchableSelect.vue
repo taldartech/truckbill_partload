@@ -104,6 +104,14 @@ const props = defineProps({
     disabled: {
         type: Boolean,
         default: false
+    },
+    openOnEnter: {
+        type: Boolean,
+        default: false
+    },
+    openOnFocus: {
+        type: Boolean,
+        default: true
     }
 });
 
@@ -208,7 +216,7 @@ const openDropdown = () => {
 };
 
 const onTriggerFocus = () => {
-    if (props.disabled) return;
+    if (props.disabled || !props.openOnFocus) return;
 
     if (suppressFocusOpen) {
         suppressFocusOpen = false;
@@ -293,6 +301,10 @@ const onTriggerKeydown = (event) => {
         if (isOpen.value) {
             event.preventDefault();
             selectHighlightedOption();
+        } else if (props.openOnEnter) {
+            event.preventDefault();
+            event.stopPropagation();
+            openDropdown();
         }
     }
 };
@@ -382,6 +394,19 @@ watch(isOpen, (open) => {
 onMounted(() => {
     document.addEventListener('mousedown', handleClickOutside);
 });
+
+const focusOpen = () => {
+    if (props.disabled) return;
+    openDropdown();
+};
+
+const focusTrigger = () => {
+    if (!trigger.value || props.disabled) return;
+    suppressFocusOpen = true;
+    trigger.value.focus();
+};
+
+defineExpose({ focusOpen, focusTrigger });
 
 onUnmounted(() => {
     document.removeEventListener('mousedown', handleClickOutside);

@@ -89,6 +89,7 @@
                                         v-model="fetch_station_id"
                                         :options="destinationStationOptions"
                                         placeholder="Select Destination Station"
+                                        open-on-enter
                                         @change="onFetchStationChange"
                                     />
                                 </div>
@@ -116,6 +117,7 @@
                                             <td>
                                                 <SearchableSelect
     :small="true"
+    :open-on-focus="false"
     @change="fetchBiltyDetails(index)"
     v-model="detail.bilty_id"
     :options="bilties"
@@ -201,7 +203,7 @@ import LoadingReportConfirmModal from '@/Components/FormConfirm/LoadingReportCon
 import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { computed, ref } from 'vue';
+import { computed, ref, nextTick } from 'vue';
 
 const fetch_station_id = ref('');
 const fetchStationSelect = ref(null);
@@ -278,20 +280,29 @@ const fetchBiltiesByStation = () => {
     }
 };
 
+const refocusFetchStationSelect = () => {
+    if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+    }
+
+    nextTick(() => {
+        fetchStationSelect.value?.focusOpen?.();
+    });
+};
+
 const onFetchStationChange = () => {
     if (!fetch_station_id.value) return;
 
     const success = fetchBiltiesByStation();
     if (success) {
+        nextTick(() => {
+            fetchStationSelect.value?.focusTrigger?.();
+        });
+
         setTimeout(() => {
             if (confirm('Do you want to add bilties for another station?')) {
                 fetch_station_id.value = '';
-                setTimeout(() => {
-                    const triggerInput = fetchStationSelect.value?.$el?.querySelector('input.searchable-select__trigger');
-                    if (triggerInput) {
-                        triggerInput.click();
-                    }
-                }, 50);
+                refocusFetchStationSelect();
             } else {
                 fetch_station_id.value = '';
             }
