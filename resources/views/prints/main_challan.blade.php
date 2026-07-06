@@ -128,7 +128,7 @@
                     <strong>Less:</strong>
                     <table class="summary-table" style="width: 100%;">
                         @if((float) ($main_challan->labour_charge ?? 0) != 0)
-                        <tr><td>Labour Comm.</td><td class="text-right">₹ {{ number_format($main_challan->labour_charge, 2) }}</td></tr>
+                        <tr><td>Labour Commission</td><td class="text-right">₹ {{ number_format($main_challan->labour_charge, 2) }}</td></tr>
                         @endif
                         @if((float) ($main_challan->kat ?? 0) != 0)
                         <tr><td>Kat</td><td class="text-right">₹ {{ number_format($main_challan->kat, 2) }}</td></tr>

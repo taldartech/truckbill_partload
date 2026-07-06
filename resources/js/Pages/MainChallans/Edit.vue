@@ -176,7 +176,7 @@
                                     <hr class="my-2 border-secondary">
 
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Labour Comm.</label></div>
+                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Labour Commission</label></div>
                                         <div class="col-7"><span class="small fw-bold text-primary">{{ labourDisplay }}</span></div>
                                     </div>
                                     <div class="row align-items-center mb-1">

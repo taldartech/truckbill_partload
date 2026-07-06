@@ -154,7 +154,7 @@
                         <tr><td>Crossing Freight</td><td class="text-right">₹ {{ number_format($challan->crossing_freight ?? $totalCrossingFreight, 2) }}</td></tr>
                         <tr><td>Cartage / Dalali / PF</td><td class="text-right">₹ {{ number_format($challan->cartage_dalali_pf ?? 0, 2) }}</td></tr>
                         <tr><td>GST Tax</td><td class="text-right">₹ {{ number_format($challan->gst ?? 0, 2) }}</td></tr>
-                        <tr><td>Labour Comm.</td><td class="text-right">₹ {{ number_format($challan->labour_charge ?? 0, 2) }}</td></tr>
+                        <tr><td>Labour Commission</td><td class="text-right">₹ {{ number_format($challan->labour_charge ?? 0, 2) }}</td></tr>
                         <tr><td>Kat</td><td class="text-right">₹ {{ number_format($challan->kat ?? 0, 2) }}</td></tr>
                         <tr><td>Home Delivery</td><td class="text-right">₹ {{ number_format($challan->home_delivery_charge ?? 0, 2) }}</td></tr>
                     </table>

@@ -183,7 +183,7 @@
 
                                 <div class="col-md-5">
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Labour Comm.</label></div>
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Labour Commission</label></div>
                                         <div class="col-6"><span class="small fw-bold text-primary">{{ labourDisplay }}</span></div>
                                     </div>
                                     <div class="row align-items-center mb-1">

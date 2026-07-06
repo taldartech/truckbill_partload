@@ -204,7 +204,7 @@
 
                                 <div class="col-md-5">
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Labour Comm.</label></div>
+                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Labour Commission</label></div>
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.labour_charge" @input="calculateTotal"></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
