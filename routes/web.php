@@ -111,6 +111,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('vouchers', VoucherController::class);
     Route::resource('inward-registers', InwardRegisterController::class);
 
+    Route::get('delivery-receipts/gr-lookup', [DeliveryReceiptController::class, 'lookupGr'])->name('delivery-receipts.gr-lookup');
     Route::get('delivery-receipts/{delivery_receipt}/print', [DeliveryReceiptController::class, 'print'])->name('delivery-receipts.print');
     Route::resource('delivery-receipts', DeliveryReceiptController::class);
 

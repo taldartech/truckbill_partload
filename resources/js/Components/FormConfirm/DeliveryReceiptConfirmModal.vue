@@ -23,7 +23,7 @@
             </div>
             <div class="col-6 col-md-3">
                 <div class="confirm-field-box">
-                    <span class="confirm-field-label">GR/Bilty No.</span>
+                    <span class="confirm-field-label">GR No.</span>
                     <span class="confirm-field-value">{{ form.gr_no_bilty_no || '—' }}</span>
                 </div>
             </div>

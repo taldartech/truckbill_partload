@@ -18,8 +18,18 @@
                                     <input type="date" class="form-control form-control-sm" v-model="form.date" required>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label">GR/Bilty No. <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.gr_no_bilty_no" required>
+                                    <label class="form-label">GR No. <span class="text-danger">*</span></label>
+                                    <SearchableSelect
+                                        :small="true"
+                                        v-model="grSourceKey"
+                                        :options="grOptions"
+                                        value-key="id"
+                                        label-key="label"
+                                        placeholder="Select GR No."
+                                        @change="onGrSourceChange"
+                                    />
+                                    <div v-if="form.errors.gr_no_bilty_no" class="text-danger small mt-1">{{ form.errors.gr_no_bilty_no }}</div>
+                                    <div v-if="grFetchError" class="text-danger small mt-1">{{ grFetchError }}</div>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Mode of Payment</label>
@@ -154,15 +164,38 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 import DeliveryReceiptConfirmModal from '@/Components/FormConfirm/DeliveryReceiptConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
+import http from '@/utils/http';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { computed, onMounted, ref } from 'vue';
 
 const props = defineProps({
     receipt: Object,
-    parties: Array
+    parties: Array,
+    gr_sources: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
+const grSourceKey = ref('');
+const grFetchError = ref('');
+
+const grOptions = computed(() => {
+    const options = [...(props.gr_sources ?? [])];
+    const current = form.gr_no_bilty_no;
+
+    if (current && !options.some((option) => option.label === current)) {
+        options.unshift({
+            id: `saved:${current}`,
+            label: current,
+            type: 'Saved',
+        });
+    }
+
+    return options;
+});
 
 const form = useForm({
     delivery_receipt_no: props.receipt.delivery_receipt_no || '',
@@ -189,6 +222,46 @@ const form = useForm({
     cartage_charge: props.receipt.cartage_charge || 0
 });
 
+onMounted(() => {
+    const current = form.gr_no_bilty_no;
+    const match = grOptions.value.find((option) => option.label === current);
+    if (match) {
+        grSourceKey.value = match.id;
+    }
+});
+
+const applyFetchedDetails = (data) => {
+    Object.entries(data).forEach(([key, value]) => {
+        if (Object.prototype.hasOwnProperty.call(form, key)) {
+            form[key] = value ?? '';
+        }
+    });
+    calculateTotals();
+};
+
+const onGrSourceChange = async () => {
+    grFetchError.value = '';
+
+    if (!grSourceKey.value) {
+        form.gr_no_bilty_no = '';
+        return;
+    }
+
+    if (grSourceKey.value.startsWith('saved:')) {
+        form.gr_no_bilty_no = grSourceKey.value.replace(/^saved:/, '');
+        return;
+    }
+
+    try {
+        const { data } = await http.get('/delivery-receipts/gr-lookup', {
+            params: { key: grSourceKey.value },
+        });
+        applyFetchedDetails(data);
+    } catch (error) {
+        grFetchError.value = error.response?.data?.message || 'Could not load details for the selected GR.';
+    }
+};
+
 const calculateTotals = () => {
     let subTotal = 
         parseFloat(form.freight || 0) + 
@@ -207,6 +280,11 @@ const calculateTotals = () => {
 };
 
 const submit = () => {
+    if (!form.gr_no_bilty_no) {
+        grFetchError.value = 'Please select a GR number.';
+        return;
+    }
+
     calculateTotals();
     openConfirm();
 };
