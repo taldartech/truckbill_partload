@@ -48,6 +48,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <PaginationLinks :pagination="users" />
                 </div>
             </div>
         </div>
@@ -124,6 +125,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useForm, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import PaginationLinks from '@/Components/PaginationLinks.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
 import { usePermissions } from '@/composables/usePermissions';
 

@@ -45,26 +45,7 @@
                     </tbody>
                 </table>
             </div>
-            <div v-if="payments.links?.length > 3" class="card-footer">
-                <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                        <li
-                            v-for="link in payments.links"
-                            :key="link.label"
-                            class="page-item"
-                            :class="{ active: link.active, disabled: !link.url }"
-                        >
-                            <Link
-                                v-if="link.url"
-                                class="page-link"
-                                :href="link.url"
-                                v-html="link.label"
-                            />
-                            <span v-else class="page-link" v-html="link.label"></span>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
+            <PaginationLinks :pagination="payments" />
         </div>
     </AdminLayout>
 </template>
@@ -72,6 +53,7 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import PaginationLinks from '@/Components/PaginationLinks.vue';
 import StatusBadge from '@/Components/Subscription/StatusBadge.vue';
 
 defineProps({

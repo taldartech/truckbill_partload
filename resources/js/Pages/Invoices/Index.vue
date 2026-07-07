@@ -67,6 +67,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <PaginationLinks :pagination="invoices" />
                 </div>
             </div>
         </div>
@@ -191,6 +192,7 @@
 <script setup>
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import PaginationLinks from '@/Components/PaginationLinks.vue';
 import http from '@/utils/http';
 import { onMounted, ref } from 'vue';
 

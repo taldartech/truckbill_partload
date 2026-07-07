@@ -55,6 +55,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <PaginationLinks :pagination="main_challans" />
                 </div>
             </div>
         </div>
@@ -64,6 +65,7 @@
 <script setup>
 import {  Link, useForm , usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import PaginationLinks from '@/Components/PaginationLinks.vue';
 
 const page = usePage();
 const can = (permission) => {

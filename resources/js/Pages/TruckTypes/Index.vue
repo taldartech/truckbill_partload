@@ -36,6 +36,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <PaginationLinks :pagination="truckTypes" />
                 </div>
             </div>
         </div>
@@ -73,6 +74,7 @@
 import { ref, onMounted } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import PaginationLinks from '@/Components/PaginationLinks.vue';
 
 const props = defineProps({
     truckTypes: Object,

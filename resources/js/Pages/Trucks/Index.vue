@@ -83,6 +83,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <PaginationLinks :pagination="trucks" />
                 </div>
             </div>
         </div>
@@ -139,6 +140,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { Link, router, usePage, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 
 const page = usePage();

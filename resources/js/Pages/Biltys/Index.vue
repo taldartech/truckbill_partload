@@ -43,6 +43,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <PaginationLinks :pagination="bilties" />
                 </div>
             </div>
         </div>
@@ -52,6 +53,7 @@
 <script setup>
 import { Link, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import PaginationLinks from '@/Components/PaginationLinks.vue';
 
 const props = defineProps({
     bilties: Object

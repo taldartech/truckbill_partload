@@ -35,7 +35,9 @@ class BiltyController extends Controller implements HasMiddleware
 
     public function index()
     {
-        $bilties = Bilty::with(['company', 'consignor', 'consignee', 'fromStation', 'toStation'])->latest()->paginate(10);
+        $bilties = Bilty::with(['company', 'consignor', 'consignee', 'fromStation', 'toStation'])
+            ->orderBy('date', 'desc')
+            ->paginate(10);
 
         return Inertia::render('Bilties/Index', [
             'bilties' => $bilties,
