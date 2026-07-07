@@ -7,6 +7,7 @@ use App\Models\Bilty;
 use App\Models\Branch;
 use App\Models\Challan;
 use App\Models\Company;
+use App\Models\CompanySubscription;
 use App\Models\InwardRegister;
 use App\Models\MainChallan;
 use App\Models\Truck;
@@ -14,7 +15,6 @@ use App\Models\User;
 use App\Models\Voucher;
 use App\Services\TenantContext;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -33,7 +33,10 @@ class DashboardController extends Controller
                     'stats' => [
                         'super_admins' => User::role(UserRole::SuperAdmin->value)->count(),
                         'companies' => Company::count(),
-                        'active_subscriptions' => DB::table('subscriptions')->where('status', 'active')->count(),
+                        'active_subscriptions' => CompanySubscription::query()
+                            ->whereIn('status', ['active', 'trial'])
+                            ->whereDate('ends_on', '>=', now()->toDateString())
+                            ->count(),
                     ],
                 ],
             ]);
