@@ -42,7 +42,7 @@
             <div class="col-6 col-md-4">
                 <div class="confirm-field-box">
                     <span class="confirm-field-label">Driver</span>
-                    <span class="confirm-field-value">{{ lookupLabel(drivers, form.driver_id) }}</span>
+                    <span class="confirm-field-value">{{ form.driver_name || '—' }}</span>
                 </div>
             </div>
             <div class="col-6 col-md-4">
@@ -99,7 +99,6 @@ const props = defineProps({
     form: { type: Object, required: true },
     stations: { type: Array, default: () => [] },
     trucks: { type: Array, default: () => [] },
-    drivers: { type: Array, default: () => [] },
     totals: {
         type: Object,
         default: () => ({

@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bilty;
 use App\Models\LoadingReport;
 use App\Models\Station;
 use App\Models\Truck;
-use App\Models\Driver;
-use App\Models\Bilty;
 use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class LoadingReportController extends Controller implements HasMiddleware
 {
@@ -27,14 +26,16 @@ class LoadingReportController extends Controller implements HasMiddleware
             new Middleware('permission:delete loading_reports', only: ['destroy']),
         ];
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $reports = LoadingReport::with(['fromStation', 'toStation', 'truck', 'driver'])->orderBy('id', 'desc')->paginate(10);
+        $reports = LoadingReport::with(['fromStation', 'toStation', 'truck'])->orderBy('id', 'desc')->paginate(10);
+
         return Inertia::render('LoadingReports/Index', [
-            'reports' => $reports
+            'reports' => $reports,
         ]);
     }
 
@@ -43,8 +44,7 @@ class LoadingReportController extends Controller implements HasMiddleware
         return Inertia::render('LoadingReports/Create', [
             'stations' => Station::all(),
             'trucks' => Truck::all(),
-            'drivers' => Driver::all(),
-            'bilties' => Bilty::with(['biltyDetails', 'consignee'])->where('status', '!=', 'Delivered')->get()
+            'bilties' => Bilty::with(['biltyDetails', 'consignee'])->where('status', '!=', 'Delivered')->get(),
         ]);
     }
 
@@ -54,7 +54,7 @@ class LoadingReportController extends Controller implements HasMiddleware
             'from_station_id' => 'required|exists:stations,id',
             'to_station_id' => 'required|exists:stations,id',
             'truck_id' => 'required|exists:trucks,id',
-            'driver_id' => 'required|exists:drivers,id',
+            'driver_name' => 'required|string|max:255',
             'date' => 'required|date',
             'remark' => 'nullable|string',
             'details' => 'required|array|min:1',
@@ -63,7 +63,7 @@ class LoadingReportController extends Controller implements HasMiddleware
             'details.*.package_type_id' => 'required|exists:package_types,id',
             'details.*.consignee_id' => 'required|exists:parties,id',
             'details.*.no_of_packages' => 'nullable|numeric',
-            'details.*.gross_weight' => 'nullable|numeric'
+            'details.*.gross_weight' => 'nullable|numeric',
         ]);
 
         $report = DB::transaction(function () use ($validated) {
@@ -98,12 +98,12 @@ class LoadingReportController extends Controller implements HasMiddleware
     public function edit(LoadingReport $loadingReport)
     {
         $loadingReport->load('details');
+
         return Inertia::render('LoadingReports/Edit', [
             'report' => $loadingReport,
             'stations' => Station::all(),
             'trucks' => Truck::all(),
-            'drivers' => Driver::all(),
-            'bilties' => Bilty::with(['biltyDetails', 'consignee'])->get()
+            'bilties' => Bilty::with(['biltyDetails', 'consignee'])->get(),
         ]);
     }
 
@@ -113,7 +113,7 @@ class LoadingReportController extends Controller implements HasMiddleware
             'from_station_id' => 'required|exists:stations,id',
             'to_station_id' => 'required|exists:stations,id',
             'truck_id' => 'required|exists:trucks,id',
-            'driver_id' => 'required|exists:drivers,id',
+            'driver_name' => 'required|string|max:255',
             'date' => 'required|date',
             'remark' => 'nullable|string',
             'details' => 'required|array|min:1',
@@ -122,7 +122,7 @@ class LoadingReportController extends Controller implements HasMiddleware
             'details.*.package_type_id' => 'required|exists:package_types,id',
             'details.*.consignee_id' => 'required|exists:parties,id',
             'details.*.no_of_packages' => 'nullable|numeric',
-            'details.*.gross_weight' => 'nullable|numeric'
+            'details.*.gross_weight' => 'nullable|numeric',
         ]);
 
         DB::transaction(function () use ($validated, $loadingReport) {
@@ -133,7 +133,7 @@ class LoadingReportController extends Controller implements HasMiddleware
             $validated['gross_weight'] = collect($details)->sum('gross_weight');
 
             $loadingReport->update($validated);
-            
+
             $loadingReport->details()->delete();
 
             foreach ($details as $item) {
@@ -153,6 +153,7 @@ class LoadingReportController extends Controller implements HasMiddleware
     public function destroy(LoadingReport $loadingReport)
     {
         $loadingReport->delete();
+
         return redirect()->route('loading-reports.index')->with('success', 'Loading Report deleted successfully.');
     }
 
@@ -162,7 +163,6 @@ class LoadingReportController extends Controller implements HasMiddleware
             'fromStation',
             'toStation',
             'truck',
-            'driver',
             'details.bilty.toStation',
             'details.bilty.biltyDetails.good',
             'details.good',
@@ -181,7 +181,7 @@ class LoadingReportController extends Controller implements HasMiddleware
             $bilty = $detail->bilty;
             $goodsName = $detail->good?->name;
 
-            if (!$goodsName && $bilty?->biltyDetails) {
+            if (! $goodsName && $bilty?->biltyDetails) {
                 $goodsName = $bilty->biltyDetails
                     ->map(fn ($bd) => $bd->good?->name)
                     ->filter()

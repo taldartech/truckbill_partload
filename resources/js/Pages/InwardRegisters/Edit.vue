@@ -44,7 +44,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Driver</label>
-                                    <SearchableSelect :small="true" v-model="form.driver_id" :options="drivers" placeholder="Select Driver" />
+                                    <input type="text" class="form-control form-control-sm" v-model="form.driver_name" placeholder="Enter Driver Name" />
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Truck No.</label>
@@ -271,8 +271,7 @@
             :form="form"
             :stations="stations"
             :trucks="trucks"
-            :drivers="drivers"
-            :totals="confirmTotals"
+                        :totals="confirmTotals"
             @cancel="closeConfirm"
             @confirm="confirmSave"
         />
@@ -293,7 +292,6 @@ const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm
 const props = defineProps({
     register: Object,
     stations: Array,
-    drivers: Array,
     trucks: Array,
     goods: Array,
     parties: Array,
@@ -353,7 +351,7 @@ const form = useForm({
     to_station_id: props.register.to_station_id || '',
     challan_number: props.register.challan_number || '',
     challan_date: props.register.challan_date ? String(props.register.challan_date).substr(0, 10) : '',
-    driver_id: props.register.driver_id || '',
+    driver_name: props.register.driver_name || '',
     truck_id: props.register.truck_id || '',
     total_packages: props.register.total_packages || 0,
     total_delivery_freight: props.register.total_delivery_freight || 0,

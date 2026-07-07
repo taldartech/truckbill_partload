@@ -36,15 +36,10 @@
                                     <div class="d-flex align-items-center">
                                         <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Driver<span class="text-danger">*</span></label>
                                         <div class="flex-grow-1">
-                                            <SearchableSelect
-                                                :small="true"
-                                                v-model="form.driver_id"
-                                                :options="drivers"
-                                                placeholder="Select Driver"
-                                            />
+                                            <input type="text" class="form-control form-control-sm" v-model="form.driver_name" placeholder="Enter Driver Name" />
                                         </div>
                                     </div>
-                                    <div v-if="form.errors.driver_id" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.driver_id }}</div>
+                                    <div v-if="form.errors.driver_name" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.driver_name }}</div>
                                 </div>
                             </div>
 
@@ -191,7 +186,6 @@
             :form="form"
             :stations="stations"
             :trucks="trucks"
-            :drivers="drivers"
             :totals="confirmTotals"
             @cancel="closeConfirm"
             @confirm="confirmSave"
@@ -219,7 +213,6 @@ const ALL_STATIONS_VALUE = 'all';
 const props = defineProps({
     stations: Array,
     trucks: Array,
-    drivers: Array,
     bilties: Array
 });
 
@@ -232,7 +225,7 @@ const form = useForm({
     from_station_id: '',
     to_station_id: '',
     truck_id: '',
-    driver_id: '',
+    driver_name: '',
     date: new Date().toISOString().substr(0, 10),
     remark: '',
 

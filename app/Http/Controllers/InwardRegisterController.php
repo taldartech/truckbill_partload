@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\InwardRegister;
-use App\Models\Station;
-use App\Models\Driver;
-use App\Models\Truck;
 use App\Models\Good;
+use App\Models\InwardRegister;
 use App\Models\Party;
+use App\Models\Station;
 use App\Models\Transporter;
+use App\Models\Truck;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -30,7 +29,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
     public function index()
     {
-        $registers = InwardRegister::with(['fromStation', 'toStation', 'truck', 'driver', 'details'])
+        $registers = InwardRegister::with(['fromStation', 'toStation', 'truck', 'details'])
             ->orderBy('id', 'desc')
             ->paginate(10);
 
@@ -43,7 +42,6 @@ class InwardRegisterController extends Controller implements HasMiddleware
     {
         return Inertia::render('InwardRegisters/Create', [
             'stations' => Station::all(),
-            'drivers' => Driver::all(),
             'trucks' => Truck::all(),
             'goods' => Good::all(),
             'parties' => Party::all(),
@@ -84,7 +82,6 @@ class InwardRegisterController extends Controller implements HasMiddleware
         return Inertia::render('InwardRegisters/Edit', [
             'register' => $inwardRegister,
             'stations' => Station::all(),
-            'drivers' => Driver::all(),
             'trucks' => Truck::all(),
             'goods' => Good::all(),
             'parties' => Party::all(),
@@ -165,7 +162,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
             'to_station_id' => 'required|exists:stations,id',
             'challan_number' => 'nullable|string|max:255',
             'challan_date' => 'nullable|date',
-            'driver_id' => 'nullable|exists:drivers,id',
+            'driver_name' => 'nullable|string|max:255',
             'truck_id' => 'nullable|exists:trucks,id',
             'total_packages' => 'nullable|integer|min:0',
             'total_delivery_freight' => 'nullable|numeric|min:0',
@@ -224,7 +221,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
             $payload = $this->normalizeDetail($detail);
             $toStationId = (int) ($payload['to_station_id'] ?? 0);
 
-            if (!empty($detail['id'])) {
+            if (! empty($detail['id'])) {
                 $existing = $register->details()->whereKey($detail['id'])->first();
                 if ($existing) {
                     if ($existing->status === 'challaned') {
@@ -235,6 +232,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
                     $existing->update($payload);
                     $keptIds[] = $existing->id;
+
                     continue;
                 }
             }

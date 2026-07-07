@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agent;
 use App\Models\Bilty;
 use App\Models\Challan;
 use App\Models\ChallanDetail;
 use App\Models\InwardRegisterDetail;
 use App\Models\Station;
-use App\Models\Driver;
 use App\Models\Truck;
-use App\Models\Agent;
 use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -34,7 +33,7 @@ class ChallanController extends Controller implements HasMiddleware
 
     public function index()
     {
-        $challans = Challan::with(['company', 'fromStation', 'toStation', 'driver', 'truck'])->latest()->paginate(10);
+        $challans = Challan::with(['company', 'fromStation', 'toStation', 'truck'])->latest()->paginate(10);
 
         return Inertia::render('Challans/Index', [
             'challans' => $challans,
@@ -52,7 +51,6 @@ class ChallanController extends Controller implements HasMiddleware
 
         return Inertia::render('Challans/Create', [
             'stations' => Station::all(),
-            'drivers' => Driver::all(),
             'trucks' => Truck::all(),
             'bilties' => $this->pendingBilties(),
             'inward_details' => $this->pendingInwardDetails(),
@@ -66,7 +64,7 @@ class ChallanController extends Controller implements HasMiddleware
         $validated = $this->stripTenantFields($request->validate([
             'from_station_id' => 'required|exists:stations,id',
             'to_station_id' => 'required|exists:stations,id',
-            'driver_id' => 'required|exists:drivers,id',
+            'driver_name' => 'required|string|max:255',
             'truck_id' => 'required|exists:trucks,id',
             'challan_number' => 'nullable|string',
             'date' => 'nullable|date',
@@ -133,7 +131,6 @@ class ChallanController extends Controller implements HasMiddleware
         return Inertia::render('Challans/Edit', [
             'challan' => $challan,
             'stations' => Station::all(),
-            'drivers' => Driver::all(),
             'trucks' => Truck::all(),
             'bilties' => $this->pendingBilties(),
             'inward_details' => $this->pendingInwardDetails($challan->id),
@@ -146,7 +143,7 @@ class ChallanController extends Controller implements HasMiddleware
         $validated = $this->stripTenantFields($request->validate([
             'from_station_id' => 'required|exists:stations,id',
             'to_station_id' => 'required|exists:stations,id',
-            'driver_id' => 'required|exists:drivers,id',
+            'driver_name' => 'required|string|max:255',
             'truck_id' => 'required|exists:trucks,id',
             'challan_number' => 'nullable|string',
             'date' => 'nullable|date',
@@ -222,7 +219,6 @@ class ChallanController extends Controller implements HasMiddleware
             'fromStation',
             'toStation',
             'truck',
-            'driver',
             'details.bilty.biltyDetails.good',
             'details.bilty.consignee',
             'details.bilty.toStation',

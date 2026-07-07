@@ -51,7 +51,7 @@
             <div class="col-6">
                 <div class="box">
                     <strong>Truck No:</strong> {{ $challan->truck->truck_number ?? '—' }}<br>
-                    <strong>Driver:</strong> {{ $challan->driver->name ?? '—' }}<br>
+                    <strong>Driver:</strong> {{ $challan->driver_name ?? '—' }}<br>
                     @if($challan->status)
                         <strong>Status:</strong> {{ $challan->status }}
                     @endif

@@ -50,7 +50,7 @@
                                         <a :href="`/challans/${challan.id}/print`" target="_blank" class="fw-bold">{{ challan.challan_no }}</a>
                                     </td>
                                     <td>{{ challan.truck?.truck_no }}</td>
-                                    <td>{{ challan.driver?.name }}</td>
+                                    <td>{{ challan.driver_name || '—' }}</td>
                                     <td>{{ challan.from_station?.name }}</td>
                                     <td>{{ challan.to_station?.name }}</td>
                                     <td class="text-end">₹ {{ challan.truck_freight }}</td>

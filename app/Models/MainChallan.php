@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class MainChallan extends Model
 {
-    use \App\Traits\BelongsToCompany;
     use \App\Traits\BelongsToBranch;
+    use \App\Traits\BelongsToCompany;
 
     protected $guarded = [];
 
@@ -24,11 +24,6 @@ class MainChallan extends Model
     public function toStation()
     {
         return $this->belongsTo(Station::class, 'to_station_id');
-    }
-
-    public function driver()
-    {
-        return $this->belongsTo(Driver::class);
     }
 
     public function truck()

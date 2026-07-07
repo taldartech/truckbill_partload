@@ -130,7 +130,7 @@
             </div>
             <div class="meta-col" style="text-align: right;">
                 <div class="meta-line"><strong>Truck No :-</strong> {{ $loading_report->truck->truck_number ?? '—' }}</div>
-                <div class="meta-line"><strong>Driver Name :-</strong> {{ $loading_report->driver->name ?? '—' }}</div>
+                <div class="meta-line"><strong>Driver Name :-</strong> {{ $loading_report->driver_name ?? '—' }}</div>
             </div>
         </div>
 

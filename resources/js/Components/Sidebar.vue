@@ -90,13 +90,6 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item" v-if="can('view drivers')">
-                        <Link href="/drivers" class="nav-link py-2 px-2 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/drivers') }">
-                            <i class="nav-icon fas fa-id-card me-3"></i>
-                            <p class="mb-0 fw-medium">Drivers</p>
-                        </Link>
-                    </li>
-
                     <li class="nav-item" v-if="can('view stations')">
                         <Link href="/stations" class="nav-link py-2 px-2 d-flex align-items-center" :class="{ 'active': $page.url.startsWith('/stations') }">
                             <i class="nav-icon fas fa-map-marker-alt me-3"></i>

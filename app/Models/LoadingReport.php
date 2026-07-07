@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class LoadingReport extends Model
 {
-    use \App\Traits\BelongsToCompany;
     use \App\Traits\BelongsToBranch;
+    use \App\Traits\BelongsToCompany;
 
     protected $guarded = [];
 
@@ -29,11 +29,6 @@ class LoadingReport extends Model
     public function truck()
     {
         return $this->belongsTo(Truck::class);
-    }
-
-    public function driver()
-    {
-        return $this->belongsTo(Driver::class);
     }
 
     public function details()

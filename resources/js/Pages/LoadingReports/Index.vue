@@ -31,7 +31,7 @@
                                     <td>{{ report.from_station?.name }}</td>
                                     <td>{{ report.to_station?.name }}</td>
                                     <td>{{ report.truck?.truck_number }}</td>
-                                    <td>{{ report.driver?.name }}</td>
+                                    <td>{{ report.driver_name || 'N/A' }}</td>
                                     <td>{{ report.gross_weight }}</td>
                                     <td>{{ report.no_of_packages }}</td>
                                     <td class="text-end">

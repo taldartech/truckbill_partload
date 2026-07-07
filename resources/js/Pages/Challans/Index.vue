@@ -35,7 +35,7 @@
                                     </td>
                                     <td>
                                         <div class="text-bold"><i class="fas fa-truck me-1 text-muted small"></i> {{ challan.truck?.truck_number }}</div>
-                                        <div class="small text-muted"><i class="fas fa-user me-1 text-muted small"></i> {{ challan.driver?.name }}</div>
+                                        <div class="small text-muted"><i class="fas fa-user me-1 text-muted small"></i> {{ challan.driver_name || 'N/A' }}</div>
                                     </td>
                                     <td>{{ challan.total_amount || '0.00' }}</td>
                                     <td>
