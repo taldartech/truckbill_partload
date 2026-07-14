@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Vendor;
 use App\Models\City;
 use App\Models\State;
+use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -43,10 +43,10 @@ class VendorController extends Controller implements HasMiddleware
     {
         $validated = $this->stripTenantFields($request->validate([
             'name' => 'required|string|max:255',
-            'address' => 'nullable|string|max:500',
-            'city_id' => 'nullable|exists:cities,id',
-            'state_id' => 'nullable|exists:states,id',
-            'mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'address' => 'required|string|max:500',
+            'city_id' => 'required|exists:cities,id',
+            'state_id' => 'required|exists:states,id',
+            'mobile' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
             'email' => 'nullable|string|email|max:255',
             'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
         ], [
@@ -74,10 +74,10 @@ class VendorController extends Controller implements HasMiddleware
     {
         $validated = $this->stripTenantFields($request->validate([
             'name' => 'required|string|max:255',
-            'address' => 'nullable|string|max:500',
-            'city_id' => 'nullable|exists:cities,id',
-            'state_id' => 'nullable|exists:states,id',
-            'mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'address' => 'required|string|max:500',
+            'city_id' => 'required|exists:cities,id',
+            'state_id' => 'required|exists:states,id',
+            'mobile' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
             'email' => 'nullable|string|email|max:255',
             'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
         ], [
