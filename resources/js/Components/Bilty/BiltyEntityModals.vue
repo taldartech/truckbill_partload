@@ -132,16 +132,17 @@
                             </div>
                             <div class="row mb-0">
                                 <div class="col-md-6">
-                                    <label class="form-label small mb-1">State</label>
+                                    <label class="form-label small mb-1">State *</label>
                                     <SearchableSelect
                                         :small="true"
                                         v-model="stationForm.state_id"
                                         :options="stationFormData.states"
                                         placeholder="Select State"
                                     />
+                                    <div v-if="stationFieldError('state_id')" class="text-danger small">{{ stationFieldError('state_id') }}</div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small mb-1">City</label>
+                                    <label class="form-label small mb-1">City *</label>
                                     <SearchableSelect
                                         :small="true"
                                         v-model="stationForm.city_id"
@@ -149,6 +150,7 @@
                                         :placeholder="stationCitiesLoading ? 'Loading cities...' : 'Select City'"
                                         :disabled="!stationForm.state_id || stationCitiesLoading"
                                     />
+                                    <div v-if="stationFieldError('city_id')" class="text-danger small">{{ stationFieldError('city_id') }}</div>
                                 </div>
                             </div>
                             </template>

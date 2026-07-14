@@ -16,23 +16,25 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label for="state">State</label>
+                                        <label for="state">State *</label>
                                         <SearchableSelect
-    v-model="form.state_id"
-    :options="states"
-    placeholder="Select State"
-/>
+                                            v-model="form.state_id"
+                                            :options="states"
+                                            placeholder="Select State"
+                                        />
+                                        <div v-if="form.errors.state_id" class="text-danger mt-1 small">{{ form.errors.state_id }}</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label for="city">City</label>
+                                        <label for="city">City *</label>
                                         <SearchableSelect
-    v-model="form.city_id"
-    :options="filteredCities"
-    placeholder="Select City"
-:disabled="!form.state_id"
-/>
+                                            v-model="form.city_id"
+                                            :options="filteredCities"
+                                            placeholder="Select City"
+                                            :disabled="!form.state_id"
+                                        />
+                                        <div v-if="form.errors.city_id" class="text-danger mt-1 small">{{ form.errors.city_id }}</div>
                                     </div>
                                 </div>
                             </div>

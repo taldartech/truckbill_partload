@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Station;
 use App\Models\City;
 use App\Models\State;
+use App\Models\Station;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -44,8 +44,8 @@ class StationController extends Controller implements HasMiddleware
     {
         $validated = $this->stripTenantFields($request->validate([
             'name' => 'required|string|max:255',
-            'city_id' => 'nullable|exists:cities,id',
-            'state_id' => 'nullable|exists:states,id',
+            'city_id' => 'required|exists:cities,id',
+            'state_id' => 'required|exists:states,id',
         ]));
 
         Station::create($validated);
@@ -77,8 +77,8 @@ class StationController extends Controller implements HasMiddleware
     {
         $validated = $this->stripTenantFields($request->validate([
             'name' => 'required|string|max:255',
-            'city_id' => 'nullable|exists:cities,id',
-            'state_id' => 'nullable|exists:states,id',
+            'city_id' => 'required|exists:cities,id',
+            'state_id' => 'required|exists:states,id',
         ]));
 
         $station = Station::create($validated);
@@ -104,8 +104,8 @@ class StationController extends Controller implements HasMiddleware
     {
         $validated = $this->stripTenantFields($request->validate([
             'name' => 'required|string|max:255',
-            'city_id' => 'nullable|exists:cities,id',
-            'state_id' => 'nullable|exists:states,id',
+            'city_id' => 'required|exists:cities,id',
+            'state_id' => 'required|exists:states,id',
         ]));
 
         $station->update($validated);
