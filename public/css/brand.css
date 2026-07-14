@@ -108,17 +108,12 @@ a:hover {
     border-right: 1px solid var(--brand-border) !important;
 }
 
-.brand-link {
-    background-color: var(--brand-card-bg) !important;
-    border-bottom: 1px solid var(--brand-border) !important;
-}
-
 .brand-text {
     color: var(--brand-text-primary) !important;
 }
 
 .brand-image {
-    max-height: 33px;
+    max-height: 75px !important;
     width: auto;
     margin-right: 0;
 }

@@ -1,8 +1,8 @@
 <template>
     <aside class="app-sidebar bg-white shadow-sm border-end">
-        <div class="sidebar-brand py-4 px-3 d-flex justify-content-center border-bottom mb-2">
+        <div class="sidebar-brand">
             <Link href="/" class="brand-link text-decoration-none">
-                <img src="/logo.png" alt="TruckBill Logo" class="brand-image" style="height: 100px;">
+                <img src="/logo.png" alt="TruckBill Logo" class="brand-image">
             </Link>
         </div>
         <div class="sidebar-wrapper">
