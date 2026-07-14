@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Party;
-use App\Models\Group;
 use App\Models\City;
+use App\Models\Group;
+use App\Models\Party;
 use App\Models\State;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -44,26 +44,10 @@ class PartyController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
-        $validated = $this->stripTenantFields($request->validate([
-            'group_id' => 'nullable|exists:groups,id',
-            'name' => 'required|string|max:255',
-            'type' => 'nullable|string|in:Consignor,Consignee,Both',
-            'address' => 'nullable|string|max:500',
-            'city_id' => 'nullable|exists:cities,id',
-            'state_id' => 'nullable|exists:states,id',
-            'mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
-            'mobile_sms' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
-            'email' => 'nullable|string|email|max:255',
-            'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
-            'bilty_charge' => 'nullable|numeric|min:0',
-        ], [
-            'mobile.digits' => 'Mobile number must be exactly 10 digits.',
-            'mobile.regex' => 'Mobile number must be a valid 10-digit Indian mobile number.',
-            'mobile_sms.digits' => 'SMS mobile number must be exactly 10 digits.',
-            'mobile_sms.regex' => 'SMS mobile number must be a valid 10-digit Indian mobile number.',
-            'gst_number.size' => 'GST number must be exactly 15 characters.',
-            'gst_number.regex' => 'GST number format is invalid.',
-        ]));
+        $validated = $this->stripTenantFields($request->validate(
+            $this->partyRules(),
+            $this->partyMessages(),
+        ));
 
         Party::create($validated);
 
@@ -86,7 +70,6 @@ class PartyController extends Controller implements HasMiddleware
         return response()->json([
             'rows' => [
                 ['label' => 'Name', 'value' => $party->name],
-                ['label' => 'Type', 'value' => $party->type],
                 ['label' => 'Address', 'value' => $party->address],
                 ['label' => 'State', 'value' => $party->state?->name],
                 ['label' => 'City', 'value' => $party->city?->name],
@@ -100,24 +83,10 @@ class PartyController extends Controller implements HasMiddleware
 
     public function quickStore(Request $request): JsonResponse
     {
-        $validated = $this->stripTenantFields($request->validate([
-            'group_id' => 'nullable|exists:groups,id',
-            'name' => 'required|string|max:255',
-            'type' => 'nullable|string|in:Consignor,Consignee,Both',
-            'address' => 'nullable|string|max:500',
-            'city_id' => 'nullable|exists:cities,id',
-            'state_id' => 'nullable|exists:states,id',
-            'mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
-            'email' => 'nullable|string|email|max:255',
-            'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
-        ], [
-            'mobile.digits' => 'Mobile number must be exactly 10 digits.',
-            'mobile.regex' => 'Mobile number must be a valid 10-digit Indian mobile number.',
-            'gst_number.size' => 'GST number must be exactly 15 characters.',
-            'gst_number.regex' => 'GST number format is invalid.',
-        ]));
-
-        $validated['type'] = $validated['type'] ?? 'Both';
+        $validated = $this->stripTenantFields($request->validate(
+            $this->quickPartyRules(),
+            $this->partyMessages(),
+        ));
 
         $party = Party::create($validated);
 
@@ -142,26 +111,10 @@ class PartyController extends Controller implements HasMiddleware
 
     public function update(Request $request, Party $party)
     {
-        $validated = $this->stripTenantFields($request->validate([
-            'group_id' => 'nullable|exists:groups,id',
-            'name' => 'required|string|max:255',
-            'type' => 'nullable|string|in:Consignor,Consignee,Both',
-            'address' => 'nullable|string|max:500',
-            'city_id' => 'nullable|exists:cities,id',
-            'state_id' => 'nullable|exists:states,id',
-            'mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
-            'mobile_sms' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
-            'email' => 'nullable|string|email|max:255',
-            'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
-            'bilty_charge' => 'nullable|numeric|min:0',
-        ], [
-            'mobile.digits' => 'Mobile number must be exactly 10 digits.',
-            'mobile.regex' => 'Mobile number must be a valid 10-digit Indian mobile number.',
-            'mobile_sms.digits' => 'SMS mobile number must be exactly 10 digits.',
-            'mobile_sms.regex' => 'SMS mobile number must be a valid 10-digit Indian mobile number.',
-            'gst_number.size' => 'GST number must be exactly 15 characters.',
-            'gst_number.regex' => 'GST number format is invalid.',
-        ]));
+        $validated = $this->stripTenantFields($request->validate(
+            $this->partyRules(),
+            $this->partyMessages(),
+        ));
 
         $party->update($validated);
 
@@ -173,5 +126,53 @@ class PartyController extends Controller implements HasMiddleware
         $party->delete();
 
         return redirect()->route('parties.index')->with('success', 'Party deleted successfully.');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function partyRules(): array
+    {
+        return [
+            'group_id' => 'nullable|exists:groups,id',
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:500',
+            'city_id' => 'required|exists:cities,id',
+            'state_id' => 'required|exists:states,id',
+            'mobile' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'email' => 'nullable|string|email|max:255',
+            'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+            'bilty_charge' => 'nullable|numeric|min:0',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function quickPartyRules(): array
+    {
+        return [
+            'group_id' => 'nullable|exists:groups,id',
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:500',
+            'city_id' => 'required|exists:cities,id',
+            'state_id' => 'required|exists:states,id',
+            'mobile' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
+            'email' => 'nullable|string|email|max:255',
+            'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function partyMessages(): array
+    {
+        return [
+            'mobile.digits' => 'Mobile number must be exactly 10 digits.',
+            'mobile.regex' => 'Mobile number must be a valid 10-digit Indian mobile number.',
+            'gst_number.size' => 'GST number must be exactly 15 characters.',
+            'gst_number.regex' => 'GST number format is invalid.',
+        ];
     }
 }

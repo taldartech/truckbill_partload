@@ -299,15 +299,16 @@ class OperationalFlowSeeder extends Seeder
             'name' => $name,
         ]));
 
-        $parties = $this->seedCollection($this->partyNames(), function (array $party, int $i) use ($companyId, $groups) {
+        $parties = $this->seedCollection($this->partyNames(), function (array $party, int $i) use ($companyId, $groups, $geo) {
             return Party::create([
                 'company_id' => $companyId,
                 'group_id' => $groups[$i % count($groups)]->id,
                 'name' => $party['name'],
-                'type' => $party['type'],
                 'mobile' => '98'.str_pad((string) (30000000 + $i), 8, '0', STR_PAD_LEFT),
                 'gst_number' => $party['gst'] ?? null,
-                'address' => $party['address'] ?? null,
+                'address' => $party['address'] ?? 'Demo address',
+                'state_id' => $geo['state_id'],
+                'city_id' => $geo['city_id'],
             ]);
         });
 
@@ -393,8 +394,8 @@ class OperationalFlowSeeder extends Seeder
         $packageTypes = collect($masters['packageTypes']);
 
         $mumbai = $stations->firstWhere('name', 'Mumbai');
-        $consignors = $parties->filter(fn (Party $p) => in_array($p->type, ['Consignor', 'Both'], true))->values();
-        $consignees = $parties->filter(fn (Party $p) => in_array($p->type, ['Consignee', 'Both'], true))->values();
+        $consignors = $parties->values();
+        $consignees = $parties->values();
         $drivers = $this->driverNames();
         $routes = [
             ['from' => 'Mumbai', 'to' => 'Delhi'],
@@ -827,23 +828,23 @@ class OperationalFlowSeeder extends Seeder
     }
 
     /**
-     * @return array<int, array{name: string, type: string, gst?: string, address?: string}>
+     * @return array<int, array{name: string, gst?: string, address?: string}>
      */
     private function partyNames(): array
     {
         return [
-            ['name' => 'Patel Trading Company', 'type' => 'Consignor', 'gst' => '27AABCP1234A1Z5', 'address' => 'Lamington Road, Mumbai'],
-            ['name' => 'Sharma Electricals Pvt Ltd', 'type' => 'Consignor', 'gst' => '27AABCS5678B1Z3', 'address' => 'Andheri East, Mumbai'],
-            ['name' => 'Mehta Textiles', 'type' => 'Consignor', 'gst' => '27AABCM9012C1Z7', 'address' => 'Dadar, Mumbai'],
-            ['name' => 'Jain Hardware Mart', 'type' => 'Consignor', 'gst' => '27AABCJ3456D1Z2', 'address' => 'Bhuleshwar, Mumbai'],
-            ['name' => 'Kulkarni Pharma Distributors', 'type' => 'Consignor', 'gst' => '27AABCK7890E1Z9', 'address' => 'Vile Parle, Mumbai'],
-            ['name' => 'Desai Furniture Works', 'type' => 'Consignee', 'address' => 'Karol Bagh, Delhi'],
-            ['name' => 'Singh Auto Components', 'type' => 'Consignee', 'address' => 'Pimpri, Pune'],
-            ['name' => 'Gupta Plastic Industries', 'type' => 'Consignee', 'address' => 'Naroda, Ahmedabad'],
-            ['name' => 'Reddy Agro Products', 'type' => 'Consignee', 'address' => 'Secunderabad, Hyderabad'],
-            ['name' => 'Iyer Garments Export', 'type' => 'Consignee', 'address' => 'T Nagar, Chennai'],
-            ['name' => 'Bose Paper Mills', 'type' => 'Both', 'gst' => '27AABCB1122F1Z4', 'address' => 'Howrah, Kolkata'],
-            ['name' => 'Verma Industrial Supplies', 'type' => 'Both', 'gst' => '27AABCV3344G1Z6', 'address' => 'Vishwakarma Industrial Area, Jaipur'],
+            ['name' => 'Patel Trading Company', 'gst' => '27AABCP1234A1Z5', 'address' => 'Lamington Road, Mumbai'],
+            ['name' => 'Sharma Electricals Pvt Ltd', 'gst' => '27AABCS5678B1Z3', 'address' => 'Andheri East, Mumbai'],
+            ['name' => 'Mehta Textiles', 'gst' => '27AABCM9012C1Z7', 'address' => 'Dadar, Mumbai'],
+            ['name' => 'Jain Hardware Mart', 'gst' => '27AABCJ3456D1Z2', 'address' => 'Bhuleshwar, Mumbai'],
+            ['name' => 'Kulkarni Pharma Distributors', 'gst' => '27AABCK7890E1Z9', 'address' => 'Vile Parle, Mumbai'],
+            ['name' => 'Desai Furniture Works', 'address' => 'Karol Bagh, Delhi'],
+            ['name' => 'Singh Auto Components', 'address' => 'Pimpri, Pune'],
+            ['name' => 'Gupta Plastic Industries', 'address' => 'Naroda, Ahmedabad'],
+            ['name' => 'Reddy Agro Products', 'address' => 'Secunderabad, Hyderabad'],
+            ['name' => 'Iyer Garments Export', 'address' => 'T Nagar, Chennai'],
+            ['name' => 'Bose Paper Mills', 'gst' => '27AABCB1122F1Z4', 'address' => 'Howrah, Kolkata'],
+            ['name' => 'Verma Industrial Supplies', 'gst' => '27AABCV3344G1Z6', 'address' => 'Vishwakarma Industrial Area, Jaipur'],
         ];
     }
 

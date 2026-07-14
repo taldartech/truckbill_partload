@@ -16,7 +16,6 @@
                                     <th>ID</th>
                                     <th>Company</th>
                                     <th>Name</th>
-                                    <th>Type</th>
                                     <th>GST Number</th>
                                     <th>Mobile</th>
                                     <th class="text-end">Actions</th>
@@ -27,16 +26,6 @@
                                     <td>{{ party.id }}</td>
                                     <td>{{ party.company ? party.company.name : 'N/A' }}</td>
                                     <td>{{ party.name }}</td>
-                                    <td>
-                                        <span class="badge" 
-                                            :class="{
-                                                'bg-info': party.type === 'Consignor',
-                                                'bg-primary': party.type === 'Consignee',
-                                                'bg-success': party.type === 'Both' || !party.type
-                                            }">
-                                            {{ party.type || 'N/A' }}
-                                        </span>
-                                    </td>
                                     <td>{{ party.gst_number || 'N/A' }}</td>
                                     <td>{{ party.mobile || 'N/A' }}</td>
                                     <td class="text-end">
@@ -49,7 +38,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="parties.data.length === 0">
-                                    <td colspan="7" class="text-center py-4">No parties found.</td>
+                                    <td colspan="6" class="text-center py-4">No parties found.</td>
                                 </tr>
                             </tbody>
                         </table>

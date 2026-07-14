@@ -15,7 +15,6 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th>Type</th>
                                     <th>Gst Number</th>
                                     <th>Mobile</th>
                                     <th class="text-end">Actions</th>
@@ -25,7 +24,6 @@
                                 <tr v-for="party in parties.data" :key="party.id">
                                     <td>{{ party.id }}</td>
                                     <td>{{ party.name || 'N/A' }}</td>
-                                    <td>{{ party.type || 'N/A' }}</td>
                                     <td>{{ party.gst_number || 'N/A' }}</td>
                                     <td>{{ party.mobile || 'N/A' }}</td>
                                     <td class="text-end">

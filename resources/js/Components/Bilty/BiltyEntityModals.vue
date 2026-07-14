@@ -48,36 +48,30 @@
                                 </div>
                             </div>
                             <div class="row mb-2">
-                                <div class="col-md-8">
+                                <div class="col-md-12">
                                     <label class="form-label small mb-1">Party Name *</label>
                                     <input type="text" class="form-control form-control-sm" v-model="partyForm.name" required>
                                     <div v-if="partyFieldError('name')" class="text-danger small">{{ partyFieldError('name') }}</div>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small mb-1">Type</label>
-                                    <select class="form-select form-select-sm" v-model="partyForm.type">
-                                        <option value="Both">Both</option>
-                                        <option value="Consignor">Consignor</option>
-                                        <option value="Consignee">Consignee</option>
-                                    </select>
-                                </div>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label small mb-1">Address</label>
-                                <input type="text" class="form-control form-control-sm" v-model="partyForm.address">
+                                <label class="form-label small mb-1">Address *</label>
+                                <input type="text" class="form-control form-control-sm" v-model="partyForm.address" required>
+                                <div v-if="partyFieldError('address')" class="text-danger small">{{ partyFieldError('address') }}</div>
                             </div>
                             <div class="row mb-2">
                                 <div class="col-md-6">
-                                    <label class="form-label small mb-1">State</label>
+                                    <label class="form-label small mb-1">State *</label>
                                     <SearchableSelect
                                         :small="true"
                                         v-model="partyForm.state_id"
                                         :options="partyFormData.states"
                                         placeholder="Select State"
                                     />
+                                    <div v-if="partyFieldError('state_id')" class="text-danger small">{{ partyFieldError('state_id') }}</div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small mb-1">City</label>
+                                    <label class="form-label small mb-1">City *</label>
                                     <SearchableSelect
                                         :small="true"
                                         v-model="partyForm.city_id"
@@ -85,16 +79,19 @@
                                         :placeholder="partyCitiesLoading ? 'Loading cities...' : 'Select City'"
                                         :disabled="!partyForm.state_id || partyCitiesLoading"
                                     />
+                                    <div v-if="partyFieldError('city_id')" class="text-danger small">{{ partyFieldError('city_id') }}</div>
                                 </div>
                             </div>
                             <div class="row mb-2">
                                 <div class="col-md-6">
-                                    <label class="form-label small mb-1">Mobile</label>
-                                    <input type="text" class="form-control form-control-sm" v-model="partyForm.mobile">
+                                    <label class="form-label small mb-1">Mobile *</label>
+                                    <input type="text" class="form-control form-control-sm" v-model="partyForm.mobile" required maxlength="10">
+                                    <div v-if="partyFieldError('mobile')" class="text-danger small">{{ partyFieldError('mobile') }}</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small mb-1">GST Number</label>
                                     <input type="text" class="form-control form-control-sm" v-model="partyForm.gst_number">
+                                    <div v-if="partyFieldError('gst_number')" class="text-danger small">{{ partyFieldError('gst_number') }}</div>
                                 </div>
                             </div>
                             <div class="mb-0">
@@ -213,7 +210,6 @@ const stationErrors = ref({});
 const partyForm = reactive({
     group_id: '',
     name: '',
-    type: 'Both',
     address: '',
     state_id: '',
     city_id: '',
@@ -330,7 +326,6 @@ const resetPartyForm = () => {
     Object.assign(partyForm, {
         group_id: '',
         name: '',
-        type: 'Both',
         address: '',
         state_id: '',
         city_id: '',
