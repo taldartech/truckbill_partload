@@ -264,6 +264,7 @@ class OperationalFlowSeeder extends Seeder
         $agents = $this->seedCollection($this->agentNames(), fn (string $name, int $i) => Agent::create([
             'company_id' => $companyId,
             'name' => $name,
+            'address' => 'Agent Office, Transport Nagar',
             'mobile' => '98'.str_pad((string) (20000000 + $i), 8, '0', STR_PAD_LEFT),
             'state_id' => $geo['state_id'],
             'city_id' => $geo['city_id'],
