@@ -23,7 +23,7 @@
         </main>
         <Footer />
 
-        <!-- Global Shortcuts Modal (F3) -->
+        <!-- Global Shortcuts Modal (F1) -->
         <Transition name="fade">
             <div v-if="isShortcutModalOpen" class="shortcut-modal-overlay" @click.self="closeShortcutModal">
                 <div class="shortcut-modal-card">
@@ -38,12 +38,11 @@
                     </div>
                     <div class="shortcut-modal-body">
                         <p class="text-muted small mb-4">Press the shortcut key on your keyboard or click an option below to open the form.</p>
-                        
                         <div class="shortcut-list">
                             <!-- Bilty -->
-                            <button 
+                            <button
                                 v-if="canCreateBilty"
-                                class="shortcut-item" 
+                                class="shortcut-item"
                                 @click="navigateTo('/bilties/create')"
                             >
                                 <span class="shortcut-item-info">
@@ -54,9 +53,9 @@
                             </button>
 
                             <!-- Challan -->
-                            <button 
+                            <button
                                 v-if="canCreateChallan"
-                                class="shortcut-item" 
+                                class="shortcut-item"
                                 @click="navigateTo('/challans/create')"
                             >
                                 <span class="shortcut-item-info">
@@ -67,9 +66,9 @@
                             </button>
 
                             <!-- Main Challan -->
-                            <button 
+                            <button
                                 v-if="canCreateChallan"
-                                class="shortcut-item" 
+                                class="shortcut-item"
                                 @click="navigateTo('/main-challans/create')"
                             >
                                 <span class="shortcut-item-info">
@@ -80,9 +79,9 @@
                             </button>
 
                             <!-- Inward Register -->
-                            <button 
+                            <button
                                 v-if="canCreateInward"
-                                class="shortcut-item" 
+                                class="shortcut-item"
                                 @click="navigateTo('/inward-registers/create')"
                             >
                                 <span class="shortcut-item-info">
@@ -93,9 +92,9 @@
                             </button>
 
                             <!-- Delivery Receipt -->
-                            <button 
+                            <button
                                 v-if="canCreateDelivery"
-                                class="shortcut-item" 
+                                class="shortcut-item"
                                 @click="navigateTo('/delivery-receipts/create')"
                             >
                                 <span class="shortcut-item-info">
@@ -106,9 +105,9 @@
                             </button>
 
                             <!-- Voucher -->
-                            <button 
+                            <button
                                 v-if="canCreateVoucher"
-                                class="shortcut-item" 
+                                class="shortcut-item"
                                 @click="navigateTo('/vouchers/create')"
                             >
                                 <span class="shortcut-item-info">
@@ -237,7 +236,7 @@ const handleEnterAsTab = async (event) => {
     // Check if we are inside a table row or dynamic-grid row
     const tr = activeEl.closest('tr') || activeEl.closest('.dynamic-row');
     const table = tr ? (tr.closest('table') || tr.closest('.dynamic-grid')) : null;
-    
+
     if (tr && table) {
         const rowInputs = getVisibleRowInputs(tr);
         const isLastInputInRow = rowInputs.indexOf(activeEl) === rowInputs.length - 1;
@@ -286,8 +285,8 @@ const handleKeyDown = (event) => {
         return;
     }
 
-    // F3 -> toggle shortcut modal
-    if (event.key === 'F3') {
+    // F1 -> toggle shortcut modal
+    if (event.key === 'F1') {
         event.preventDefault();
         isShortcutModalOpen.value = !isShortcutModalOpen.value;
         return;
