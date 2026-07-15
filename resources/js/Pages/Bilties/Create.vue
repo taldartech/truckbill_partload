@@ -51,21 +51,6 @@
                                     <div v-if="form.errors.from_station_id" class="text-danger small ms-2">{{ form.errors.from_station_id }}</div>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignor</label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="form.consignor_id"
-                                        :options="partyOptions"
-                                        master="party"
-                                        placeholder="Select Consignor"
-                                        @created="(record) => appendMasterOption(partyOptions, record)"
-                                    />
-                                    <div v-if="form.errors.consignor_id" class="text-danger small ms-2">{{ form.errors.consignor_id }}</div>
-                                </div>
-                            </div>
-
-                            <div class="row align-items-center mb-2">
-                                <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">To St.</label>
                                     <SearchableSelect
                                         :small="true"
@@ -76,6 +61,21 @@
                                         @created="(record) => appendMasterOption(stationOptions, record)"
                                     />
                                     <div v-if="form.errors.to_station_id" class="text-danger small ms-2">{{ form.errors.to_station_id }}</div>
+                                </div>
+                            </div>
+
+                            <div class="row align-items-center mb-2">
+                                <div class="col-md-6 d-flex align-items-center">
+                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignor</label>
+                                    <SearchableSelect
+                                        :small="true"
+                                        v-model="form.consignor_id"
+                                        :options="partyOptions"
+                                        master="party"
+                                        placeholder="Select Consignor"
+                                        @created="(record) => appendMasterOption(partyOptions, record)"
+                                    />
+                                    <div v-if="form.errors.consignor_id" class="text-danger small ms-2">{{ form.errors.consignor_id }}</div>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignee</label>
