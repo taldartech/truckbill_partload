@@ -141,8 +141,8 @@
                                             <input type="text" class="form-control" v-model="entry.private_marka" placeholder="Enter marka">
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label">Transport Name</label>
-                                            <SearchableSelect v-model="entry.transporter_id" :options="transporters" placeholder="Select Transporter" />
+                                            <label class="form-label">Agent</label>
+                                            <SearchableSelect v-model="entry.agent_id" :options="agents" placeholder="Select Agent" />
                                         </div>
                                     </div>
 
@@ -295,7 +295,7 @@ const props = defineProps({
     trucks: Array,
     goods: Array,
     parties: Array,
-    transporters: Array,
+    agents: Array,
 });
 
 const selectedRowIndex = ref(null);
@@ -315,7 +315,7 @@ const emptyEntry = () => ({
     freight: '',
     home_delivery_charge: '',
     private_marka: '',
-    transporter_id: '',
+    agent_id: '',
     disposition: '',
     status: 'pending',
 });
@@ -335,7 +335,7 @@ const mapDetail = (detail) => ({
     freight: detail.freight ?? '',
     home_delivery_charge: detail.home_delivery_charge ?? '',
     private_marka: detail.private_marka || '',
-    transporter_id: detail.transporter_id || '',
+    agent_id: detail.agent_id || '',
     disposition: detail.disposition || '',
     status: detail.status || 'pending',
 });

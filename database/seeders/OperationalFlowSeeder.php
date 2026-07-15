@@ -25,7 +25,6 @@ use App\Models\MainChallanDetail;
 use App\Models\PackageType;
 use App\Models\Party;
 use App\Models\Station;
-use App\Models\Transporter;
 use App\Models\Truck;
 use App\Models\TruckType;
 use App\Models\User;
@@ -313,14 +312,6 @@ class OperationalFlowSeeder extends Seeder
             ]);
         });
 
-        $transporters = $this->seedCollection($this->transporterNames(), fn (array $row, int $i) => Transporter::create([
-            'company_id' => $companyId,
-            'name' => $row['name'],
-            'short_name' => $row['short'],
-            'gst_number' => '27AABCT'.str_pad((string) $i, 4, '0', STR_PAD_LEFT).'Z1',
-            'pan_number' => 'AABCT'.str_pad((string) $i, 4, '0', STR_PAD_LEFT).'F',
-        ]));
-
         $truckNumbers = [
             'MH04AB1234', 'MH12CD5678', 'MH43EF9012', 'GJ01GH3456',
             'GJ06JK7890', 'RJ27AB0001', 'MP09NP6789', 'KA05QR1122',
@@ -334,11 +325,10 @@ class OperationalFlowSeeder extends Seeder
         ];
 
         $trucks = $this->seedCollection($truckNumbers, function (string $number, int $i) use (
-            $companyId, $transporters, $truckTypes, $stations, $geo, $ownerNames
+            $companyId, $truckTypes, $stations, $geo, $ownerNames
         ) {
             return Truck::create([
                 'company_id' => $companyId,
-                'transporter_id' => $transporters[$i % count($transporters)]->id,
                 'truck_number' => $number,
                 'truck_type_id' => $truckTypes[$i % count($truckTypes)]->id,
                 'capacity' => ($i % 2 === 0) ? '15 Ton' : '9 Ton',
@@ -367,11 +357,10 @@ class OperationalFlowSeeder extends Seeder
         $this->counts['groups'] = count($groups);
         $this->counts['parties'] = count($parties);
         $this->counts['agents'] = count($agents);
-        $this->counts['transporters'] = count($transporters);
         $this->counts['trucks'] = count($trucks);
         $this->counts['vendors'] = count($vendors);
 
-        return compact('stations', 'goods', 'packageTypes', 'truckTypes', 'groups', 'parties', 'agents', 'transporters', 'trucks', 'vendors');
+        return compact('stations', 'goods', 'packageTypes', 'truckTypes', 'groups', 'parties', 'agents', 'trucks', 'vendors');
     }
 
     /**
@@ -849,27 +838,6 @@ class OperationalFlowSeeder extends Seeder
         ];
     }
 
-    /**
-     * @return array<int, array{name: string, short: string}>
-     */
-    private function transporterNames(): array
-    {
-        return [
-            ['name' => 'National Fleet Carriers', 'short' => 'NFC'],
-            ['name' => 'Western India Transport', 'short' => 'WIT'],
-            ['name' => 'Bharat Roadlines', 'short' => 'BRL'],
-            ['name' => 'Shree Sai Logistics', 'short' => 'SSL'],
-            ['name' => 'Maharashtra Cargo Movers', 'short' => 'MCM'],
-            ['name' => 'Gujarat Freight Services', 'short' => 'GFS'],
-            ['name' => 'Rajasthan Highway Carriers', 'short' => 'RHC'],
-            ['name' => 'South India Transport Co', 'short' => 'SITC'],
-            ['name' => 'Eastern Cargo Link', 'short' => 'ECL'],
-            ['name' => 'Central India Roadways', 'short' => 'CIR'],
-            ['name' => 'Om Sai Transport', 'short' => 'OST'],
-            ['name' => 'Jai Hind Logistics', 'short' => 'JHL'],
-        ];
-    }
-
     /** @return array<int, string> */
     private function vendorNames(): array
     {
@@ -900,7 +868,7 @@ class OperationalFlowSeeder extends Seeder
         $this->command?->line('  Branch Admin: '.self::DEMO_OPS_EMAIL.' (Priya Sharma, Mumbai Head Office)');
         $this->command?->newLine();
         $this->command?->line('Master data created:');
-        foreach (['stations', 'goods', 'package_types', 'truck_types', 'groups', 'parties', 'agents', 'transporters', 'trucks', 'vendors'] as $key) {
+        foreach (['stations', 'goods', 'package_types', 'truck_types', 'groups', 'parties', 'agents', 'trucks', 'vendors'] as $key) {
             $this->command?->line(sprintf('  %-16s %d', ucwords(str_replace('_', ' ', $key)).':', $this->counts[$key] ?? 0));
         }
         $this->command?->newLine();

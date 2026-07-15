@@ -48,7 +48,7 @@
                                         <span v-else class="text-muted">—</span>
                                     </td>
                                     <td>{{ truck.rc_expiry_date || '—' }}</td>
-                                    <td>{{ truck.transporter?.name || '—' }}</td>
+                                    <td>{{ truck.owner_name || '—' }}</td>
                                     <td>{{ truck.driver?.name || '—' }}</td>
                                     <td class="text-end">
                                         <button

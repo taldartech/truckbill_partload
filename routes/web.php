@@ -18,7 +18,6 @@ use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\SubscriptionController;
-use App\Http\Controllers\TransporterController;
 use App\Http\Controllers\TruckController;
 use App\Http\Controllers\TruckTypeController;
 use App\Http\Controllers\UserController;
@@ -72,7 +71,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('subscription.active')->group(function () {
         Route::resource('branches', BranchController::class);
-        Route::resource('transporters', TransporterController::class);
         Route::put('trucks/{truck}/complete-tour', [TruckController::class, 'completeTour'])->name('trucks.complete-tour');
         Route::resource('trucks', TruckController::class);
         Route::get('cities/by-state/{state}', [CityController::class, 'byState'])->name('cities.by-state');

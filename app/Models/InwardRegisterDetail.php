@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class InwardRegisterDetail extends Model
 {
-    use \App\Traits\BelongsToCompany;
     use \App\Traits\BelongsToBranch;
+    use \App\Traits\BelongsToCompany;
+
     protected $guarded = [];
 
     public function inwardRegister()
@@ -40,9 +41,9 @@ class InwardRegisterDetail extends Model
         return $this->belongsTo(Good::class);
     }
 
-    public function transporter()
+    public function agent()
     {
-        return $this->belongsTo(Transporter::class);
+        return $this->belongsTo(Agent::class);
     }
 
     public function challanDetail()

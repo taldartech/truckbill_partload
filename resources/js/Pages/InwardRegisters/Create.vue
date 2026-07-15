@@ -136,8 +136,8 @@
                                             <input type="text" class="form-control" v-model="entry.private_marka" placeholder="Enter marka">
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label">Transport Name</label>
-                                            <SearchableSelect v-model="entry.transporter_id" :options="transporters" placeholder="Select Transporter" />
+                                            <label class="form-label">Agent</label>
+                                            <SearchableSelect v-model="entry.agent_id" :options="agents" placeholder="Select Agent" />
                                         </div>
                                     </div>
 
@@ -278,7 +278,7 @@ const props = defineProps({
     trucks: Array,
     goods: Array,
     parties: Array,
-    transporters: Array,
+    agents: Array,
     next_inward_register_no: String,
 });
 
@@ -299,7 +299,7 @@ const emptyEntry = () => ({
     freight: '',
     home_delivery_charge: '',
     private_marka: '',
-    transporter_id: '',
+    agent_id: '',
 });
 
 const entry = ref(emptyEntry());

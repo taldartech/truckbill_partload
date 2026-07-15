@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agent;
 use App\Models\Good;
 use App\Models\InwardRegister;
 use App\Models\Party;
 use App\Models\Station;
-use App\Models\Transporter;
 use App\Models\Truck;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -45,7 +45,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
             'trucks' => Truck::all(),
             'goods' => Good::all(),
             'parties' => Party::all(),
-            'transporters' => Transporter::all(),
+            'agents' => Agent::orderBy('name')->get(['id', 'name']),
             'next_inward_register_no' => $this->nextInwardRegisterNumber(),
         ]);
     }
@@ -76,7 +76,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
             'details.consignor',
             'details.consignee',
             'details.good',
-            'details.transporter',
+            'details.agent',
         ]);
 
         return Inertia::render('InwardRegisters/Edit', [
@@ -85,7 +85,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
             'trucks' => Truck::all(),
             'goods' => Good::all(),
             'parties' => Party::all(),
-            'transporters' => Transporter::all(),
+            'agents' => Agent::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -182,7 +182,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
             'details.*.freight' => 'nullable|numeric|min:0',
             'details.*.home_delivery_charge' => 'nullable|numeric|min:0',
             'details.*.private_marka' => 'nullable|string|max:255',
-            'details.*.transporter_id' => 'nullable|exists:transporters,id',
+            'details.*.agent_id' => 'nullable|exists:agents,id',
         ]);
     }
 
@@ -202,7 +202,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
             'freight' => $detail['freight'] ?? null,
             'home_delivery_charge' => $detail['home_delivery_charge'] ?? null,
             'private_marka' => $detail['private_marka'] ?? null,
-            'transporter_id' => $detail['transporter_id'] ?? null,
+            'agent_id' => $detail['agent_id'] ?? null,
         ];
     }
 

@@ -7,7 +7,7 @@ class RolePermissions
     public static function modules(): array
     {
         return [
-            'companies', 'branches', 'transporters', 'trucks',
+            'companies', 'branches', 'trucks',
             'stations', 'parties', 'vendors', 'agents', 'groups',
             'goods', 'package_types', 'truck_types',
             'bilties', 'challans', 'delivery_receipts', 'invoices',
@@ -20,7 +20,7 @@ class RolePermissions
     public static function operationalModules(): array
     {
         return [
-            'branches', 'transporters', 'trucks', 'stations', 'parties',
+            'branches', 'trucks', 'stations', 'parties',
             'vendors', 'agents', 'groups', 'goods', 'package_types', 'truck_types',
             'bilties', 'challans', 'delivery_receipts', 'invoices',
             'inward_registers', 'loading_reports', 'vouchers', 'reports',
@@ -66,7 +66,7 @@ class RolePermissions
     {
         return array_merge(
             self::permissionNames(
-                ['branches', 'transporters', 'trucks', 'stations', 'parties', 'vendors', 'agents', 'bilties', 'challans', 'delivery_receipts', 'invoices', 'inward_registers', 'loading_reports', 'vouchers'],
+                ['branches', 'trucks', 'stations', 'parties', 'vendors', 'agents', 'bilties', 'challans', 'delivery_receipts', 'invoices', 'inward_registers', 'loading_reports', 'vouchers'],
                 ['view']
             ),
             ['view reports'],

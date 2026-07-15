@@ -11,15 +11,6 @@
                             <!-- Core Info -->
                             <h5 class="text-primary border-bottom pb-2 mb-3">Core Information</h5>
                             <div class="row">
-                                <div class="col-md-6 form-group mb-3">
-                                    <label>Transporter (Optional)</label>
-                                    <select class="form-control" v-model="form.transporter_id">
-                                        <option value="">Self / Unknown</option>
-                                        <option v-for="transporter in transporters" :key="transporter.id" :value="transporter.id">
-                                            {{ transporter.name }}
-                                        </option>
-                                    </select>
-                                </div>
                                 <div class="col-md-4 form-group mb-3">
                                     <label>Truck Number *</label>
                                     <input
@@ -183,7 +174,6 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 
 const props = defineProps({
     truck: Object,
-    transporters: Array,
     truckTypes: Array,
     states: Array,
     cities: Array,
@@ -191,7 +181,6 @@ const props = defineProps({
 });
 
 const form = useForm({
-    transporter_id: props.truck.transporter_id || '',
     truck_number: (props.truck.truck_number || '').toUpperCase(),
     truck_type_id: props.truck.truck_type_id || '',
     status: props.truck.status || 'Available',
