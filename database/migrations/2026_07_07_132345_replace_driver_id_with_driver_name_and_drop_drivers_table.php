@@ -25,10 +25,10 @@ return new class extends Migration
             $table->string('driver_name')->nullable()->after('truck_id');
         });
 
-        DB::statement('UPDATE challans c LEFT JOIN drivers d ON d.id = c.driver_id SET c.driver_name = d.name WHERE c.driver_id IS NOT NULL');
-        DB::statement('UPDATE main_challans c LEFT JOIN drivers d ON d.id = c.driver_id SET c.driver_name = d.name WHERE c.driver_id IS NOT NULL');
-        DB::statement('UPDATE loading_reports r LEFT JOIN drivers d ON d.id = r.driver_id SET r.driver_name = d.name WHERE r.driver_id IS NOT NULL');
-        DB::statement('UPDATE inward_registers r LEFT JOIN drivers d ON d.id = r.driver_id SET r.driver_name = d.name WHERE r.driver_id IS NOT NULL');
+        $this->backfillDriverNames('challans');
+        $this->backfillDriverNames('main_challans');
+        $this->backfillDriverNames('loading_reports');
+        $this->backfillDriverNames('inward_registers');
 
         Schema::table('challans', function (Blueprint $table) {
             $table->dropForeign(['driver_id']);
@@ -51,6 +51,26 @@ return new class extends Migration
         });
 
         Schema::dropIfExists('drivers');
+    }
+
+    private function backfillDriverNames(string $table): void
+    {
+        if (! Schema::hasTable('drivers') || ! Schema::hasColumn($table, 'driver_id')) {
+            return;
+        }
+
+        DB::table($table)
+            ->whereNotNull('driver_id')
+            ->orderBy('id')
+            ->chunkById(100, function ($rows) use ($table): void {
+                foreach ($rows as $row) {
+                    $name = DB::table('drivers')->where('id', $row->driver_id)->value('name');
+
+                    if ($name !== null) {
+                        DB::table($table)->where('id', $row->id)->update(['driver_name' => $name]);
+                    }
+                }
+            });
     }
 
     public function down(): void

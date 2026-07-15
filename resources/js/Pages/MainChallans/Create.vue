@@ -29,14 +29,14 @@
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">From St.</label>
                                     <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="form.from_station_id" :options="stations" placeholder="Select Station" />
+                                        <SearchableSelect :small="true" v-model="form.from_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
                                     </div>
                                     <div v-if="form.errors.from_station_id" class="text-danger small ms-2">{{ form.errors.from_station_id }}</div>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">To St.</label>
                                     <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="form.to_station_id" :options="stations" placeholder="Select Station" />
+                                        <SearchableSelect :small="true" v-model="form.to_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
                                     </div>
                                     <div v-if="form.errors.to_station_id" class="text-danger small ms-2">{{ form.errors.to_station_id }}</div>
                                 </div>
@@ -53,7 +53,7 @@
                                 <div class="col-md-4 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Truck No.</label>
                                     <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="form.truck_id" :options="trucks" labelKey="truck_number" placeholder="Select Truck" />
+                                        <SearchableSelect :small="true" v-model="form.truck_id" :options="truckOptions" master="truck" placeholder="Select Truck" @created="(record) => appendMasterOption(truckOptions, record)" />
                                     </div>
                                     <div v-if="form.errors.truck_id" class="text-danger small ms-2">{{ form.errors.truck_id }}</div>
                                 </div>
@@ -244,8 +244,8 @@
         <MainChallanConfirmModal
             :show="showConfirm"
             :form="form"
-            :stations="stations"
-            :trucks="trucks"
+            :stations="stationOptions"
+            :trucks="truckOptions"
             :totals="confirmTotals"
             @cancel="closeConfirm"
             @confirm="confirmSave"
@@ -256,6 +256,7 @@
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import MainChallanConfirmModal from '@/Components/FormConfirm/MainChallanConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
@@ -274,6 +275,12 @@ const props = defineProps({
     challans: Array,
     next_main_challan_number: String
 });
+
+const stationOptions = ref([...(props.stations || [])]);
+const truckOptions = ref((props.trucks || []).map(t => ({ ...t, name: t.name || t.truck_number })));
+watch(() => props.stations, (v) => { stationOptions.value = [...(v || [])]; });
+watch(() => props.trucks, (v) => { truckOptions.value = (v || []).map(t => ({ ...t, name: t.name || t.truck_number })); });
+
 
 const form = useForm({
     main_challan_number: props.next_main_challan_number || '',

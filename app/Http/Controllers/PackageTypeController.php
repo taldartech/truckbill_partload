@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PackageType;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -14,15 +15,16 @@ class PackageTypeController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:view package_types', only: ['index', 'show']),
-            new Middleware('permission:create package_types', only: ['create', 'store']),
+            new Middleware('permission:create package_types', only: ['create', 'store', 'quickStore']),
             new Middleware('permission:edit package_types', only: ['edit', 'update']),
             new Middleware('permission:delete package_types', only: ['destroy']),
         ];
     }
+
     public function index()
     {
         return Inertia::render('PackageTypes/Index', [
-            'items' => PackageType::orderBy('id', 'desc')->paginate(10)
+            'items' => PackageType::orderBy('id', 'desc')->paginate(10),
         ]);
     }
 
@@ -35,6 +37,22 @@ class PackageTypeController extends Controller implements HasMiddleware
         PackageType::create($validated);
 
         return redirect()->back()->with('success', 'Package Types created successfully.');
+    }
+
+    public function quickStore(Request $request): JsonResponse
+    {
+        $validated = $this->stripTenantFields($request->validate([
+            'name' => 'required|string|max:255',
+        ]));
+
+        $packageType = PackageType::create($validated);
+
+        return response()->json([
+            'package_type' => [
+                'id' => $packageType->id,
+                'name' => $packageType->name,
+            ],
+        ], 201);
     }
 
     public function update(Request $request, PackageType $package_type)
@@ -51,6 +69,7 @@ class PackageTypeController extends Controller implements HasMiddleware
     public function destroy(PackageType $package_type)
     {
         $package_type->delete();
+
         return redirect()->back()->with('success', 'Package Types deleted successfully.');
     }
 }

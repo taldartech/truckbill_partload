@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Group;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -14,15 +15,16 @@ class GroupController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:view groups', only: ['index', 'show']),
-            new Middleware('permission:create groups', only: ['create', 'store']),
+            new Middleware('permission:create groups', only: ['create', 'store', 'quickStore']),
             new Middleware('permission:edit groups', only: ['edit', 'update']),
             new Middleware('permission:delete groups', only: ['destroy']),
         ];
     }
+
     public function index()
     {
         return Inertia::render('Groups/Index', [
-            'items' => Group::orderBy('id', 'desc')->paginate(10)
+            'items' => Group::orderBy('id', 'desc')->paginate(10),
         ]);
     }
 
@@ -35,6 +37,22 @@ class GroupController extends Controller implements HasMiddleware
         Group::create($validated);
 
         return redirect()->back()->with('success', 'Groups created successfully.');
+    }
+
+    public function quickStore(Request $request): JsonResponse
+    {
+        $validated = $this->stripTenantFields($request->validate([
+            'name' => 'required|string|max:255',
+        ]));
+
+        $group = Group::create($validated);
+
+        return response()->json([
+            'group' => [
+                'id' => $group->id,
+                'name' => $group->name,
+            ],
+        ], 201);
     }
 
     public function update(Request $request, Group $group)
@@ -51,6 +69,7 @@ class GroupController extends Controller implements HasMiddleware
     public function destroy(Group $group)
     {
         $group->delete();
+
         return redirect()->back()->with('success', 'Groups deleted successfully.');
     }
 }

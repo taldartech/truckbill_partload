@@ -25,8 +25,10 @@
                                     <label for="state">State *</label>
                                     <SearchableSelect
                                         v-model="form.state_id"
-                                        :options="states"
+                                        :options="stateOptions"
+                                        master="state"
                                         placeholder="Select State"
+                                        @created="(record) => appendMasterOption(stateOptions, record)"
                                     />
                                     <div v-if="form.errors.state_id" class="text-danger mt-1 small">{{ form.errors.state_id }}</div>
                                 </div>
@@ -35,8 +37,11 @@
                                     <SearchableSelect
                                         v-model="form.city_id"
                                         :options="filteredCities"
+                                        master="city"
+                                        :quick-add-context="{ state_id: form.state_id }"
                                         placeholder="Select City"
                                         :disabled="!form.state_id"
+                                        @created="(record) => appendMasterOption(cityOptions, record)"
                                     />
                                     <div v-if="form.errors.city_id" class="text-danger mt-1 small">{{ form.errors.city_id }}</div>
                                 </div>
@@ -73,8 +78,9 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue';
+import { computed, watch, ref } from 'vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
@@ -82,6 +88,12 @@ const props = defineProps({
     cities: Array,
     states: Array,
 });
+
+const stateOptions = ref([...(props.states || [])]);
+const cityOptions = ref([...(props.cities || [])]);
+watch(() => props.states, (v) => { stateOptions.value = [...(v || [])]; });
+watch(() => props.cities, (v) => { cityOptions.value = [...(v || [])]; });
+
 
 const form = useForm({
     name: '',
@@ -95,7 +107,7 @@ const form = useForm({
 
 const filteredCities = computed(() => {
     if (!form.state_id) return [];
-    return props.cities.filter((city) => String(city.state_id) === String(form.state_id));
+    return cityOptions.value.filter((city) => String(city.state_id) === String(form.state_id));
 });
 
 watch(() => form.state_id, () => {

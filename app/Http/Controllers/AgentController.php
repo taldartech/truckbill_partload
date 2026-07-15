@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Agent;
 use App\Models\City;
 use App\Models\State;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -16,7 +17,7 @@ class AgentController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:view agents', only: ['index', 'show']),
-            new Middleware('permission:create agents', only: ['create', 'store']),
+            new Middleware('permission:create agents', only: ['create', 'store', 'quickStore', 'quickFormData']),
             new Middleware('permission:edit agents', only: ['edit', 'update']),
             new Middleware('permission:delete agents', only: ['destroy']),
         ];
@@ -49,6 +50,30 @@ class AgentController extends Controller implements HasMiddleware
         Agent::create($validated);
 
         return redirect()->route('agents.index')->with('success', 'Agent created successfully.');
+    }
+
+    public function quickFormData(): JsonResponse
+    {
+        return response()->json([
+            'states' => State::select('id', 'name')->orderBy('name')->get(),
+        ]);
+    }
+
+    public function quickStore(Request $request): JsonResponse
+    {
+        $validated = $this->stripTenantFields($request->validate(
+            $this->agentRules(),
+            $this->agentMessages(),
+        ));
+
+        $agent = Agent::create($validated);
+
+        return response()->json([
+            'agent' => [
+                'id' => $agent->id,
+                'name' => $agent->name,
+            ],
+        ], 201);
     }
 
     public function edit(Agent $agent)

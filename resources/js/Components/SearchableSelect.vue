@@ -66,7 +66,8 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, nextTick, onMounted, onUnmounted, watch, toValue } from 'vue';
+import { useMasterQuickAdd } from '@/composables/useMasterQuickAdd';
 
 const props = defineProps({
     id: {
@@ -112,10 +113,46 @@ const props = defineProps({
     openOnFocus: {
         type: Boolean,
         default: true
-    }
+    },
+    master: {
+        type: String,
+        default: null,
+    },
+    canCreate: {
+        type: Boolean,
+        default: true,
+    },
+    quickAddContext: {
+        type: Object,
+        default: () => ({}),
+    },
 });
 
-const emit = defineEmits(['update:modelValue', 'change']);
+const emit = defineEmits(['update:modelValue', 'change', 'created']);
+const { register, unregister } = useMasterQuickAdd();
+const fieldToken = Symbol('searchable-select');
+
+const syncMasterRegistration = () => {
+    if (!props.master || props.disabled || !props.canCreate) {
+        unregister({ master: props.master, token: fieldToken });
+        return;
+    }
+
+    register({
+        master: props.master,
+        token: fieldToken,
+        canCreate: props.canCreate,
+        context: toValue(props.quickAddContext) || {},
+        focusTrigger: () => focusTrigger(),
+        onCreated: (record) => {
+            emit('created', record);
+            if (record && record[props.valueKey] !== undefined && record[props.valueKey] !== null) {
+                emit('update:modelValue', record[props.valueKey]);
+                emit('change', record[props.valueKey]);
+            }
+        },
+    });
+};
 
 const isOpen = ref(false);
 const searchQuery = ref('');
@@ -216,6 +253,8 @@ const openDropdown = () => {
 };
 
 const onTriggerFocus = () => {
+    syncMasterRegistration();
+
     if (props.disabled || !props.openOnFocus) return;
 
     if (suppressFocusOpen) {
@@ -268,6 +307,11 @@ const moveHighlight = (direction) => {
 
 const onTriggerKeydown = (event) => {
     if (props.disabled) return;
+
+    if (event.key === 'F3' && props.master && props.canCreate) {
+        syncMasterRegistration();
+        return;
+    }
 
     if (event.key === 'Tab') {
         closeDropdown();
@@ -383,6 +427,7 @@ watch(searchQuery, () => {
 
 watch(isOpen, (open) => {
     if (open) {
+        syncMasterRegistration();
         window.addEventListener('scroll', updateDropdownPosition, true);
         window.addEventListener('resize', updateDropdownPosition);
     } else {
@@ -390,6 +435,15 @@ watch(isOpen, (open) => {
         window.removeEventListener('resize', updateDropdownPosition);
     }
 });
+
+watch(
+    () => [props.master, props.canCreate, props.disabled, JSON.stringify(props.quickAddContext || {})],
+    () => {
+        if (document.activeElement === trigger.value || isOpen.value) {
+            syncMasterRegistration();
+        }
+    },
+);
 
 onMounted(() => {
     document.addEventListener('mousedown', handleClickOutside);
@@ -409,6 +463,7 @@ const focusTrigger = () => {
 defineExpose({ focusOpen, focusTrigger });
 
 onUnmounted(() => {
+    unregister({ master: props.master, token: fieldToken });
     document.removeEventListener('mousedown', handleClickOutside);
     window.removeEventListener('scroll', updateDropdownPosition, true);
     window.removeEventListener('resize', updateDropdownPosition);

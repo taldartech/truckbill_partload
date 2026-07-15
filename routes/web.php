@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentController;
 use App\Http\Controllers\Api\OnboardingController as ApiOnboardingController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BiltyController;
@@ -8,19 +9,25 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ChallanController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CountryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryReceiptController;
+use App\Http\Controllers\GoodController;
+use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InwardRegisterController;
 use App\Http\Controllers\LoadingReportController;
 use App\Http\Controllers\MainChallanController;
+use App\Http\Controllers\PackageTypeController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\StateController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TruckController;
 use App\Http\Controllers\TruckTypeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VoucherController;
 use Illuminate\Support\Facades\Route;
 
@@ -72,8 +79,15 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('subscription.active')->group(function () {
         Route::resource('branches', BranchController::class);
         Route::put('trucks/{truck}/complete-tour', [TruckController::class, 'completeTour'])->name('trucks.complete-tour');
+        Route::get('trucks/quick/form-data', [TruckController::class, 'quickFormData'])->name('trucks.quick-form-data');
+        Route::post('trucks/quick', [TruckController::class, 'quickStore'])->name('trucks.quick-store');
         Route::resource('trucks', TruckController::class);
         Route::get('cities/by-state/{state}', [CityController::class, 'byState'])->name('cities.by-state');
+        Route::get('cities/quick/form-data', [CityController::class, 'quickFormData'])->name('cities.quick-form-data');
+        Route::post('cities/quick', [CityController::class, 'quickStore'])->name('cities.quick-store');
+        Route::post('countries/quick', [CountryController::class, 'quickStore'])->name('countries.quick-store');
+        Route::get('states/quick/form-data', [StateController::class, 'quickFormData'])->name('states.quick-form-data');
+        Route::post('states/quick', [StateController::class, 'quickStore'])->name('states.quick-store');
         Route::get('parties/quick/form-data', [PartyController::class, 'quickFormData'])->name('parties.quick-form-data');
         Route::get('parties/{party}/quick', [PartyController::class, 'quickShow'])->name('parties.quick');
         Route::post('parties/quick', [PartyController::class, 'quickStore'])->name('parties.quick-store');
@@ -92,12 +106,20 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('main-challans', MainChallanController::class);
 
         // Master Configuration
+        Route::post('truck-types/quick', [TruckTypeController::class, 'quickStore'])->name('truck-types.quick-store');
         Route::resource('truck-types', TruckTypeController::class);
-        Route::resource('groups', App\Http\Controllers\GroupController::class);
-        Route::resource('goods', App\Http\Controllers\GoodController::class);
-        Route::resource('package-types', App\Http\Controllers\PackageTypeController::class);
-        Route::resource('agents', App\Http\Controllers\AgentController::class);
-        Route::resource('vendors', App\Http\Controllers\VendorController::class);
+        Route::post('groups/quick', [GroupController::class, 'quickStore'])->name('groups.quick-store');
+        Route::resource('groups', GroupController::class);
+        Route::post('goods/quick', [GoodController::class, 'quickStore'])->name('goods.quick-store');
+        Route::resource('goods', GoodController::class);
+        Route::post('package-types/quick', [PackageTypeController::class, 'quickStore'])->name('package-types.quick-store');
+        Route::resource('package-types', PackageTypeController::class);
+        Route::get('agents/quick/form-data', [AgentController::class, 'quickFormData'])->name('agents.quick-form-data');
+        Route::post('agents/quick', [AgentController::class, 'quickStore'])->name('agents.quick-store');
+        Route::resource('agents', AgentController::class);
+        Route::get('vendors/quick/form-data', [VendorController::class, 'quickFormData'])->name('vendors.quick-form-data');
+        Route::post('vendors/quick', [VendorController::class, 'quickStore'])->name('vendors.quick-store');
+        Route::resource('vendors', VendorController::class);
 
         // Administration
         Route::resource('users', UserController::class);

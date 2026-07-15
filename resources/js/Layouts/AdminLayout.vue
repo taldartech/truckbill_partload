@@ -116,6 +116,16 @@
                                 </span>
                                 <span class="shortcut-item-badge">F10</span>
                             </button>
+                            <button
+                                class="shortcut-item"
+                                @click="closeShortcutModal"
+                            >
+                                <span class="shortcut-item-info">
+                                    <i class="fas fa-plus-circle text-success icon-frame"></i>
+                                    <span class="shortcut-item-name">Quick add focused master</span>
+                                </span>
+                                <span class="shortcut-item-badge">F3</span>
+                            </button>
                         </div>
                     </div>
                     <div class="shortcut-modal-footer">
@@ -126,6 +136,7 @@
         </Transition>
 
         <KeyboardConfirmModal />
+        <MasterQuickAddHost />
     </div>
 </template>
 
@@ -137,7 +148,9 @@ import Sidebar from '@/Components/Sidebar.vue';
 import Footer from '@/Components/Footer.vue';
 import SubscriptionAccessBanner from '@/Components/Subscription/SubscriptionAccessBanner.vue';
 import KeyboardConfirmModal from '@/Components/KeyboardConfirmModal.vue';
+import MasterQuickAddHost from '@/Components/MasterQuickAdd/MasterQuickAddHost.vue';
 import { askKeyboardConfirm, isKeyboardConfirmOpen } from '@/composables/useKeyboardConfirm';
+import { canCreateMaster, useMasterQuickAdd } from '@/composables/useMasterQuickAdd';
 import {
     findAddRowButton,
     getRowsWithInputs,
@@ -154,6 +167,7 @@ defineProps({
 
 const page = usePage();
 const isShortcutModalOpen = ref(false);
+const { openQuickAdd, activeField, isOpen: isMasterQuickAddOpen } = useMasterQuickAdd();
 
 watch(isShortcutModalOpen, (shortcutOpen) => {
     document.body.style.overflow = shortcutOpen ? 'hidden' : '';
@@ -166,6 +180,20 @@ const canCreateChallan = computed(() => !!(auth.value.is_admin || (auth.value.pe
 const canCreateVoucher = computed(() => !!(auth.value.is_admin || (auth.value.permissions && auth.value.permissions.includes('create vouchers'))));
 const canCreateInward = computed(() => !!(auth.value.is_admin || (auth.value.permissions && auth.value.permissions.includes('create inward_registers'))));
 const canCreateDelivery = computed(() => !!(auth.value.is_admin || (auth.value.permissions && auth.value.permissions.includes('create delivery_receipts'))));
+
+const tryOpenMasterQuickAdd = () => {
+    const field = activeField.value;
+
+    if (!field?.master) {
+        return false;
+    }
+
+    if (!canCreateMaster(field.master, auth.value) || field.canCreate === false) {
+        return false;
+    }
+
+    return openQuickAdd();
+};
 
 const closeShortcutModal = () => {
     isShortcutModalOpen.value = false;
@@ -207,6 +235,11 @@ const handleEnterAsTab = async (event) => {
     const activeEl = document.activeElement;
     if (!activeEl) return;
 
+    // Leave Enter handling to SearchableSelect when its dropdown search/list is focused
+    if (activeEl.closest?.('.searchable-select__dropdown')) {
+        return;
+    }
+
     const tagName = activeEl.tagName.toLowerCase();
     const type = activeEl.type ? activeEl.type.toLowerCase() : '';
 
@@ -218,6 +251,7 @@ const handleEnterAsTab = async (event) => {
 
     // Prevent default form submission
     event.preventDefault();
+    event.stopPropagation();
 
     // Prompt to add first row when entering an empty e-way / addon section
     const gridTrigger = activeEl.getAttribute('data-dynamic-grid-trigger');
@@ -259,10 +293,16 @@ const handleEnterAsTab = async (event) => {
     const container = activeEl.closest('form') || document.body;
     const focusableElements = Array.from(
         container.querySelectorAll(
-            'input:not([type="hidden"]):not([disabled]):not([type="button"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not([type="button"]), [tabindex="0"]'
+            [
+                'input:not([type="hidden"]):not([disabled]):not([type="button"]):not([type="submit"]):not([type="reset"])',
+                'select:not([disabled])',
+                'textarea:not([disabled])',
+                '.searchable-select__trigger:not([disabled])',
+            ].join(', ')
         )
     ).filter((el) => {
         if (el.tabIndex < 0 || el.getAttribute('tabindex') === '-1') return false;
+        if (el.closest?.('.searchable-select__dropdown')) return false;
         const style = window.getComputedStyle(el);
         return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0;
     });
@@ -289,6 +329,15 @@ const handleKeyDown = (event) => {
     if (event.key === 'F1') {
         event.preventDefault();
         isShortcutModalOpen.value = !isShortcutModalOpen.value;
+        return;
+    }
+
+    // F3 -> quick add for focused master select (disabled while quick-add modal is open)
+    if (event.key === 'F3') {
+        event.preventDefault();
+        if (!isMasterQuickAddOpen.value) {
+            tryOpenMasterQuickAdd();
+        }
         return;
     }
 

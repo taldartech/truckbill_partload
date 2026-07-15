@@ -21,8 +21,10 @@
                                     <label class="form-label">Party (Bill To) <span class="text-danger">*</span></label>
                                     <SearchableSelect
                                         v-model="form.party_id"
-                                        :options="parties"
+                                        :options="partyOptions"
+                                        master="party"
                                         placeholder="Select Party"
+                                        @created="(record) => appendMasterOption(partyOptions, record)"
                                     />
                                     <div v-if="form.errors.party_id" class="text-danger small">{{ form.errors.party_id }}</div>
                                 </div>
@@ -207,7 +209,7 @@
         <InvoiceConfirmModal
             :show="showConfirm"
             :form="form"
-            :parties="parties"
+            :parties="partyOptions"
             :breakdown="invoiceBreakdown"
             @cancel="closeConfirm"
             @confirm="confirmSave"
@@ -218,13 +220,14 @@
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import InvoiceConfirmModal from '@/Components/FormConfirm/InvoiceConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import http from '@/utils/http';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 
 const props = defineProps({
     parties: Array,
@@ -233,6 +236,9 @@ const props = defineProps({
         default: '',
     },
 });
+
+const partyOptions = ref([...(props.parties || [])]);
+watch(() => props.parties, (v) => { partyOptions.value = [...(v || [])]; });
 
 const bilties = ref([]);
 const loadingBilties = ref(false);

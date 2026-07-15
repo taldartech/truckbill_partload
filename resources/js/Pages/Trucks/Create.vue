@@ -25,12 +25,13 @@
                                 </div>
                                 <div class="col-md-4 form-group mb-3">
                                     <label>Truck Type</label>
-                                    <select class="form-control" v-model="form.truck_type_id">
-                                        <option value="">Select Type</option>
-                                        <option v-for="type in truckTypes" :key="type.id" :value="type.id">
-                                            {{ type.name }}
-                                        </option>
-                                    </select>
+                                    <SearchableSelect
+                                        v-model="form.truck_type_id"
+                                        :options="truckTypeOptions"
+                                        master="truck_type"
+                                        placeholder="Select Type"
+                                        @created="(record) => appendMasterOption(truckTypeOptions, record)"
+                                    />
                                 </div>
                                 <div class="col-md-3 form-group mb-3">
                                     <label>Capacity (in Tons)</label>
@@ -52,25 +53,36 @@
                             <div class="row">
                                 <div class="col-md-4 form-group mb-3">
                                     <label>Current State</label>
-                                    <SearchableSelect v-model="form.current_state_id" :options="states" placeholder="Select State" />
+                                    <SearchableSelect
+                                        v-model="form.current_state_id"
+                                        :options="stateOptions"
+                                        master="state"
+                                        placeholder="Select State"
+                                        @created="(record) => appendMasterOption(stateOptions, record)"
+                                    />
                                 </div>
                                 <div class="col-md-4 form-group mb-3">
                                     <label>Current City</label>
-                                    <select class="form-control" v-model="form.current_city_id">
-                                        <option value="">Select City</option>
-                                        <option v-for="city in filteredCities" :key="city.id" :value="city.id">
-                                            {{ city.name }}
-                                        </option>
-                                    </select>
+                                    <SearchableSelect
+                                        v-model="form.current_city_id"
+                                        :options="filteredCities"
+                                        master="city"
+                                        :quick-add-context="{ state_id: form.current_state_id }"
+                                        placeholder="Select City"
+                                        :disabled="!form.current_state_id"
+                                        @created="(record) => appendMasterOption(cityOptions, record)"
+                                    />
                                 </div>
                                 <div class="col-md-4 form-group mb-3">
                                     <label>Current Station</label>
-                                    <select class="form-control" v-model="form.current_station_id">
-                                        <option value="">Select Station</option>
-                                        <option v-for="station in filteredStations" :key="station.id" :value="station.id">
-                                            {{ station.name }}
-                                        </option>
-                                    </select>
+                                    <SearchableSelect
+                                        v-model="form.current_station_id"
+                                        :options="filteredStations"
+                                        master="station"
+                                        placeholder="Select Station"
+                                        :disabled="!form.current_city_id"
+                                        @created="(record) => appendMasterOption(stationOptions, record)"
+                                    />
                                 </div>
                             </div>
 
@@ -167,10 +179,11 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 
 const props = defineProps({
     truckTypes: Array,
@@ -178,6 +191,15 @@ const props = defineProps({
     cities: Array,
     stations: Array
 });
+
+const truckTypeOptions = ref([...(props.truckTypes || [])]);
+const stateOptions = ref([...(props.states || [])]);
+const cityOptions = ref([...(props.cities || [])]);
+const stationOptions = ref([...(props.stations || [])]);
+watch(() => props.truckTypes, (v) => { truckTypeOptions.value = [...(v || [])]; });
+watch(() => props.states, (v) => { stateOptions.value = [...(v || [])]; });
+watch(() => props.cities, (v) => { cityOptions.value = [...(v || [])]; });
+watch(() => props.stations, (v) => { stationOptions.value = [...(v || [])]; });
 
 const form = useForm({
     truck_number: '',
@@ -207,12 +229,12 @@ const form = useForm({
 
 const filteredCities = computed(() => {
     if (!form.current_state_id) return [];
-    return props.cities.filter(c => String(c.state_id) === String(form.current_state_id));
+    return cityOptions.value.filter(c => String(c.state_id) === String(form.current_state_id));
 });
 
 const filteredStations = computed(() => {
     if (!form.current_city_id) return [];
-    return props.stations.filter(s => String(s.city_id) === String(form.current_city_id));
+    return stationOptions.value.filter(s => String(s.city_id) === String(form.current_city_id));
 });
 
 watch(() => form.current_state_id, () => {

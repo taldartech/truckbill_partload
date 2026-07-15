@@ -39,19 +39,24 @@
                                 <div class="col-md-3 form-group mb-3">
                                     <label>State</label>
                                     <SearchableSelect
-    v-model="form.state_id"
-    :options="states"
-    placeholder="Select State"
-/>
+                                        v-model="form.state_id"
+                                        :options="stateOptions"
+                                        master="state"
+                                        placeholder="Select State"
+                                        @created="(record) => appendMasterOption(stateOptions, record)"
+                                    />
                                 </div>
                                 <div class="col-md-3 form-group mb-3">
                                     <label>City</label>
                                     <SearchableSelect
-    v-model="form.city_id"
-    :options="filteredCities"
-    placeholder="Select City"
-:disabled="!form.state_id"
-/>
+                                        v-model="form.city_id"
+                                        :options="filteredCities"
+                                        master="city"
+                                        :quick-add-context="{ state_id: form.state_id }"
+                                        placeholder="Select City"
+                                        :disabled="!form.state_id"
+                                        @created="(record) => appendMasterOption(cityOptions, record)"
+                                    />
                                 </div>
                                 <div class="col-md-6 form-group mb-3">
                                     <label>Aadhar Number</label>
@@ -102,8 +107,9 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
@@ -112,6 +118,12 @@ const props = defineProps({
     cities: Array,
     states: Array
 });
+
+const stateOptions = ref([...(props.states || [])]);
+const cityOptions = ref([...(props.cities || [])]);
+watch(() => props.states, (v) => { stateOptions.value = [...(v || [])]; });
+watch(() => props.cities, (v) => { cityOptions.value = [...(v || [])]; });
+
 
 const form = useForm({
     name: props.driver.name || '',
@@ -133,7 +145,7 @@ const form = useForm({
 
 const filteredCities = computed(() => {
     if (!form.state_id) return [];
-    return props.cities.filter(city => String(city.state_id) === String(form.state_id));
+    return cityOptions.value.filter(city => String(city.state_id) === String(form.state_id));
 });
 
 // Auto-reset city_id if selected state changes and the city doesn't belong to it

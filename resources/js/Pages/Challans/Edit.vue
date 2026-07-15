@@ -29,14 +29,14 @@
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">From St.</label>
                                     <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="form.from_station_id" :options="stations" placeholder="Select Station" />
+                                        <SearchableSelect :small="true" v-model="form.from_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
                                     </div>
                                     <div v-if="form.errors.from_station_id" class="text-danger small ms-2">{{ form.errors.from_station_id }}</div>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">To St.</label>
                                     <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="form.to_station_id" :options="stations" placeholder="Select Station" />
+                                        <SearchableSelect :small="true" v-model="form.to_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
                                     </div>
                                     <div v-if="form.errors.to_station_id" class="text-danger small ms-2">{{ form.errors.to_station_id }}</div>
                                 </div>
@@ -67,7 +67,7 @@
                                 <div class="col-md-4 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Truck No.</label>
                                     <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="form.truck_id" :options="trucks" labelKey="truck_number" placeholder="Select Truck" />
+                                        <SearchableSelect :small="true" v-model="form.truck_id" :options="truckOptions" master="truck" placeholder="Select Truck" @created="(record) => appendMasterOption(truckOptions, record)" />
                                     </div>
                                     <div v-if="form.errors.truck_id" class="text-danger small ms-2">{{ form.errors.truck_id }}</div>
                                 </div>
@@ -243,13 +243,13 @@
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">To (Account)</label></div>
                                         <div class="col-6">
-                                            <SearchableSelect :small="true" v-model="form.pay_by_agent_id" :options="agents" placeholder="Select Agent" />
+                                            <SearchableSelect :small="true" v-model="form.pay_by_agent_id" :options="agentOptions" master="agent" placeholder="Select Agent" @created="(record) => appendMasterOption(agentOptions, record)" />
                                         </div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Delivery At</label></div>
                                         <div class="col-6">
-                                            <SearchableSelect :small="true" v-model="form.delivery_at_agent_id" :options="agents" placeholder="Select Agent" />
+                                            <SearchableSelect :small="true" v-model="form.delivery_at_agent_id" :options="agentOptions" master="agent" placeholder="Select Agent" @created="(record) => appendMasterOption(agentOptions, record)" />
                                         </div>
                                     </div>
                                 </div>
@@ -271,8 +271,8 @@
         <ChallanConfirmModal
             :show="showConfirm"
             :form="form"
-            :stations="stations"
-            :trucks="trucks"
+            :stations="stationOptions"
+            :trucks="truckOptions"
             :totals="confirmTotals"
             @cancel="closeConfirm"
             @confirm="confirmSave"
@@ -283,6 +283,7 @@
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import ChallanConfirmModal from '@/Components/FormConfirm/ChallanConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
@@ -307,9 +308,17 @@ const props = defineProps({
     agents: Array,
 });
 
+const stationOptions = ref([...(props.stations || [])]);
+const truckOptions = ref((props.trucks || []).map(t => ({ ...t, name: t.name || t.truck_number })));
+const agentOptions = ref([...(props.agents || [])]);
+watch(() => props.stations, (v) => { stationOptions.value = [...(v || [])]; });
+watch(() => props.trucks, (v) => { truckOptions.value = (v || []).map(t => ({ ...t, name: t.name || t.truck_number })); });
+watch(() => props.agents, (v) => { agentOptions.value = [...(v || [])]; });
+
+
 const destinationStationOptions = computed(() => [
     { id: ALL_STATIONS_VALUE, name: 'ALL' },
-    ...props.stations,
+    ...stationOptions.value,
 ]);
 
 const inwardDetailOptions = computed(() =>
@@ -516,7 +525,7 @@ const populateBiltyRow = (detail, bilty) => {
         goodName = bilty.bilty_details[0].good ? bilty.bilty_details[0].good.name : '--';
     }
 
-    const toStation = props.stations.find((s) => s.id === bilty.to_station_id);
+    const toStation = stationOptions.value.find((s) => s.id === bilty.to_station_id);
 
     detail.row_type = 'bilty';
     detail.bilty_id = bilty.id;
@@ -537,7 +546,7 @@ const populateInwardRow = (detail, inward) => {
     detail.bilty_id = '';
     detail.inward_register_detail_id = inward.id;
     detail.gr_no = inward.gr_no || `GR-${inward.id}`;
-    detail.to_station_name = inward.to_station?.name || props.stations.find((s) => s.id === inward.to_station_id)?.name || '--';
+    detail.to_station_name = inward.to_station?.name || stationOptions.value.find((s) => s.id === inward.to_station_id)?.name || '--';
     detail.nugs = inward.no_of_packages || 0;
     detail.weight = inward.weight || 0;
     detail.goods_name = inward.good?.name || '--';

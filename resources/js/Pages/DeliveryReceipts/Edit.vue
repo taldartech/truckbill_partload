@@ -45,11 +45,13 @@
                                 <div class="col-md-6">
                                     <label class="form-label">Consignee <span class="text-danger">*</span></label>
                                     <SearchableSelect
-    :small="true"
-    v-model="form.consignee_id"
-    :options="parties"
-    placeholder="Select Consignee"
-/>
+                                        :small="true"
+                                        v-model="form.consignee_id"
+                                        :options="partyOptions"
+                                        master="party"
+                                        placeholder="Select Consignee"
+                                        @created="(record) => appendMasterOption(partyOptions, record)"
+                                    />
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Office Name</label>
@@ -151,7 +153,7 @@
         <DeliveryReceiptConfirmModal
             :show="showConfirm"
             :form="form"
-            :parties="parties"
+            :parties="partyOptions"
             @cancel="closeConfirm"
             @confirm="confirmSave"
             @confirm-print="confirmSaveAndPrint"
@@ -161,13 +163,14 @@
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import DeliveryReceiptConfirmModal from '@/Components/FormConfirm/DeliveryReceiptConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import http from '@/utils/http';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 
 const props = defineProps({
     receipt: Object,
@@ -177,6 +180,9 @@ const props = defineProps({
         default: () => [],
     },
 });
+
+const partyOptions = ref([...(props.parties || [])]);
+watch(() => props.parties, (v) => { partyOptions.value = [...(v || [])]; });
 
 const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 const grSourceKey = ref('');

@@ -24,9 +24,10 @@
                                             <SearchableSelect
                                                 :small="true"
                                                 v-model="form.truck_id"
-                                                :options="trucks"
-                                                labelKey="truck_no"
+                                                :options="truckOptions"
+                                                master="truck"
                                                 placeholder="Select Truck"
+                                                @created="(record) => appendMasterOption(truckOptions, record)"
                                             />
                                         </div>
                                     </div>
@@ -51,8 +52,10 @@
                                             <SearchableSelect
                                                 :small="true"
                                                 v-model="form.from_station_id"
-                                                :options="stations"
+                                                :options="stationOptions"
+                                                master="station"
                                                 placeholder="Select Station"
+                                                @created="(record) => appendMasterOption(stationOptions, record)"
                                             />
                                         </div>
                                     </div>
@@ -65,8 +68,10 @@
                                             <SearchableSelect
                                                 :small="true"
                                                 v-model="form.to_station_id"
-                                                :options="stations"
+                                                :options="stationOptions"
+                                                master="station"
                                                 placeholder="Select Station"
+                                                @created="(record) => appendMasterOption(stationOptions, record)"
                                             />
                                         </div>
                                     </div>
@@ -184,8 +189,8 @@
         <LoadingReportConfirmModal
             :show="showConfirm"
             :form="form"
-            :stations="stations"
-            :trucks="trucks"
+            :stations="stationOptions"
+            :trucks="truckOptions"
             :totals="confirmTotals"
             @cancel="closeConfirm"
             @confirm="confirmSave"
@@ -196,12 +201,13 @@
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import LoadingReportConfirmModal from '@/Components/FormConfirm/LoadingReportConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { computed, ref, onMounted, nextTick } from 'vue';
+import { computed, ref, watch, onMounted, nextTick } from 'vue';
 import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const fetch_station_id = ref('');
@@ -217,9 +223,15 @@ const props = defineProps({
     bilties: Array
 });
 
+const stationOptions = ref([...(props.stations || [])]);
+const truckOptions = ref((props.trucks || []).map(t => ({ ...t, name: t.name || t.truck_number })));
+watch(() => props.stations, (v) => { stationOptions.value = [...(v || [])]; });
+watch(() => props.trucks, (v) => { truckOptions.value = (v || []).map(t => ({ ...t, name: t.name || t.truck_number })); });
+
+
 const destinationStationOptions = computed(() => [
     { id: ALL_STATIONS_VALUE, name: 'ALL' },
-    ...props.stations,
+    ...stationOptions.value,
 ]);
 
 const initialDetails = (props.report.details && props.report.details.length > 0)

@@ -22,31 +22,38 @@
                                 </div>
                                 <div class="col-md-3 form-group mb-3">
                                     <label>Country *</label>
-                                    <select class="form-control" v-model="form.country_id" required>
-                                        <option value="">Select Country</option>
-                                        <option v-for="country in countries" :key="country.id" :value="country.id">
-                                            {{ country.name }}
-                                        </option>
-                                    </select>
+                                    <SearchableSelect
+                                        v-model="form.country_id"
+                                        :options="countryOptions"
+                                        master="country"
+                                        placeholder="Select Country"
+                                        @created="(record) => appendMasterOption(countryOptions, record)"
+                                    />
                                     <div v-if="form.errors.country_id" class="text-danger small">{{ form.errors.country_id }}</div>
                                 </div>
                                 <div class="col-md-3 form-group mb-3">
                                     <label>State *</label>
                                     <SearchableSelect
                                         v-model="form.state_id"
-                                        :options="states"
+                                        :options="stateOptions"
+                                        master="state"
+                                        :quick-add-context="{ country_id: form.country_id }"
                                         placeholder="Select State"
+                                        @created="(record) => appendMasterOption(stateOptions, record)"
                                     />
                                     <div v-if="form.errors.state_id" class="text-danger small">{{ form.errors.state_id }}</div>
                                 </div>
                                 <div class="col-md-3 form-group mb-3">
                                     <label>City *</label>
-                                    <select class="form-control" v-model="form.city_id" required>
-                                        <option value="">Select City</option>
-                                        <option v-for="city in filteredCities" :key="city.id" :value="city.id">
-                                            {{ city.name }}
-                                        </option>
-                                    </select>
+                                    <SearchableSelect
+                                        v-model="form.city_id"
+                                        :options="filteredCities"
+                                        master="city"
+                                        :quick-add-context="{ state_id: form.state_id }"
+                                        placeholder="Select City"
+                                        :disabled="!form.state_id"
+                                        @created="(record) => appendMasterOption(cityOptions, record)"
+                                    />
                                     <div v-if="form.errors.city_id" class="text-danger small">{{ form.errors.city_id }}</div>
                                 </div>
                                 <div class="col-md-3 form-group mb-3">
@@ -107,10 +114,11 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 
 const props = defineProps({
     countries: Array,
@@ -118,6 +126,14 @@ const props = defineProps({
     cities: Array,
     defaultCountryId: [Number, String, null],
 });
+
+const countryOptions = ref([...(props.countries || [])]);
+const stateOptions = ref([...(props.states || [])]);
+const cityOptions = ref([...(props.cities || [])]);
+watch(() => props.countries, (v) => { countryOptions.value = [...(v || [])]; });
+watch(() => props.states, (v) => { stateOptions.value = [...(v || [])]; });
+watch(() => props.cities, (v) => { cityOptions.value = [...(v || [])]; });
+
 
 const form = useForm({
     name: '',
@@ -135,7 +151,7 @@ const form = useForm({
 
 const filteredCities = computed(() => {
     if (!form.state_id) return [];
-    return props.cities.filter(city => String(city.state_id) === String(form.state_id));
+    return cityOptions.value.filter(city => String(city.state_id) === String(form.state_id));
 });
 
 watch(() => form.state_id, () => {

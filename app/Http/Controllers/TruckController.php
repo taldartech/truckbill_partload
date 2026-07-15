@@ -7,6 +7,7 @@ use App\Models\State;
 use App\Models\Station;
 use App\Models\Truck;
 use App\Models\TruckType;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -18,7 +19,7 @@ class TruckController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:view trucks', only: ['index', 'show']),
-            new Middleware('permission:create trucks', only: ['create', 'store']),
+            new Middleware('permission:create trucks', only: ['create', 'store', 'quickStore', 'quickFormData']),
             new Middleware('permission:edit trucks', only: ['edit', 'update']),
             new Middleware('permission:delete trucks', only: ['destroy']),
         ];
@@ -84,6 +85,37 @@ class TruckController extends Controller implements HasMiddleware
         Truck::create($validated);
 
         return redirect()->route('trucks.index')->with('success', 'Truck created successfully.');
+    }
+
+    public function quickFormData(): JsonResponse
+    {
+        return response()->json([
+            'truckTypes' => TruckType::select('id', 'name')->orderBy('name')->get(),
+        ]);
+    }
+
+    public function quickStore(Request $request): JsonResponse
+    {
+        $validated = $this->stripTenantFields($request->validate([
+            'truck_number' => 'required|string|max:20',
+            'truck_type_id' => 'nullable|exists:truck_types,id',
+            'owner_name' => 'nullable|string|max:255',
+            'owner_mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
+        ], [
+            'owner_mobile.digits' => 'Owner mobile must be exactly 10 digits.',
+            'owner_mobile.regex' => 'Owner mobile must be a valid 10-digit Indian mobile number.',
+        ]));
+
+        $validated['truck_number'] = strtoupper($validated['truck_number']);
+
+        $truck = Truck::create($validated);
+
+        return response()->json([
+            'truck' => [
+                'id' => $truck->id,
+                'name' => $truck->truck_number,
+            ],
+        ], 201);
     }
 
     public function edit(Truck $truck)

@@ -40,25 +40,25 @@
                             <div class="row align-items-center mb-2">
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">From St.</label>
-                                    <SelectWithActions
+                                    <SearchableSelect
                                         :small="true"
                                         v-model="form.from_station_id"
                                         :options="stationOptions"
+                                        master="station"
                                         placeholder="Select Station"
-                                        @view="entityModals?.viewStation(form.from_station_id)"
-                                        @add="entityModals?.openStationAdd({ targetField: 'from_station_id' })"
+                                        @created="(record) => appendMasterOption(stationOptions, record)"
                                     />
                                     <div v-if="form.errors.from_station_id" class="text-danger small ms-2">{{ form.errors.from_station_id }}</div>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignor</label>
-                                    <SelectWithActions
+                                    <SearchableSelect
                                         :small="true"
                                         v-model="form.consignor_id"
                                         :options="partyOptions"
+                                        master="party"
                                         placeholder="Select Consignor"
-                                        @view="entityModals?.viewParty(form.consignor_id)"
-                                        @add="entityModals?.openPartyAdd({ targetField: 'consignor_id' })"
+                                        @created="(record) => appendMasterOption(partyOptions, record)"
                                     />
                                     <div v-if="form.errors.consignor_id" class="text-danger small ms-2">{{ form.errors.consignor_id }}</div>
                                 </div>
@@ -67,25 +67,25 @@
                             <div class="row align-items-center mb-2">
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">To St.</label>
-                                    <SelectWithActions
+                                    <SearchableSelect
                                         :small="true"
                                         v-model="form.to_station_id"
                                         :options="stationOptions"
+                                        master="station"
                                         placeholder="Select Station"
-                                        @view="entityModals?.viewStation(form.to_station_id)"
-                                        @add="entityModals?.openStationAdd({ targetField: 'to_station_id' })"
+                                        @created="(record) => appendMasterOption(stationOptions, record)"
                                     />
                                     <div v-if="form.errors.to_station_id" class="text-danger small ms-2">{{ form.errors.to_station_id }}</div>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignee</label>
-                                    <SelectWithActions
+                                    <SearchableSelect
                                         :small="true"
                                         v-model="form.consignee_id"
                                         :options="partyOptions"
+                                        master="party"
                                         placeholder="Select Consignee"
-                                        @view="entityModals?.viewParty(form.consignee_id)"
-                                        @add="entityModals?.openPartyAdd({ targetField: 'consignee_id' })"
+                                        @created="(record) => appendMasterOption(partyOptions, record)"
                                     />
                                     <div v-if="form.errors.consignee_id" class="text-danger small ms-2">{{ form.errors.consignee_id }}</div>
                                 </div>
@@ -117,18 +117,22 @@
                                                 <SearchableSelect
                                                     :small="true"
                                                     v-model="detail.good_id"
-                                                    :options="goods"
+                                                    :options="goodOptions"
+                                                    master="good"
                                                     placeholder="Select Good"
+                                                    @created="(record) => appendMasterOption(goodOptions, record)"
                                                 />
                                                 <div v-if="detailError(index, 'good_id')" class="text-danger small">{{ detailError(index, 'good_id') }}</div>
                                             </td>
                                             <td>
                                                 <SearchableSelect
-                                                    :small="true"
-                                                    v-model="detail.package_type_id"
-                                                    :options="package_types"
-                                                    placeholder="Select Packing"
-                                                />
+                                                :small="true"
+                                                v-model="detail.package_type_id"
+                                                :options="packageTypeOptions"
+                                                master="package_type"
+                                                placeholder="Select Packing"
+                                                @created="(record) => appendMasterOption(packageTypeOptions, record)"
+                                            />
                                                 <div v-if="detailError(index, 'package_type_id')" class="text-danger small">{{ detailError(index, 'package_type_id') }}</div>
                                             </td>
                                             <td>
@@ -303,8 +307,10 @@
                                             <SearchableSelect
                                                 :small="true"
                                                 v-model="form.vendor_id"
-                                                :options="vendors"
+                                                :options="vendorOptions"
+                                                master="vendor"
                                                 placeholder="Select Vendor"
+                                                @created="(record) => appendMasterOption(vendorOptions, record)"
                                             />
                                             <div v-if="form.errors.vendor_id" class="text-danger small">{{ form.errors.vendor_id }}</div>
                                         </div>
@@ -372,20 +378,14 @@
             </div>
         </div>
 
-        <BiltyEntityModals
-            ref="entityModals"
-            @party-created="onPartyCreated"
-            @station-created="onStationCreated"
-        />
-
         <BiltyConfirmModal
             :show="showConfirm"
             :form="form"
             :parties="partyOptions"
             :stations="stationOptions"
-            :goods="goods"
-            :package-types="package_types"
-            :vendors="vendors"
+            :goods="goodOptions"
+            :package-types="packageTypeOptions"
+            :vendors="vendorOptions"
             @cancel="closeConfirm"
             @confirm="confirmSave"
             @confirm-print="confirmSaveAndPrint"
@@ -395,19 +395,15 @@
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
-import SelectWithActions from '@/Components/SelectWithActions.vue';
-import BiltyEntityModals from '@/Components/Bilty/BiltyEntityModals.vue';
 import BiltyConfirmModal from '@/Components/FormConfirm/BiltyConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
+import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { watch, ref, onMounted, computed } from 'vue';
 
 const gstAmount = ref('0.00');
-const entityModals = ref(null);
-const partyOptions = ref([]);
-const stationOptions = ref([]);
 const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
 const props = defineProps({
@@ -421,8 +417,19 @@ const props = defineProps({
     default_gst_percent: { type: Number, default: 0 },
 });
 
-partyOptions.value = [...props.parties];
-stationOptions.value = [...props.stations];
+const partyOptions = ref([...(props.parties || [])]);
+const stationOptions = ref([...(props.stations || [])]);
+const goodOptions = ref([...(props.goods || [])]);
+const packageTypeOptions = ref([...(props.package_types || [])]);
+const vendorOptions = ref([...(props.vendors || [])]);
+const agentOptions = ref([...(props.agents || [])]);
+
+watch(() => props.parties, (v) => { partyOptions.value = [...(v || [])]; });
+watch(() => props.stations, (v) => { stationOptions.value = [...(v || [])]; });
+watch(() => props.goods, (v) => { goodOptions.value = [...(v || [])]; });
+watch(() => props.package_types, (v) => { packageTypeOptions.value = [...(v || [])]; });
+watch(() => props.vendors, (v) => { vendorOptions.value = [...(v || [])]; });
+watch(() => props.agents, (v) => { agentOptions.value = [...(v || [])]; });
 
 const rowAmountFromDetail = (d) => {
     const weight = parseFloat(d.gross_weight) || 0;
@@ -533,14 +540,14 @@ const isTbb = computed(() => form.payment_type === 'TBB');
 
 const filteredAgents = computed(() => {
     if (!form.to_station_id) {
-        return props.agents || [];
+        return agentOptions.value;
     }
     const station = stationOptions.value.find(s => s.id === form.to_station_id);
     if (!station || !station.city_id) {
-        return props.agents || [];
+        return agentOptions.value;
     }
-    const filtered = (props.agents || []).filter(agent => agent.city_id === station.city_id);
-    return filtered.length > 0 ? filtered : (props.agents || []);
+    const filtered = agentOptions.value.filter(agent => agent.city_id === station.city_id);
+    return filtered.length > 0 ? filtered : agentOptions.value;
 });
 
 const getConsignorGST = () => {
@@ -553,24 +560,6 @@ const getConsigneeGST = () => {
     if(!form.consignee_id) return '';
     const party = partyOptions.value.find(p => p.id === form.consignee_id);
     return party ? party.gst_number : '';
-};
-
-const onPartyCreated = ({ party, targetField }) => {
-    if (!partyOptions.value.some((item) => item.id === party.id)) {
-        partyOptions.value.push(party);
-    }
-    if (targetField) {
-        form[targetField] = party.id;
-    }
-};
-
-const onStationCreated = ({ station, targetField }) => {
-    if (!stationOptions.value.some((item) => item.id === station.id)) {
-        stationOptions.value.push(station);
-    }
-    if (targetField) {
-        form[targetField] = station.id;
-    }
 };
 
 const showCartageOptions = computed(() => parseFloat(form.cartage || 0) > 0);
