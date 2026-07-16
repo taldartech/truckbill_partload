@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Party;
 use App\Services\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -17,7 +18,7 @@ class BiltyRequest extends FormRequest
     {
         $addonCharges = collect($this->input('addon_charges', []))
             ->filter(function ($charge) {
-                return !empty($charge['particulars']) || !empty($charge['description']) || (isset($charge['amount']) && $charge['amount'] !== '' && $charge['amount'] !== null);
+                return ! empty($charge['particulars']) || ! empty($charge['description']) || (isset($charge['amount']) && $charge['amount'] !== '' && $charge['amount'] !== null);
             })
             ->map(function ($charge) {
                 return [
@@ -30,11 +31,11 @@ class BiltyRequest extends FormRequest
 
         $ewayBills = collect($this->input('eway_bills', []))
             ->filter(function ($row) {
-                return !empty($row['eway_bill_no']) || !empty($row['eway_bill_valid_till']);
+                return ! empty($row['eway_bill_no']) || ! empty($row['eway_bill_valid_till']);
             })
             ->map(function ($row) {
                 return [
-                    'id' => !empty($row['id']) ? (int) $row['id'] : null,
+                    'id' => ! empty($row['id']) ? (int) $row['id'] : null,
                     'eway_bill_no' => $row['eway_bill_no'] ?? null,
                     'eway_bill_valid_till' => $row['eway_bill_valid_till'] ?? null,
                 ];
@@ -163,7 +164,7 @@ class BiltyRequest extends FormRequest
         $validator->after(function ($validator) {
             $details = $this->input('details', []);
             $validRows = collect($details)->filter(function ($detail) {
-                return !empty($detail['good_id']);
+                return ! empty($detail['good_id']);
             });
 
             if ($validRows->isEmpty()) {
@@ -179,6 +180,23 @@ class BiltyRequest extends FormRequest
 
             if ($cartage > 0 && $cartageType === 'Due' && empty($this->input('vendor_id'))) {
                 $validator->errors()->add('vendor_id', 'Please select vendor for due cartage.');
+            }
+
+            $consignorId = $this->input('consignor_id');
+            if ($consignorId) {
+                $partyMinCharge = Party::query()->whereKey($consignorId)->value('bilty_charge');
+
+                if ($partyMinCharge !== null && $partyMinCharge !== '') {
+                    $minCharge = round((float) $partyMinCharge, 2);
+                    $biltyCharge = round((float) ($this->input('bilty_charge') ?? 0), 2);
+
+                    if ($biltyCharge < $minCharge) {
+                        $validator->errors()->add(
+                            'bilty_charge',
+                            "Bilty charge cannot be less than the consignor's defined charge ({$minCharge})."
+                        );
+                    }
+                }
             }
         });
     }

@@ -279,8 +279,25 @@
                                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-light fw-bold" v-model="form.freight" readonly></div>
                                     </div>
                                     <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Bilty Charge</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.bilty_charge" @input="calculateFinalTotal"></div>
+                                        <div class="col-6 text-end">
+                                            <label class="mb-0 fw-bold small text-dark">
+                                                Bilty Charge
+                                                <span v-if="minBiltyCharge > 0" class="fw-normal text-muted">(≥ {{ minBiltyCharge }})</span>
+                                            </label>
+                                        </div>
+                                        <div class="col-6">
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                class="form-control form-control-sm bg-white"
+                                                :class="{ 'is-invalid': form.errors.bilty_charge }"
+                                                v-model="form.bilty_charge"
+                                                :min="minBiltyCharge"
+                                                @input="calculateFinalTotal"
+                                                @blur="enforceMinBiltyCharge"
+                                            >
+                                            <div v-if="form.errors.bilty_charge" class="text-danger small">{{ form.errors.bilty_charge }}</div>
+                                        </div>
                                     </div>
                                     <div class="row align-items-center mb-1">
                                         <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Surcharge</label></div>
@@ -562,6 +579,30 @@ const getConsigneeGST = () => {
     return party ? party.gst_number : '';
 };
 
+const minBiltyCharge = computed(() => {
+    if (!form.consignor_id) {
+        return 0;
+    }
+    const party = partyOptions.value.find(p => p.id === form.consignor_id);
+    const charge = parseFloat(party?.bilty_charge);
+    return Number.isFinite(charge) && charge > 0 ? charge : 0;
+});
+
+const enforceMinBiltyCharge = () => {
+    const min = minBiltyCharge.value;
+    if (min > 0) {
+        const current = parseFloat(form.bilty_charge);
+        if (!Number.isFinite(current) || current < min) {
+            form.bilty_charge = min;
+        }
+    }
+    calculateFinalTotal();
+};
+
+watch(() => form.consignor_id, () => {
+    enforceMinBiltyCharge();
+});
+
 const showCartageOptions = computed(() => parseFloat(form.cartage || 0) > 0);
 
 const onCartageChange = () => {
@@ -589,7 +630,7 @@ const applyCompanyGst = () => {
 
 watch(() => form.gst_liability_by, applyCompanyGst);
 
-onMounted(() => calculateFinalTotal());
+onMounted(() => enforceMinBiltyCharge());
 
 const addEwayBill = () => {
     form.eway_bills.push({ eway_bill_no: '', eway_bill_valid_till: '' });
