@@ -3,20 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\BiltyRequest;
+use App\Models\Agent;
 use App\Models\Bilty;
 use App\Models\Branch;
-use App\Models\Party;
-use App\Models\Vendor;
-use App\Models\Station;
 use App\Models\Good;
 use App\Models\PackageType;
-use App\Models\Agent;
+use App\Models\Party;
+use App\Models\Station;
+use App\Models\Vendor;
 use App\Support\BiltyPrint;
 use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class BiltyController extends Controller implements HasMiddleware
@@ -74,7 +74,7 @@ class BiltyController extends Controller implements HasMiddleware
         $bilty = DB::transaction(function () use ($validated) {
             $details = $validated['details'] ?? [];
             $ewayBills = $validated['eway_bills'] ?? [];
-            unset($validated['details'], $validated['eway_bills'], $validated['eway_bill_no'], $validated['eway_bill_expiry_date']);
+            unset($validated['details'], $validated['eway_bills']);
 
             $bilty = Bilty::create($validated);
 
@@ -130,7 +130,7 @@ class BiltyController extends Controller implements HasMiddleware
         DB::transaction(function () use ($validated, $bilty) {
             $details = $validated['details'] ?? [];
             $ewayBills = $validated['eway_bills'] ?? [];
-            unset($validated['details'], $validated['eway_bills'], $validated['eway_bill_no'], $validated['eway_bill_expiry_date']);
+            unset($validated['details'], $validated['eway_bills']);
 
             $bilty->update($validated);
             $bilty->biltyDetails()->delete();
@@ -211,7 +211,6 @@ class BiltyController extends Controller implements HasMiddleware
             (float) ($bilty->handling_charge ?? 0) +
             (float) ($bilty->risk_dd_charge ?? 0) +
             (float) ($bilty->cartage ?? 0) +
-            (float) ($bilty->other_charge ?? 0) +
             $addonTotal -
             (float) ($bilty->less_advance_received ?? 0);
 
@@ -241,7 +240,6 @@ class BiltyController extends Controller implements HasMiddleware
             $cartageLabel = 'Cartage ('.$cartageType.')';
         }
         $addCharge($cartageLabel, $bilty->cartage);
-        $addCharge('Other Charge', $bilty->other_charge);
 
         foreach ($bilty->addon_charges ?? [] as $addon) {
             $amount = (float) ($addon['amount'] ?? 0);
@@ -297,7 +295,6 @@ class BiltyController extends Controller implements HasMiddleware
         $pushCharge('STATIONERY CHAR.', $bilty->bilty_charge);
         $pushCharge('SURCHARGE', $bilty->surcharge);
         $pushCharge('RISK / DD CHAR.', $bilty->risk_dd_charge);
-        $pushCharge('OTHER CHAR.', $bilty->other_charge);
 
         foreach ($bilty->addon_charges ?? [] as $addon) {
             $amount = (float) ($addon['amount'] ?? 0);
@@ -376,6 +373,7 @@ class BiltyController extends Controller implements HasMiddleware
                 if ($existing) {
                     $existing->update($payload);
                     $keptIds[] = $existing->id;
+
                     continue;
                 }
             }

@@ -427,7 +427,6 @@ class OperationalFlowSeeder extends Seeder
                 'amount' => $freight,
                 'payment_type' => $paymentType,
                 'status' => $statuses[$i % count($statuses)],
-                'remark' => 'Booking via '.$route['from'].' branch',
             ], $goods[$i % $goods->count()], $packageTypes[$i % $packageTypes->count()], $packages, (float) $weight));
         }
 

@@ -16,15 +16,6 @@
         ->filter(fn ($eway) => ! empty($eway->eway_bill_no))
         ->values();
 
-    if ($ewayBillRows->isEmpty() && ! empty($bilty->eway_bill_no)) {
-        $ewayBillRows = collect([
-            (object) [
-                'eway_bill_no' => $bilty->eway_bill_no,
-                'eway_bill_valid_till' => $bilty->eway_bill_expiry_date ?? null,
-            ],
-        ]);
-    }
-
     $formatAmount = fn(?float $amount) => number_format((float) $amount, 2);
 @endphp
 
@@ -219,17 +210,6 @@
                                     Transportar
                                 </td>
                             </tr>
-                            @if (BiltyPrint::isPaymentType($bilty->payment_type, 'Paid') &&
-                                    ($bilty->advance_payment_received || $bilty->payment_mode))
-                                <tr>
-                                    <td colspan="2" style="font-size:7px;">
-                                        In Case Paid M.R. No. {{ $bilty->previous_freight_no ?? '—' }}
-                                        dt. {{ $bilty->date ? date('d-m-Y', strtotime($bilty->date)) : '—' }}
-                                        for Rs.
-                                        {{ $showAmount ? number_format((float) ($bilty->advance_payment_received ?? ($bilty->amount ?? 0)), 2) : 'TBB' }}
-                                    </td>
-                                </tr>
-                            @endif
                             @if (!empty($biltyNote))
                                 <tr>
                                     <td colspan="2" class="note-text">{!! nl2br(e($biltyNote)) !!}</td>

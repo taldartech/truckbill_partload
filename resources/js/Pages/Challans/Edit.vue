@@ -385,7 +385,6 @@ const biltyGstAmount = (bilty) => {
         parseFloat(bilty.handling_charge || 0) +
         parseFloat(bilty.risk_dd_charge || 0) +
         parseFloat(bilty.cartage || 0) +
-        parseFloat(bilty.other_charge || 0) +
         addonTotal -
         parseFloat(bilty.less_advance_received || 0);
 

@@ -501,12 +501,7 @@ const initialEwayBills = savedEwayBills.length > 0
         eway_bill_no: eway.eway_bill_no || '',
         eway_bill_valid_till: formatDateInput(eway.eway_bill_valid_till),
     }))
-    : (props.bilty.eway_bill_no
-        ? [{
-            eway_bill_no: props.bilty.eway_bill_no,
-            eway_bill_valid_till: formatDateInput(props.bilty.eway_bill_expiry_date),
-        }]
-        : []);
+    : [];
 
 const normalizeCartageType = (value) => {
     if (!value) return '';
