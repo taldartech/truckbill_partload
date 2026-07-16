@@ -312,7 +312,7 @@
                                         <div class="col-6">
                                             <select class="form-select form-select-sm" v-model="form.cartage_type" @change="onCartageTypeChange">
                                                 <option value="">Select</option>
-                                                <option value="Paid">Paid</option>
+                                                <option value="Cash">Cash</option>
                                                 <option value="Due">Due</option>
                                             </select>
                                             <div v-if="form.errors.cartage_type" class="text-danger small">{{ form.errors.cartage_type }}</div>
@@ -506,7 +506,7 @@ const initialEwayBills = savedEwayBills.length > 0
 const normalizeCartageType = (value) => {
     if (!value) return '';
     const normalized = String(value).toLowerCase();
-    if (normalized === 'cash' || normalized === 'paid') return 'Paid';
+    if (normalized === 'cash' || normalized === 'paid') return 'Cash';
     if (normalized === 'due') return 'Due';
     return value;
 };

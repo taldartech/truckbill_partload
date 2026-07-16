@@ -45,7 +45,7 @@ class BiltyRequest extends FormRequest
 
         $cartageType = $this->input('cartage_type');
         if (in_array($cartageType, ['cash', 'due'], true)) {
-            $cartageType = $cartageType === 'cash' ? 'Paid' : 'Due';
+            $cartageType = $cartageType === 'cash' ? 'Cash' : 'Due';
         }
 
         $cartage = (float) ($this->input('cartage') ?? 0);
@@ -54,7 +54,7 @@ class BiltyRequest extends FormRequest
         if ($cartage <= 0) {
             $cartageType = null;
             $vendorId = null;
-        } elseif ($cartageType === 'Paid') {
+        } elseif ($cartageType === 'Cash') {
             $vendorId = null;
         }
 
@@ -108,7 +108,7 @@ class BiltyRequest extends FormRequest
             'handling_charge' => 'nullable|numeric|min:0',
             'risk_dd_charge' => 'nullable|numeric|min:0',
             'cartage' => 'nullable|numeric|min:0',
-            'cartage_type' => 'nullable|string|in:Paid,Due,cash,due',
+            'cartage_type' => 'nullable|string|in:Cash,Due,cash,due',
             'vendor_id' => 'nullable|exists:vendors,id',
             'addon_charges' => 'nullable|array',
             'addon_charges.*.particulars' => 'nullable|string|max:255|required_with:addon_charges.*.amount',
@@ -167,7 +167,7 @@ class BiltyRequest extends FormRequest
             $cartageType = $this->input('cartage_type');
 
             if ($cartage > 0 && empty($cartageType)) {
-                $validator->errors()->add('cartage_type', 'Please select whether cartage is Paid or Due.');
+                $validator->errors()->add('cartage_type', 'Please select whether cartage is Cash or Due.');
             }
 
             if ($cartage > 0 && $cartageType === 'Due' && empty($this->input('vendor_id'))) {
@@ -212,7 +212,7 @@ class BiltyRequest extends FormRequest
             'eway_bills.*.id.exists' => 'One or more E-Way Bill rows are invalid.',
             'eway_bills.*.eway_bill_no.required_with' => 'Please enter E-Way Bill number.',
             'eway_bills.*.eway_bill_valid_till.required_with' => 'Please select E-Way Bill valid till date.',
-            'cartage_type.in' => 'Cartage type must be Paid or Due.',
+            'cartage_type.in' => 'Cartage type must be Cash or Due.',
             'vendor_id.exists' => 'Selected vendor is invalid.',
 
             'details.required' => 'Please add at least one detail row.',

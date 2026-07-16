@@ -214,8 +214,8 @@ const chargeLines = computed(() => {
         let cartageLabel = 'Cartage';
         if (props.form.cartage_type === 'Due') {
             cartageLabel = 'Cartage (Due)';
-        } else if (props.form.cartage_type === 'Paid') {
-            cartageLabel = 'Cartage (Paid)';
+        } else if (props.form.cartage_type === 'Cash') {
+            cartageLabel = 'Cartage (Cash)';
         }
         lines.push({ label: cartageLabel, amount: cartage });
     }

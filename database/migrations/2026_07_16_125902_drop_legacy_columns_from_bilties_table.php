@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,6 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        DB::table('bilties')->whereIn('cartage_type', ['Paid', 'paid'])->update(['cartage_type' => 'Cash']);
+
         Schema::table('bilties', function (Blueprint $table) {
             $table->dropColumn('other_charge');
             $table->dropColumn('cartage_cash');

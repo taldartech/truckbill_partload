@@ -236,7 +236,7 @@ class BiltyController extends Controller implements HasMiddleware
         $addCharge('Risk / DD Charge', $bilty->risk_dd_charge);
         $cartageLabel = 'Cartage';
         if ((float) ($bilty->cartage ?? 0) != 0 && ! empty($bilty->cartage_type)) {
-            $cartageType = in_array(strtolower((string) $bilty->cartage_type), ['due'], true) ? 'Due' : 'Paid';
+            $cartageType = in_array(strtolower((string) $bilty->cartage_type), ['due'], true) ? 'Due' : 'Cash';
             $cartageLabel = 'Cartage ('.$cartageType.')';
         }
         $addCharge($cartageLabel, $bilty->cartage);
