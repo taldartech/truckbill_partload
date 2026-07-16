@@ -3,11 +3,35 @@
         :show="show"
         title="Confirm Bilty"
         :show-print-button="showPrintButton"
+        :confirm-disabled="confirmDisabled"
         @cancel="$emit('cancel')"
         @confirm="$emit('confirm')"
         @confirm-print="$emit('confirm-print')"
     >
         <div class="bilty-confirm">
+            <div
+                v-if="declaredValueBelowTotal"
+                class="alert alert-warning py-2 px-3 mb-2 d-flex flex-column gap-2"
+                role="alert"
+            >
+                <div>
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Declared value (₹ {{ formatConfirmMoney(declaredValue) }}) is less than total amount
+                    (₹ {{ formatConfirmMoney(totalAmount) }}).
+                </div>
+                <div class="form-check mb-0">
+                    <input
+                        id="bilty-declared-value-ack"
+                        v-model="acknowledgedDeclaredValue"
+                        class="form-check-input"
+                        type="checkbox"
+                    >
+                    <label class="form-check-label" for="bilty-declared-value-ack">
+                        I confirm that the declared value is correct even though it is less than the total amount.
+                    </label>
+                </div>
+            </div>
+
             <div class="bilty-kv-grid mb-2">
                 <div class="bilty-kv"><span class="k">Bilty No.</span><span class="v fw-bold">{{ form.bilty_number || '—' }}</span></div>
                 <div class="bilty-kv"><span class="k">Date</span><span class="v">{{ formatConfirmDate(form.date) }}</span></div>
@@ -93,7 +117,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import FormConfirmModal from '@/Components/FormConfirm/FormConfirmModal.vue';
 import { formatConfirmDate, formatConfirmMoney, lookupLabel } from '@/utils/formConfirm';
 
@@ -109,6 +133,27 @@ const props = defineProps({
 });
 
 defineEmits(['cancel', 'confirm', 'confirm-print']);
+
+const acknowledgedDeclaredValue = ref(false);
+
+const declaredValue = computed(() => parseFloat(props.form.declared_value || 0));
+const totalAmount = computed(() => parseFloat(props.form.amount || 0));
+
+const declaredValueBelowTotal = computed(() => {
+    if (props.form.payment_type === 'Paid') {
+        return false;
+    }
+
+    return declaredValue.value < totalAmount.value;
+});
+
+const confirmDisabled = computed(() => declaredValueBelowTotal.value && !acknowledgedDeclaredValue.value);
+
+watch(() => props.show, (open) => {
+    if (open) {
+        acknowledgedDeclaredValue.value = false;
+    }
+});
 
 const partyGst = (partyId) => {
     const party = props.parties.find((item) => String(item.id) === String(partyId));

@@ -31,6 +31,7 @@
                         v-if="showPrintButton"
                         type="button"
                         class="btn btn-sm btn-outline-info px-3 fw-bold"
+                        :disabled="confirmDisabled"
                         @click="onConfirmPrint"
                     >
                         <i class="fas fa-print me-1"></i> Save &amp; Print
@@ -42,6 +43,7 @@
                         ref="confirmButtonRef"
                         type="button"
                         class="btn btn-sm btn-success px-4 fw-bold"
+                        :disabled="confirmDisabled"
                         @click="onConfirm"
                     >
                         <i class="fas fa-check-circle me-1"></i> Confirm &amp; Save
@@ -63,6 +65,7 @@ const props = defineProps({
     show: { type: Boolean, default: false },
     title: { type: String, default: 'Confirm Details' },
     showPrintButton: { type: Boolean, default: true },
+    confirmDisabled: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['cancel', 'confirm', 'confirm-print']);
@@ -70,8 +73,20 @@ const emit = defineEmits(['cancel', 'confirm', 'confirm-print']);
 const confirmButtonRef = ref(null);
 
 const onCancel = () => emit('cancel');
-const onConfirm = () => emit('confirm');
-const onConfirmPrint = () => emit('confirm-print');
+const onConfirm = () => {
+    if (props.confirmDisabled) {
+        return;
+    }
+
+    emit('confirm');
+};
+const onConfirmPrint = () => {
+    if (props.confirmDisabled) {
+        return;
+    }
+
+    emit('confirm-print');
+};
 
 const handleKeydown = (event) => {
     if (!props.show) return;
