@@ -16,6 +16,7 @@ use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -69,7 +70,7 @@ class BiltyController extends Controller implements HasMiddleware
     {
         $validated = $request->validated();
         $validated['status'] = $validated['status'] ?? 'Pending';
-        $validated['created_by'] = auth()->id();
+        $validated['created_by'] = Auth::id();
 
         $bilty = DB::transaction(function () use ($validated) {
             $details = $validated['details'] ?? [];

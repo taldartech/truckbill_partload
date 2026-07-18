@@ -94,6 +94,7 @@ class ChallanController extends Controller implements HasMiddleware
             'details.*.bilty_id' => 'nullable|exists:bilties,id',
             'details.*.inward_register_detail_id' => 'nullable|exists:inward_register_details,id',
         ]));
+        $validated['created_by'] = Auth::id();
 
         $details = $validated['details'] ?? [];
         unset($validated['details']);
@@ -226,10 +227,15 @@ class ChallanController extends Controller implements HasMiddleware
             'details.inwardRegisterDetail.consignee',
             'details.inwardRegisterDetail.toStation',
             'details.toStation',
+            'branch.company',
+            'branch.city',
+            'branch.state',
         ]);
-        $company = \App\Models\Company::find($challan->company_id);
 
-        return view('prints.challan', compact('challan', 'company'));
+        $branch = $challan->branch;
+        $company = $branch?->company;
+
+        return view('prints.challan', compact('challan', 'company', 'branch', 'company'));
     }
 
     private function validateChallanDetails(array $details): void

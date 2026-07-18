@@ -31,7 +31,7 @@
                         </td>
                     @endif
                     <td class="company-cell text-center">
-                        <div class="company-name">{{ $company->name ?? 'TRANSPORT COMPANY' }}</div>
+                        <div class="company-name">{{ $company->name }}</div>
                         @if ($branchAddress)
                             <div class="branch-text">{{ $branchAddress }}</div>
                         @endif

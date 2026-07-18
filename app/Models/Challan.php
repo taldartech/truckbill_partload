@@ -47,4 +47,9 @@ class Challan extends Model
     {
         return $this->belongsTo(Agent::class, 'delivery_at_agent_id');
     }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }
