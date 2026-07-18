@@ -208,9 +208,17 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
     private function applyDetailTotals(array &$validated, array $details): void
     {
-        $validated['total_packages'] = collect($details)->sum(fn ($row) => (int) ($row['no_of_packages'] ?? 0));
-        $validated['total_delivery_freight'] = collect($details)->sum(fn ($row) => (float) ($row['home_delivery_charge'] ?? 0));
-        $validated['total_crossing_freight'] = collect($details)->sum(fn ($row) => (float) ($row['freight'] ?? 0));
+        $rows = collect($details);
+
+        $validated['total_packages'] = $rows->sum(fn ($row) => (int) ($row['no_of_packages'] ?? 0));
+
+        $validated['total_delivery_freight'] = $rows
+            ->filter(fn ($row) => $this->resolveDisposition((int) ($row['to_station_id'] ?? 0)) === 'delivery')
+            ->sum(fn ($row) => (float) ($row['freight'] ?? 0));
+
+        $validated['total_crossing_freight'] = $rows
+            ->filter(fn ($row) => $this->resolveDisposition((int) ($row['to_station_id'] ?? 0)) === 'forward')
+            ->sum(fn ($row) => (float) ($row['freight'] ?? 0));
     }
 
     private function syncDetails(InwardRegister $register, array $details): void

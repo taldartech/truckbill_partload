@@ -362,8 +362,14 @@ const partyName = (id) => partyOptions.value.find((p) => p.id === id)?.name || '
 const goodName = (id) => goodOptions.value.find((g) => g.id === id)?.name || '—';
 
 const totalPackages = computed(() => form.details.reduce((sum, row) => sum + (parseFloat(row.no_of_packages) || 0), 0));
-const totalDeliveryFreight = computed(() => form.details.reduce((sum, row) => sum + (parseFloat(row.home_delivery_charge) || 0), 0).toFixed(2));
-const totalCrossingFreight = computed(() => form.details.reduce((sum, row) => sum + (parseFloat(row.freight) || 0), 0).toFixed(2));
+const totalDeliveryFreight = computed(() => form.details
+    .filter((row) => rowDisposition(row) === 'delivery')
+    .reduce((sum, row) => sum + (parseFloat(row.freight) || 0), 0)
+    .toFixed(2));
+const totalCrossingFreight = computed(() => form.details
+    .filter((row) => rowDisposition(row) === 'forward')
+    .reduce((sum, row) => sum + (parseFloat(row.freight) || 0), 0)
+    .toFixed(2));
 
 const clearEntry = () => {
     entry.value = emptyEntry();
