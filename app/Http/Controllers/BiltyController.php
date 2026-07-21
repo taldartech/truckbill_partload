@@ -13,7 +13,6 @@ use App\Models\Station;
 use App\Models\Vendor;
 use App\Support\BiltyPrint;
 use App\Support\RedirectsWithOptionalPrint;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
@@ -169,19 +168,14 @@ class BiltyController extends Controller implements HasMiddleware
         return redirect()->route('bilties.index')->with('success', 'Bilty deleted successfully.');
     }
 
-    public function print(Request $request, Bilty $bilty)
+    public function print(Bilty $bilty)
     {
-        $bilty->load(['fromStation', 'toStation', 'consignor', 'consignee', 'vendor', 'creator', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills', 'branch.company', 'branch.city', 'branch.state']);
+        $bilty->load(['fromStation', 'toStation', 'consignor', 'consignee', 'vendor', 'creator', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills', 'branch.company', 'branch.city', 'branch.state', 'branch.settings']);
         $company = \App\Models\Company::find($bilty->company_id);
         $branch = $bilty->branch ?? new Branch;
         $printData = $this->buildPrintData($bilty);
 
-        $printShowAmount = null;
-        if ($request->has('show_amount')) {
-            $printShowAmount = $request->boolean('show_amount');
-        }
-
-        $copiesToPrint = BiltyPrint::copiesToPrint($branch, $bilty, $printShowAmount);
+        $copiesToPrint = BiltyPrint::copiesToPrint($branch, $bilty);
         $copyPages = array_chunk($copiesToPrint, 2);
         $biltyNote = $branch->resolvedBiltyPrintConfig()['note'] ?? '';
 

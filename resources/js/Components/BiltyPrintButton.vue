@@ -2,29 +2,10 @@
     <component :is="wrapperTag" v-bind="wrapperProps" @click="handlePrint">
         <slot>{{ linkText }}</slot>
     </component>
-
-    <div class="modal fade" ref="modalEl" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Print Bilty</h5>
-                    <button type="button" class="btn-close" @click="hideModal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="mb-0">Do you want to show freight amounts on this print?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @click="printWithAmount(false)">Hide Amounts</button>
-                    <button type="button" class="btn btn-primary" @click="printWithAmount(true)">Show Amounts</button>
-                </div>
-            </div>
-        </div>
-    </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps({
     biltyId: {
@@ -49,15 +30,7 @@ const props = defineProps({
     },
 });
 
-const page = usePage();
-const modalEl = ref(null);
-let modal = null;
-
-const biltyPrintConfig = computed(() => page.props.auth?.active_branch?.bilty_print_config ?? {
-    ask_amount_at_print: false,
-});
-
-const wrapperTag = computed(() => (props.variant === 'link' ? 'button' : 'button'));
+const wrapperTag = computed(() => 'button');
 
 const wrapperProps = computed(() => {
     if (props.variant === 'link') {
@@ -75,37 +48,7 @@ const wrapperProps = computed(() => {
     };
 });
 
-onMounted(() => {
-    if (typeof bootstrap !== 'undefined' && modalEl.value) {
-        modal = new bootstrap.Modal(modalEl.value);
-    }
-});
-
-const openPrintUrl = (showAmount = null) => {
-    let url = `/bilties/${props.biltyId}/print`;
-
-    if (showAmount !== null) {
-        url += `?show_amount=${showAmount ? '1' : '0'}`;
-    }
-
-    window.open(url, '_blank');
-};
-
-const hideModal = () => {
-    modal?.hide();
-};
-
-const printWithAmount = (showAmount) => {
-    hideModal();
-    openPrintUrl(showAmount);
-};
-
 const handlePrint = () => {
-    if (biltyPrintConfig.value.ask_amount_at_print) {
-        modal?.show();
-        return;
-    }
-
-    openPrintUrl();
+    window.open(`/bilties/${props.biltyId}/print`, '_blank');
 };
 </script>

@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Branch extends Model
 {
     use \App\Traits\BelongsToCompany;
-
     use SoftDeletes;
 
     protected $guarded = [];
@@ -17,67 +17,60 @@ class Branch extends Model
         'has_gst' => 'boolean',
         'use_company_logo' => 'boolean',
         'is_head_office' => 'boolean',
-        'bilty_print_config' => 'array',
     ];
 
-    public static function defaultBiltyPrintConfig(): array
+    protected static function booted(): void
     {
-        return [
-            'ask_amount_at_print' => false,
-            'note' => '',
-            'copies' => [
-                'consignor' => ['enabled' => true, 'show_amount' => true],
-                'consignee' => ['enabled' => true, 'show_amount' => false],
-                'driver' => ['enabled' => true, 'show_amount' => false],
-                'office' => ['enabled' => true, 'show_amount' => true],
-            ],
-        ];
+        static::created(function (Branch $branch) {
+            $branch->settings()->create([
+                'bilty_print_config' => BranchSetting::defaultBiltyPrintConfig(),
+            ]);
+        });
+    }
+
+    public function settings(): HasOne
+    {
+        return $this->hasOne(BranchSetting::class);
     }
 
     public function resolvedBiltyPrintConfig(): array
     {
-        $defaults = self::defaultBiltyPrintConfig();
-        $stored = is_array($this->bilty_print_config) ? $this->bilty_print_config : [];
+        $this->loadMissing('settings');
 
-        $config = [
-            'ask_amount_at_print' => (bool) ($stored['ask_amount_at_print'] ?? $defaults['ask_amount_at_print']),
-            'note' => self::resolveBiltyPrintNote($stored),
-            'copies' => [],
-        ];
-
-        foreach ($defaults['copies'] as $key => $defaultCopy) {
-            $storedCopy = is_array($stored['copies'][$key] ?? null) ? $stored['copies'][$key] : [];
-
-            $config['copies'][$key] = [
-                'enabled' => (bool) ($storedCopy['enabled'] ?? $defaultCopy['enabled']),
-                'show_amount' => (bool) ($storedCopy['show_amount'] ?? $defaultCopy['show_amount']),
-            ];
-        }
-
-        return $config;
+        return $this->settings?->resolvedBiltyPrintConfig()
+            ?? BranchSetting::defaultBiltyPrintConfig();
     }
 
-    private static function resolveBiltyPrintNote(array $stored): string
+    public function getBiltyInitialAttribute(): ?string
     {
-        $note = trim((string) ($stored['note'] ?? ''));
+        return $this->documentInitial('bilty_initial');
+    }
 
-        if ($note !== '') {
-            return $note;
-        }
+    public function getChallanInitialAttribute(): ?string
+    {
+        return $this->documentInitial('challan_initial');
+    }
 
-        foreach ($stored['copies'] ?? [] as $copy) {
-            if (! is_array($copy)) {
-                continue;
-            }
+    public function getMainChallanInitialAttribute(): ?string
+    {
+        return $this->documentInitial('main_challan_initial');
+    }
 
-            $legacyNote = trim((string) ($copy['note'] ?? ''));
+    public function getInvoiceInitialAttribute(): ?string
+    {
+        return $this->documentInitial('invoice_initial');
+    }
 
-            if ($legacyNote !== '') {
-                return $legacyNote;
-            }
-        }
+    public function getInwardRegisterInitialAttribute(): ?string
+    {
+        return $this->documentInitial('inward_register_initial');
+    }
 
-        return '';
+    private function documentInitial(string $column): ?string
+    {
+        $this->loadMissing('settings');
+
+        return $this->settings?->{$column};
     }
 
     public function company()

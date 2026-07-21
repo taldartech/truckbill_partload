@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BiltyController;
 use App\Http\Controllers\BranchContextController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\BranchSettingsController;
 use App\Http\Controllers\ChallanController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\CompanyController;
@@ -78,6 +79,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('subscription.active')->group(function () {
         Route::resource('branches', BranchController::class);
+        Route::get('branches/{branch}/settings', [BranchSettingsController::class, 'edit'])->name('branches.settings.edit');
+        Route::put('branches/{branch}/settings', [BranchSettingsController::class, 'update'])->name('branches.settings.update');
         Route::put('trucks/{truck}/complete-tour', [TruckController::class, 'completeTour'])->name('trucks.complete-tour');
         Route::get('trucks/quick/form-data', [TruckController::class, 'quickFormData'])->name('trucks.quick-form-data');
         Route::post('trucks/quick', [TruckController::class, 'quickStore'])->name('trucks.quick-store');

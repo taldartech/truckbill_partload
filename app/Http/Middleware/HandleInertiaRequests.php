@@ -21,7 +21,7 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $activeBranch = $context->activeBranch();
         if ($activeBranch) {
-            $activeBranch->loadMissing('station:id,name');
+            $activeBranch->loadMissing(['station:id,name', 'settings']);
         }
         $activeCompany = $context->activeCompany();
 

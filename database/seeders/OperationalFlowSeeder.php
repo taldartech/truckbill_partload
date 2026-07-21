@@ -200,16 +200,19 @@ class OperationalFlowSeeder extends Seeder
             'gst_type' => 'Regular',
             'gst_scheme' => 'Monthly',
             'gst_slab' => '18',
-            'bilty_initial' => 'SGT/',
-            'challan_initial' => 'CH/',
-            'main_challan_initial' => 'MCH/',
-            'invoice_initial' => 'INV/',
-            'inward_register_initial' => 'IR/',
             'use_company_logo' => true,
             'contact_person' => 'Priya Sharma',
             'contact_number' => '9820098765',
             'email' => 'mumbai@shreeganeshtransport.in',
-        ]);
+        ])->tap(function (Branch $branch) {
+            $branch->settings()->update([
+                'bilty_initial' => 'SGT/',
+                'challan_initial' => 'CH/',
+                'main_challan_initial' => 'MCH/',
+                'invoice_initial' => 'INV/',
+                'inward_register_initial' => 'IR/',
+            ]);
+        });
     }
 
     private function createOpsUser(Company $company, Branch $branch): User

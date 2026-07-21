@@ -32,6 +32,14 @@
                                         <span v-else class="badge bg-secondary">Branch</span>
                                     </td>
                                     <td class="text-end">
+                                        <Link
+                                            v-if="can('edit branches')"
+                                            :href="`/branches/${branch.id}/settings`"
+                                            class="btn btn-outline-secondary btn-sm me-2"
+                                            title="Branch Settings"
+                                        >
+                                            <i class="fas fa-cog"></i>
+                                        </Link>
                                         <Link :href="`/branches/${branch.id}/edit`" class="btn btn-edit btn-sm me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>
