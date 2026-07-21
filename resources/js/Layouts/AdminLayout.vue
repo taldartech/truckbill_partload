@@ -310,6 +310,19 @@ const handleEnterAsTab = async (event) => {
     const index = focusableElements.indexOf(activeEl);
     if (index > -1 && index < focusableElements.length - 1) {
         focusableElements[index + 1].focus();
+        return;
+    }
+
+    // Last field in the form — submit instead of doing nothing
+    if (index === focusableElements.length - 1) {
+        const form = activeEl.closest('form');
+        if (form) {
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            }
+        }
     }
 };
 
