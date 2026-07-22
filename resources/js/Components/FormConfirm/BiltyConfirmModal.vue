@@ -2,16 +2,19 @@
     <FormConfirmModal
         :show="show"
         title="Confirm Bilty"
+        subtitle="Review every detail below before saving."
+        variant="review"
+        confirm-label="Yes, Save Bilty"
         :show-print-button="showPrintButton"
         :confirm-disabled="confirmDisabled"
         @cancel="$emit('cancel')"
         @confirm="$emit('confirm')"
         @confirm-print="$emit('confirm-print')"
     >
-        <div class="bilty-confirm">
+        <div class="bcm">
             <div
                 v-if="declaredValueBelowTotal"
-                class="alert alert-warning py-2 px-3 mb-2 d-flex flex-column gap-2"
+                class="bcm__warning"
                 role="alert"
             >
                 <div>
@@ -19,7 +22,7 @@
                     Declared value (₹ {{ formatConfirmMoney(declaredValue) }}) is less than total amount
                     (₹ {{ formatConfirmMoney(totalAmount) }}).
                 </div>
-                <div class="form-check mb-0">
+                <div class="form-check mb-0 mt-1">
                     <input
                         id="bilty-declared-value-ack"
                         v-model="acknowledgedDeclaredValue"
@@ -32,86 +35,109 @@
                 </div>
             </div>
 
-            <div class="bilty-kv-grid mb-2">
-                <div class="bilty-kv"><span class="k">Bilty No.</span><span class="v fw-bold">{{ form.bilty_number || '—' }}</span></div>
-                <div class="bilty-kv"><span class="k">Date</span><span class="v">{{ formatConfirmDate(form.date) }}</span></div>
-                <div class="bilty-kv"><span class="k">Payment</span><span class="v">{{ form.payment_type || '—' }}</span></div>
-                <div class="bilty-kv"><span class="k">From</span><span class="v">{{ lookupLabel(stations, form.from_station_id) }}</span></div>
-                <div class="bilty-kv"><span class="k">To</span><span class="v">{{ lookupLabel(stations, form.to_station_id) }}</span></div>
-                <div class="bilty-kv"><span class="k">GST Liability</span><span class="v">{{ form.gst_liability_by || '—' }}</span></div>
-                <div class="bilty-kv"><span class="k">Consignor</span><span class="v">{{ lookupLabel(parties, form.consignor_id) }}</span></div>
-                <div class="bilty-kv"><span class="k">Cnr GST</span><span class="v">{{ partyGst(form.consignor_id) }}</span></div>
-                <div class="bilty-kv"><span class="k">Consignee</span><span class="v">{{ lookupLabel(parties, form.consignee_id) }}</span></div>
-                <div class="bilty-kv"><span class="k">Cne GST</span><span class="v">{{ partyGst(form.consignee_id) }}</span></div>
-                <div class="bilty-kv"><span class="k">Weight Actual</span><span class="v">{{ displayValue(form.weight_actual) }}</span></div>
-                <div class="bilty-kv"><span class="k">Declared Value</span><span class="v">{{ moneyOrDash(form.declared_value) }}</span></div>
-                <div class="bilty-kv"><span class="k">Invoice No.</span><span class="v">{{ form.invoice_number || '—' }}</span></div>
-                <div class="bilty-kv"><span class="k">Private Marka</span><span class="v">{{ form.private_marka || '—' }}</span></div>
-                <div class="bilty-kv"><span class="k">Delivery At</span><span class="v">{{ form.delivery_at || '—' }}</span></div>
-                <div v-if="form.cartage_type" class="bilty-kv"><span class="k">Cartage Type</span><span class="v">{{ form.cartage_type }}</span></div>
-                <div v-if="form.vendor_id" class="bilty-kv"><span class="k">Vendor</span><span class="v">{{ lookupLabel(vendors, form.vendor_id) }}</span></div>
-            </div>
-
-            <div v-if="ewaySummary" class="bilty-eway mb-2">
-                <span class="k">E-Way Bill{{ form.eway_bills?.length > 1 ? 's' : '' }}:</span>
-                <span class="v">{{ ewaySummary }}</span>
-            </div>
-
-            <div class="row g-2">
-                <div class="col-lg-7">
-                    <div class="bilty-confirm-label">Items</div>
-                    <div class="table-responsive bilty-confirm-table-wrap">
-                        <table class="table table-sm table-bordered mb-0 bilty-confirm-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Goods</th>
-                                    <th>Pack</th>
-                                    <th class="text-end">Pkg</th>
-                                    <th class="text-end">Act</th>
-                                    <th class="text-end">Chg</th>
-                                    <th>Rate Type</th>
-                                    <th class="text-end">Rate</th>
-                                    <th class="text-end">Amt</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(row, index) in form.details" :key="index">
-                                    <td>{{ index + 1 }}</td>
-                                    <td>{{ lookupLabel(goods, row.good_id) }}</td>
-                                    <td>{{ lookupLabel(packageTypes, row.package_type_id) }}</td>
-                                    <td class="text-end">{{ displayValue(row.no_of_packages) }}</td>
-                                    <td class="text-end">{{ displayValue(row.gross_weight) }}</td>
-                                    <td class="text-end">{{ displayValue(row.charged_weight) }}</td>
-                                    <td>{{ row.rate_type || '—' }}</td>
-                                    <td class="text-end">{{ displayValue(row.rate) }}</td>
-                                    <td class="text-end">{{ formatConfirmMoney(row.amount) }}</td>
-                                </tr>
-                                <tr v-if="!form.details?.length">
-                                    <td colspan="9" class="text-center text-muted py-1">No items</td>
-                                </tr>
-                            </tbody>
-                        </table>
+            <section class="bcm__section">
+                <div class="bcm__section-head">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Bilty details</span>
+                </div>
+                <div class="bcm__meta">
+                    <div
+                        v-for="field in detailFields"
+                        :key="field.label"
+                        class="bcm__meta-item"
+                    >
+                        <span class="bcm__meta-label">{{ field.label }}</span>
+                        <span
+                            class="bcm__meta-value"
+                            :class="{ 'bcm__meta-value--accent': field.accent }"
+                        >
+                            {{ field.value }}
+                        </span>
                     </div>
                 </div>
+                <div v-if="ewaySummary" class="bcm__eway">
+                    <span class="bcm__meta-label">E-Way Bill{{ form.eway_bills?.length > 1 ? 's' : '' }}</span>
+                    <span class="bcm__meta-value">{{ ewaySummary }}</span>
+                </div>
+            </section>
 
-                <div class="col-lg-5">
-                    <div class="bilty-confirm-label">Charges</div>
-                    <div class="bilty-confirm-charges">
-                        <div v-if="chargeLines.length === 0" class="bilty-charge-row text-muted">No charges</div>
-                        <div v-for="line in chargeLines" :key="line.label" class="bilty-charge-row">
-                            <span>{{ line.label }}</span>
-                            <span :class="line.amount < 0 ? 'text-danger' : ''">
-                                {{ line.amount < 0 ? '−' : '' }}₹ {{ formatConfirmMoney(Math.abs(line.amount)) }}
-                            </span>
-                        </div>
-                        <div class="bilty-charge-total">
-                            <span>Total Amount</span>
-                            <span>₹ {{ formatConfirmMoney(form.amount) }}</span>
-                        </div>
-                    </div>
+            <section class="bcm__section">
+                <div class="bcm__section-head">
+                    <i class="fas fa-list"></i>
+                    <span>Goods items ({{ itemRows.length }})</span>
+                </div>
+                <div class="bcm__table-wrap">
+                    <table class="table table-sm mb-0 bcm__table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Goods</th>
+                                <th>Pack</th>
+                                <th class="text-end">Pkg</th>
+                                <th class="text-end">Act</th>
+                                <th class="text-end">Chg</th>
+                                <th>Rate Type</th>
+                                <th class="text-end">Rate</th>
+                                <th class="text-end">Amt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(row, index) in itemRows" :key="index">
+                                <td>{{ index + 1 }}</td>
+                                <td>{{ lookupLabel(goods, row.good_id) }}</td>
+                                <td>{{ lookupLabel(packageTypes, row.package_type_id) }}</td>
+                                <td class="text-end">{{ displayValue(row.no_of_packages) }}</td>
+                                <td class="text-end">{{ displayValue(row.gross_weight) }}</td>
+                                <td class="text-end">{{ displayValue(row.charged_weight) }}</td>
+                                <td>{{ row.rate_type || '—' }}</td>
+                                <td class="text-end">{{ displayValue(row.rate) }}</td>
+                                <td class="text-end">
+                                    <span class="bcm__amount">₹{{ formatConfirmMoney(row.amount) }}</span>
+                                </td>
+                            </tr>
+                            <tr v-if="itemRows.length === 0">
+                                <td colspan="9" class="text-center text-muted py-1">No items</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <div v-if="extraChargeLines.length > 0" class="bcm__charge-chips">
+                <div
+                    v-for="line in extraChargeLines"
+                    :key="line.label"
+                    class="bcm__charge-chip"
+                >
+                    <span class="bcm__total-label">{{ line.label }}</span>
+                    <strong :class="line.amount < 0 ? 'text-danger' : ''">
+                        {{ line.amount < 0 ? '−' : '' }}₹{{ formatConfirmMoney(Math.abs(line.amount)) }}
+                    </strong>
                 </div>
             </div>
+
+            <section class="bcm__totals">
+                <div class="bcm__total">
+                    <span class="bcm__total-label">Packages</span>
+                    <strong>{{ totals.packages }}</strong>
+                </div>
+                <div class="bcm__total">
+                    <span class="bcm__total-label">Actual Wt</span>
+                    <strong>{{ totals.actualWeight }}</strong>
+                </div>
+                <div class="bcm__total">
+                    <span class="bcm__total-label">Charged Wt</span>
+                    <strong>{{ totals.chargedWeight }}</strong>
+                </div>
+                <div class="bcm__total">
+                    <span class="bcm__total-label">Freight</span>
+                    <strong class="bcm__amount">₹{{ formatConfirmMoney(form.freight) }}</strong>
+                </div>
+                <div class="bcm__total bcm__total--profit">
+                    <span class="bcm__total-label">Total Amount</span>
+                    <strong class="text-success">₹{{ formatConfirmMoney(form.amount) }}</strong>
+                </div>
+            </section>
         </div>
     </FormConfirmModal>
 </template>
@@ -157,7 +183,7 @@ watch(() => props.show, (open) => {
 
 const partyGst = (partyId) => {
     const party = props.parties.find((item) => String(item.id) === String(partyId));
-    return party?.gst_number || '—';
+    return party?.gst_number || '';
 };
 
 const displayValue = (value) => {
@@ -168,14 +194,56 @@ const displayValue = (value) => {
     return String(value);
 };
 
-const moneyOrDash = (value) => {
-    const amount = parseFloat(value || 0);
-    if (!value && amount === 0) {
-        return '—';
+const isFilled = (value) => {
+    if (value === null || value === undefined) {
+        return false;
     }
 
-    return `₹ ${formatConfirmMoney(amount)}`;
+    const text = String(value).trim();
+    return text !== '' && text !== '—';
 };
+
+const moneyValue = (value) => {
+    if (!isFilled(value) || parseFloat(value || 0) === 0) {
+        return '';
+    }
+
+    return `₹${formatConfirmMoney(value)}`;
+};
+
+const pushField = (fields, label, value, options = {}) => {
+    if (options.always || isFilled(value)) {
+        fields.push({
+            label,
+            value: isFilled(value) ? value : '—',
+            accent: Boolean(options.accent),
+        });
+    }
+};
+
+const detailFields = computed(() => {
+    const fields = [];
+
+    pushField(fields, 'Bilty Number', props.form.bilty_number || '—', { always: true, accent: true });
+    pushField(fields, 'Date', formatConfirmDate(props.form.date), { always: true });
+    pushField(fields, 'Payment', props.form.payment_type || '—', { always: true, accent: true });
+    pushField(fields, 'From', lookupLabel(props.stations, props.form.from_station_id), { always: true });
+    pushField(fields, 'To', lookupLabel(props.stations, props.form.to_station_id), { always: true });
+    pushField(fields, 'GST Liability', props.form.gst_liability_by);
+    pushField(fields, 'Consignor', lookupLabel(props.parties, props.form.consignor_id), { always: true });
+    pushField(fields, 'Cnr GST', partyGst(props.form.consignor_id));
+    pushField(fields, 'Consignee', lookupLabel(props.parties, props.form.consignee_id), { always: true });
+    pushField(fields, 'Cne GST', partyGst(props.form.consignee_id));
+    pushField(fields, 'Weight Actual', displayValue(props.form.weight_actual), { always: true });
+    pushField(fields, 'Declared Value', moneyValue(props.form.declared_value));
+    pushField(fields, 'Invoice No.', props.form.invoice_number);
+    pushField(fields, 'Private Marka', props.form.private_marka);
+    pushField(fields, 'Delivery At', props.form.delivery_at);
+    pushField(fields, 'Cartage Type', props.form.cartage_type);
+    pushField(fields, 'Vendor', lookupLabel(props.vendors, props.form.vendor_id));
+
+    return fields;
+});
 
 const ewaySummary = computed(() => {
     const rows = (props.form.eway_bills || []).filter((eway) => eway.eway_bill_no);
@@ -193,7 +261,33 @@ const ewaySummary = computed(() => {
         .join('; ');
 });
 
-const chargeLines = computed(() => {
+const itemRows = computed(() => {
+    return (props.form.details || []).filter((row) => {
+        return Boolean(
+            row.good_id
+            || row.package_type_id
+            || (row.no_of_packages !== '' && row.no_of_packages !== null && row.no_of_packages !== undefined)
+            || (row.gross_weight !== '' && row.gross_weight !== null && row.gross_weight !== undefined)
+            || (row.charged_weight !== '' && row.charged_weight !== null && row.charged_weight !== undefined)
+            || (row.rate !== '' && row.rate !== null && row.rate !== undefined)
+            || parseFloat(row.amount || 0) > 0
+        );
+    });
+});
+
+const totals = computed(() => {
+    const packages = itemRows.value.reduce((sum, row) => sum + (parseFloat(row.no_of_packages) || 0), 0);
+    const actualWeight = itemRows.value.reduce((sum, row) => sum + (parseFloat(row.gross_weight) || 0), 0);
+    const chargedWeight = itemRows.value.reduce((sum, row) => sum + (parseFloat(row.charged_weight) || 0), 0);
+
+    return {
+        packages: packages || '—',
+        actualWeight: actualWeight ? actualWeight.toFixed(2) : '—',
+        chargedWeight: chargedWeight ? chargedWeight.toFixed(2) : '—',
+    };
+});
+
+const extraChargeLines = computed(() => {
     const lines = [];
 
     const addLine = (label, value) => {
@@ -203,7 +297,6 @@ const chargeLines = computed(() => {
         }
     };
 
-    addLine('Total Freight', props.form.freight);
     addLine('Bilty Charge', props.form.bilty_charge);
     addLine('Surcharge', props.form.surcharge);
     addLine('Handling Charge', props.form.handling_charge);
@@ -230,9 +323,18 @@ const chargeLines = computed(() => {
         }
     });
 
-    const chargeSubtotal = lines.reduce((sum, line) => sum + line.amount, 0);
+    const chargeBase = [
+        props.form.freight,
+        props.form.bilty_charge,
+        props.form.surcharge,
+        props.form.handling_charge,
+        props.form.risk_dd_charge,
+        props.form.cartage,
+        ...(props.form.addon_charges || []).map((charge) => charge.amount),
+    ].reduce((sum, value) => sum + (parseFloat(value || 0)), 0);
+
     const gstRate = props.form.gst_liability_by === 'Exempted' ? 0 : parseFloat(props.form.gst || 0);
-    const gstAmount = chargeSubtotal * (gstRate / 100);
+    const gstAmount = chargeBase * (gstRate / 100);
     if (gstAmount !== 0) {
         lines.push({ label: `GST (${gstRate}%)`, amount: gstAmount });
     }
@@ -247,115 +349,193 @@ const chargeLines = computed(() => {
 </script>
 
 <style scoped>
-.bilty-kv-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.2rem 0.75rem;
-    padding-bottom: 0.4rem;
-    border-bottom: 1px solid #e2e8f0;
+.bcm__warning {
+    margin-bottom: 0.45rem;
+    padding: 0.4rem 0.55rem;
+    border-radius: 0.45rem;
+    background: #fff8e6;
+    border: 1px solid #ffe08a;
+    color: #92400e;
+    font-size: 0.72rem;
 }
 
-.bilty-kv {
+.bcm__section {
+    margin-bottom: 0.45rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #fff;
+    overflow: hidden;
+}
+
+.bcm__section-head {
     display: flex;
+    align-items: center;
     gap: 0.35rem;
+    padding: 0.3rem 0.55rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.bcm__meta {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+}
+
+.bcm__meta-item {
+    padding: 0.28rem 0.5rem;
+    border-right: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
     min-width: 0;
 }
 
-.bilty-kv .k {
+.bcm__meta-item:nth-child(6n) {
+    border-right: 0;
+}
+
+.bcm__meta-label {
+    display: block;
+    font-size: 0.6rem;
     color: #64748b;
+    margin-bottom: 0.05rem;
+    line-height: 1.2;
+}
+
+.bcm__meta-value {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #0f172a;
+    word-break: break-word;
+    line-height: 1.25;
+}
+
+.bcm__meta-value--accent {
+    display: inline-block;
+    padding: 0.02rem 0.3rem;
+    border-radius: 0.25rem;
+    background: rgba(45, 140, 255, 0.1);
+    color: var(--brand-accent-blue, #2d8cff);
+}
+
+.bcm__eway {
+    padding: 0.3rem 0.55rem 0.4rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.bcm__table-wrap {
+    overflow-x: auto;
+}
+
+.bcm__table {
+    --bs-table-bg: transparent;
+}
+
+.bcm__table thead th {
     white-space: nowrap;
-    flex-shrink: 0;
+    background: #f8fafc;
+    font-size: 0.62rem;
+    color: #64748b;
+    border-bottom-width: 1px;
+    padding: 0.28rem 0.4rem;
 }
 
-.bilty-kv .k::after {
-    content: ':';
+.bcm__table td {
+    font-size: 0.72rem;
+    vertical-align: middle;
+    padding: 0.28rem 0.4rem;
+    white-space: nowrap;
 }
 
-.bilty-kv .v {
+.bcm__amount {
+    display: inline-block;
+    font-weight: 700;
+    color: var(--brand-accent-blue, #2d8cff);
+    background: rgba(45, 140, 255, 0.1);
+    border-radius: 0.25rem;
+    padding: 0.05rem 0.28rem;
+}
+
+.bcm__charge-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.45rem;
+}
+
+.bcm__charge-chip {
+    min-width: 6.5rem;
+    text-align: center;
+    padding: 0.28rem 0.4rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.4rem;
+    background: #fff;
+}
+
+.bcm__totals {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.3rem;
+}
+
+.bcm__total {
+    min-width: 0;
+    text-align: center;
+    padding: 0.3rem 0.25rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.4rem;
+    background: #fff;
+}
+
+.bcm__total--profit {
+    background: rgba(47, 179, 111, 0.08);
+    border-color: rgba(47, 179, 111, 0.25);
+}
+
+.bcm__total-label {
+    display: block;
+    font-size: 0.58rem;
+    color: #64748b;
+    margin-bottom: 0.08rem;
+}
+
+.bcm__total strong,
+.bcm__charge-chip strong {
+    font-size: 0.74rem;
     color: #0f172a;
     word-break: break-word;
 }
 
-.bilty-eway {
-    padding: 0.25rem 0.35rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.2rem;
+@media (max-width: 1199.98px) {
+    .bcm__meta {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .bcm__meta-item:nth-child(6n) {
+        border-right: 1px solid #f1f5f9;
+    }
+
+    .bcm__meta-item:nth-child(4n) {
+        border-right: 0;
+    }
 }
 
-.bilty-eway .k {
-    color: #64748b;
-    font-weight: 600;
-    margin-right: 0.25rem;
-}
+@media (max-width: 767.98px) {
+    .bcm__meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 
-.bilty-confirm-label {
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #27ae60;
-    margin-bottom: 0.25rem;
-}
+    .bcm__meta-item:nth-child(4n) {
+        border-right: 1px solid #f1f5f9;
+    }
 
-.bilty-confirm-table-wrap {
-    max-height: 160px;
-    overflow-y: auto;
-}
+    .bcm__meta-item:nth-child(2n) {
+        border-right: 0;
+    }
 
-.bilty-confirm-table th,
-.bilty-confirm-table td {
-    padding: 0.15rem 0.3rem;
-    vertical-align: middle;
-}
-
-.bilty-confirm-table thead th {
-    background: #f8fafc;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.bilty-confirm-charges {
-    border: 1px solid #e2e8f0;
-    border-radius: 0.25rem;
-    overflow: hidden;
-}
-
-.bilty-charge-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.5rem;
-    padding: 0.18rem 0.4rem;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.bilty-charge-row span:first-child {
-    color: #64748b;
-}
-
-.bilty-charge-row span:last-child {
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.bilty-charge-total {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.3rem 0.4rem;
-    background: rgba(39, 174, 96, 0.08);
-    font-weight: 700;
-    color: #27ae60;
-}
-
-:deep(.form-confirm-card) {
-    width: min(900px, 96vw);
-}
-
-:deep(.form-confirm-body) {
-    padding: 0.65rem 0.75rem;
-}
-
-@media (max-width: 768px) {
-    .bilty-kv-grid {
+    .bcm__totals {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }

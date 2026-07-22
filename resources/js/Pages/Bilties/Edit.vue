@@ -1,131 +1,194 @@
 <template>
     <AdminLayout title="Edit Bilty">
-        <div class="row">
-            <div class="col-md-12 mx-auto">
-                <div class="card ops-form-card">
-                    <!-- Title Bar -->
-                    <div class="card-header">
-                        <h3 class="card-title">Booking Bilty</h3>
-                    </div>
+        <div class="bilty-form-page">
+            <h1 class="bilty-form-page__title">Edit Bilty</h1>
 
-                    <form @submit.prevent="submit" class="bilty-form">
-                        <!-- Top Section: Core Details -->
-                        <div class="card-body pt-3 pb-2 border-bottom">
-                            <div class="row align-items-center mb-2">
-                                <div class="col-md-3 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Bilty No.</label>
-                                    <div class="w-100">
-                                        <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.bilty_number }" v-model="form.bilty_number">
-                                        <div v-if="form.errors.bilty_number" class="text-danger small mt-1">{{ form.errors.bilty_number }}</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Date</label>
-                                    <div class="w-100">
-                                        <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date">
-                                        <div v-if="form.errors.date" class="invalid-feedback d-block">{{ form.errors.date }}</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Payment</label>
-                                    <select class="form-select form-select-sm" v-model="form.payment_type">
-                                        <option value="To Pay">To Pay</option>
-                                        <option value="Paid">Paid</option>
-                                        <option value="TBB">TBB</option>
-                                        <option value="FOC">FOC</option>
-                                    </select>
-                                </div>
+            <form @submit.prevent="submit" class="bilty-form">
+                <!-- 1. Booking -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num">1</div>
+                            <div>
+                                <h2 class="bilty-section__title">Booking</h2>
+                                <p class="bilty-section__desc">Payment type, stations and bilty identity</p>
                             </div>
-
-                            <div class="row align-items-center mb-2">
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">From St.</label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="form.from_station_id"
-                                        :options="stationOptions"
-                                        master="station"
-                                        placeholder="Select Station"
-                                        @created="(record) => appendMasterOption(stationOptions, record)"
-                                    />
-                                    <div v-if="form.errors.from_station_id" class="text-danger small ms-2">{{ form.errors.from_station_id }}</div>
+                        </div>
+                        <div class="bilty-section__head-right">
+                            <div class="bilty-id">
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Bilty Number</span>
+                                    <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.bilty_number }" v-model="form.bilty_number">
+                                    <div v-if="form.errors.bilty_number" class="text-danger small mt-1">{{ form.errors.bilty_number }}</div>
                                 </div>
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">To St.</label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="form.to_station_id"
-                                        :options="stationOptions"
-                                        master="station"
-                                        placeholder="Select Station"
-                                        @created="(record) => appendMasterOption(stationOptions, record)"
-                                    />
-                                    <div v-if="form.errors.to_station_id" class="text-danger small ms-2">{{ form.errors.to_station_id }}</div>
-                                </div>
-                            </div>
-
-                            <div class="row align-items-center mb-2">
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignor</label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="form.consignor_id"
-                                        :options="partyOptions"
-                                        master="party"
-                                        placeholder="Select Consignor"
-                                        @created="(record) => appendMasterOption(partyOptions, record)"
-                                    />
-                                    <div v-if="form.errors.consignor_id" class="text-danger small ms-2">{{ form.errors.consignor_id }}</div>
-                                </div>
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Consignee</label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="form.consignee_id"
-                                        :options="partyOptions"
-                                        master="party"
-                                        placeholder="Select Consignee"
-                                        @created="(record) => appendMasterOption(partyOptions, record)"
-                                    />
-                                    <div v-if="form.errors.consignee_id" class="text-danger small ms-2">{{ form.errors.consignee_id }}</div>
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Date</span>
+                                    <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date">
+                                    <div v-if="form.errors.date" class="invalid-feedback d-block">{{ form.errors.date }}</div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--3">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Payment</label>
+                                <select class="form-select form-select-sm" v-model="form.payment_type">
+                                    <option value="To Pay">To Pay</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="TBB">TBB</option>
+                                    <option value="FOC">FOC</option>
+                                </select>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">From Station<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.from_station_id"
+                                    :options="stationOptions"
+                                    master="station"
+                                    placeholder="Select Station"
+                                    @created="(record) => appendMasterOption(stationOptions, record)"
+                                />
+                                <div v-if="form.errors.from_station_id" class="text-danger small mt-1">{{ form.errors.from_station_id }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">To Station<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.to_station_id"
+                                    :options="stationOptions"
+                                    master="station"
+                                    placeholder="Select Station"
+                                    @created="(record) => appendMasterOption(stationOptions, record)"
+                                />
+                                <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-                        <!-- Mid Section: Goods Grid -->
-                        <div class="card-body p-0 border-bottom">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-sm m-0 table-grid" data-dynamic-add-message="Do you want to add another item?">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th width="5%" class="text-center">Sr.No.</th>
-                                            <th width="16%">Goods Name</th>
-                                            <th width="16%">Packing</th>
-                                            <th width="10%" class="text-center">No.Of Pkg</th>
-                                            <th width="10%" class="text-center">Actual Wt(Kg)</th>
-                                            <th width="10%" class="text-center">Charged Wt(Kg)</th>
-                                            <th width="10%" class="text-center">Frt.Type<span v-if="!isTbb" class="text-danger">*</span></th>
-                                            <th width="10%" class="text-center">Frt.Rate<span v-if="!isTbb" class="text-danger">*</span></th>
-                                            <th width="11%" class="text-center">Goods Frt</th>
-                                            <th width="2%" class="text-center"><i class="fas fa-cog"></i></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(detail, index) in form.details" :key="index" class="bg-white">
-                                            <td class="text-center align-middle">{{ index + 1 }}</td>
-                                            <td>
-                                                <SearchableSelect
-                                                    :small="true"
-                                                    v-model="detail.good_id"
-                                                    :options="goodOptions"
-                                                    master="good"
-                                                    placeholder="Select Good"
-                                                    @created="(record) => appendMasterOption(goodOptions, record)"
-                                                />
-                                                <div v-if="detailError(index, 'good_id')" class="text-danger small">{{ detailError(index, 'good_id') }}</div>
-                                            </td>
-                                            <td>
-                                                <SearchableSelect
+                <!-- 2. Parties -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--green">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--green">2</div>
+                            <div>
+                                <h2 class="bilty-section__title">Parties</h2>
+                                <p class="bilty-section__desc">Consignor and consignee</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--2">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Consignor<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.consignor_id"
+                                    :options="partyOptions"
+                                    master="party"
+                                    placeholder="Select Consignor"
+                                    @created="(record) => appendMasterOption(partyOptions, record)"
+                                />
+                                <div v-if="form.errors.consignor_id" class="text-danger small mt-1">{{ form.errors.consignor_id }}</div>
+                                <div v-if="form.consignor_id" class="bilty-party-details">
+                                    <span class="bilty-party-details__item">
+                                        <span class="bilty-party-details__label">State</span>
+                                        <span class="bilty-party-details__value">{{ partyState(form.consignor_id) || '—' }}</span>
+                                    </span>
+                                    <span class="bilty-party-details__item">
+                                        <span class="bilty-party-details__label">City</span>
+                                        <span class="bilty-party-details__value">{{ partyCity(form.consignor_id) || '—' }}</span>
+                                    </span>
+                                    <span class="bilty-party-details__item">
+                                        <span class="bilty-party-details__label">Mobile</span>
+                                        <span class="bilty-party-details__value">{{ partyMobile(form.consignor_id) || '—' }}</span>
+                                    </span>
+                                    <span class="bilty-party-details__item">
+                                        <span class="bilty-party-details__label">GST</span>
+                                        <span class="bilty-party-details__value">{{ getConsignorGST() || '—' }}</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Consignee<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.consignee_id"
+                                    :options="partyOptions"
+                                    master="party"
+                                    placeholder="Select Consignee"
+                                    @created="(record) => appendMasterOption(partyOptions, record)"
+                                />
+                                <div v-if="form.errors.consignee_id" class="text-danger small mt-1">{{ form.errors.consignee_id }}</div>
+                                <div v-if="form.consignee_id" class="bilty-party-details">
+                                    <span class="bilty-party-details__item">
+                                        <span class="bilty-party-details__label">State</span>
+                                        <span class="bilty-party-details__value">{{ partyState(form.consignee_id) || '—' }}</span>
+                                    </span>
+                                    <span class="bilty-party-details__item">
+                                        <span class="bilty-party-details__label">City</span>
+                                        <span class="bilty-party-details__value">{{ partyCity(form.consignee_id) || '—' }}</span>
+                                    </span>
+                                    <span class="bilty-party-details__item">
+                                        <span class="bilty-party-details__label">Mobile</span>
+                                        <span class="bilty-party-details__value">{{ partyMobile(form.consignee_id) || '—' }}</span>
+                                    </span>
+                                    <span class="bilty-party-details__item">
+                                        <span class="bilty-party-details__label">GST</span>
+                                        <span class="bilty-party-details__value">{{ getConsigneeGST() || '—' }}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Goods -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num">3</div>
+                            <div>
+                                <h2 class="bilty-section__title">Goods</h2>
+                                <p class="bilty-section__desc">Line items, packing, weight and freight</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body bilty-section__body--flush">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm m-0 table-grid" data-dynamic-add-message="Do you want to add another item?">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th width="5%" class="text-center">Sr.No.</th>
+                                        <th width="16%">Goods Name</th>
+                                        <th width="11%">Packing</th>
+                                        <th width="10%" class="text-center">No. of Pkg</th>
+                                        <th width="10%" class="text-center">Actual Wt(Kg)</th>
+                                        <th width="10%" class="text-center">Charged Wt(Kg)</th>
+                                        <th width="15%" class="text-center">Frt.Type<span v-if="!isTbb" class="text-danger">*</span></th>
+                                        <th width="10%" class="text-center">Frt.Rate<span v-if="!isTbb" class="text-danger">*</span></th>
+                                        <th width="11%" class="text-center">Goods Frt</th>
+                                        <th width="2%" class="text-center"><i class="fas fa-cog"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(detail, index) in form.details" :key="index" class="bg-white">
+                                        <td class="text-center align-middle">{{ index + 1 }}</td>
+                                        <td>
+                                            <SearchableSelect
+                                                :small="true"
+                                                v-model="detail.good_id"
+                                                :options="goodOptions"
+                                                master="good"
+                                                placeholder="Select Good"
+                                                @created="(record) => appendMasterOption(goodOptions, record)"
+                                            />
+                                            <div v-if="detailError(index, 'good_id')" class="text-danger small">{{ detailError(index, 'good_id') }}</div>
+                                        </td>
+                                        <td>
+                                            <SearchableSelect
                                                 :small="true"
                                                 v-model="detail.package_type_id"
                                                 :options="packageTypeOptions"
@@ -133,163 +196,100 @@
                                                 placeholder="Select Packing"
                                                 @created="(record) => appendMasterOption(packageTypeOptions, record)"
                                             />
-                                                <div v-if="detailError(index, 'package_type_id')" class="text-danger small">{{ detailError(index, 'package_type_id') }}</div>
-                                            </td>
-                                            <td>
-                                                <input type="number" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'no_of_packages') }" v-model="detail.no_of_packages" @input="calculateGridRow(index)">
-                                                <div v-if="detailError(index, 'no_of_packages')" class="text-danger small">{{ detailError(index, 'no_of_packages') }}</div>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'gross_weight') }" v-model="detail.gross_weight" @input="calculateGridRow(index)">
-                                                <div v-if="detailError(index, 'gross_weight')" class="text-danger small">{{ detailError(index, 'gross_weight') }}</div>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'charged_weight') }" v-model="detail.charged_weight" @input="calculateGridRow(index)">
-                                                <div v-if="detailError(index, 'charged_weight')" class="text-danger small">{{ detailError(index, 'charged_weight') }}</div>
-                                            </td>
-                                            <td>
-                                                <select class="form-select form-select-sm text-center" :class="{ 'is-invalid': detailError(index, 'rate_type') }" v-model="detail.rate_type" @change="calculateGridRow(index)">
-                                                    <option value="Fixed">Fixed</option>
-                                                    <option value="Per Actual Weight">Per Actual Weight</option>
-                                                    <option value="Per Charged Weight">Per Charged Weight</option>
-                                                    <option value="Per Package">Per Package</option>
-                                                </select>
-                                                <div v-if="detailError(index, 'rate_type')" class="text-danger small">{{ detailError(index, 'rate_type') }}</div>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'rate') }" v-model="detail.rate" @input="calculateGridRow(index)">
-                                                <div v-if="detailError(index, 'rate')" class="text-danger small">{{ detailError(index, 'rate') }}</div>
-                                            </td>
-                                            <td class="text-center align-middle fw-bold">
-                                                {{ detail.amount || '0.00' }}
-                                            </td>
-                                            <td class="text-center align-middle">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)" v-if="form.details.length > 1">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="10" class="bg-light p-1 text-center">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addRow">
-                                                    <i class="fas fa-plus"></i> Add Row
-                                                </button>
-                                                <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                            <div v-if="detailError(index, 'package_type_id')" class="text-danger small">{{ detailError(index, 'package_type_id') }}</div>
+                                        </td>
+                                        <td>
+                                            <input type="number" min="0" max="500000" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'no_of_packages') }" v-model="detail.no_of_packages" @input="calculateGridRow(index)">
+                                            <div v-if="detailError(index, 'no_of_packages')" class="text-danger small">{{ detailError(index, 'no_of_packages') }}</div>
+                                        </td>
+                                        <td>
+                                            <input type="number" min="0" max="120000" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'gross_weight') }" v-model="detail.gross_weight" @input="calculateGridRow(index)">
+                                            <div v-if="detailError(index, 'gross_weight')" class="text-danger small">{{ detailError(index, 'gross_weight') }}</div>
+                                        </td>
+                                        <td>
+                                            <input type="number" min="0" max="120000" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'charged_weight') }" v-model="detail.charged_weight" @input="calculateGridRow(index)">
+                                            <div v-if="detailError(index, 'charged_weight')" class="text-danger small">{{ detailError(index, 'charged_weight') }}</div>
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm bilty-rate-type-select" :class="{ 'is-invalid': detailError(index, 'rate_type') }" v-model="detail.rate_type" @change="calculateGridRow(index)">
+                                                <option value="Fixed">Fixed</option>
+                                                <option value="Per Actual Weight">Per Actual Weight</option>
+                                                <option value="Per Charged Weight">Per Charged Weight</option>
+                                                <option value="Per Package">Per Package</option>
+                                            </select>
+                                            <div v-if="detailError(index, 'rate_type')" class="text-danger small">{{ detailError(index, 'rate_type') }}</div>
+                                        </td>
+                                        <td>
+                                            <input type="number" min="0" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'rate') }" v-model="detail.rate" @input="calculateGridRow(index)">
+                                            <div v-if="detailError(index, 'rate')" class="text-danger small">{{ detailError(index, 'rate') }}</div>
+                                        </td>
+                                        <td class="text-center align-middle fw-bold">
+                                            {{ detail.amount || '0.00' }}
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <button
+                                                v-if="form.details.length > 1"
+                                                type="button"
+                                                class="btn btn-sm btn-link text-danger p-0 bg-transparent"
+                                                title="Remove row"
+                                                @click="removeRow(index)"
+                                            >
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            <button
+                                                v-else
+                                                type="button"
+                                                class="btn btn-sm btn-link text-secondary p-0 bg-transparent"
+                                                title="Reset row"
+                                                @click="resetRow(index)"
+                                            >
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="10" class="bg-light p-1 text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addRow">
+                                                <i class="fas fa-plus"></i> Add Row
+                                            </button>
+                                            <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Charges & Total -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--orange">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--orange">4</div>
+                            <div>
+                                <h2 class="bilty-section__title">Charges &amp; Total</h2>
+                                <p class="bilty-section__desc">Freight, extras and payable amount</p>
                             </div>
                         </div>
-
-                        <!-- Bottom Section: Freight, Tax & EWay -->
-                        <div class="card-body pt-3 pb-2">
-                            <div class="row">
-                                <!-- Left Column: GST, EWay, Weight -->
-                                <div class="col-md-7">
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Consignor GST No:</label></div>
-                                        <div class="col-7"><span class="small fw-bold text-muted">{{ getConsignorGST() }}</span></div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="row g-3">
+                            <div class="col-lg-7">
+                                <div class="bilty-charge-list">
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Total Freight</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light fw-bold" v-model="form.freight" readonly>
                                     </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Consignee GST No:</label></div>
-                                        <div class="col-7"><span class="small fw-bold text-muted">{{ getConsigneeGST() }}</span></div>
-                                    </div>
-
-                                    <hr class="my-2 border-secondary">
-
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Liabilities By</label></div>
-                                        <div class="col-7">
-                                            <select class="form-select form-select-sm" v-model="form.gst_liability_by">
-                                                <option value="">Select</option>
-                                                <option value="Consignor">Consignor</option>
-                                                <option value="Consignee">Consignee</option>
-                                                <option value="Transporter">Transporter</option>
-                                                <option value="Exempted">Exempted</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <hr class="my-2 border-secondary">
-
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Private Marka</label></div>
-                                        <div class="col-7"><input type="text" class="form-control form-control-sm bg-white" v-model="form.private_marka"></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Delivery At</label></div>
-                                        <div class="col-7">
-                                            <SearchableSelect
-                                                :small="true"
-                                                v-model="form.delivery_at"
-                                                :options="filteredAgents"
-                                                valueKey="name"
-                                                labelKey="name"
-                                                placeholder="Select Delivery Agent"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <hr class="my-2 border-secondary">
-
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Weight Actual</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.weight_actual"></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Declared Value <span class="text-muted fw-normal">(Optional)</span></label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.declared_value"></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Invoice No. <span class="text-muted fw-normal">(Optional)</span></label></div>
-                                        <div class="col-7"><input type="text" class="form-control form-control-sm bg-white" v-model="form.invoice_number" data-dynamic-grid-trigger="eway"></div>
-                                    </div>
-                                    <div class="mb-2 dynamic-grid" data-dynamic-grid="eway" data-dynamic-add-message="Do you want to add another e-way bill?">
-                                        <div class="row align-items-center mb-1">
-                                            <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">E-Way Bills</label></div>
-                                            <div class="col-7 text-end">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" data-dynamic-add @click="addEwayBill">
-                                                    <i class="fas fa-plus"></i> Add
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div v-for="(eway, index) in form.eway_bills" :key="eway.id ?? `new-${index}`" class="row mb-1 align-items-center dynamic-row">
-                                            <div class="col-1 text-end">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeEwayBill(index)">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </div>
-                                            <div class="col-4">
-                                                <input type="text" class="form-control form-control-sm bg-white" :class="{ 'is-invalid': ewayError(index, 'eway_bill_no') }" v-model="eway.eway_bill_no" placeholder="E-Way Bill No">
-                                                <div v-if="ewayError(index, 'eway_bill_no')" class="text-danger small">{{ ewayError(index, 'eway_bill_no') }}</div>
-                                            </div>
-                                            <div class="col-7">
-                                                <input type="date" class="form-control form-control-sm bg-white" :class="{ 'is-invalid': ewayError(index, 'eway_bill_valid_till') }" v-model="eway.eway_bill_valid_till" placeholder="Valid Till">
-                                                <div v-if="ewayError(index, 'eway_bill_valid_till')" class="text-danger small">{{ ewayError(index, 'eway_bill_valid_till') }}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Right Column: Freight & Totals -->
-                                <div class="col-md-5">
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Total Freight</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-light fw-bold" v-model="form.freight" readonly></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end">
-                                            <label class="mb-0 fw-bold small text-dark">
-                                                Bilty Charge
-                                                <span v-if="minBiltyCharge > 0" class="fw-normal text-muted">(≥ {{ minBiltyCharge }})</span>
-                                            </label>
-                                        </div>
-                                        <div class="col-6">
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">
+                                            Bilty Charge
+                                            <span v-if="minBiltyCharge > 0" class="fw-normal text-muted">(≥ {{ minBiltyCharge }})</span>
+                                        </label>
+                                        <div>
                                             <input
                                                 type="number"
                                                 step="0.01"
-                                                class="form-control form-control-sm bg-white"
+                                                class="form-control form-control-sm"
                                                 :class="{ 'is-invalid': form.errors.bilty_charge }"
                                                 v-model="form.bilty_charge"
                                                 :min="minBiltyCharge"
@@ -299,17 +299,17 @@
                                             <div v-if="form.errors.bilty_charge" class="text-danger small">{{ form.errors.bilty_charge }}</div>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Surcharge</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.surcharge" @input="calculateFinalTotal"></div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Surcharge</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.surcharge" @input="calculateFinalTotal">
                                     </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Cartage</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.cartage" @input="onCartageChange"></div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Cartage</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.cartage" @input="onCartageChange">
                                     </div>
-                                    <div v-if="showCartageOptions" class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Cartage Type</label></div>
-                                        <div class="col-6">
+                                    <div v-if="showCartageOptions" class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Cartage Type</label>
+                                        <div>
                                             <select class="form-select form-select-sm" v-model="form.cartage_type" @change="onCartageTypeChange">
                                                 <option value="">Select</option>
                                                 <option value="Cash">Cash</option>
@@ -318,9 +318,9 @@
                                             <div v-if="form.errors.cartage_type" class="text-danger small">{{ form.errors.cartage_type }}</div>
                                         </div>
                                     </div>
-                                    <div v-if="showCartageOptions && form.cartage_type === 'Due'" class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Vendor</label></div>
-                                        <div class="col-6">
+                                    <div v-if="showCartageOptions && form.cartage_type === 'Due'" class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Vendor</label>
+                                        <div>
                                             <SearchableSelect
                                                 :small="true"
                                                 v-model="form.vendor_id"
@@ -332,67 +332,220 @@
                                             <div v-if="form.errors.vendor_id" class="text-danger small">{{ form.errors.vendor_id }}</div>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Handling Charge</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.handling_charge" @input="calculateFinalTotal"></div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Handling Charge</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.handling_charge" @input="calculateFinalTotal">
                                     </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Risk/Door Delivery</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.risk_dd_charge" @input="calculateFinalTotal" data-dynamic-grid-trigger="addon"></div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Risk/Door Delivery</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.risk_dd_charge" @input="calculateFinalTotal" data-dynamic-grid-trigger="addon">
                                     </div>
-                                    <div class="mb-2 dynamic-grid" data-dynamic-grid="addon" data-dynamic-add-message="Do you want to add another addon charge?">
-                                        <div class="row align-items-center mb-1">
-                                            <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Addon Charges</label></div>
-                                            <div class="col-6 text-end">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" data-dynamic-add @click="addAddonCharge">
-                                                    <i class="fas fa-plus"></i> Add
+                                    <div class="bilty-charge-row bilty-charge-row--stack">
+                                        <label class="bilty-charge-row__label">Addon Charges</label>
+                                        <div class="bilty-addon-panel dynamic-grid" data-dynamic-grid="addon" data-dynamic-add-message="Do you want to add another addon charge?">
+                                            <div class="bilty-addon-panel__head">
+                                                <p class="bilty-addon-panel__desc mb-0">Optional — add particulars and amount</p>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" data-dynamic-add @click="addAddonCharge">
+                                                    <i class="fas fa-plus me-1"></i> Add
                                                 </button>
                                             </div>
+
+                                            <div v-if="form.addon_charges.length === 0" class="bilty-addon-empty">
+                                                No addon charges added yet.
+                                            </div>
+
+                                            <div v-else class="bilty-addon-list">
+                                                <div class="bilty-addon-row bilty-addon-row--head">
+                                                    <span>Particulars</span>
+                                                    <span>Amount</span>
+                                                    <span class="text-center">Action</span>
+                                                </div>
+                                                <div
+                                                    v-for="(charge, index) in form.addon_charges"
+                                                    :key="index"
+                                                    class="bilty-addon-row dynamic-row"
+                                                >
+                                                    <div class="bilty-addon-row__field">
+                                                        <input
+                                                            type="text"
+                                                            class="form-control form-control-sm"
+                                                            v-model="charge.particulars"
+                                                            placeholder="Enter particulars"
+                                                            @input="calculateFinalTotal"
+                                                        >
+                                                    </div>
+                                                    <div class="bilty-addon-row__field">
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            step="0.01"
+                                                            class="form-control form-control-sm"
+                                                            v-model="charge.amount"
+                                                            placeholder="0.00"
+                                                            @input="calculateFinalTotal"
+                                                        >
+                                                    </div>
+                                                    <div class="bilty-addon-row__action">
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-sm btn-outline-danger bilty-addon-remove"
+                                                            title="Remove addon charge"
+                                                            @click="removeAddonCharge(index)"
+                                                        >
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div v-for="(charge, index) in form.addon_charges" :key="index" class="row mb-1 align-items-center dynamic-row">
-                                            <div class="col-1 text-end">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeAddonCharge(index)">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </div>
-                                            <div class="col-5">
-                                                <input type="text" class="form-control form-control-sm" v-model="charge.particulars" placeholder="Particulars" @input="calculateFinalTotal">
-                                            </div>
-                                            <div class="col-6">
-                                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="charge.amount" placeholder="Amount" @input="calculateFinalTotal">
-                                            </div>
-                                        </div>
                                     </div>
-
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">GST Amount</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-light" :value="gstAmount" readonly></div>
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="bilty-total-panel">
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">GST Amount</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light" :value="gstAmount" readonly>
                                     </div>
-
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Less Advance Received</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white" v-model="form.less_advance_received" @input="calculateFinalTotal"></div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">GST Liability By</label>
+                                        <select class="form-select form-select-sm" v-model="form.gst_liability_by">
+                                            <option value="">Select</option>
+                                            <option value="Consignor">Consignor</option>
+                                            <option value="Consignee">Consignee</option>
+                                            <option value="Transporter">Transporter</option>
+                                            <option value="Exempted">Exempted</option>
+                                        </select>
                                     </div>
-
-                                    <hr class="my-2 border-secondary">
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold">TOTAL AMOUNT</label></div>
-                                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm bg-white fw-bold" v-model="form.amount" readonly></div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Less Advance Received</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.less_advance_received" @input="calculateFinalTotal">
+                                    </div>
+                                    <div class="bilty-total">
+                                        <span class="bilty-total__label">TOTAL AMOUNT</span>
+                                        <input type="number" step="0.01" class="form-control form-control-sm bilty-total__input" v-model="form.amount" readonly>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </section>
 
-                        <!-- Action Buttons (Bottom Bar) -->
-                        <div class="card-footer bg-light d-flex justify-content-center gap-2 border-top-0 pt-3 pb-3">
-                            <Link href="/bilties" class="btn btn-outline-secondary px-4"><i class="fas fa-times me-1"></i> Exit</Link>
-                            <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm" :disabled="form.processing">
-                                <i class="fas fa-save me-1"></i> Update
-                            </button>
+                <!-- 5. Shipment details -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--gray">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--gray">5</div>
+                            <div>
+                                <h2 class="bilty-section__title">Shipment Details</h2>
+                                <p class="bilty-section__desc">Marka, delivery, weight, invoice and e-way bills</p>
+                            </div>
                         </div>
-                    </form>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--5">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Private Marka</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.private_marka">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Delivery At</label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.delivery_at"
+                                    :options="filteredAgents"
+                                    valueKey="name"
+                                    labelKey="name"
+                                    placeholder="Select Delivery Agent"
+                                />
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Weight Actual</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.weight_actual" readonly>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Declared Value <span class="text-muted fw-normal">(Optional)</span></label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.declared_value">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Invoice No. <span class="text-muted fw-normal">(Optional)</span></label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.invoice_number" data-dynamic-grid-trigger="eway">
+                            </div>
+                        </div>
+
+                        <div class="bilty-eway-block dynamic-grid" data-dynamic-grid="eway" data-dynamic-add-message="Do you want to add another e-way bill?">
+                            <div class="bilty-eway-block__head">
+                                <div>
+                                    <h3 class="bilty-eway-block__title">E-Way Bills</h3>
+                                    <p class="bilty-eway-block__desc">Optional — add bill number and valid till date</p>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-dynamic-add @click="addEwayBill">
+                                    <i class="fas fa-plus me-1"></i> Add
+                                </button>
+                            </div>
+
+                            <div v-if="form.eway_bills.length === 0" class="bilty-eway-empty">
+                                No e-way bills added yet.
+                            </div>
+
+                            <div v-else class="bilty-eway-list">
+                                <div class="bilty-eway-row bilty-eway-row--head">
+                                    <span>E-Way Bill No.</span>
+                                    <span>Valid Till</span>
+                                    <span class="text-center">Action</span>
+                                </div>
+                                <div
+                                    v-for="(eway, index) in form.eway_bills"
+                                    :key="eway.id ?? `new-${index}`"
+                                    class="bilty-eway-row dynamic-row"
+                                >
+                                    <div class="bilty-eway-row__field">
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm"
+                                            :class="{ 'is-invalid': ewayError(index, 'eway_bill_no') }"
+                                            v-model="eway.eway_bill_no"
+                                            placeholder="Enter e-way bill number"
+                                        >
+                                        <div v-if="ewayError(index, 'eway_bill_no')" class="text-danger small mt-1">{{ ewayError(index, 'eway_bill_no') }}</div>
+                                    </div>
+                                    <div class="bilty-eway-row__field">
+                                        <input
+                                            type="date"
+                                            class="form-control form-control-sm"
+                                            :class="{ 'is-invalid': ewayError(index, 'eway_bill_valid_till') }"
+                                            v-model="eway.eway_bill_valid_till"
+                                        >
+                                        <div v-if="ewayError(index, 'eway_bill_valid_till')" class="text-danger small mt-1">{{ ewayError(index, 'eway_bill_valid_till') }}</div>
+                                    </div>
+                                    <div class="bilty-eway-row__action">
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-danger bilty-eway-remove"
+                                            title="Remove e-way bill"
+                                            @click="removeEwayBill(index)"
+                                        >
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="bilty-form-actions">
+                    <Link href="/bilties" class="btn btn-outline-secondary btn-sm px-3">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </Link>
+                    <button type="button" class="btn btn-outline-secondary btn-sm px-3" :disabled="form.processing" @click="clearForm">
+                        <i class="fas fa-eraser me-1"></i> Clear
+                    </button>
+                    <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
+                        <i class="fas fa-save me-1"></i> Update
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
 
         <BiltyConfirmModal
@@ -409,6 +562,7 @@
         />
     </AdminLayout>
 </template>
+
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
@@ -574,6 +728,18 @@ const getConsigneeGST = () => {
     return party ? party.gst_number : '';
 };
 
+const findParty = (partyId) => {
+    if (!partyId) {
+        return null;
+    }
+
+    return partyOptions.value.find((party) => party.id === partyId) || null;
+};
+
+const partyState = (partyId) => findParty(partyId)?.state?.name || '';
+const partyCity = (partyId) => findParty(partyId)?.city?.name || '';
+const partyMobile = (partyId) => findParty(partyId)?.mobile || '';
+
 const minBiltyCharge = computed(() => {
     if (!form.consignor_id) {
         return 0;
@@ -631,7 +797,23 @@ const addEwayBill = () => {
     form.eway_bills.push({ eway_bill_no: '', eway_bill_valid_till: '' });
 };
 
+const ewayRowHasData = (eway) => {
+    if (!eway) {
+        return false;
+    }
+
+    return Boolean(
+        (eway.eway_bill_no !== '' && eway.eway_bill_no !== null && eway.eway_bill_no !== undefined)
+        || (eway.eway_bill_valid_till !== '' && eway.eway_bill_valid_till !== null && eway.eway_bill_valid_till !== undefined)
+    );
+};
+
 const removeEwayBill = (index) => {
+    const eway = form.eway_bills[index];
+    if (ewayRowHasData(eway) && !confirm('This e-way bill has data. Remove it?')) {
+        return;
+    }
+
     form.eway_bills.splice(index, 1);
 };
 
@@ -641,7 +823,23 @@ const addAddonCharge = () => {
     form.addon_charges.push({ particulars: '', amount: '' });
 };
 
+const addonRowHasData = (charge) => {
+    if (!charge) {
+        return false;
+    }
+
+    return Boolean(
+        (charge.particulars !== '' && charge.particulars !== null && charge.particulars !== undefined)
+        || (charge.amount !== '' && charge.amount !== null && charge.amount !== undefined)
+    );
+};
+
 const removeAddonCharge = (index) => {
+    const charge = form.addon_charges[index];
+    if (addonRowHasData(charge) && !confirm('This addon charge has data. Remove it?')) {
+        return;
+    }
+
     form.addon_charges.splice(index, 1);
     calculateFinalTotal();
 };
@@ -650,31 +848,98 @@ const totalAddonCharges = () => {
     return form.addon_charges.reduce((sum, charge) => sum + (parseFloat(charge.amount) || 0), 0);
 };
 
+const emptyGoodsRow = () => ({
+    good_id: '',
+    package_type_id: '',
+    no_of_packages: '',
+    gross_weight: '',
+    charged_weight: '',
+    rate_type: 'Fixed',
+    rate: '',
+    amount: 0,
+});
+
 const addRow = () => {
-    form.details.push({ good_id: '', package_type_id: '', no_of_packages: '', gross_weight: '', charged_weight: '', rate_type: 'Fixed', rate: '', amount: 0 });
+    form.details.push(emptyGoodsRow());
 };
 
 const removeRow = (index) => {
+    const row = form.details[index];
+    if (goodsRowHasData(row) && !confirm('This goods row has data. Remove it?')) {
+        return;
+    }
+
     form.details.splice(index, 1);
     calculateTotalFreight();
 };
 
+const resetRow = (index) => {
+    const row = form.details[index];
+    if (goodsRowHasData(row) && !confirm('This goods row has data. Reset it?')) {
+        return;
+    }
+
+    Object.assign(form.details[index], emptyGoodsRow());
+    calculateTotalFreight();
+};
+
+const goodsRowHasData = (row) => {
+    if (!row) {
+        return false;
+    }
+
+    return Boolean(
+        row.good_id
+        || row.package_type_id
+        || (row.no_of_packages !== '' && row.no_of_packages !== null && row.no_of_packages !== undefined)
+        || (row.gross_weight !== '' && row.gross_weight !== null && row.gross_weight !== undefined)
+        || (row.charged_weight !== '' && row.charged_weight !== null && row.charged_weight !== undefined)
+        || (row.rate !== '' && row.rate !== null && row.rate !== undefined)
+        || parseFloat(row.amount || 0) > 0
+    );
+};
+
 const calculateGridRow = (index) => {
     const row = form.details[index];
-    const weight = parseFloat(row.gross_weight) || 0;
-    const chargedWeight = parseFloat(row.charged_weight) || 0;
-    const packages = parseFloat(row.no_of_packages) || 0;
-    const rate = parseFloat(row.rate) || 0;
+    const maxWeight = 120000;
+    const maxPackages = 500000;
 
-    if (row.rate_type === 'Per Actual Weight' || row.rate_type === 'Per KG') {
-        row.amount = (rate * weight).toFixed(2);
-    } else if (row.rate_type === 'Per Charged Weight') {
-        row.amount = (rate * chargedWeight).toFixed(2);
-    } else if (row.rate_type === 'Per Package') {
-        row.amount = (rate * packages).toFixed(2);
-    } else {
-        row.amount = rate.toFixed(2);
+    ['no_of_packages', 'gross_weight', 'charged_weight', 'rate'].forEach((field) => {
+        const numeric = parseFloat(row[field]);
+        if (Number.isFinite(numeric) && numeric < 0) {
+            row[field] = 0;
+        }
+    });
+
+    const packagesValue = parseFloat(row.no_of_packages);
+    if (Number.isFinite(packagesValue) && packagesValue > maxPackages) {
+        row.no_of_packages = maxPackages;
     }
+
+    ['gross_weight', 'charged_weight'].forEach((field) => {
+        const numeric = parseFloat(row[field]);
+        if (Number.isFinite(numeric) && numeric > maxWeight) {
+            row[field] = maxWeight;
+        }
+    });
+
+    const weight = Math.min(maxWeight, Math.max(0, parseFloat(row.gross_weight) || 0));
+    const chargedWeight = Math.min(maxWeight, Math.max(0, parseFloat(row.charged_weight) || 0));
+    const packages = Math.min(maxPackages, Math.max(0, parseFloat(row.no_of_packages) || 0));
+    const rate = Math.max(0, parseFloat(row.rate) || 0);
+
+    let amount = 0;
+    if (row.rate_type === 'Per Actual Weight' || row.rate_type === 'Per KG') {
+        amount = rate * weight;
+    } else if (row.rate_type === 'Per Charged Weight') {
+        amount = rate * chargedWeight;
+    } else if (row.rate_type === 'Per Package') {
+        amount = rate * packages;
+    } else {
+        amount = rate;
+    }
+
+    row.amount = Math.max(0, amount).toFixed(2);
     calculateTotalFreight();
 };
 
@@ -727,6 +992,15 @@ const submitBilty = (printAfterSave = false) => {
 
 const confirmSave = () => submitBilty(false);
 const confirmSaveAndPrint = () => submitBilty(true);
+
+const clearForm = () => {
+    form.reset();
+    form.clearErrors();
+    form.details = initialDetails.map((detail) => ({ ...detail }));
+    form.addon_charges = initialAddonCharges.map((charge) => ({ ...charge }));
+    form.eway_bills = initialEwayBills.map((eway) => ({ ...eway }));
+    calculateFinalTotal();
+};
 
 const detailError = (index, field) => form.errors[`details.${index}.${field}`];
 </script>

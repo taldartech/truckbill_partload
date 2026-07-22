@@ -54,7 +54,7 @@ class BiltyController extends Controller implements HasMiddleware
         );
 
         return Inertia::render('Bilties/Create', [
-            'parties' => Party::all(),
+            'parties' => $this->partyOptions(),
             'vendors' => Vendor::all(),
             'stations' => Station::all(),
             'goods' => Good::all(),
@@ -113,7 +113,7 @@ class BiltyController extends Controller implements HasMiddleware
 
         return Inertia::render('Bilties/Edit', [
             'bilty' => $bilty,
-            'parties' => Party::all(),
+            'parties' => $this->partyOptions(),
             'vendors' => Vendor::all(),
             'stations' => Station::all(),
             'goods' => Good::all(),
@@ -382,6 +382,25 @@ class BiltyController extends Controller implements HasMiddleware
         } else {
             $bilty->ewayBills()->whereNotIn('id', $keptIds)->delete();
         }
+    }
+
+    private function partyOptions()
+    {
+        return Party::query()
+            ->with([
+                'state:id,name',
+                'city:id,name',
+            ])
+            ->orderBy('name')
+            ->get([
+                'id',
+                'name',
+                'gst_number',
+                'mobile',
+                'state_id',
+                'city_id',
+                'bilty_charge',
+            ]);
     }
 
     private function defaultGstPercent(?Branch $branch): float

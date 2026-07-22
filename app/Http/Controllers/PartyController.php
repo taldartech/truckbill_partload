@@ -89,12 +89,19 @@ class PartyController extends Controller implements HasMiddleware
         ));
 
         $party = Party::create($validated);
+        $party->load(['state:id,name', 'city:id,name']);
 
         return response()->json([
             'party' => [
                 'id' => $party->id,
                 'name' => $party->name,
                 'gst_number' => $party->gst_number,
+                'mobile' => $party->mobile,
+                'state_id' => $party->state_id,
+                'city_id' => $party->city_id,
+                'state' => $party->state,
+                'city' => $party->city,
+                'bilty_charge' => $party->bilty_charge,
             ],
         ], 201);
     }
