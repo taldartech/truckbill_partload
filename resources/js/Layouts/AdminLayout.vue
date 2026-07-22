@@ -236,7 +236,12 @@ const handleEnterAsTab = async (event) => {
     if (!activeEl) return;
 
     // Leave Enter handling to SearchableSelect when its dropdown search/list is focused
-    if (activeEl.closest?.('.searchable-select__dropdown')) {
+    // Leave Enter / typing to SearchableSelect while its list is open
+    if (
+        activeEl.closest?.('.searchable-select__dropdown, .ss__panel, .ss__list')
+        || (activeEl.classList?.contains('searchable-select__trigger') && activeEl.getAttribute('aria-expanded') === 'true')
+        || (activeEl.classList?.contains('ss__trigger') && activeEl.getAttribute('aria-expanded') === 'true')
+    ) {
         return;
     }
 
@@ -297,12 +302,12 @@ const handleEnterAsTab = async (event) => {
                 'input:not([type="hidden"]):not([disabled]):not([type="button"]):not([type="submit"]):not([type="reset"])',
                 'select:not([disabled])',
                 'textarea:not([disabled])',
-                '.searchable-select__trigger:not([disabled])',
+                '.searchable-select__trigger:not([disabled]), .ss__trigger:not([disabled])',
             ].join(', ')
         )
     ).filter((el) => {
         if (el.tabIndex < 0 || el.getAttribute('tabindex') === '-1') return false;
-        if (el.closest?.('.searchable-select__dropdown')) return false;
+        if (el.closest?.('.searchable-select__dropdown, .ss__panel, .ss__list')) return false;
         const style = window.getComputedStyle(el);
         return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0;
     });

@@ -546,3 +546,14 @@ onUnmounted(() => {
     modal?.dispose();
 });
 </script>
+
+<style>
+/* Above SearchableSelect dropdowns (≤ ~1090) so F3 modal is always usable */
+.master-quick-add-modal {
+    z-index: 2000 !important;
+}
+
+body:has(.master-quick-add-modal.show) .modal-backdrop {
+    z-index: 1990 !important;
+}
+</style>

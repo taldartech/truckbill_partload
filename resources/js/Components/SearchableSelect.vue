@@ -1,191 +1,147 @@
 <template>
-    <div class="searchable-select" ref="container">
+    <div class="searchable-select ss" ref="rootEl">
         <input
             :id="id"
-            ref="trigger"
+            ref="inputEl"
             type="text"
-            class="searchable-select__trigger form-select"
-            :class="{ 'is-invalid': error, 'form-select-sm': small, 'bg-light text-muted': disabled, 'text-muted': !hasSelection }"
-            :value="displayValue"
+            class="searchable-select__trigger ss__trigger form-select"
+            :class="{
+                'is-invalid': error,
+                'form-select-sm': small,
+                'bg-light text-muted': disabled,
+                'text-muted': !isOpen && !hasSelection,
+            }"
+            :value="inputText"
             :placeholder="placeholder"
             :disabled="disabled"
-            readonly
             autocomplete="off"
             role="combobox"
             aria-autocomplete="list"
             :aria-expanded="isOpen"
             aria-haspopup="listbox"
-            @click.stop="openDropdown"
-            @focus="onTriggerFocus"
-            @keydown="onTriggerKeydown"
+            @click.stop="open"
+            @focus="onFocus"
+            @input="onInput"
+            @keydown="onKeydown"
         >
 
         <Teleport to="body">
             <div
                 v-if="isOpen"
-                ref="dropdown"
-                class="searchable-select__dropdown dropdown-menu show p-0 shadow-sm"
-                role="listbox"
-                :style="dropdownStyle"
+                ref="panelEl"
+                class="searchable-select__dropdown ss__panel"
+                :style="panelStyle"
+                @mousedown.prevent
             >
-                <div class="p-2 border-bottom sticky-top bg-white">
-                    <input
-                        type="text"
-                        class="form-control form-control-sm"
-                        v-model="searchQuery"
-                        placeholder="Search..."
-                        ref="searchInput"
-                        tabindex="-1"
-                        @keydown="onSearchKeydown"
-                    >
-                </div>
-                <ul class="list-unstyled mb-0">
-                    <li v-if="dropdownOptions.length === 0" class="p-2 text-muted small text-center">
+                <div
+                    ref="listEl"
+                    class="ss__list"
+                    role="listbox"
+                    @wheel.stop
+                >
+                    <div v-if="visibleOptions.length === 0" class="ss__empty">
                         No results found
-                    </li>
-                    <li
-                        v-for="(option, index) in dropdownOptions"
-                        :key="option.__isPlaceholder ? '__placeholder__' : option[valueKey]"
+                    </div>
+
+                    <div
+                        v-for="(option, index) in visibleOptions"
+                        :key="optionKey(option, index)"
                         role="option"
-                        :aria-selected="isOptionSelected(option)"
-                        @mousedown.prevent="selectOption(option)"
-                        class="p-2 dropdown-item small"
+                        class="ss__option"
                         :class="{
-                            'active bg-primary text-white': isOptionSelected(option),
-                            'bg-light': highlightedIndex === index,
-                            'text-muted': option.__isPlaceholder,
+                            'is-active': index === activeIndex,
+                            'is-selected': isSelected(option) && index !== activeIndex,
+                            'is-placeholder': option.__isPlaceholder,
                         }"
-                        style="cursor: pointer;"
+                        :aria-selected="isSelected(option)"
+                        @mousedown.prevent="choose(option)"
+                        @mouseenter="onOptionMouseEnter(index)"
                     >
                         {{ option[labelKey] }}
-                    </li>
-                </ul>
+                    </div>
+                </div>
             </div>
         </Teleport>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onUnmounted, watch, toValue } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, toValue, watch } from 'vue';
 import { useMasterQuickAdd } from '@/composables/useMasterQuickAdd';
+import {
+    claimSearchableSelect,
+    releaseSearchableSelect,
+} from '@/utils/searchableSelectRegistry';
 
 const props = defineProps({
-    id: {
-        type: String,
-        default: undefined,
-    },
-    modelValue: {
-        type: [String, Number],
-        default: ''
-    },
-    options: {
-        type: Array,
-        default: () => []
-    },
-    placeholder: {
-        type: String,
-        default: 'Select an option'
-    },
-    valueKey: {
-        type: String,
-        default: 'id'
-    },
-    labelKey: {
-        type: String,
-        default: 'name'
-    },
-    error: {
-        type: Boolean,
-        default: false
-    },
-    small: {
-        type: Boolean,
-        default: false
-    },
-    disabled: {
-        type: Boolean,
-        default: false
-    },
-    openOnEnter: {
-        type: Boolean,
-        default: false
-    },
-    openOnFocus: {
-        type: Boolean,
-        default: true
-    },
-    master: {
-        type: String,
-        default: null,
-    },
-    canCreate: {
-        type: Boolean,
-        default: true,
-    },
-    quickAddContext: {
-        type: Object,
-        default: () => ({}),
-    },
+    id: { type: String, default: undefined },
+    modelValue: { type: [String, Number], default: '' },
+    options: { type: Array, default: () => [] },
+    placeholder: { type: String, default: 'Select an option' },
+    valueKey: { type: String, default: 'id' },
+    labelKey: { type: String, default: 'name' },
+    error: { type: Boolean, default: false },
+    small: { type: Boolean, default: false },
+    disabled: { type: Boolean, default: false },
+    openOnEnter: { type: Boolean, default: false },
+    openOnFocus: { type: Boolean, default: true },
+    master: { type: String, default: null },
+    canCreate: { type: Boolean, default: true },
+    quickAddContext: { type: Object, default: () => ({}) },
 });
 
 const emit = defineEmits(['update:modelValue', 'change', 'created']);
+
 const { register, unregister } = useMasterQuickAdd();
 const fieldToken = Symbol('searchable-select');
 
-const syncMasterRegistration = () => {
-    if (!props.master || props.disabled || !props.canCreate) {
-        unregister({ master: props.master, token: fieldToken });
-        return;
-    }
-
-    register({
-        master: props.master,
-        token: fieldToken,
-        canCreate: props.canCreate,
-        context: toValue(props.quickAddContext) || {},
-        focusTrigger: () => focusTrigger(),
-        onCreated: (record) => {
-            emit('created', record);
-            if (record && record[props.valueKey] !== undefined && record[props.valueKey] !== null) {
-                emit('update:modelValue', record[props.valueKey]);
-                emit('change', record[props.valueKey]);
-            }
-        },
-    });
-};
+const rootEl = ref(null);
+const inputEl = ref(null);
+const panelEl = ref(null);
+const listEl = ref(null);
 
 const isOpen = ref(false);
-const searchQuery = ref('');
-const highlightedIndex = ref(-1);
-const container = ref(null);
-const dropdown = ref(null);
-const searchInput = ref(null);
-const trigger = ref(null);
-const dropdownStyle = ref({});
-let suppressFocusOpen = false;
+const inputText = ref('');
+const activeIndex = ref(-1);
+const panelStyle = ref({});
 
-const selectedItem = computed(() => {
-    return props.options.find(opt => String(opt[props.valueKey]) === String(props.modelValue)) || null;
-});
+let suppressFocusOpen = false;
+let isTyping = false;
+let ignoreMouseHighlightUntil = 0;
+
+const selectedItem = computed(() => (
+    props.options.find((opt) => String(opt[props.valueKey]) === String(props.modelValue)) || null
+));
 
 const hasSelection = computed(() => selectedItem.value !== null);
+const selectedLabel = computed(() => selectedItem.value?.[props.labelKey] ?? '');
 
-const displayValue = computed(() => selectedItem.value?.[props.labelKey] ?? '');
+const syncClosedInputText = () => {
+    if (!isOpen.value && !isTyping) {
+        inputText.value = selectedLabel.value;
+    }
+};
 
 const filteredOptions = computed(() => {
-    if (!searchQuery.value) return props.options;
-    const lowerQuery = searchQuery.value.toLowerCase();
-    return props.options.filter(opt => {
+    const needle = inputText.value.trim().toLowerCase();
+
+    if (!needle || (!isTyping && selectedLabel.value && inputText.value === selectedLabel.value)) {
+        return props.options;
+    }
+
+    return props.options.filter((opt) => {
         const label = opt[props.labelKey] ? String(opt[props.labelKey]) : '';
-        return label.toLowerCase().includes(lowerQuery);
+
+        return label.toLowerCase().includes(needle);
     });
 });
 
-const dropdownOptions = computed(() => {
-    const showPlaceholder = !searchQuery.value
-        || props.placeholder.toLowerCase().includes(searchQuery.value.toLowerCase());
+const visibleOptions = computed(() => {
+    const showingAll = !isTyping
+        || !inputText.value.trim()
+        || inputText.value === selectedLabel.value;
 
-    if (!showPlaceholder) {
+    if (!showingAll) {
         return filteredOptions.value;
     }
 
@@ -199,7 +155,11 @@ const dropdownOptions = computed(() => {
     ];
 });
 
-const isOptionSelected = (option) => {
+const optionKey = (option, index) => (
+    option.__isPlaceholder ? `__placeholder__-${index}` : String(option[props.valueKey])
+);
+
+const isSelected = (option) => {
     if (option.__isPlaceholder) {
         return !hasSelection.value;
     }
@@ -207,309 +167,480 @@ const isOptionSelected = (option) => {
     return String(props.modelValue) === String(option[props.valueKey]);
 };
 
-const resolveDropdownZIndex = () => {
-    const modal = trigger.value?.closest('.modal');
+const selectedVisibleIndex = () => visibleOptions.value.findIndex((option) => isSelected(option));
 
-    if (!modal) {
-        return 1050;
+const syncMasterRegistration = () => {
+    if (!props.master || props.disabled || !props.canCreate) {
+        unregister({ master: props.master, token: fieldToken });
+
+        return;
     }
 
-    const modalZIndex = Number.parseInt(window.getComputedStyle(modal).zIndex, 10);
+    register({
+        master: props.master,
+        token: fieldToken,
+        canCreate: props.canCreate,
+        context: toValue(props.quickAddContext) || {},
+        focusTrigger: () => focusTrigger(),
+        onCreated: (record) => {
+            emit('created', record);
 
-    return (Number.isFinite(modalZIndex) ? modalZIndex : 1055) + 10;
+            if (record && record[props.valueKey] !== undefined && record[props.valueKey] !== null) {
+                emit('update:modelValue', record[props.valueKey]);
+                emit('change', record[props.valueKey]);
+            }
+        },
+    });
 };
 
-const updateDropdownPosition = () => {
-    if (!trigger.value) return;
+const panelZIndex = () => {
+    const modal = inputEl.value?.closest('.modal');
 
-    const rect = trigger.value.getBoundingClientRect();
-    const maxHeight = 250;
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-    const openUpward = spaceBelow < maxHeight && spaceAbove > spaceBelow;
-    const availableHeight = openUpward ? spaceAbove - 8 : spaceBelow - 8;
+    if (!modal) {
+        return 1080;
+    }
 
-    dropdownStyle.value = {
+    const z = Number.parseInt(window.getComputedStyle(modal).zIndex, 10);
+
+    return (Number.isFinite(z) ? z : 1055) + 10;
+};
+
+const positionPanel = () => {
+    if (!inputEl.value) {
+        return;
+    }
+
+    const rect = inputEl.value.getBoundingClientRect();
+    const preferred = 280;
+    const gap = 4;
+    const spaceBelow = window.innerHeight - rect.bottom - gap;
+    const spaceAbove = rect.top - gap;
+    const openUp = spaceBelow < 160 && spaceAbove > spaceBelow;
+    const listMax = Math.min(preferred, Math.max(openUp ? spaceAbove : spaceBelow, 120));
+
+    panelStyle.value = {
         position: 'fixed',
         left: `${rect.left}px`,
-        width: `${rect.width}px`,
-        zIndex: resolveDropdownZIndex(),
-        maxHeight: `${Math.min(maxHeight, Math.max(availableHeight, 120))}px`,
-        overflowY: 'auto',
-        top: openUpward ? 'auto' : `${rect.bottom}px`,
-        bottom: openUpward ? `${window.innerHeight - rect.top}px` : 'auto',
+        width: `${Math.max(rect.width, 160)}px`,
+        zIndex: panelZIndex(),
+        top: openUp ? 'auto' : `${rect.bottom + gap}px`,
+        bottom: openUp ? `${window.innerHeight - rect.top + gap}px` : 'auto',
+        '--ss-list-max-height': `${listMax}px`,
     };
 };
 
-const openDropdown = () => {
-    if (props.disabled || isOpen.value) return;
-    isOpen.value = true;
-    highlightedIndex.value = dropdownOptions.value.length ? 0 : -1;
-    searchQuery.value = '';
-    nextTick(() => {
-        updateDropdownPosition();
-        searchInput.value?.focus();
-    });
+const optionElements = () => {
+    const list = listEl.value;
+
+    if (!list) {
+        return [];
+    }
+
+    return Array.from(list.querySelectorAll('.ss__option'));
 };
 
-const onTriggerFocus = () => {
-    syncMasterRegistration();
+/**
+ * Scroll only the options list so the active row stays in view.
+ * Uses scrollTop (not scrollIntoView) so the page/panel never jump.
+ */
+const ensureActiveVisible = async () => {
+    await nextTick();
 
-    if (props.disabled || !props.openOnFocus) return;
+    const list = listEl.value;
 
-    if (suppressFocusOpen) {
-        suppressFocusOpen = false;
+    if (!list || activeIndex.value < 0) {
         return;
     }
 
-    openDropdown();
-};
+    const item = optionElements()[activeIndex.value];
 
-const closeDropdown = () => {
-    isOpen.value = false;
-    highlightedIndex.value = -1;
-    searchQuery.value = '';
-};
-
-const selectOption = (option) => {
-    if (option.__isPlaceholder) {
-        emit('update:modelValue', '');
-        emit('change', '');
-    } else {
-        emit('update:modelValue', option[props.valueKey]);
-        emit('change', option[props.valueKey]);
-    }
-    closeDropdown();
-    suppressFocusOpen = true;
-    nextTick(() => {
-        trigger.value?.focus();
-    });
-};
-
-const selectHighlightedOption = () => {
-    const option = dropdownOptions.value[highlightedIndex.value];
-    if (option) {
-        selectOption(option);
-    }
-};
-
-const moveHighlight = (direction) => {
-    if (!dropdownOptions.value.length) return;
-
-    if (highlightedIndex.value === -1) {
-        highlightedIndex.value = direction > 0 ? 0 : dropdownOptions.value.length - 1;
+    if (!item) {
         return;
     }
 
-    highlightedIndex.value = (highlightedIndex.value + direction + dropdownOptions.value.length)
-        % dropdownOptions.value.length;
+    // Keep list as offsetParent for option rows.
+    const itemTop = item.offsetTop;
+    const itemBottom = itemTop + item.offsetHeight;
+    const viewTop = list.scrollTop;
+    const viewBottom = viewTop + list.clientHeight;
+
+    if (itemTop < viewTop) {
+        list.scrollTop = itemTop;
+    } else if (itemBottom > viewBottom) {
+        list.scrollTop = itemBottom - list.clientHeight;
+    }
 };
 
-const onTriggerKeydown = (event) => {
-    if (props.disabled) return;
-
-    if (event.key === 'F3' && props.master && props.canCreate) {
-        syncMasterRegistration();
+const onOptionMouseEnter = (index) => {
+    if (Date.now() < ignoreMouseHighlightUntil) {
         return;
     }
 
-    if (event.key === 'Tab') {
-        closeDropdown();
-        return;
-    }
+    activeIndex.value = index;
+};
 
-    if (event.key === 'Escape') {
-        event.preventDefault();
-        closeDropdown();
-        return;
-    }
+const setActiveToSelectedOrFirst = () => {
+    const selected = selectedVisibleIndex();
+    activeIndex.value = selected >= 0 ? selected : (visibleOptions.value.length ? 0 : -1);
+};
 
-    if (event.key === ' ' || event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        event.preventDefault();
-
+const selectController = {
+    closeFromOutside: () => {
         if (!isOpen.value) {
-            openDropdown();
             return;
         }
 
-        if (event.key === 'ArrowDown') {
-            moveHighlight(1);
-        } else if (event.key === 'ArrowUp') {
-            moveHighlight(-1);
-        } else if (event.key === ' ') {
-            selectHighlightedOption();
-        }
+        isOpen.value = false;
+        activeIndex.value = -1;
+        isTyping = false;
+        inputText.value = selectedLabel.value;
+    },
+};
+
+const open = async ({ selectAll = true, preserveQuery = false } = {}) => {
+    if (props.disabled || isOpen.value) {
+        return;
     }
 
-    if (event.key === 'Enter') {
-        if (isOpen.value) {
-            event.preventDefault();
-            selectHighlightedOption();
-        } else if (props.openOnEnter) {
-            event.preventDefault();
-            event.stopPropagation();
-            openDropdown();
-        }
+    claimSearchableSelect(selectController);
+
+    if (!preserveQuery) {
+        isTyping = false;
+        inputText.value = selectedLabel.value;
+    }
+
+    isOpen.value = true;
+    setActiveToSelectedOrFirst();
+    positionPanel();
+
+    await nextTick();
+
+    if (selectAll && !preserveQuery && inputEl.value && inputText.value) {
+        inputEl.value.select();
+    }
+
+    await ensureActiveVisible();
+};
+
+const close = () => {
+    if (!isOpen.value) {
+        return;
+    }
+
+    isOpen.value = false;
+    activeIndex.value = -1;
+    isTyping = false;
+    inputText.value = selectedLabel.value;
+    releaseSearchableSelect(selectController);
+};
+
+const choose = (option) => {
+    if (option.__isPlaceholder) {
+        emit('update:modelValue', '');
+        emit('change', '');
+        inputText.value = '';
+    } else {
+        emit('update:modelValue', option[props.valueKey]);
+        emit('change', option[props.valueKey]);
+        inputText.value = option[props.labelKey] ?? '';
+    }
+
+    isTyping = false;
+    isOpen.value = false;
+    activeIndex.value = -1;
+    releaseSearchableSelect(selectController);
+
+    suppressFocusOpen = true;
+    nextTick(() => inputEl.value?.focus({ preventScroll: true }));
+};
+
+const chooseActive = () => {
+    const option = visibleOptions.value[activeIndex.value];
+
+    if (option) {
+        choose(option);
     }
 };
 
-const focusRelative = (element, backwards = false) => {
-    const focusable = Array.from(
-        document.querySelectorAll(
-            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        )
-    ).filter((el) => el.getClientRects().length > 0);
+const moveActive = async (delta) => {
+    const total = visibleOptions.value.length;
 
-    const index = focusable.indexOf(element);
-    if (index === -1) return;
+    if (!total) {
+        return;
+    }
 
-    const next = focusable[index + (backwards ? -1 : 1)];
-    next?.focus();
+    if (activeIndex.value < 0) {
+        activeIndex.value = delta > 0 ? 0 : total - 1;
+    } else {
+        activeIndex.value = (activeIndex.value + delta + total) % total;
+    }
+
+    // While keyboard-scrolling, ignore mouseenter from items sliding under the cursor.
+    ignoreMouseHighlightUntil = Date.now() + 150;
+    await ensureActiveVisible();
 };
 
-const onSearchKeydown = (event) => {
+const onFocus = () => {
+    syncMasterRegistration();
+
+    if (props.disabled || !props.openOnFocus) {
+        return;
+    }
+
+    if (suppressFocusOpen) {
+        suppressFocusOpen = false;
+
+        return;
+    }
+
+    open();
+};
+
+const onInput = (event) => {
+    isTyping = true;
+    inputText.value = event.target.value;
+
+    if (!isOpen.value) {
+        open({ selectAll: false, preserveQuery: true });
+    } else {
+        setActiveToSelectedOrFirst();
+        ensureActiveVisible();
+        positionPanel();
+    }
+};
+
+const onKeydown = (event) => {
+    if (props.disabled) {
+        return;
+    }
+
+    if (event.key === 'F3' && props.master && props.canCreate) {
+        syncMasterRegistration();
+
+        return;
+    }
+
     if (event.key === 'Tab') {
-        event.preventDefault();
-        const backwards = event.shiftKey;
-        closeDropdown();
-        suppressFocusOpen = true;
-        nextTick(() => {
-            trigger.value?.focus();
-            focusRelative(trigger.value, backwards);
-        });
+        close();
+
         return;
     }
 
     if (event.key === 'Escape') {
         event.preventDefault();
-        closeDropdown();
-        suppressFocusOpen = true;
-        trigger.value?.focus();
+        event.stopPropagation();
+        close();
+
         return;
     }
 
     if (event.key === 'ArrowDown') {
         event.preventDefault();
-        moveHighlight(1);
+        event.stopPropagation();
+
+        if (!isOpen.value) {
+            open({ selectAll: false });
+        } else {
+            moveActive(1);
+        }
+
         return;
     }
 
     if (event.key === 'ArrowUp') {
         event.preventDefault();
-        moveHighlight(-1);
+        event.stopPropagation();
+
+        if (!isOpen.value) {
+            open({ selectAll: false });
+        } else {
+            moveActive(-1);
+        }
+
         return;
     }
 
     if (event.key === 'Enter') {
-        event.preventDefault();
-        if (highlightedIndex.value >= 0) {
-            selectHighlightedOption();
-        } else if (filteredOptions.value.length === 1) {
-            selectOption(filteredOptions.value[0]);
+        if (isOpen.value) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (activeIndex.value >= 0) {
+                chooseActive();
+            } else if (filteredOptions.value.length === 1) {
+                choose(filteredOptions.value[0]);
+            }
+
+            return;
+        }
+
+        if (props.openOnEnter) {
+            event.preventDefault();
+            event.stopPropagation();
+            open();
         }
     }
 };
 
-const handleClickOutside = (event) => {
-    if (
-        container.value?.contains(event.target) ||
-        dropdown.value?.contains(event.target)
-    ) {
+const onDocumentPointerDown = (event) => {
+    if (rootEl.value?.contains(event.target) || panelEl.value?.contains(event.target)) {
         return;
     }
 
-    closeDropdown();
+    close();
 };
 
-watch(searchQuery, () => {
-    highlightedIndex.value = dropdownOptions.value.length ? 0 : -1;
+watch(() => props.modelValue, () => {
+    syncClosedInputText();
 });
+
+watch(() => props.options, () => {
+    syncClosedInputText();
+}, { deep: true });
+
+const onWindowScroll = (event) => {
+    // List scrolling should not reposition (or fight) the panel.
+    if (panelEl.value && event.target instanceof Node && panelEl.value.contains(event.target)) {
+        return;
+    }
+
+    positionPanel();
+};
 
 watch(isOpen, (open) => {
     if (open) {
         syncMasterRegistration();
-        window.addEventListener('scroll', updateDropdownPosition, true);
-        window.addEventListener('resize', updateDropdownPosition);
+        window.addEventListener('scroll', onWindowScroll, true);
+        window.addEventListener('resize', positionPanel);
     } else {
-        window.removeEventListener('scroll', updateDropdownPosition, true);
-        window.removeEventListener('resize', updateDropdownPosition);
+        window.removeEventListener('scroll', onWindowScroll, true);
+        window.removeEventListener('resize', positionPanel);
     }
 });
 
 watch(
     () => [props.master, props.canCreate, props.disabled, JSON.stringify(props.quickAddContext || {})],
     () => {
-        if (document.activeElement === trigger.value || isOpen.value) {
+        if (document.activeElement === inputEl.value || isOpen.value) {
             syncMasterRegistration();
         }
     },
 );
 
 onMounted(() => {
-    document.addEventListener('mousedown', handleClickOutside);
+    inputText.value = selectedLabel.value;
+    document.addEventListener('mousedown', onDocumentPointerDown);
 });
-
-const focusOpen = () => {
-    if (props.disabled) return;
-    openDropdown();
-};
-
-const focusTrigger = () => {
-    if (!trigger.value || props.disabled) return;
-    suppressFocusOpen = true;
-    trigger.value.focus();
-};
-
-defineExpose({ focusOpen, focusTrigger });
 
 onUnmounted(() => {
     unregister({ master: props.master, token: fieldToken });
-    document.removeEventListener('mousedown', handleClickOutside);
-    window.removeEventListener('scroll', updateDropdownPosition, true);
-    window.removeEventListener('resize', updateDropdownPosition);
+    releaseSearchableSelect(selectController);
+    document.removeEventListener('mousedown', onDocumentPointerDown);
+    window.removeEventListener('scroll', onWindowScroll, true);
+    window.removeEventListener('resize', positionPanel);
 });
+
+const focusOpen = () => {
+    if (props.disabled) {
+        return;
+    }
+
+    inputEl.value?.focus({ preventScroll: true });
+    open();
+};
+
+const focusTrigger = () => {
+    if (!inputEl.value || props.disabled) {
+        return;
+    }
+
+    suppressFocusOpen = true;
+    inputEl.value.focus({ preventScroll: true });
+};
+
+defineExpose({ focusOpen, focusTrigger });
 </script>
 
 <style scoped>
-.searchable-select {
+.searchable-select,
+.ss {
     position: relative;
+    width: 100%;
 }
 
-.searchable-select__trigger {
+.searchable-select__trigger,
+.ss__trigger {
     width: 100%;
-    cursor: pointer;
+    cursor: text;
     background-color: #fff;
-    caret-color: transparent;
     border: 1px solid var(--brand-border);
 }
 
-.searchable-select__trigger:disabled {
+.searchable-select__trigger:disabled,
+.ss__trigger:disabled {
     cursor: not-allowed;
 }
 
-.searchable-select__trigger:focus {
+.searchable-select__trigger:focus,
+.ss__trigger:focus {
     border-color: var(--brand-primary);
     box-shadow: 0 0 0 0.25rem var(--brand-input-focus-shadow);
 }
 </style>
 
 <style>
-.searchable-select__dropdown {
+.ss__panel {
     display: block;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
     border: 1px solid var(--brand-border);
     border-radius: 0.375rem;
-    background-color: #fff;
-    /* Above Bootstrap modal (1055) when teleported to body */
-    z-index: 1065;
+    background: #fff;
+    box-shadow: 0 0.5rem 1rem rgba(15, 23, 42, 0.12);
 }
 
-.searchable-select__dropdown .dropdown-item:active {
-    background-color: #f8f9fa;
+.ss__list {
+    position: relative;
+    max-height: var(--ss-list-max-height, 220px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ss__empty {
+    padding: 0.5rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.ss__option {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.875rem;
+    line-height: 1.35;
     color: #212529;
+    cursor: pointer;
+    user-select: none;
 }
 
-.searchable-select__dropdown .dropdown-item.active {
-    background-color: var(--brand-primary) !important;
+.ss__option.is-placeholder:not(.is-active) {
+    color: #6c757d;
+}
+
+.ss__option.is-selected {
+    background: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.12);
+    font-weight: 600;
+}
+
+.ss__option.is-active {
+    background: var(--brand-primary) !important;
     color: #fff !important;
+}
+
+.ss__option:hover:not(.is-active) {
+    background: #f8f9fa;
 }
 </style>

@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue';
+import { closeAllSearchableSelects } from '@/utils/searchableSelectRegistry';
 
 const activeField = ref(null);
 const openSession = ref(null);
@@ -136,6 +137,9 @@ export function useMasterQuickAdd() {
         if (isOpen.value) {
             return false;
         }
+
+        // Dropdowns teleport above Bootstrap's default modal z-index — close them first.
+        closeAllSearchableSelects();
 
         openSession.value = { ...field };
         isOpen.value = true;
