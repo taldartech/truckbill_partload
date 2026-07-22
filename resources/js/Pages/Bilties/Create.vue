@@ -1,8 +1,6 @@
 <template>
     <AdminLayout title="Add Bilty">
         <div class="bilty-form-page">
-            <h1 class="bilty-form-page__title">Booking Bilty</h1>
-
             <form @submit.prevent="submit" class="bilty-form">
                 <!-- 1. Booking -->
                 <section class="bilty-section">

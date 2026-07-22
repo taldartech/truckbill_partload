@@ -9,6 +9,7 @@ use App\Models\ChallanDetail;
 use App\Models\InwardRegisterDetail;
 use App\Models\Station;
 use App\Models\Truck;
+use App\Support\DocumentNumber;
 use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -31,19 +32,74 @@ class ChallanController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $challans = Challan::with(['company', 'fromStation', 'toStation', 'truck'])->latest()->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'from_date' => ['nullable', 'date'],
+            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+            'truck_id' => ['nullable', 'integer', 'exists:trucks,id'],
+            'status' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $fromDate = $validated['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $validated['to_date'] ?? now()->endOfMonth()->toDateString();
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $challans = Challan::query()
+            ->with(['company', 'fromStation', 'toStation', 'truck'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('challan_number', 'like', '%'.$search.'%')
+                        ->orWhere('driver_name', 'like', '%'.$search.'%')
+                        ->orWhereHas('truck', function ($truckQuery) use ($search) {
+                            $truckQuery->where('truck_number', 'like', '%'.$search.'%');
+                        });
+                });
+            })
+            ->when($fromDate, fn ($query) => $query->whereDate('date', '>=', $fromDate))
+            ->when($toDate, fn ($query) => $query->whereDate('date', '<=', $toDate))
+            ->when(! empty($validated['truck_id']), function ($query) use ($validated) {
+                $query->where('truck_id', $validated['truck_id']);
+            })
+            ->when(! empty($validated['status']), function ($query) use ($validated) {
+                $query->where('status', $validated['status']);
+            })
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Challans/Index', [
             'challans' => $challans,
+            'trucks' => Truck::query()
+                ->orderBy('truck_number')
+                ->get(['id', 'truck_number'])
+                ->map(fn (Truck $truck) => [
+                    'id' => $truck->id,
+                    'name' => $truck->truck_number,
+                    'truck_number' => $truck->truck_number,
+                ]),
+            'statuses' => [
+                ['id' => 'Created', 'name' => 'Created'],
+                ['id' => 'In Progress', 'name' => 'In Progress'],
+                ['id' => 'Completed', 'name' => 'Completed'],
+                ['id' => 'Cancelled', 'name' => 'Cancelled'],
+            ],
+            'filters' => [
+                'search' => $search,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'truck_id' => isset($validated['truck_id']) ? (string) $validated['truck_id'] : '',
+                'status' => $validated['status'] ?? '',
+            ],
         ]);
     }
 
     public function create()
     {
         $branch = $this->activeBranch();
-        $nextNumber = \App\Support\DocumentNumber::next(
+        $nextNumber = DocumentNumber::next(
             Challan::query(),
             'challan_number',
             $branch?->challan_initial
