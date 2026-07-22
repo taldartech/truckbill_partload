@@ -29,15 +29,14 @@ class StationController extends Controller implements HasMiddleware
 
         return Inertia::render('Stations/Index', [
             'stations' => $stations,
+            'states' => State::query()->orderBy('name')->get(['id', 'name']),
+            'cities' => City::query()->orderBy('name')->get(['id', 'name', 'state_id']),
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Stations/Create', [
-            'cities' => City::all(),
-            'states' => State::all(),
-        ]);
+        return redirect()->route('stations.index');
     }
 
     public function store(Request $request)
@@ -50,7 +49,7 @@ class StationController extends Controller implements HasMiddleware
 
         Station::create($validated);
 
-        return redirect()->route('stations.index')->with('success', 'Station created successfully.');
+        return redirect()->back()->with('success', 'Station created successfully.');
     }
 
     public function quickFormData(): JsonResponse
@@ -99,11 +98,7 @@ class StationController extends Controller implements HasMiddleware
 
     public function edit(Station $station)
     {
-        return Inertia::render('Stations/Edit', [
-            'station' => $station,
-            'cities' => City::all(),
-            'states' => State::all(),
-        ]);
+        return redirect()->route('stations.index');
     }
 
     public function update(Request $request, Station $station)
@@ -116,13 +111,13 @@ class StationController extends Controller implements HasMiddleware
 
         $station->update($validated);
 
-        return redirect()->route('stations.index')->with('success', 'Station updated successfully.');
+        return redirect()->back()->with('success', 'Station updated successfully.');
     }
 
     public function destroy(Station $station)
     {
         $station->delete();
 
-        return redirect()->route('stations.index')->with('success', 'Station deleted successfully.');
+        return redirect()->back()->with('success', 'Station deleted successfully.');
     }
 }
