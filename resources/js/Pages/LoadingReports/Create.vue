@@ -1,189 +1,210 @@
 <template>
     <AdminLayout title="Add Loading Report">
-        <div class="row">
-            <div class="col-md-12 mx-auto">
-                <div class="card ops-form-card">
-                    <div class="card-header">
-                        <h3 class="card-title">Create Loading Report</h3>
+        <div class="bilty-form-page">
+            <form @submit.prevent="submit" class="bilty-form">
+                <!-- 1. Route & Vehicle -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num">1</div>
+                            <div>
+                                <h2 class="bilty-section__title">Route &amp; Vehicle</h2>
+                                <p class="bilty-section__desc">Stations, truck and driver</p>
+                            </div>
+                        </div>
+                        <div class="bilty-section__head-right">
+                            <div class="bilty-id">
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Date</span>
+                                    <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date">
+                                    <div v-if="form.errors.date" class="invalid-feedback d-block">{{ form.errors.date }}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--5">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">From Station<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.from_station_id"
+                                    :options="stationOptions"
+                                    master="station"
+                                    placeholder="Select Station"
+                                    @created="(record) => appendMasterOption(stationOptions, record)"
+                                />
+                                <div v-if="form.errors.from_station_id" class="text-danger small mt-1">{{ form.errors.from_station_id }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">To Station<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.to_station_id"
+                                    :options="stationOptions"
+                                    master="station"
+                                    placeholder="Select Station"
+                                    @created="(record) => appendMasterOption(stationOptions, record)"
+                                />
+                                <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Add Bilties For</label>
+                                <SearchableSelect
+                                    ref="fetchStationSelect"
+                                    :small="true"
+                                    v-model="fetch_station_id"
+                                    :options="destinationStationOptions"
+                                    placeholder="Select Destination Station"
+                                    open-on-enter
+                                    @change="onFetchStationChange"
+                                />
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Truck No.<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.truck_id"
+                                    :options="truckOptions"
+                                    master="truck"
+                                    placeholder="Select Truck"
+                                    @created="(record) => appendMasterOption(truckOptions, record)"
+                                />
+                                <div v-if="form.errors.truck_id" class="text-danger small mt-1">{{ form.errors.truck_id }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Driver<span class="bilty-field__req">*</span></label>
+                                <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.driver_name }" v-model="form.driver_name" placeholder="Enter Driver Name">
+                                <div v-if="form.errors.driver_name" class="text-danger small mt-1">{{ form.errors.driver_name }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-                    <form @submit.prevent="submit" class="bilty-form">
-                        <div class="card-body pt-3 pb-2 border-bottom">
-                            <div class="row align-items-start mb-2">
-                                <div class="col-md-4">
-                                    <div class="d-flex align-items-center">
-                                        <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Date<span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control form-control-sm" v-model="form.date">
-                                    </div>
-                                    <div v-if="form.errors.date" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.date }}</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="d-flex align-items-center">
-                                        <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Truck No.<span class="text-danger">*</span></label>
-                                        <div class="flex-grow-1">
+                <!-- 2. Loaded Bilties -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--green">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--green">2</div>
+                            <div>
+                                <h2 class="bilty-section__title">Loaded Bilties</h2>
+                                <p class="bilty-section__desc">Bilties included in this loading report</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body bilty-section__body--flush">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm m-0 table-grid" data-dynamic-add-message="Do you want to add another bilty?">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th width="5%" class="text-center">Sr.No.</th>
+                                        <th width="20%">Bilty No.<span class="text-danger">*</span></th>
+                                        <th width="15%">Consignee</th>
+                                        <th width="20%">Goods</th>
+                                        <th width="15%" class="text-center">Packages</th>
+                                        <th width="15%" class="text-center">Weight(Kg)</th>
+                                        <th width="10%" class="text-center"><i class="fas fa-cog"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(detail, index) in form.details" :key="index" class="bg-white">
+                                        <td class="text-center align-middle">{{ index + 1 }}</td>
+                                        <td>
                                             <SearchableSelect
+                                                v-if="!detail.bilty_id"
                                                 :small="true"
-                                                v-model="form.truck_id"
-                                                :options="truckOptions"
-                                                master="truck"
-                                                placeholder="Select Truck"
-                                                @created="(record) => appendMasterOption(truckOptions, record)"
+                                                :open-on-focus="false"
+                                                @change="fetchBiltyDetails(index)"
+                                                v-model="detail.bilty_id"
+                                                :options="bilties"
+                                                labelKey="bilty_number"
+                                                placeholder="Select Bilty"
                                             />
-                                        </div>
+                                            <span v-else class="align-middle fw-semibold">{{ detail.bilty_number || biltyLabel(detail.bilty_id) }}</span>
+                                            <div v-if="form.errors['details.' + index + '.bilty_id']" class="text-danger small mt-1 text-start">{{ form.errors['details.' + index + '.bilty_id'] }}</div>
+                                        </td>
+                                        <td class="align-middle">{{ detail.consignee_name || '--' }}</td>
+                                        <td class="align-middle">{{ detail.goods_name || '--' }}</td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm text-center bg-light" v-model="detail.no_of_packages" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.gross_weight" readonly>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="7" class="bg-light p-2 text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" data-dynamic-add data-dynamic-add-message="Do you want to add another bilty?" @click="addRow">
+                                                <i class="fas fa-plus"></i> Add Bilty
+                                            </button>
+                                            <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Summary -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--orange">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--orange">3</div>
+                            <div>
+                                <h2 class="bilty-section__title">Summary</h2>
+                                <p class="bilty-section__desc">Totals and remarks</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="row g-3">
+                            <div class="col-lg-7">
+                                <div class="bilty-charge-list">
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Total Packages</label>
+                                        <input type="number" class="form-control form-control-sm bg-light fw-semibold" :value="totalPackages" readonly>
                                     </div>
-                                    <div v-if="form.errors.truck_id" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.truck_id }}</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="d-flex align-items-center">
-                                        <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">Driver<span class="text-danger">*</span></label>
-                                        <div class="flex-grow-1">
-                                            <input type="text" class="form-control form-control-sm" v-model="form.driver_name" placeholder="Enter Driver Name" />
-                                        </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Total Weight</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light fw-semibold" :value="totalWeight" readonly>
                                     </div>
-                                    <div v-if="form.errors.driver_name" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.driver_name }}</div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Remarks</label>
+                                        <textarea class="form-control form-control-sm" rows="2" v-model="form.remark"></textarea>
+                                    </div>
                                 </div>
                             </div>
-
-                            <div class="row align-items-start mb-2">
-                                <div class="col-md-6">
-                                    <div class="d-flex align-items-center">
-                                        <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">From St.<span class="text-danger">*</span></label>
-                                        <div class="flex-grow-1">
-                                            <SearchableSelect
-                                                :small="true"
-                                                v-model="form.from_station_id"
-                                                :options="stationOptions"
-                                                master="station"
-                                                placeholder="Select Station"
-                                                @created="(record) => appendMasterOption(stationOptions, record)"
-                                            />
-                                        </div>
+                            <div class="col-lg-5">
+                                <div class="bilty-total-panel">
+                                    <div class="bilty-total">
+                                        <span class="bilty-total__label">PACKAGES</span>
+                                        <input type="text" class="form-control form-control-sm bilty-total__input" :value="totalPackages" readonly>
                                     </div>
-                                    <div v-if="form.errors.from_station_id" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.from_station_id }}</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="d-flex align-items-center">
-                                        <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 90px;">To St.<span class="text-danger">*</span></label>
-                                        <div class="flex-grow-1">
-                                            <SearchableSelect
-                                                :small="true"
-                                                v-model="form.to_station_id"
-                                                :options="stationOptions"
-                                                master="station"
-                                                placeholder="Select Station"
-                                                @created="(record) => appendMasterOption(stationOptions, record)"
-                                            />
-                                        </div>
+                                    <div class="bilty-total">
+                                        <span class="bilty-total__label">TOTAL WEIGHT</span>
+                                        <input type="text" class="form-control form-control-sm bilty-total__input" :value="totalWeight" readonly>
                                     </div>
-                                    <div v-if="form.errors.to_station_id" class="text-danger small mt-1 ps-5 ms-3">{{ form.errors.to_station_id }}</div>
-                                </div>
-                            </div>
-
-                            <!-- Fetch Bilties by Destination Station -->
-                            <div class="row align-items-center mt-3 mb-1">
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-primary" style="min-width: 90px;">Add Bilties For:</label>
-                                    <SearchableSelect
-                                        ref="fetchStationSelect"
-                                        :small="true"
-                                        v-model="fetch_station_id"
-                                        :options="destinationStationOptions"
-                                        placeholder="Select Destination Station"
-                                        open-on-enter
-                                        @change="onFetchStationChange"
-                                    />
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </section>
 
-                        <!-- Grid Section: Loaded Bilties -->
-                        <div class="card-body p-0 border-bottom">
-                            <div class="table-responsive" style="min-height: 200px;">
-                                <table class="table table-bordered table-sm m-0 table-grid" data-dynamic-add-message="Do you want to add another bilty?">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th width="5%" class="text-center">Sr.No.</th>
-                                            <th width="20%">Bilty No.<span class="text-danger">*</span></th>
-                                            <th width="15%">Consignee</th>
-                                            <th width="20%">Goods</th>
-                                            <th width="15%" class="text-center">Packages</th>
-                                            <th width="15%" class="text-center">Weight(Kg)</th>
-                                            <th width="10%" class="text-center"><i class="fas fa-cog"></i></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(detail, index) in form.details" :key="index" class="bg-white">
-                                            <td class="text-center align-middle">{{ index + 1 }}</td>
-                                            <td>
-                                                <SearchableSelect
-                                                    v-if="!detail.bilty_id"
-                                                    :small="true"
-                                                    :open-on-focus="false"
-                                                    @change="fetchBiltyDetails(index)"
-                                                    v-model="detail.bilty_id"
-                                                    :options="bilties"
-                                                    labelKey="bilty_number"
-                                                    placeholder="Select Bilty"
-                                                />
-                                                <span v-else class="align-middle fw-semibold">{{ detail.bilty_number || biltyLabel(detail.bilty_id) }}</span>
-                                                <div v-if="form.errors['details.' + index + '.bilty_id']" class="text-danger small mt-1 text-start">{{ form.errors['details.' + index + '.bilty_id'] }}</div>
-                                            </td>
-                                            <td class="align-middle">
-                                                {{ detail.consignee_name || '--' }}
-                                            </td>
-                                            <td class="align-middle">
-                                                {{ detail.goods_name || '--' }}
-                                            </td>
-                                            <td>
-                                                <input type="number" class="form-control form-control-sm text-center" v-model="detail.no_of_packages" readonly>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-center" v-model="detail.gross_weight" readonly>
-                                            </td>
-                                            <td class="text-center align-middle">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="7" class="bg-light p-1 text-center">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0" data-dynamic-add data-dynamic-add-message="Do you want to add another bilty?" @click="addRow">
-                                                    <i class="fas fa-plus"></i> Add Bilty
-                                                </button>
-                                                <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Bottom Section -->
-                        <div class="card-body pt-3 pb-2">
-                            <div class="row align-items-center mb-1">
-                                <div class="col-md-2 text-end"><label class="mb-0 fw-bold small text-dark">Total Packages</label></div>
-                                <div class="col-md-2"><input type="number" class="form-control form-control-sm" :value="totalPackages" readonly></div>
-
-                                <div class="col-md-2 text-end"><label class="mb-0 fw-bold small text-dark">Total Weight</label></div>
-                                <div class="col-md-2"><input type="number" step="0.01" class="form-control form-control-sm" :value="totalWeight" readonly></div>
-                            </div>
-                            <div class="row align-items-start mt-3">
-                                <div class="col-md-2 text-end"><label class="mb-0 fw-bold small text-dark mt-1">Remarks</label></div>
-                                <div class="col-md-10"><textarea class="form-control form-control-sm" rows="2" v-model="form.remark"></textarea></div>
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="card-footer bg-light d-flex justify-content-center gap-2 border-top-0 pt-3 pb-3">
-                            <Link href="/loading-reports" class="btn btn-outline-secondary px-4"><i class="fas fa-times me-1"></i> Exit</Link>
-                            <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm" :disabled="form.processing">
-                                <i class="fas fa-save me-1"></i> Save
-                            </button>
-                        </div>
-                    </form>
+                <div class="bilty-form-actions">
+                    <Link href="/loading-reports" class="btn btn-outline-secondary btn-sm px-3">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </Link>
+                    <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
+                        <i class="fas fa-save me-1"></i> Save
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
 
         <LoadingReportConfirmModal
@@ -401,21 +422,3 @@ const submitLoadingReport = (printAfterSave = false) => {
 const confirmSave = () => submitLoadingReport(false);
 const confirmSaveAndPrint = () => submitLoadingReport(true);
 </script>
-
-<style scoped>
-.bilty-form {
-    font-size: 0.85rem;
-}
-.bilty-form label {
-    font-size: 0.85rem;
-    white-space: nowrap;
-}
-.bilty-form .form-control-sm, .bilty-form .form-select-sm {
-    font-size: 0.85rem;
-    padding: 0.25rem 0.5rem;
-}
-.table-grid th, .table-grid td {
-    border-color: #dee2e6;
-    font-size: 0.85rem;
-}
-</style>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bilty;
+use App\Models\Company;
 use App\Models\LoadingReport;
 use App\Models\Station;
 use App\Models\Truck;
@@ -30,12 +31,64 @@ class LoadingReportController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $reports = LoadingReport::with(['fromStation', 'toStation', 'truck'])->orderBy('id', 'desc')->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'from_date' => ['nullable', 'date'],
+            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+            'truck_id' => ['nullable', 'integer', 'exists:trucks,id'],
+            'from_station_id' => ['nullable', 'integer', 'exists:stations,id'],
+        ]);
+
+        $fromDate = $validated['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $validated['to_date'] ?? now()->endOfMonth()->toDateString();
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $reports = LoadingReport::query()
+            ->with(['fromStation', 'toStation', 'truck'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('driver_name', 'like', '%'.$search.'%')
+                        ->orWhere('id', 'like', '%'.$search.'%')
+                        ->orWhereHas('truck', function ($truckQuery) use ($search) {
+                            $truckQuery->where('truck_number', 'like', '%'.$search.'%');
+                        });
+                });
+            })
+            ->when($fromDate, fn ($query) => $query->whereDate('date', '>=', $fromDate))
+            ->when($toDate, fn ($query) => $query->whereDate('date', '<=', $toDate))
+            ->when(! empty($validated['truck_id']), function ($query) use ($validated) {
+                $query->where('truck_id', $validated['truck_id']);
+            })
+            ->when(! empty($validated['from_station_id']), function ($query) use ($validated) {
+                $query->where('from_station_id', $validated['from_station_id']);
+            })
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('LoadingReports/Index', [
             'reports' => $reports,
+            'trucks' => Truck::query()
+                ->orderBy('truck_number')
+                ->get(['id', 'truck_number'])
+                ->map(fn (Truck $truck) => [
+                    'id' => $truck->id,
+                    'name' => $truck->truck_number,
+                    'truck_number' => $truck->truck_number,
+                ]),
+            'stations' => Station::query()
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            'filters' => [
+                'search' => $search,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'truck_id' => isset($validated['truck_id']) ? (string) $validated['truck_id'] : '',
+                'from_station_id' => isset($validated['from_station_id']) ? (string) $validated['from_station_id'] : '',
+            ],
         ]);
     }
 
@@ -169,7 +222,7 @@ class LoadingReportController extends Controller implements HasMiddleware
             'details.consignee',
         ]);
 
-        $company = \App\Models\Company::find($loading_report->company_id);
+        $company = Company::find($loading_report->company_id);
         $printData = $this->buildPrintData($loading_report);
 
         return view('prints.loading_report', compact('loading_report', 'company', 'printData'));
