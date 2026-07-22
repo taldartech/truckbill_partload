@@ -82,11 +82,17 @@ class StationController extends Controller implements HasMiddleware
         ]));
 
         $station = Station::create($validated);
+        $countryId = State::query()
+            ->whereKey($station->state_id)
+            ->value('country_id');
 
         return response()->json([
             'station' => [
                 'id' => $station->id,
                 'name' => $station->name,
+                'country_id' => $countryId,
+                'state_id' => $station->state_id,
+                'city_id' => $station->city_id,
             ],
         ], 201);
     }

@@ -574,6 +574,10 @@ defineExpose({ focusOpen, focusTrigger });
     cursor: text;
     background-color: #fff;
     border: 1px solid var(--brand-border);
+    font-family: var(--app-font-family);
+    font-size: var(--app-font-size-input);
+    font-weight: var(--form-input-weight);
+    color: var(--form-input-color);
 }
 
 .searchable-select__trigger:disabled,
@@ -619,9 +623,9 @@ defineExpose({ focusOpen, focusTrigger });
 
 .ss__option {
     padding: 0.45rem 0.65rem;
-    font-size: 0.875rem;
+    font-size: var(--app-font-size-input, 0.9375rem);
     line-height: 1.35;
-    color: #212529;
+    color: var(--form-input-color, #1f2937);
     cursor: pointer;
     user-select: none;
 }

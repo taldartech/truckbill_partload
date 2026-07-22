@@ -1,0 +1,351 @@
+.app-form-page {
+    margin-bottom: 1rem;
+}
+
+.app-form-card {
+    overflow: hidden;
+}
+
+.app-form-card > .card-header .card-title {
+    font-size: var(--app-font-size-page-title);
+    font-weight: var(--app-font-weight-semibold);
+}
+
+.app-form-card > .card-body {
+    padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.app-form-footer {
+    background: var(--brand-table-header-bg) !important;
+    border-top: 1px solid var(--brand-border) !important;
+    padding: 0.875rem 1.5rem !important;
+}
+
+.app-form-section + .app-form-section {
+    margin-top: 1.5rem;
+    padding-top: 0.25rem;
+}
+
+.app-form-section__head {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    margin: 0 0 1rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--brand-border);
+}
+
+.app-form-section__head .app-form-section__title {
+    flex: 0 1 auto;
+    min-width: 0;
+    width: auto !important;
+    max-width: none;
+    margin: 0 !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
+}
+
+.app-form-section__head .app-form-toggle {
+    flex: 0 0 auto;
+    margin-left: 0;
+    margin-bottom: 0;
+}
+
+.app-form-section__hint {
+    flex: 0 1 auto;
+    min-width: 0;
+    font-size: var(--app-font-size-meta);
+    font-weight: var(--app-font-weight-regular);
+    color: var(--brand-text-muted);
+    line-height: 1.3;
+}
+
+.app-form-section__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.app-form-section__title,
+.app-shell .card-body > h5.text-primary.border-bottom,
+.app-shell .card-body > h5.border-bottom {
+    margin: 0 0 1rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--brand-border) !important;
+    font-size: var(--app-font-size-section-title) !important;
+    font-weight: var(--app-font-weight-semibold) !important;
+    color: var(--brand-text-primary) !important;
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+.app-form-section--first .app-form-section__title,
+.app-form-section--first .app-form-section__head,
+.app-shell .card-body > h5.text-primary.border-bottom:first-child,
+.app-shell .card-body > h5.border-bottom:first-child {
+    margin-top: 0;
+}
+
+.app-shell .card-body label:not(.form-check-label):not(.btn):not(.form-label):not(.app-form-toggle),
+.app-form-page label:not(.form-check-label):not(.btn):not(.form-label):not(.app-form-toggle) {
+    display: block;
+    margin-bottom: 0.375rem;
+    font-family: var(--app-font-family);
+    font-size: var(--app-font-size-label);
+    font-weight: var(--form-label-weight);
+    color: var(--form-label-color);
+}
+
+.app-shell .form-label,
+.app-form-page .form-label {
+    margin-bottom: 0.375rem;
+}
+
+.app-shell .form-control,
+.app-shell .form-select,
+.app-shell textarea.form-control,
+.app-form-page .form-control,
+.app-form-page .form-select,
+.app-form-page textarea.form-control,
+.app-shell .searchable-select__trigger,
+.app-shell .ss__trigger {
+    min-height: 42px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--brand-border);
+    border-radius: var(--btn-radius-sm, 0.375rem);
+    font-family: var(--app-font-family);
+    font-size: var(--app-font-size-input);
+    font-weight: var(--form-input-weight);
+    color: var(--form-input-color);
+    background-color: #fff;
+    box-shadow: none;
+}
+
+.app-shell .form-control-sm,
+.app-shell .form-select-sm,
+.app-form-page .form-control-sm,
+.app-form-page .form-select-sm {
+    min-height: 36px;
+    padding: 0.35rem 0.65rem;
+    font-size: var(--app-font-size-meta);
+}
+
+.app-shell .form-control-lg,
+.app-shell .form-select-lg,
+.app-form-page .form-control-lg,
+.app-form-page .form-select-lg {
+    min-height: 46px;
+    padding: 0.625rem 0.875rem;
+    border-radius: var(--btn-radius, 0.5rem);
+}
+
+.app-shell .form-control:focus,
+.app-shell .form-select:focus,
+.app-shell textarea.form-control:focus,
+.app-form-page .form-control:focus,
+.app-form-page .form-select:focus,
+.app-form-page textarea.form-control:focus,
+.app-shell .searchable-select__trigger:focus,
+.app-shell .ss__trigger:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px var(--brand-input-focus-shadow);
+}
+
+.app-shell .form-control:disabled,
+.app-shell .form-select:disabled,
+.app-form-page .form-control:disabled,
+.app-form-page .form-select:disabled {
+    background-color: var(--form-disabled-bg);
+    color: var(--form-disabled-color);
+}
+
+.app-shell .form-control[readonly]:not(:disabled),
+.app-form-page .form-control[readonly]:not(:disabled) {
+    background-color: var(--brand-table-header-bg);
+}
+
+.app-shell .form-control.is-invalid,
+.app-shell .form-select.is-invalid,
+.app-form-page .form-control.is-invalid,
+.app-form-page .form-select.is-invalid,
+.app-shell .searchable-select__trigger.is-invalid {
+    border-color: var(--brand-danger);
+}
+
+.app-shell .invalid-feedback,
+.app-form-page .invalid-feedback,
+.app-shell .text-danger.small,
+.app-form-page .text-danger.small {
+    margin-top: 0.25rem;
+    font-size: var(--app-font-size-meta);
+}
+
+.app-shell .form-text,
+.app-form-page .form-text {
+    margin-top: 0.25rem;
+    font-size: var(--app-font-size-meta);
+    color: var(--brand-text-muted);
+}
+
+.app-shell .form-check-label,
+.app-form-page .form-check-label {
+    font-size: var(--app-font-size-label);
+    font-weight: var(--app-font-weight-medium);
+    color: var(--brand-text-primary);
+}
+
+.app-shell .form-group,
+.app-form-page .form-group,
+.app-form-field {
+    margin-bottom: 1rem;
+}
+
+.app-shell .card form .row,
+.app-form-page .row {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 0;
+}
+
+.app-shell .ops-form-card label,
+.app-shell .bilty-form label,
+.app-form-page .ops-form-card label,
+.app-form-page .bilty-form label {
+    font-size: var(--app-font-size-label);
+    font-weight: var(--form-label-weight);
+}
+
+.app-shell .ops-form-card,
+.app-shell .bilty-form,
+.app-form-page .ops-form-card,
+.app-form-page .bilty-form {
+    font-size: var(--app-font-size-input);
+}
+
+.app-form-logo-preview {
+    display: block;
+    max-height: 88px;
+    width: auto;
+    object-fit: contain;
+    border: 1px solid var(--brand-border);
+    border-radius: 0.5rem;
+    background: #fff;
+    padding: 0.25rem;
+}
+
+.app-shell .card-footer.bg-light,
+.app-form-footer.bg-light {
+    background: var(--brand-table-header-bg) !important;
+}
+
+.app-form-field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.5rem;
+    min-height: 24px;
+    margin-bottom: 0.375rem;
+}
+
+.app-form-field-label-row .form-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-form-field-label-row .app-form-toggle {
+    margin-left: auto;
+}
+
+.app-form-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 0 auto;
+    height: 24px;
+    min-width: max-content;
+    padding: 0 7px 0 3px;
+    margin-bottom: 0;
+    border: 1.5px solid var(--brand-border);
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    user-select: none;
+    text-transform: none;
+    letter-spacing: 0;
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-form-toggle:hover {
+    border-color: rgba(var(--brand-primary-rgb, 47, 179, 111), 0.35);
+    background: rgba(var(--brand-primary-rgb, 47, 179, 111), 0.04);
+}
+
+.app-form-toggle.is-on {
+    border-color: rgba(var(--brand-primary-rgb, 47, 179, 111), 0.45);
+    background: rgba(var(--brand-primary-rgb, 47, 179, 111), 0.08);
+    box-shadow: 0 0 0 2px rgba(var(--brand-primary-rgb, 47, 179, 111), 0.08);
+}
+
+.app-form-toggle__input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.app-form-toggle__track {
+    position: relative;
+    width: 24px;
+    height: 14px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: #cbd5e1;
+    transition: background 0.15s ease;
+}
+
+.app-form-toggle.is-on .app-form-toggle__track {
+    background: var(--brand-primary);
+}
+
+.app-form-toggle__thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2);
+    transition: transform 0.15s ease;
+}
+
+.app-form-toggle.is-on .app-form-toggle__thumb {
+    transform: translateX(10px);
+}
+
+.app-form-toggle__text {
+    flex: 0 0 auto;
+    font-size: var(--app-font-size-meta);
+    font-weight: var(--app-font-weight-semibold);
+    color: var(--brand-text-muted);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.app-form-toggle.is-on .app-form-toggle__text {
+    color: var(--brand-primary-dark);
+}
+
+.app-form-toggle__input:focus-visible + .app-form-toggle__track {
+    outline: 2px solid rgba(var(--brand-primary-rgb, 47, 179, 111), 0.35);
+    outline-offset: 2px;
+}
+

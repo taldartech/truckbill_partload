@@ -2,14 +2,20 @@
 
 namespace App\Models;
 
+use App\Services\SubscriptionAccessService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 class Company extends Model
 {
     use SoftDeletes;
 
     protected $guarded = [];
+
+    protected $casts = [
+        'has_gst' => 'boolean',
+    ];
 
     public function users()
     {
@@ -51,7 +57,7 @@ class Company extends Model
 
     public function subscriptionAccessPayload(): array
     {
-        return app(\App\Services\SubscriptionAccessService::class)->accessPayloadForCompany($this);
+        return app(SubscriptionAccessService::class)->accessPayloadForCompany($this);
     }
 
     public function subscriptionCanWrite(): bool
@@ -69,7 +75,7 @@ class Company extends Model
         return $this->subscriptionAccessPayload()['can_print'] ?? false;
     }
 
-    public function planEndsOn(): ?\Illuminate\Support\Carbon
+    public function planEndsOn(): ?Carbon
     {
         return $this->subscription?->ends_on;
     }

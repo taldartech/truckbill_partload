@@ -1,27 +1,27 @@
 <template>
-    <nav class="app-header navbar navbar-expand bg-white border-bottom shadow-sm py-2">
-        <div class="container-fluid">
-            <ul class="navbar-nav align-items-center">
+    <nav class="app-header navbar navbar-expand bg-white border-bottom shadow-sm">
+        <div class="container-fluid app-header-inner">
+            <ul class="navbar-nav app-header-start align-items-center">
                 <li class="nav-item">
-                    <button class="btn btn-link text-muted p-2" data-lte-toggle="sidebar">
+                    <button class="btn btn-link text-muted p-2 app-header-icon-btn" data-lte-toggle="sidebar">
                         <i class="fas fa-bars"></i>
                     </button>
                 </li>
-                <li class="nav-item d-none d-md-block ms-3">
+                <li class="nav-item d-none d-md-block ms-2">
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center">
                             <i class="fas fa-building text-muted me-2"></i>
-                            <span class="fw-bold text-dark small">{{ $page.props.auth?.company_name || 'Demo Company' }}</span>
+                            <span class="fw-semibold small text-secondary">{{ $page.props.auth?.company_name || 'Demo Company' }}</span>
                         </div>
                         <div v-if="$page.props.auth?.branch_name" class="d-flex align-items-center">
                             <i class="fas fa-code-branch text-muted me-2"></i>
-                            <span class="fw-bold text-dark small">{{ $page.props.auth.branch_name }}</span>
+                            <span class="fw-semibold small text-secondary">{{ $page.props.auth.branch_name }}</span>
                         </div>
                     </div>
                 </li>
             </ul>
 
-            <ul class="navbar-nav ms-auto align-items-center">
+            <ul class="navbar-nav app-header-end ms-auto align-items-center">
                 <li v-if="$page.props.auth?.is_super_admin" class="nav-item me-2">
                     <Link
                         v-if="$page.props.auth?.is_acting_as_admin"
@@ -56,7 +56,7 @@
                         <div class="bg-secondary bg-opacity-10 rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
                             <i class="fas fa-user text-muted small"></i>
                         </div>
-                        <span class="fw-bold text-dark small">{{ $page.props.auth?.user?.name || 'User' }}</span>
+                        <span class="fw-semibold small text-secondary">{{ $page.props.auth?.user?.name || 'User' }}</span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 py-2" style="min-width: 200px;">
                         <!-- <a href="#" class="dropdown-item py-2">

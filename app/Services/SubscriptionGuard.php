@@ -34,6 +34,13 @@ class SubscriptionGuard
     public function assertCanCreateBranch(Company $company): void
     {
         $subscription = $company->subscription;
+
+        if ($subscription === null) {
+            throw ValidationException::withMessages([
+                'company_id' => 'This company has no active subscription. Open Subscription to start a trial or purchase a plan before creating branches.',
+            ]);
+        }
+
         $this->assertCanMutate($company);
 
         $count = Branch::query()->where('company_id', $company->id)->count();

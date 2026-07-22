@@ -1,199 +1,35 @@
 <template>
     <AdminLayout title="Add Branch">
-        <div class="row">
-            <div class="col-md-10 mx-auto">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Branch Details</h3>
-                    </div>
-                    <form @submit.prevent="submit" enctype="multipart/form-data">
-                        <div class="card-body">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">Branch Identity</h5>
-                            <div v-if="$page.props.auth.is_admin" class="form-group mb-3">
-                                <label for="company_id">Company *</label>
-                                <select class="form-control" id="company_id" v-model="form.company_id" required>
-                                    <option value="">Select Company</option>
-                                    <option v-for="company in companies" :key="company.id" :value="company.id">
-                                        {{ company.name }}
-                                    </option>
-                                </select>
-                                <div v-if="form.errors.company_id" class="text-danger mt-1 small">{{ form.errors.company_id }}</div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 form-group mb-3">
-                                    <label for="name">Branch Name *</label>
-                                    <input type="text" class="form-control" id="name" v-model="form.name" required>
-                                    <div v-if="form.errors.name" class="text-danger mt-1 small">{{ form.errors.name }}</div>
-                                </div>
-                                <div class="col-md-6 form-group mb-3">
-                                    <label for="station_id">Station *</label>
-                                    <SearchableSelect
-                                        id="station_id"
-                                        v-model="form.station_id"
-                                        :options="stationOptions"
-                                        master="station"
-                                        placeholder="Select Station"
-                                        @created="(record) => appendMasterOption(stationOptions, record)"
-                                    />
-                                    <div v-if="form.errors.station_id" class="text-danger mt-1 small">{{ form.errors.station_id }}</div>
-                                </div>
-                            </div>
-
-                            <div class="form-check mb-3">
-                                <input type="checkbox" class="form-check-input" id="is_head_office" v-model="form.is_head_office">
-                                <label class="form-check-label" for="is_head_office">Head Office</label>
-                            </div>
-
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Location</h5>
-                            <div class="form-group mb-3">
-                                <label for="address">Address *</label>
-                                <textarea class="form-control" id="address" v-model="form.address" rows="2" required></textarea>
-                                <div v-if="form.errors.address" class="text-danger small">{{ form.errors.address }}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Country *</label>
-                                    <SearchableSelect
-                                        v-model="form.country_id"
-                                        :options="countryOptions"
-                                        master="country"
-                                        placeholder="Select Country"
-                                        @created="(record) => appendMasterOption(countryOptions, record)"
-                                    />
-                                    <div v-if="form.errors.country_id" class="text-danger small">{{ form.errors.country_id }}</div>
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>State *</label>
-                                    <SearchableSelect
-                                        id="state_id"
-                                        v-model="form.state_id"
-                                        :options="stateOptions"
-                                        master="state"
-                                        :quick-add-context="{ country_id: form.country_id }"
-                                        placeholder="Select State"
-                                        @created="(record) => appendMasterOption(stateOptions, record)"
-                                    />
-                                    <div v-if="form.errors.state_id" class="text-danger small">{{ form.errors.state_id }}</div>
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>City *</label>
-                                    <SearchableSelect
-                                        v-model="form.city_id"
-                                        :options="filteredCities"
-                                        master="city"
-                                        :quick-add-context="{ state_id: form.state_id }"
-                                        placeholder="Select City"
-                                        :disabled="!form.state_id"
-                                        @created="(record) => appendMasterOption(cityOptions, record)"
-                                    />
-                                    <div v-if="form.errors.city_id" class="text-danger small">{{ form.errors.city_id }}</div>
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>PIN Code *</label>
-                                    <input type="text" class="form-control" v-model="form.pin_code" required>
-                                    <div v-if="form.errors.pin_code" class="text-danger small">{{ form.errors.pin_code }}</div>
-                                </div>
-                            </div>
-
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Contact</h5>
-                            <div class="row">
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Email Address *</label>
-                                    <input type="email" class="form-control" v-model="form.email" required>
-                                    <div v-if="form.errors.email" class="text-danger small">{{ form.errors.email }}</div>
-                                </div>
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Contact Person *</label>
-                                    <input type="text" class="form-control" v-model="form.contact_person" required>
-                                    <div v-if="form.errors.contact_person" class="text-danger small">{{ form.errors.contact_person }}</div>
-                                </div>
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Contact Number *</label>
-                                    <input type="text" class="form-control" v-model="form.contact_number" required>
-                                    <div v-if="form.errors.contact_number" class="text-danger small">{{ form.errors.contact_number }}</div>
-                                </div>
-                            </div>
-
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">GST</h5>
-                            <div class="form-check mb-3">
-                                <input type="checkbox" class="form-check-input" id="has_gst" v-model="form.has_gst">
-                                <label class="form-check-label" for="has_gst">Do you have GST?</label>
-                            </div>
-                            <div v-if="form.has_gst" class="row">
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>GST Number *</label>
-                                    <input type="text" class="form-control" v-model="form.gst_number" required>
-                                    <div v-if="form.errors.gst_number" class="text-danger small">{{ form.errors.gst_number }}</div>
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>GST Type *</label>
-                                    <select class="form-control" v-model="form.gst_type" required>
-                                        <option value="">Select</option>
-                                        <option value="Forward">Forward</option>
-                                        <option value="Reverse">Reverse</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>GST Scheme *</label>
-                                    <select class="form-control" v-model="form.gst_scheme" required>
-                                        <option value="">Select</option>
-                                        <option value="Regular">Regular</option>
-                                        <option value="Composition">Composition</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>GST Slab (%) *</label>
-                                    <input type="number" step="0.01" class="form-control" v-model="form.gst_slab" required>
-                                </div>
-                            </div>
-
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Bank Details</h5>
-                            <div class="row">
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Bank Name</label>
-                                    <input type="text" class="form-control" v-model="form.bank_name">
-                                </div>
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Account Number</label>
-                                    <input type="text" class="form-control" v-model="form.account_number">
-                                </div>
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>IFSC Code</label>
-                                    <input type="text" class="form-control" v-model="form.ifsc_code">
-                                </div>
-                            </div>
-
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Logo</h5>
-                            <div class="form-check mb-3">
-                                <input type="checkbox" class="form-check-input" id="use_company_logo" v-model="form.use_company_logo">
-                                <label class="form-check-label" for="use_company_logo">Same as company logo</label>
-                            </div>
-                            <div v-if="!form.use_company_logo" class="form-group mb-3">
-                                <label>Branch Logo</label>
-                                <input type="file" class="form-control" @change="onLogoChange" accept="image/*">
-                                <div v-if="form.errors.branch_logo" class="text-danger small">{{ form.errors.branch_logo }}</div>
-                            </div>
-                        </div>
-                        <div class="card-footer d-flex justify-content-between">
-                            <Link href="/branches" class="btn btn-default">Cancel</Link>
-                            <button type="submit" class="btn btn-primary" :disabled="form.processing">
-                                <i class="fas fa-save me-1"></i> Save Branch
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <FormPageCard
+            title="Branch Details"
+            cancel-href="/branches"
+            submit-label="Save Branch"
+            :processing="form.processing"
+            enctype="multipart/form-data"
+            column-class="col-md-10 mx-auto"
+            @submit="submit"
+        >
+            <BranchFormFields
+                :form="form"
+                :companies="companies"
+                :station-options="stationOptions"
+                :country-options="countryOptions"
+                :state-options="stateOptions"
+                :city-options="cityOptions"
+                :filtered-cities="filteredCities"
+                :show-company-field="showCompanyField"
+                @logo-change="onLogoChange"
+            />
+        </FormPageCard>
     </AdminLayout>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { useForm, Link } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import SearchableSelect from '@/Components/SearchableSelect.vue';
-import { appendMasterOption } from '@/composables/useMasterQuickAdd';
+import FormPageCard from '@/Components/Forms/FormPageCard.vue';
+import BranchFormFields from '@/Components/Branches/BranchFormFields.vue';
 
 const props = defineProps({
     companies: Array,
@@ -204,6 +40,9 @@ const props = defineProps({
     defaultCountryId: [Number, String, null],
 });
 
+const page = usePage();
+const showCompanyField = computed(() => !!page.props.auth?.is_admin);
+
 const stationOptions = ref([...(props.stations || [])]);
 const countryOptions = ref([...(props.countries || [])]);
 const stateOptions = ref([...(props.states || [])]);
@@ -212,7 +51,6 @@ watch(() => props.stations, (v) => { stationOptions.value = [...(v || [])]; });
 watch(() => props.countries, (v) => { countryOptions.value = [...(v || [])]; });
 watch(() => props.states, (v) => { stateOptions.value = [...(v || [])]; });
 watch(() => props.cities, (v) => { cityOptions.value = [...(v || [])]; });
-
 
 const form = useForm({
     company_id: '',
@@ -263,3 +101,4 @@ const submit = () => {
     });
 };
 </script>
+

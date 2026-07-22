@@ -1,0 +1,461 @@
+/* Standard index pages — References benchmark UI */
+
+.app-index-page--standard,
+.references-index-page {
+    /* alias for migrated References pilot */
+}
+
+.app-index-page--standard .app-index-list-card > .card-header .card-title,
+.references-index-page .app-index-list-card > .card-header .card-title {
+    font-size: var(--app-font-size-page-title);
+    font-weight: var(--app-font-weight-semibold);
+}
+
+.app-index-page--standard .app-index-list-card > .card-header .app-index-header-btn,
+.references-index-page .app-index-list-card > .card-header .app-index-header-btn,
+.report-index-page .app-index-list-card > .card-header .report-header-btn,
+.trip-section-card > .card-header.bg-gradient-primary .app-index-header-btn,
+.trip-section-card > .card-header.bg-success .app-index-header-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    background-color: #fff !important;
+    border: 1px solid #fff !important;
+    color: var(--brand-primary, #2fb36f) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.app-index-page--standard .app-index-list-card > .card-header .app-index-header-btn:hover,
+.app-index-page--standard .app-index-list-card > .card-header .app-index-header-btn[aria-expanded='true'],
+.references-index-page .app-index-list-card > .card-header .app-index-header-btn:hover,
+.references-index-page .app-index-list-card > .card-header .app-index-header-btn[aria-expanded='true'],
+.report-index-page .app-index-list-card > .card-header .report-header-btn:hover,
+.trip-section-card > .card-header.bg-gradient-primary .app-index-header-btn:hover:not(:disabled),
+.trip-section-card > .card-header.bg-gradient-primary .app-index-header-btn[aria-expanded='true'],
+.trip-section-card > .card-header.bg-success .app-index-header-btn:hover:not(:disabled),
+.trip-section-card > .card-header.bg-success .app-index-header-btn[aria-expanded='true'] {
+    background-color: rgba(255, 255, 255, 0.92) !important;
+    border-color: #fff !important;
+    color: var(--brand-primary-dark, #23965c) !important;
+}
+
+.app-index-header-btn__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1em;
+    line-height: 1;
+    margin-right: 0.25rem;
+}
+
+.app-index-header-btn__icon::before {
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-style: normal;
+    color: var(--brand-primary, #2fb36f);
+}
+
+.app-index-page--standard .app-index-list-card > .card-header .app-index-header-btn:hover .app-index-header-btn__icon::before,
+.app-index-page--standard .app-index-list-card > .card-header .app-index-header-btn[aria-expanded='true'] .app-index-header-btn__icon::before,
+.references-index-page .app-index-list-card > .card-header .app-index-header-btn:hover .app-index-header-btn__icon::before,
+.references-index-page .app-index-list-card > .card-header .app-index-header-btn[aria-expanded='true'] .app-index-header-btn__icon::before,
+.trip-section-card > .card-header.bg-gradient-primary .app-index-header-btn:hover:not(:disabled) .app-index-header-btn__icon::before,
+.trip-section-card > .card-header.bg-gradient-primary .app-index-header-btn[aria-expanded='true'] .app-index-header-btn__icon::before,
+.trip-section-card > .card-header.bg-success .app-index-header-btn:hover:not(:disabled) .app-index-header-btn__icon::before,
+.trip-section-card > .card-header.bg-success .app-index-header-btn[aria-expanded='true'] .app-index-header-btn__icon::before {
+    color: var(--brand-primary-dark, #23965c);
+}
+
+.app-index-header-btn__icon--filter::before {
+    content: '\f0b0';
+}
+
+.app-index-header-btn__icon--plus::before {
+    content: '\f067';
+}
+
+.app-index-header-btn__icon--export::before {
+    content: '\f1c3';
+}
+
+.app-index-header-btn__icon--return::before {
+    content: '\f359';
+}
+
+.app-index-header-btn__icon--grid::before {
+    content: '\f00a';
+}
+
+/* Collapsible filters panel */
+.app-index-collapsible-filters {
+    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+    background: #fff;
+}
+
+.app-index-collapsible-filters__inner {
+    padding: 1rem;
+}
+
+.app-index-collapsible-filters .form-label {
+    color: var(--form-label-color);
+    font-size: var(--app-font-size-label);
+    font-weight: var(--form-label-weight);
+    margin-bottom: 0.35rem;
+}
+
+.app-index-collapsible-filters__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.app-index-collapsible-filters__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+}
+
+.app-index-collapsible-filters__btn .fas {
+    color: inherit;
+    font-weight: 900;
+}
+
+.app-index-collapsible-filters__btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Tables */
+.app-index-page--standard .app-index-table,
+.references-index-page .app-index-table,
+.references-index-page .references-table,
+.report-index-page .report-table {
+    font-size: var(--app-font-size-table);
+}
+
+.app-index-page--standard .app-index-table thead th,
+.references-index-page .app-index-table thead th,
+.references-index-page .references-table thead th,
+.report-index-page .report-table thead th {
+    color: var(--brand-text-primary);
+    font-size: var(--app-font-size-table-head);
+    font-weight: var(--app-font-weight-semibold);
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.app-index-page--standard .app-index-table tbody td,
+.references-index-page .app-index-table tbody td,
+.references-index-page .references-table tbody td,
+.report-index-page .report-table tbody td {
+    font-size: var(--app-font-size-table);
+}
+
+.app-index-table__truncate-col {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-index-page--standard .app-index-list-card > .card-body > .table-responsive,
+.references-index-page .app-index-list-card > .card-body > .table-responsive {
+    padding: 0;
+}
+
+/* Row action buttons */
+.app-index-table-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.375rem;
+}
+
+.app-index-action-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--btn-radius-sm, 0.375rem);
+}
+
+.app-index-action-btn .fas {
+    color: #fff;
+    font-weight: 900;
+    font-size: 0.8125rem;
+    line-height: 1;
+}
+
+/* Partload pagination */
+.app-index-partload-pagination {
+    background: #f8fafc;
+    border-top: 1px solid var(--bs-border-color, #dee2e6);
+    padding: 0.75rem 1rem;
+}
+
+.app-index-partload-pagination__summary {
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.app-index-partload-pagination__nav {
+    margin-left: auto;
+}
+
+.app-index-partload-pagination__list {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    background: #fff;
+}
+
+.app-index-partload-pagination__list .page-item + .page-item {
+    border-left: 1px solid #dee2e6;
+}
+
+.app-index-partload-pagination__list .page-link {
+    border: 0;
+    border-radius: 0;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--brand-primary, #2fb36f);
+    background: #fff;
+    line-height: 1.4;
+}
+
+.app-index-partload-pagination__list .page-item.active .page-link {
+    background: var(--brand-primary, #2fb36f);
+    color: #fff;
+    font-weight: 600;
+}
+
+.app-index-partload-pagination__list .page-item.disabled .page-link {
+    color: #94a3b8;
+    background: #fff;
+    opacity: 0.75;
+}
+
+.app-index-partload-pagination__list .page-item--ellipsis .page-link {
+    color: #94a3b8;
+    background: #fff;
+    opacity: 1;
+    cursor: default;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    min-width: 2rem;
+    text-align: center;
+}
+
+.app-index-partload-pagination__list .page-item--ellipsis .page-link:hover {
+    background: #fff;
+    color: #94a3b8;
+}
+
+.app-index-partload-pagination__list .page-link:hover:not(:disabled) {
+    background: var(--brand-active-bg, #e8f5ee);
+    color: var(--brand-primary-dark, #23965c);
+}
+
+.app-index-partload-pagination__list .page-item.active .page-link:hover {
+    background: var(--brand-primary, #2fb36f);
+    color: #fff;
+}
+
+/* Report index pages — filters always visible */
+.report-index-page .app-report-filters-panel {
+    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+    background: #fff;
+}
+
+.report-index-page .app-report-filters-panel__inner {
+    padding: 1rem;
+}
+
+.report-index-page .app-report-filters-panel__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.report-index-page .app-report-filters-panel__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.report-index-page .app-report-filters-panel__btn .fas {
+    font-weight: 900;
+}
+
+.report-index-page .app-report-filters-panel .form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.report-index-page .report-results-meta {
+    background: #fff;
+    font-size: 0.875rem;
+}
+
+.report-index-page .report-results-meta__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--brand-text-primary, #111827);
+}
+
+@media (max-width: 768px) {
+    .app-index-page--standard .app-index-card-toolbar,
+    .references-index-page .app-index-card-toolbar {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .app-index-page--standard .app-index-header-btn,
+    .references-index-page .app-index-header-btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+}
+
+/* Global overrides to make search filters always open and hide toggle buttons */
+.app-index-collapsible-filters {
+    display: block !important;
+}
+
+.app-index-header-btn[aria-label*="filter"],
+.app-index-header-btn[aria-label*="filters"] {
+    display: none !important;
+}
+
+/* Custom filters single/multi row layout globally for the entire project */
+.app-index-collapsible-filters__inner,
+.app-report-filters-panel__inner {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: flex-end !important;
+    gap: 12px !important;
+}
+
+.app-index-filters-fields {
+    display: contents !important;
+}
+
+.app-index-collapsible-filters__actions,
+.app-report-filters-panel__actions {
+    margin-top: 0 !important;
+    align-self: flex-end !important;
+    margin-left: auto !important;
+}
+
+/* Default widths for filter inputs */
+.app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+.app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+.app-index-filters-fields > div {
+    flex: 0 0 180px !important;
+    width: 180px !important;
+}
+
+
+
+/* Wider columns for search inputs */
+.app-index-collapsible-filters__inner > div:has(.app-index-search),
+.app-report-filters-panel__inner > div:has(.app-index-search),
+.app-index-filters-fields > div:has(.app-index-search) {
+    flex: 0 0 280px !important;
+    width: 280px !important;
+}
+
+/* Wider columns for date range pickers */
+.app-index-collapsible-filters__inner > div:has(.dashboard-date-range),
+.app-report-filters-panel__inner > div:has(.dashboard-date-range),
+.app-index-filters-fields > div:has(.dashboard-date-range) {
+    flex: 0 0 260px !important;
+    width: 260px !important;
+}
+
+/* Ensure uniform heights and sizes for all filter controls and buttons globally */
+.app-index-collapsible-filters__inner .form-control,
+.app-index-collapsible-filters__inner .form-select,
+.app-index-collapsible-filters__inner .input-group-text,
+.app-index-collapsible-filters__inner .dashboard-date-range__trigger,
+.app-index-collapsible-filters__inner .app-index-collapsible-filters__btn,
+.app-index-collapsible-filters__inner .picker-action-btn,
+.app-report-filters-panel__inner .form-control,
+.app-report-filters-panel__inner .form-select,
+.app-report-filters-panel__inner .input-group-text,
+.app-report-filters-panel__inner .dashboard-date-range__trigger,
+.app-report-filters-panel__inner .app-report-filters-panel__btn,
+.app-report-filters-panel__inner .picker-action-btn {
+    height: 36px !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+}
+
+/* Keep filter control text colors consistent across listing pages */
+.app-index-collapsible-filters__inner .form-control,
+.app-index-collapsible-filters__inner .form-select,
+.app-index-collapsible-filters__inner .select-trigger,
+.app-index-collapsible-filters__inner .select-trigger-label,
+.app-index-collapsible-filters__inner .picker-trigger,
+.app-index-collapsible-filters__inner .dashboard-date-range__trigger,
+.app-index-collapsible-filters__inner .dashboard-date-range__value,
+.app-report-filters-panel__inner .form-control,
+.app-report-filters-panel__inner .form-select,
+.app-report-filters-panel__inner .select-trigger,
+.app-report-filters-panel__inner .select-trigger-label,
+.app-report-filters-panel__inner .picker-trigger,
+.app-report-filters-panel__inner .dashboard-date-range__trigger,
+.app-report-filters-panel__inner .dashboard-date-range__value,
+.app-index-filters-fields .form-control,
+.app-index-filters-fields .form-select,
+.app-index-filters-fields .select-trigger,
+.app-index-filters-fields .select-trigger-label,
+.app-index-filters-fields .picker-trigger,
+.app-index-filters-fields .dashboard-date-range__trigger,
+.app-index-filters-fields .dashboard-date-range__value {
+    color: var(--form-input-color, #1f2937);
+    font-weight: var(--form-input-weight, 500);
+}
+
+.app-index-collapsible-filters__inner .form-control::placeholder,
+.app-report-filters-panel__inner .form-control::placeholder,
+.app-index-filters-fields .form-control::placeholder,
+.app-index-collapsible-filters__inner .select-trigger--placeholder .select-trigger-label,
+.app-report-filters-panel__inner .select-trigger--placeholder .select-trigger-label,
+.app-index-filters-fields .select-trigger--placeholder .select-trigger-label,
+.app-index-collapsible-filters__inner .picker-trigger--placeholder,
+.app-report-filters-panel__inner .picker-trigger--placeholder,
+.app-index-filters-fields .picker-trigger--placeholder {
+    color: var(--form-placeholder-color, #94a3b8) !important;
+    font-family: var(--app-font-family);
+    font-size: var(--form-placeholder-size, var(--app-font-size-input));
+    font-weight: var(--form-placeholder-weight, 400) !important;
+}
+
+.app-index-collapsible-filters__inner .select-trigger-label--inactive,
+.app-report-filters-panel__inner .select-trigger-label--inactive,
+.app-index-filters-fields .select-trigger-label--inactive {
+    color: #dc3545 !important;
+}
+
+
+
+

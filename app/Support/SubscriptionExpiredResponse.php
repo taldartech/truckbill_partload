@@ -11,12 +11,16 @@ class SubscriptionExpiredResponse
 {
     public static function forGraceRestrictedAction(Request $request, ?Company $company = null): RedirectResponse
     {
-        return redirect()->route('dashboard');
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Your subscription is in a read-only grace period. Writing actions like creating a branch are blocked until you renew.');
     }
 
     public static function forLocked(Request $request): RedirectResponse
     {
-        return redirect()->route('dashboard');
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'An active subscription is required to continue. Start a trial or renew the company plan.');
     }
 
     public static function abortUnlessCanMutate(Request $request, ?Company $company = null): void

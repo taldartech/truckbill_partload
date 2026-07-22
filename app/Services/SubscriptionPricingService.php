@@ -148,23 +148,43 @@ class SubscriptionPricingService
 
     public function createTrialSubscription(Company $company): CompanySubscription
     {
-        $catalogPayload = $this->adminApi->getCatalog();
-        $catalog = $catalogPayload['catalog'];
+        $catalog = $this->trialCatalogDefaults();
+
+        try {
+            $catalogPayload = $this->adminApi->getCatalog();
+            $catalog = array_merge($catalog, $catalogPayload['catalog'] ?? []);
+        } catch (\Throwable) {
+            // Fall back to local defaults when the admin catalog API is unavailable.
+        }
+
         $startsOn = now()->toDateString();
         $endsOn = Carbon::parse($startsOn)->addDays(15)->toDateString();
 
-        return CompanySubscription::create([
-            'company_id' => $company->id,
-            'status' => 'trial',
-            'starts_on' => $startsOn,
-            'ends_on' => $endsOn,
-            'trial_ends_on' => $endsOn,
-            'included_branches' => $catalog['included_branches'],
-            'users_per_branch' => $catalog['users_per_branch'],
-            'included_lr_credits' => 0,
-            'included_trucks' => 0,
-            'lr_credits_remaining' => 0,
-        ]);
+        return CompanySubscription::query()->updateOrCreate(
+            ['company_id' => $company->id],
+            [
+                'status' => 'trial',
+                'starts_on' => $startsOn,
+                'ends_on' => $endsOn,
+                'trial_ends_on' => $endsOn,
+                'included_branches' => (int) ($catalog['included_branches'] ?? 2),
+                'users_per_branch' => (int) ($catalog['users_per_branch'] ?? 5),
+                'included_lr_credits' => 0,
+                'included_trucks' => 0,
+                'lr_credits_remaining' => 0,
+            ],
+        );
+    }
+
+    /**
+     * @return array{included_branches: int, users_per_branch: int}
+     */
+    private function trialCatalogDefaults(): array
+    {
+        return [
+            'included_branches' => 2,
+            'users_per_branch' => 5,
+        ];
     }
 
     /**

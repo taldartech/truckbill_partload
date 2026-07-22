@@ -4,43 +4,130 @@
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
+@source '../**/*.vue';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-    --color-brand-primary: #27AE60;
-    --color-brand-primary-dark: #1E8449;
-    --color-brand-accent-blue: #2980B9;
-    --color-brand-bg: #f4f6f9;
+    --color-brand-primary: #2FB36F;
+    --color-brand-primary-dark: #23965C;
+    --color-brand-success: #2FB36F;
+    --color-brand-accent-blue: #2D8CFF;
+    --color-brand-bg: #F8FAFC;
+
+    --color-text-primary: #475569;
+    --color-text-secondary: #64748b;
+    --color-background-secondary: #f8f9fa;
 }
 
-body {
-    background-color: var(--color-brand-bg);
-    font-family: 'Inter', sans-serif;
-    font-size: 0.875rem;
+:root {
+    --border-radius-lg: 8px;
+    --border-color: var(--brand-border, #dee2e6);
+    --form-label-color: var(--brand-text-primary, #475569);
+    --form-label-weight: var(--app-font-weight-semibold, 600);
+    --form-input-color: #1f2937;
+    --form-input-weight: var(--app-font-weight-medium, 500);
+    --form-placeholder-color: #94a3b8;
+    --form-placeholder-weight: var(--app-font-weight-regular, 400);
+    --form-placeholder-size: var(--app-font-size-input, 0.9375rem);
+    --form-placeholder-opacity: 1;
+    --form-disabled-color: #94a3b8;
+    --form-disabled-bg: #f1f5f9;
 }
 
-.btn-primary {
-    background-color: #27AE60 !important;
-    border-color: #27AE60 !important;
+.form-label,
+label.form-label {
+    color: var(--form-label-color);
+    font-family: var(--app-font-family);
+    font-size: var(--app-font-size-label);
+    font-weight: var(--form-label-weight);
 }
 
-.btn-primary:hover {
-    background-color: #1E8449 !important;
-    border-color: #1E8449 !important;
+.form-control,
+.form-select,
+input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='hidden']):not([type='button']):not([type='submit']):not([type='reset']),
+textarea,
+select {
+    color: var(--form-input-color);
+    font-family: var(--app-font-family);
+    font-size: var(--app-font-size-input);
+    font-weight: var(--form-input-weight);
+}
+
+input::placeholder,
+textarea::placeholder,
+.form-control::placeholder {
+    color: var(--form-placeholder-color) !important;
+    font-family: var(--app-font-family);
+    font-size: var(--form-placeholder-size);
+    font-weight: var(--form-placeholder-weight);
+    opacity: var(--form-placeholder-opacity) !important;
+}
+
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.table-wrap table {
+    min-width: 800px;
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.main-content {
+    min-width: 0;
+    overflow-x: hidden;
+    width: 100%;
+    padding: 16px 20px;
+    box-sizing: border-box;
+}
+
+.app-table-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
 }
 
 .card {
-    border: none;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid var(--brand-border);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .table thead th {
-    background-color: #f8fafc;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    color: #64748b;
-    border-top: none;
+    background-color: var(--brand-table-header-bg, #f1f5f9);
+    color: var(--brand-text-primary);
+    font-size: var(--app-font-size-table-head, 0.875rem);
+    font-weight: var(--app-font-weight-semibold, 600);
+    text-transform: none;
+    letter-spacing: normal;
+    vertical-align: middle;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--brand-border);
+}
+
+.table tbody td {
+    font-size: var(--app-font-size-table, 0.9375rem);
+    vertical-align: middle;
+}
+
+.card > .card-header .card-title {
+    font-size: var(--app-font-size-page-title, 1.0625rem);
+    font-weight: var(--app-font-weight-semibold, 600);
 }

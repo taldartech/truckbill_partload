@@ -230,19 +230,47 @@ class BranchController extends Controller implements HasMiddleware
     private function availableCompanies()
     {
         $context = app(TenantContext::class);
+        $columns = [
+            'id',
+            'name',
+            'address',
+            'country_id',
+            'state_id',
+            'city_id',
+            'pin_code',
+            'company_logo',
+            'has_gst',
+            'gst_number',
+            'gst_type',
+            'gst_scheme',
+            'gst_slab',
+            'bank_name',
+            'account_number',
+            'ifsc_code',
+        ];
 
         if ($context->isMasterAdmin()) {
-            return Company::orderBy('name')->get(['id', 'name']);
+            return Company::orderBy('name')->get($columns);
         }
 
-        return Company::where('user_id', auth()->id())->orderBy('name')->get(['id', 'name']);
+        if ($context->isSuperAdmin()) {
+            return Company::where('user_id', auth()->id())->orderBy('name')->get($columns);
+        }
+
+        $companyId = $context->activeCompanyId();
+
+        if (! $companyId) {
+            return collect();
+        }
+
+        return Company::query()->whereKey($companyId)->get($columns);
     }
 
     private function availableStations()
     {
         return Station::query()
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'country_id', 'state_id', 'city_id']);
     }
 
     private function validateStationForOwner(int $stationId): void

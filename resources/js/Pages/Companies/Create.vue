@@ -1,124 +1,32 @@
 <template>
     <AdminLayout title="Add Company">
-        <div class="row">
-            <div class="col-md-10 mx-auto">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Company Details</h3>
-                    </div>
-                    <form @submit.prevent="submit" enctype="multipart/form-data">
-                        <div class="card-body">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">Company Information</h5>
-                            <div class="row">
-                                <div class="col-md-12 form-group mb-3">
-                                    <label>Company Name *</label>
-                                    <input type="text" class="form-control" v-model="form.name" required>
-                                    <div v-if="form.errors.name" class="text-danger small">{{ form.errors.name }}</div>
-                                </div>
-                                <div class="col-md-12 form-group mb-3">
-                                    <label>Address *</label>
-                                    <textarea class="form-control" v-model="form.address" rows="2" required></textarea>
-                                    <div v-if="form.errors.address" class="text-danger small">{{ form.errors.address }}</div>
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Country *</label>
-                                    <SearchableSelect
-                                        v-model="form.country_id"
-                                        :options="countryOptions"
-                                        master="country"
-                                        placeholder="Select Country"
-                                        @created="(record) => appendMasterOption(countryOptions, record)"
-                                    />
-                                    <div v-if="form.errors.country_id" class="text-danger small">{{ form.errors.country_id }}</div>
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>State *</label>
-                                    <SearchableSelect
-                                        v-model="form.state_id"
-                                        :options="stateOptions"
-                                        master="state"
-                                        :quick-add-context="{ country_id: form.country_id }"
-                                        placeholder="Select State"
-                                        @created="(record) => appendMasterOption(stateOptions, record)"
-                                    />
-                                    <div v-if="form.errors.state_id" class="text-danger small">{{ form.errors.state_id }}</div>
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>City *</label>
-                                    <SearchableSelect
-                                        v-model="form.city_id"
-                                        :options="filteredCities"
-                                        master="city"
-                                        :quick-add-context="{ state_id: form.state_id }"
-                                        placeholder="Select City"
-                                        :disabled="!form.state_id"
-                                        @created="(record) => appendMasterOption(cityOptions, record)"
-                                    />
-                                    <div v-if="form.errors.city_id" class="text-danger small">{{ form.errors.city_id }}</div>
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>PIN Code *</label>
-                                    <input type="text" class="form-control" v-model="form.pin_code" required>
-                                    <div v-if="form.errors.pin_code" class="text-danger small">{{ form.errors.pin_code }}</div>
-                                </div>
-                            </div>
-
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Contact</h5>
-                            <div class="row">
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Email Address *</label>
-                                    <input type="email" class="form-control" v-model="form.email" required>
-                                    <div v-if="form.errors.email" class="text-danger small">{{ form.errors.email }}</div>
-                                </div>
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Contact Person *</label>
-                                    <input type="text" class="form-control" v-model="form.contact_person" required>
-                                    <div v-if="form.errors.contact_person" class="text-danger small">{{ form.errors.contact_person }}</div>
-                                </div>
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Contact Number *</label>
-                                    <input type="text" class="form-control" v-model="form.contact_number" required>
-                                    <div v-if="form.errors.contact_number" class="text-danger small">{{ form.errors.contact_number }}</div>
-                                </div>
-                            </div>
-
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">PAN</h5>
-                            <div class="row">
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>PAN Number</label>
-                                    <input type="text" class="form-control" v-model="form.pan_no">
-                                </div>
-                            </div>
-
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Company Logo</h5>
-                            <div class="row">
-                                <div class="col-md-6 form-group mb-3">
-                                    <label>Upload Logo</label>
-                                    <input type="file" class="form-control" @change="onLogoChange" accept="image/*">
-                                    <div v-if="form.errors.company_logo" class="text-danger small">{{ form.errors.company_logo }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card-footer d-flex justify-content-between bg-light">
-                            <Link href="/companies" class="btn btn-secondary">Cancel</Link>
-                            <button type="submit" class="btn btn-primary" :disabled="form.processing">
-                                <i class="fas fa-save me-1"></i> Save Company
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <FormPageCard
+            title="Company Details"
+            cancel-href="/companies"
+            submit-label="Save Company"
+            :processing="form.processing"
+            enctype="multipart/form-data"
+            column-class="col-md-10 mx-auto"
+            @submit="submit"
+        >
+            <CompanyFormFields
+                :form="form"
+                :country-options="countryOptions"
+                :state-options="stateOptions"
+                :city-options="cityOptions"
+                :filtered-cities="filteredCities"
+                @logo-change="onLogoChange"
+            />
+        </FormPageCard>
     </AdminLayout>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { useForm, Link } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import SearchableSelect from '@/Components/SearchableSelect.vue';
-import { appendMasterOption } from '@/composables/useMasterQuickAdd';
+import FormPageCard from '@/Components/Forms/FormPageCard.vue';
+import CompanyFormFields from '@/Components/Companies/CompanyFormFields.vue';
 
 const props = defineProps({
     countries: Array,
@@ -134,7 +42,6 @@ watch(() => props.countries, (v) => { countryOptions.value = [...(v || [])]; });
 watch(() => props.states, (v) => { stateOptions.value = [...(v || [])]; });
 watch(() => props.cities, (v) => { cityOptions.value = [...(v || [])]; });
 
-
 const form = useForm({
     name: '',
     address: '',
@@ -146,6 +53,14 @@ const form = useForm({
     contact_person: '',
     contact_number: '',
     pan_no: '',
+    has_gst: false,
+    gst_number: '',
+    gst_type: '',
+    gst_scheme: '',
+    gst_slab: '',
+    bank_name: '',
+    account_number: '',
+    ifsc_code: '',
     company_logo: null,
 });
 
