@@ -107,7 +107,7 @@
                         <tr>
                             <td class="text-right">{{ $index + 1 }}</td>
                             <td>{{ $detail->bilty->bilty_number ?? '—' }}</td>
-                            <td>{{ $detail->bilty->pvt_marka ?? '—' }}</td>
+                            <td>{{ $detail->bilty->private_marka ?? '—' }}</td>
                             <td class="text-right">{{ number_format($nugs, 0) }}</td>
                             <td>{{ $detail->bilty->biltyDetails->first()?->good?->name ?? '—' }}</td>
                             <td>{{ $detail->bilty->toStation->name ?? '—' }}</td>
@@ -128,7 +128,7 @@
                         <tr>
                             <td class="text-right">{{ $index + 1 }}</td>
                             <td>{{ $inward->gr_no ?? 'GR-' . $inward->id }}</td>
-                            <td>{{ $inward->pvt_marka ?? '—' }}</td>
+                            <td>{{ $inward->private_marka ?? '—' }}</td>
                             <td class="text-right">{{ number_format($nugs, 0) }}</td>
                             <td>{{ $inward->good->name ?? '—' }}</td>
                             <td>{{ $inward->toStation->name ?? '—' }}</td>
@@ -181,7 +181,7 @@
                             <td class="text-right">₹ {{ number_format($challan->cartage_dalali_pf ?? 0, 2) }}</td>
                         </tr>
                         <tr>
-                            <td>Paid Amt / Adv. Rec.</td>
+                            <td>Paid Bilty</td>
                             <td class="text-right">₹ {{ number_format($challan->paid_amount ?? 0, 2) }}</td>
                         </tr>
                     </table>

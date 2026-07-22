@@ -35,4 +35,9 @@ class MainChallan extends Model
     {
         return $this->hasMany(MainChallanDetail::class);
     }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

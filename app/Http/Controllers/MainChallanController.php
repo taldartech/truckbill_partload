@@ -10,6 +10,7 @@ use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -87,6 +88,7 @@ class MainChallanController extends Controller implements HasMiddleware
 
         $details = $validated['details'] ?? [];
         unset($validated['details']);
+        $validated['created_by'] = Auth::id();
 
         $mainChallan = DB::transaction(function () use ($validated, $details) {
             $mainChallan = MainChallan::create($validated);
@@ -187,15 +189,19 @@ class MainChallanController extends Controller implements HasMiddleware
             'fromStation',
             'toStation',
             'truck',
+            'creator',
+            'branch.company',
+            'branch.city',
+            'branch.state',
             'details.challan.toStation',
             'details.challan.details.bilty.biltyDetails',
             'details.challan.details.inwardRegisterDetail',
         ]);
 
-        $company = \App\Models\Company::find($main_challan->company_id);
-        $printData = $this->buildPrintData($main_challan);
+        $branch = $main_challan->branch;
+        $company = $branch?->company ?? \App\Models\Company::find($main_challan->company_id);
 
-        return view('prints.main_challan', compact('main_challan', 'company', 'printData'));
+        return view('prints.main_challan', compact('main_challan', 'company', 'branch'));
     }
 
     private function pendingChallans()
@@ -234,83 +240,5 @@ class MainChallanController extends Controller implements HasMiddleware
 
             $challan->update(['status' => 'In Progress']);
         }
-    }
-
-    private function buildPrintData(MainChallan $mainChallan): array
-    {
-        $rows = $mainChallan->details->map(function ($detail) {
-            $challan = $detail->challan;
-            if (! $challan) {
-                return null;
-            }
-
-            $totalNugs = (float) ($challan->total_packages ?? 0);
-            $totalWeight = (float) ($challan->total_weight ?? 0);
-
-            if ($challan->details) {
-                $nugsFromDetails = 0;
-                $weightFromDetails = 0;
-
-                foreach ($challan->details as $challanDetail) {
-                    $bilty = $challanDetail->bilty;
-                    if ($bilty?->biltyDetails) {
-                        foreach ($bilty->biltyDetails as $biltyDetail) {
-                            $nugsFromDetails += (float) ($biltyDetail->no_of_packages ?? 0);
-                            $weightFromDetails += (float) ($biltyDetail->gross_weight ?? 0);
-                        }
-                    }
-
-                    $inward = $challanDetail->inwardRegisterDetail;
-                    if ($inward) {
-                        $nugsFromDetails += (float) ($inward->no_of_packages ?? 0);
-                        $weightFromDetails += (float) ($inward->weight ?? 0);
-                    }
-                }
-
-                if ($nugsFromDetails > 0) {
-                    $totalNugs = $nugsFromDetails;
-                }
-                if ($weightFromDetails > 0) {
-                    $totalWeight = $weightFromDetails;
-                }
-            }
-
-            return [
-                'challan_number' => $challan->challan_number ?? '—',
-                'to_station' => $challan->toStation?->name ?? '—',
-                'nugs' => $totalNugs,
-                'weight' => $totalWeight,
-                'to_pay' => (float) ($challan->to_pay_amount ?? 0),
-                'paid_amount' => (float) ($challan->paid_amount ?? 0),
-                'crossing' => (float) ($challan->crossing_freight ?? 0),
-                'cartage' => (float) ($challan->cartage_dalali_pf ?? 0),
-                'labour' => (float) ($challan->labour_charge ?? 0),
-                'kat' => (float) ($challan->kat ?? 0),
-                'home_delivery' => (float) ($challan->home_delivery_charge ?? 0),
-                'truck_freight' => (float) ($challan->truck_freight ?? 0),
-                'gst' => (float) ($challan->gst ?? 0),
-                'cash_received' => (float) ($challan->cash_received ?? 0),
-                'cash_paid' => (float) ($challan->cash_payment ?? 0),
-            ];
-        })->filter()->values();
-
-        return [
-            'rows' => $rows,
-            'totals' => [
-                'nugs' => $rows->sum('nugs'),
-                'weight' => $rows->sum('weight'),
-                'to_pay' => $rows->sum('to_pay'),
-                'paid_amount' => $rows->sum('paid_amount'),
-                'crossing' => $rows->sum('crossing'),
-                'cartage' => $rows->sum('cartage'),
-                'labour' => $rows->sum('labour'),
-                'kat' => $rows->sum('kat'),
-                'home_delivery' => $rows->sum('home_delivery'),
-                'truck_freight' => $rows->sum('truck_freight'),
-                'gst' => $rows->sum('gst'),
-                'cash_received' => $rows->sum('cash_received'),
-                'cash_paid' => $rows->sum('cash_paid'),
-            ],
-        ];
     }
 }
