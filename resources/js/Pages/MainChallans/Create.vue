@@ -1,244 +1,267 @@
 <template>
     <AdminLayout title="Add Main Challan">
-        <div class="row">
-            <div class="col-md-12 mx-auto">
-                <div class="card ops-form-card">
-                    <div class="card-header">
-                        <h3 class="card-title">Main Challan</h3>
+        <div class="bilty-form-page">
+            <form @submit.prevent="submit" class="bilty-form">
+                <!-- 1. Route & Vehicle -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num">1</div>
+                            <div>
+                                <h2 class="bilty-section__title">Route &amp; Vehicle</h2>
+                                <p class="bilty-section__desc">Stations, truck and driver</p>
+                            </div>
+                        </div>
+                        <div class="bilty-section__head-right">
+                            <div class="bilty-id">
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Main Challan No.</span>
+                                    <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.main_challan_number }" v-model="form.main_challan_number">
+                                    <div v-if="form.errors.main_challan_number" class="text-danger small mt-1">{{ form.errors.main_challan_number }}</div>
+                                </div>
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Date</span>
+                                    <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date">
+                                    <div v-if="form.errors.date" class="invalid-feedback d-block">{{ form.errors.date }}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--5">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">From Station<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.from_station_id"
+                                    :options="stationOptions"
+                                    master="station"
+                                    placeholder="Select Station"
+                                    @created="(record) => appendMasterOption(stationOptions, record)"
+                                />
+                                <div v-if="form.errors.from_station_id" class="text-danger small mt-1">{{ form.errors.from_station_id }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">To Station<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.to_station_id"
+                                    :options="stationOptions"
+                                    master="station"
+                                    placeholder="Select Station"
+                                    @created="(record) => appendMasterOption(stationOptions, record)"
+                                />
+                                <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Add Challan</label>
+                                <SearchableSelect
+                                    ref="fetchChallanSelect"
+                                    :small="true"
+                                    v-model="fetch_challan_id"
+                                    :options="challans"
+                                    labelKey="challan_number"
+                                    placeholder="Select Challan"
+                                    open-on-enter
+                                    @change="onFetchChallanChange"
+                                />
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Truck No.<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.truck_id"
+                                    :options="truckOptions"
+                                    master="truck"
+                                    placeholder="Select Truck"
+                                    @created="(record) => appendMasterOption(truckOptions, record)"
+                                />
+                                <div v-if="form.errors.truck_id" class="text-danger small mt-1">{{ form.errors.truck_id }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Driver<span class="bilty-field__req">*</span></label>
+                                <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.driver_name }" v-model="form.driver_name" placeholder="Enter Driver Name">
+                                <div v-if="form.errors.driver_name" class="text-danger small mt-1">{{ form.errors.driver_name }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-                    <form @submit.prevent="submit" class="bilty-form">
-                        <!-- Top Section: Core Details -->
-                        <div class="card-body pt-3 pb-2 border-bottom">
-                            <div class="row align-items-center mb-2">
-                                <div class="col-md-3 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Main Chal.No.</label>
-                                    <div class="w-100">
-                                        <input type="text" class="form-control form-control-sm" v-model="form.main_challan_number">
+                <!-- 2. Linked Challans -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--green">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--green">2</div>
+                            <div>
+                                <h2 class="bilty-section__title">Linked Challans</h2>
+                                <p class="bilty-section__desc">Challans included in this main challan</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body bilty-section__body--flush">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm m-0 table-grid">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th width="4%" class="text-center">Sr.No.</th>
+                                        <th width="12%">Challan No.</th>
+                                        <th width="15%">Station(To)</th>
+                                        <th width="8%" class="text-center">Nugs</th>
+                                        <th width="8%" class="text-center">Weight</th>
+                                        <th width="10%" class="text-center">To Pay</th>
+                                        <th width="10%" class="text-center">Paid/Adv</th>
+                                        <th width="10%" class="text-center">Crossing</th>
+                                        <th width="10%" class="text-center">Cartage</th>
+                                        <th width="10%" class="text-center">Labour</th>
+                                        <th width="3%" class="text-center"><i class="fas fa-cog"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(detail, index) in form.details" :key="index" class="bg-white">
+                                        <td class="text-center align-middle">{{ index + 1 }}</td>
+                                        <td class="align-middle fw-semibold">{{ detail.challan_number || '--' }}</td>
+                                        <td class="align-middle">{{ detail.to_station_name || '--' }}</td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm text-center bg-light" v-model="detail.nugs" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.weight" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.to_pay" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.paid_amount" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.crossing" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.cartage" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.labour" readonly>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="form.details.length === 0">
+                                        <td colspan="11" class="bg-light p-2 text-center text-muted">
+                                            Select a challan above to add it to this Main Challan.
+                                            <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Charges & Total -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--orange">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--orange">3</div>
+                            <div>
+                                <h2 class="bilty-section__title">Charges &amp; Total</h2>
+                                <p class="bilty-section__desc">Summary, charges and balance</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="row g-3">
+                            <div class="col-lg-7">
+                                <div class="bilty-charge-list">
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Total Weight</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="totalWeight" readonly>
                                     </div>
-                                </div>
-                                <div class="col-md-3 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Date</label>
-                                    <div class="w-100">
-                                        <input type="date" class="form-control form-control-sm" v-model="form.date">
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Total Nugs</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="totalPackages" readonly>
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">To Pay Amount</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="toPayAmount" readonly>
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Paid Amt / Adv. Rec.</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="paidAmount" readonly>
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Crossing Freight</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="crossingFreight" readonly>
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Cartage / Dalali / PF</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="cartageAmount" readonly>
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">GST Tax</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="gstDisplay" readonly>
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Remark</label>
+                                        <input type="text" class="form-control form-control-sm" v-model="form.remark">
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="row align-items-center mb-2">
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">From St.</label>
-                                    <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="form.from_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
+                            <div class="col-lg-5">
+                                <div class="bilty-total-panel">
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Labour Commission</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="labourDisplay" readonly>
                                     </div>
-                                    <div v-if="form.errors.from_station_id" class="text-danger small ms-2">{{ form.errors.from_station_id }}</div>
-                                </div>
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">To St.</label>
-                                    <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="form.to_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Kat</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="katDisplay" readonly>
                                     </div>
-                                    <div v-if="form.errors.to_station_id" class="text-danger small ms-2">{{ form.errors.to_station_id }}</div>
-                                </div>
-                            </div>
-
-                            <div class="row align-items-center mb-2">
-                                <div class="col-md-4 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Driver</label>
-                                    <div class="flex-grow-1">
-                                        <input type="text" class="form-control form-control-sm" v-model="form.driver_name" placeholder="Enter Driver Name" />
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Home Delivery</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="homeDeliveryDisplay" readonly>
                                     </div>
-                                    <div v-if="form.errors.driver_name" class="text-danger small ms-2">{{ form.errors.driver_name }}</div>
-                                </div>
-                                <div class="col-md-4 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-dark" style="min-width: 85px;">Truck No.</label>
-                                    <div class="flex-grow-1">
-                                        <SearchableSelect :small="true" v-model="form.truck_id" :options="truckOptions" master="truck" placeholder="Select Truck" @created="(record) => appendMasterOption(truckOptions, record)" />
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Truck Freight</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="truckFreightDisplay" readonly>
                                     </div>
-                                    <div v-if="form.errors.truck_id" class="text-danger small ms-2">{{ form.errors.truck_id }}</div>
-                                </div>
-                                <div class="col-md-4 d-flex align-items-center">
-                                    <label class="me-2 mb-0 fw-bold text-primary" style="min-width: 85px;">Add Challan</label>
-                                    <div class="flex-grow-1">
-                                        <SearchableSelect
-                                            ref="fetchChallanSelect"
-                                            :small="true"
-                                            v-model="fetch_challan_id"
-                                            :options="challans"
-                                            labelKey="challan_number"
-                                            placeholder="Select Challan"
-                                            open-on-enter
-                                            @change="onFetchChallanChange"
-                                        />
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Cash Receive</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="cashReceivedDisplay" readonly>
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Cash Paid</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="cashPaidDisplay" readonly>
+                                    </div>
+                                    <div class="bilty-total">
+                                        <span class="bilty-total__label">TOTAL</span>
+                                        <input type="text" class="form-control form-control-sm bilty-total__input" :class="form.total_amount < 0 ? 'text-danger' : ''" :value="form.total_amount" readonly>
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Total Balance Amt.</label>
+                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="form.total_balance_type" readonly>
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">To (Account)</label>
+                                        <input type="text" class="form-control form-control-sm" v-model="form.pay_by">
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </section>
 
-                        <!-- Mid Section: Details Grid -->
-                        <div class="card-body p-0 border-bottom">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-sm m-0 table-grid">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th width="4%" class="text-center">Sr.No.</th>
-                                            <th width="12%">Challan No.</th>
-                                            <th width="15%">Station(To)</th>
-                                            <th width="8%" class="text-center">Nugs</th>
-                                            <th width="8%" class="text-center">Weight</th>
-                                            <th width="10%" class="text-center">To Pay</th>
-                                            <th width="10%" class="text-center">Paid/Adv</th>
-                                            <th width="10%" class="text-center">Crossing</th>
-                                            <th width="10%" class="text-center">Cartage</th>
-                                            <th width="10%" class="text-center">Labour</th>
-                                            <th width="3%" class="text-center"><i class="fas fa-cog"></i></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(detail, index) in form.details" :key="index" class="bg-white">
-                                            <td class="text-center align-middle">{{ index + 1 }}</td>
-                                            <td class="align-middle fw-semibold">{{ detail.challan_number || '--' }}</td>
-                                            <td class="align-middle">{{ detail.to_station_name || '--' }}</td>
-                                            <td>
-                                                <input type="number" class="form-control form-control-sm text-center bg-light" v-model="detail.nugs" readonly>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.weight" readonly>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.to_pay" readonly>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.paid_amount" readonly>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.crossing" readonly>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.cartage" readonly>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.labour" readonly>
-                                            </td>
-                                            <td class="text-center align-middle">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr v-if="form.details.length === 0">
-                                            <td colspan="11" class="bg-light p-2 text-center text-muted">
-                                                Select a challan above to add it to this Main Challan.
-                                                <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Bottom Section: Totals -->
-                        <div class="card-body pt-3 pb-2">
-                            <div class="row">
-                                <div class="col-md-7">
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Total Weight</label></div>
-                                        <div class="col-7"><span class="small fw-bold text-primary">{{ totalWeight }}</span></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Total Nugs</label></div>
-                                        <div class="col-7"><span class="small fw-bold text-primary">{{ totalPackages }}</span></div>
-                                    </div>
-
-                                    <hr class="my-2 border-secondary">
-
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">To Pay Amount</label></div>
-                                        <div class="col-7"><span class="small fw-bold text-primary">{{ toPayAmount }}</span></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Paid Amt/Adv.Rec.</label></div>
-                                        <div class="col-7"><span class="small fw-bold text-primary">{{ paidAmount }}</span></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Crossing Freight</label></div>
-                                        <div class="col-7"><span class="small fw-bold text-primary">{{ crossingFreight }}</span></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Cartage/Dalali/PF</label></div>
-                                        <div class="col-7"><span class="small fw-bold text-primary">{{ cartageAmount }}</span></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">GST Tax</label></div>
-                                        <div class="col-7"><span class="small fw-bold text-primary">{{ gstDisplay }}</span></div>
-                                    </div>
-
-                                    <hr class="my-2 border-secondary">
-
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-5 text-end"><label class="mb-0 fw-bold small text-dark">Remark</label></div>
-                                        <div class="col-7"><input type="text" class="form-control form-control-sm bg-white" v-model="form.remark"></div>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-5">
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Labour Commission</label></div>
-                                        <div class="col-6"><span class="small fw-bold text-primary">{{ labourDisplay }}</span></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Kat</label></div>
-                                        <div class="col-6"><span class="small fw-bold text-primary">{{ katDisplay }}</span></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Home Delivery</label></div>
-                                        <div class="col-6"><span class="small fw-bold text-primary">{{ homeDeliveryDisplay }}</span></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Truck Freight</label></div>
-                                        <div class="col-6"><span class="small fw-bold text-primary">{{ truckFreightDisplay }}</span></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Cash Receive</label></div>
-                                        <div class="col-6"><span class="small fw-bold text-primary">{{ cashReceivedDisplay }}</span></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Cash Paid</label></div>
-                                        <div class="col-6"><span class="small fw-bold text-primary">{{ cashPaidDisplay }}</span></div>
-                                    </div>
-
-                                    <hr class="my-2 border-secondary">
-
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold">TOTAL</label></div>
-                                        <div class="col-6">
-                                            <input type="text" class="form-control form-control-sm bg-white fw-bold" :class="form.total_amount < 0 ? 'text-danger' : ''" :value="form.total_amount" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">Total Balance Amt.</label></div>
-                                        <div class="col-6"><span class="small fw-bold text-primary">{{ form.total_balance_type }}</span></div>
-                                    </div>
-                                    <div class="row align-items-center mb-1">
-                                        <div class="col-6 text-end"><label class="mb-0 fw-bold small text-dark">To (Account)</label></div>
-                                        <div class="col-6">
-                                            <input type="text" class="form-control form-control-sm bg-white" v-model="form.pay_by">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="card-footer bg-light d-flex justify-content-center gap-2 border-top-0 pt-3 pb-3">
-                            <Link href="/main-challans" class="btn btn-outline-secondary px-4"><i class="fas fa-times me-1"></i> Exit</Link>
-                            <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm" :disabled="form.processing">
-                                <i class="fas fa-save me-1"></i> Save
-                            </button>
-                        </div>
-                    </form>
+                <div class="bilty-form-actions">
+                    <Link href="/main-challans" class="btn btn-outline-secondary btn-sm px-3">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </Link>
+                    <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
+                        <i class="fas fa-save me-1"></i> Save
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
 
         <MainChallanConfirmModal

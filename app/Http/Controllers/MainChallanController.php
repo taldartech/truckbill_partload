@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Challan;
+use App\Models\Company;
 use App\Models\MainChallan;
 use App\Models\Station;
 use App\Models\Truck;
+use App\Support\DocumentNumber;
 use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -28,19 +30,71 @@ class MainChallanController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $main_challans = MainChallan::with(['company', 'fromStation', 'toStation', 'truck'])->latest()->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'from_date' => ['nullable', 'date'],
+            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+            'truck_id' => ['nullable', 'integer', 'exists:trucks,id'],
+            'from_station_id' => ['nullable', 'integer', 'exists:stations,id'],
+        ]);
+
+        $fromDate = $validated['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $validated['to_date'] ?? now()->endOfMonth()->toDateString();
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $mainChallans = MainChallan::query()
+            ->with(['company', 'fromStation', 'toStation', 'truck'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('main_challan_number', 'like', '%'.$search.'%')
+                        ->orWhere('driver_name', 'like', '%'.$search.'%')
+                        ->orWhereHas('truck', function ($truckQuery) use ($search) {
+                            $truckQuery->where('truck_number', 'like', '%'.$search.'%');
+                        });
+                });
+            })
+            ->when($fromDate, fn ($query) => $query->whereDate('date', '>=', $fromDate))
+            ->when($toDate, fn ($query) => $query->whereDate('date', '<=', $toDate))
+            ->when(! empty($validated['truck_id']), function ($query) use ($validated) {
+                $query->where('truck_id', $validated['truck_id']);
+            })
+            ->when(! empty($validated['from_station_id']), function ($query) use ($validated) {
+                $query->where('from_station_id', $validated['from_station_id']);
+            })
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('MainChallans/Index', [
-            'main_challans' => $main_challans,
+            'main_challans' => $mainChallans,
+            'trucks' => Truck::query()
+                ->orderBy('truck_number')
+                ->get(['id', 'truck_number'])
+                ->map(fn (Truck $truck) => [
+                    'id' => $truck->id,
+                    'name' => $truck->truck_number,
+                    'truck_number' => $truck->truck_number,
+                ]),
+            'stations' => Station::query()
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            'filters' => [
+                'search' => $search,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'truck_id' => isset($validated['truck_id']) ? (string) $validated['truck_id'] : '',
+                'from_station_id' => isset($validated['from_station_id']) ? (string) $validated['from_station_id'] : '',
+            ],
         ]);
     }
 
     public function create()
     {
         $branch = $this->activeBranch();
-        $nextNumber = \App\Support\DocumentNumber::next(
+        $nextNumber = DocumentNumber::next(
             MainChallan::query(),
             'main_challan_number',
             $branch?->main_challan_initial
@@ -199,7 +253,7 @@ class MainChallanController extends Controller implements HasMiddleware
         ]);
 
         $branch = $main_challan->branch;
-        $company = $branch?->company ?? \App\Models\Company::find($main_challan->company_id);
+        $company = $branch?->company ?? Company::find($main_challan->company_id);
 
         return view('prints.main_challan', compact('main_challan', 'company', 'branch'));
     }
