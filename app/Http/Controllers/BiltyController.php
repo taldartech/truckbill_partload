@@ -6,13 +6,16 @@ use App\Http\Requests\BiltyRequest;
 use App\Models\Agent;
 use App\Models\Bilty;
 use App\Models\Branch;
+use App\Models\Company;
 use App\Models\Good;
 use App\Models\PackageType;
 use App\Models\Party;
 use App\Models\Station;
 use App\Models\Vendor;
 use App\Support\BiltyPrint;
+use App\Support\DocumentNumber;
 use App\Support\RedirectsWithOptionalPrint;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
@@ -33,21 +36,55 @@ class BiltyController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $bilties = Bilty::with(['company', 'consignor', 'consignee', 'fromStation', 'toStation'])
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'from_date' => ['nullable', 'date'],
+            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+            'consignor_id' => ['nullable', 'integer', 'exists:parties,id'],
+            'consignee_id' => ['nullable', 'integer', 'exists:parties,id'],
+        ]);
+
+        $fromDate = $validated['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $validated['to_date'] ?? now()->endOfMonth()->toDateString();
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $bilties = Bilty::query()
+            ->with(['company', 'consignor', 'consignee', 'fromStation', 'toStation'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where('bilty_number', 'like', '%'.$search.'%');
+            })
+            ->when($fromDate, fn ($query) => $query->whereDate('date', '>=', $fromDate))
+            ->when($toDate, fn ($query) => $query->whereDate('date', '<=', $toDate))
+            ->when(! empty($validated['consignor_id']), function ($query) use ($validated) {
+                $query->where('consignor_id', $validated['consignor_id']);
+            })
+            ->when(! empty($validated['consignee_id']), function ($query) use ($validated) {
+                $query->where('consignee_id', $validated['consignee_id']);
+            })
             ->orderBy('date', 'desc')
-            ->paginate(10);
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Bilties/Index', [
             'bilties' => $bilties,
+            'parties' => $this->partyOptions(),
+            'filters' => [
+                'search' => $search,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'consignor_id' => isset($validated['consignor_id']) ? (string) $validated['consignor_id'] : '',
+                'consignee_id' => isset($validated['consignee_id']) ? (string) $validated['consignee_id'] : '',
+            ],
         ]);
     }
 
     public function create()
     {
         $branch = $this->activeBranch();
-        $nextNumber = \App\Support\DocumentNumber::next(
+        $nextNumber = DocumentNumber::next(
             Bilty::query(),
             'bilty_number',
             $branch?->bilty_initial
@@ -171,7 +208,7 @@ class BiltyController extends Controller implements HasMiddleware
     public function print(Bilty $bilty)
     {
         $bilty->load(['fromStation', 'toStation', 'consignor', 'consignee', 'vendor', 'creator', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills', 'branch.company', 'branch.city', 'branch.state', 'branch.settings']);
-        $company = \App\Models\Company::find($bilty->company_id);
+        $company = Company::find($bilty->company_id);
         $branch = $bilty->branch ?? new Branch;
         $printData = $this->buildPrintData($bilty);
 
