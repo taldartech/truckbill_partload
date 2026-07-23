@@ -25,15 +25,35 @@ class TruckController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $trucks = Truck::with(['company', 'truckType', 'currentState', 'currentCity', 'currentStation'])->latest()->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $trucks = Truck::query()
+            ->with(['company', 'truckType', 'currentState', 'currentCity', 'currentStation'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('truck_number', 'like', '%'.$search.'%')
+                        ->orWhere('owner_name', 'like', '%'.$search.'%')
+                        ->orWhere('status', 'like', '%'.$search.'%');
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Trucks/Index', [
             'trucks' => $trucks,
             'states' => State::all(),
             'cities' => City::all(),
             'stations' => Station::all(),
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 

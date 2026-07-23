@@ -21,12 +21,28 @@ class GoodController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $items = Good::query()
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
+
         return Inertia::render('Goods/Index', [
-            'items' => Good::orderBy('id', 'desc')->paginate(10),
+            'items' => $items,
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
+
 
     public function store(Request $request)
     {

@@ -14,4 +14,14 @@ class Agent extends Model
     {
         return $this->belongsTo(Company::class);
     }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function state()
+    {
+        return $this->belongsTo(State::class);
+    }
 }

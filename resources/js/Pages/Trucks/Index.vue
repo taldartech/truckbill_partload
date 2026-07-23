@@ -1,17 +1,41 @@
 <template>
     <AdminLayout title="Trucks">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="card-title">Manage Trucks</h3>
-                        <Link v-if="can('create trucks')" href="/trucks/create" class="btn btn-primary btn-sm ms-auto">
-                            <i class="fas fa-plus"></i> Add New Truck
+        <div class="app-index-page app-index-page--standard">
+            <div class="card app-index-list-card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Manage Trucks</h3>
+                    <div class="app-index-card-toolbar d-flex flex-wrap gap-2 align-items-center">
+                        <Link v-if="can('create trucks')" href="/trucks/create" class="btn btn-sm app-index-header-btn">
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
+                            Create
                         </Link>
                     </div>
-                    <div class="card-body p-0 table-responsive">
-                        <table class="table table-hover">
-                            <thead>
+                </div>
+
+                <AppIndexCollapsibleFilters
+                    panel-id="trucks-filters-panel"
+                    :loading="searching"
+                    @search="applyFilters"
+                    @reset="resetFilters"
+                >
+                    <div class="filter-search-col">
+                        <label class="form-label" for="trucks_search">Search</label>
+                        <AppIndexSearchInput
+                            v-model="filters.search"
+                            input-id="trucks_search"
+                            placeholder="Truck no, owner, status"
+                            max-width="100%"
+                            size="md"
+                            :disabled="searching"
+                            @keydown.enter="applyFilters"
+                        />
+                    </div>
+                </AppIndexCollapsibleFilters>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0 app-index-table">
+                            <thead class="table-light">
                                 <tr>
                                     <th>ID</th>
                                     <th>Truck Number</th>
@@ -78,13 +102,13 @@
                                     </td>
                                 </tr>
                                 <tr v-if="trucks.data.length === 0">
-                                    <td colspan="9" class="text-center py-4">No records found.</td>
+                                    <td colspan="9" class="text-center text-muted py-4">No trucks found for selected filters.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <PaginationLinks :pagination="trucks" />
                 </div>
+                <PaginationLinks :pagination="trucks" />
             </div>
         </div>
 
@@ -142,6 +166,9 @@ import { Link, router, usePage, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
+import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
+import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
 
 const page = usePage();
 const can = (permission) => {
@@ -153,7 +180,13 @@ const props = defineProps({
     states: Array,
     cities: Array,
     stations: Array,
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
 });
+
+const { searching, filters, applyFilters, resetFilters } = useMasterIndexSearch(props, '/trucks');
 
 let modalInstance = null;
 const selectedTruck = ref(null);

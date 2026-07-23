@@ -23,14 +23,34 @@ class StationController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $stations = Station::with('city', 'state')->latest()->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $stations = Station::query()
+            ->with('city', 'state')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('name', 'like', '%'.$search.'%')
+                        ->orWhereHas('city', fn ($cityQuery) => $cityQuery->where('name', 'like', '%'.$search.'%'))
+                        ->orWhereHas('state', fn ($stateQuery) => $stateQuery->where('name', 'like', '%'.$search.'%'));
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Stations/Index', [
             'stations' => $stations,
             'states' => State::query()->orderBy('name')->get(['id', 'name']),
             'cities' => City::query()->orderBy('name')->get(['id', 'name', 'state_id']),
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 

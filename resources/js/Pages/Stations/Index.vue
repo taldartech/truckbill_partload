@@ -1,22 +1,46 @@
 <template>
     <AdminLayout title="Stations">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="card-title">Manage Stations</h3>
+        <div class="app-index-page app-index-page--standard">
+            <div class="card app-index-list-card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Manage Stations</h3>
+                    <div class="app-index-card-toolbar d-flex flex-wrap gap-2 align-items-center">
                         <button
                             v-if="can('create stations')"
                             type="button"
-                            class="btn btn-primary btn-sm ms-auto"
+                            class="btn btn-sm app-index-header-btn"
                             @click="openModal()"
                         >
-                            <i class="fas fa-plus"></i> Add New Station
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
+                            Create
                         </button>
                     </div>
-                    <div class="card-body p-0 table-responsive">
-                        <table class="table table-hover">
-                            <thead>
+                </div>
+
+                <AppIndexCollapsibleFilters
+                    panel-id="stations-filters-panel"
+                    :loading="searching"
+                    @search="applyFilters"
+                    @reset="resetFilters"
+                >
+                    <div class="filter-search-col">
+                        <label class="form-label" for="stations_search">Search</label>
+                        <AppIndexSearchInput
+                            v-model="filters.search"
+                            input-id="stations_search"
+                            placeholder="Station, city, state"
+                            max-width="100%"
+                            size="md"
+                            :disabled="searching"
+                            @keydown.enter="applyFilters"
+                        />
+                    </div>
+                </AppIndexCollapsibleFilters>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0 app-index-table">
+                            <thead class="table-light">
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
@@ -51,13 +75,13 @@
                                     </td>
                                 </tr>
                                 <tr v-if="stations.data.length === 0">
-                                    <td colspan="5" class="text-center py-4">No records found.</td>
+                                    <td colspan="5" class="text-center text-muted py-4">No stations found for selected filters.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <PaginationLinks :pagination="stations" />
                 </div>
+                <PaginationLinks :pagination="stations" />
             </div>
         </div>
 
@@ -133,13 +157,22 @@ import { router, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
+import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
+import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
 
 const props = defineProps({
     stations: Object,
     states: Array,
     cities: Array,
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
 });
+
+const { searching, filters, applyFilters, resetFilters } = useMasterIndexSearch(props, '/stations');
 
 const page = usePage();
 const can = (permission) => page.props.auth.is_admin || page.props.auth.permissions.includes(permission);

@@ -23,21 +23,40 @@ class AgentController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $agents = Agent::with('company')->latest()->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $agents = Agent::query()
+            ->with(['company', 'city'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('mobile', 'like', '%'.$search.'%')
+                        ->orWhere('gst_no', 'like', '%'.$search.'%');
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Agents/Index', [
             'agents' => $agents,
+            'cities' => City::query()->orderBy('name')->get(['id', 'name', 'state_id']),
+            'states' => State::query()->orderBy('name')->get(['id', 'name']),
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Agents/Create', [
-            'cities' => City::all(),
-            'states' => State::all(),
-        ]);
+        return redirect()->route('agents.index');
     }
 
     public function store(Request $request)
@@ -49,7 +68,7 @@ class AgentController extends Controller implements HasMiddleware
 
         Agent::create($validated);
 
-        return redirect()->route('agents.index')->with('success', 'Agent created successfully.');
+        return redirect()->back()->with('success', 'Agent created successfully.');
     }
 
     public function quickFormData(): JsonResponse
@@ -78,11 +97,7 @@ class AgentController extends Controller implements HasMiddleware
 
     public function edit(Agent $agent)
     {
-        return Inertia::render('Agents/Edit', [
-            'agent' => $agent,
-            'cities' => City::all(),
-            'states' => State::all(),
-        ]);
+        return redirect()->route('agents.index');
     }
 
     public function update(Request $request, Agent $agent)
@@ -94,14 +109,14 @@ class AgentController extends Controller implements HasMiddleware
 
         $agent->update($validated);
 
-        return redirect()->route('agents.index')->with('success', 'Agent updated successfully.');
+        return redirect()->back()->with('success', 'Agent updated successfully.');
     }
 
     public function destroy(Agent $agent)
     {
         $agent->delete();
 
-        return redirect()->route('agents.index')->with('success', 'Agent deleted successfully.');
+        return redirect()->back()->with('success', 'Agent deleted successfully.');
     }
 
     /**

@@ -24,22 +24,41 @@ class PartyController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $parties = Party::with('company')->latest()->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $parties = Party::query()
+            ->with('company')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('gst_number', 'like', '%'.$search.'%')
+                        ->orWhere('mobile', 'like', '%'.$search.'%');
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Parties/Index', [
             'parties' => $parties,
+            'groups' => Group::query()->orderBy('name')->get(['id', 'name']),
+            'cities' => City::query()->orderBy('name')->get(['id', 'name', 'state_id']),
+            'states' => State::query()->orderBy('name')->get(['id', 'name']),
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Parties/Create', [
-            'groups' => Group::all(),
-            'cities' => City::all(),
-            'states' => State::all(),
-        ]);
+        return redirect()->route('parties.index');
     }
 
     public function store(Request $request)
@@ -51,7 +70,7 @@ class PartyController extends Controller implements HasMiddleware
 
         Party::create($validated);
 
-        return redirect()->route('parties.index')->with('success', 'Party created successfully.');
+        return redirect()->back()->with('success', 'Party created successfully.');
     }
 
     public function quickFormData(): JsonResponse
@@ -108,12 +127,7 @@ class PartyController extends Controller implements HasMiddleware
 
     public function edit(Party $party)
     {
-        return Inertia::render('Parties/Edit', [
-            'party' => $party,
-            'groups' => Group::all(),
-            'cities' => City::all(),
-            'states' => State::all(),
-        ]);
+        return redirect()->route('parties.index');
     }
 
     public function update(Request $request, Party $party)
@@ -125,14 +139,14 @@ class PartyController extends Controller implements HasMiddleware
 
         $party->update($validated);
 
-        return redirect()->route('parties.index')->with('success', 'Party updated successfully.');
+        return redirect()->back()->with('success', 'Party updated successfully.');
     }
 
     public function destroy(Party $party)
     {
         $party->delete();
 
-        return redirect()->route('parties.index')->with('success', 'Party deleted successfully.');
+        return redirect()->back()->with('success', 'Party deleted successfully.');
     }
 
     /**

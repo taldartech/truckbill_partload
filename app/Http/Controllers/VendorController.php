@@ -23,21 +23,40 @@ class VendorController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $vendors = Vendor::with('company')->latest()->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $vendors = Vendor::query()
+            ->with('company')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('mobile', 'like', '%'.$search.'%')
+                        ->orWhere('gst_number', 'like', '%'.$search.'%');
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Vendors/Index', [
             'vendors' => $vendors,
+            'cities' => City::query()->orderBy('name')->get(['id', 'name', 'state_id']),
+            'states' => State::query()->orderBy('name')->get(['id', 'name']),
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Vendors/Create', [
-            'cities' => City::all(),
-            'states' => State::all(),
-        ]);
+        return redirect()->route('vendors.index');
     }
 
     public function store(Request $request)
@@ -49,7 +68,7 @@ class VendorController extends Controller implements HasMiddleware
 
         Vendor::create($validated);
 
-        return redirect()->route('vendors.index')->with('success', 'Vendor created successfully.');
+        return redirect()->back()->with('success', 'Vendor created successfully.');
     }
 
     public function quickFormData(): JsonResponse
@@ -78,11 +97,7 @@ class VendorController extends Controller implements HasMiddleware
 
     public function edit(Vendor $vendor)
     {
-        return Inertia::render('Vendors/Edit', [
-            'vendor' => $vendor,
-            'cities' => City::all(),
-            'states' => State::all(),
-        ]);
+        return redirect()->route('vendors.index');
     }
 
     public function update(Request $request, Vendor $vendor)
@@ -94,14 +109,14 @@ class VendorController extends Controller implements HasMiddleware
 
         $vendor->update($validated);
 
-        return redirect()->route('vendors.index')->with('success', 'Vendor updated successfully.');
+        return redirect()->back()->with('success', 'Vendor updated successfully.');
     }
 
     public function destroy(Vendor $vendor)
     {
         $vendor->delete();
 
-        return redirect()->route('vendors.index')->with('success', 'Vendor deleted successfully.');
+        return redirect()->back()->with('success', 'Vendor deleted successfully.');
     }
 
     /**
