@@ -11,6 +11,35 @@
     overflow: hidden !important;
     background-color: var(--brand-card-bg) !important;
     border-right: 1px solid var(--brand-border) !important;
+    transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out, min-width 0.3s ease-in-out, max-width 0.3s ease-in-out;
+}
+
+@media (min-width: 992px) {
+    body.sidebar-collapse:not(.sidebar-mini) .app-sidebar,
+    body.sidebar-collapse:not(.sidebar-mini) .main-sidebar {
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        margin-left: 0 !important;
+        border-right-width: 0 !important;
+        overflow: hidden !important;
+    }
+}
+
+@media (max-width: 991.98px) {
+    body.sidebar-collapse .app-sidebar,
+    body.sidebar-collapse .main-sidebar {
+        margin-left: calc(var(--sidebar-width) * -1) !important;
+        width: var(--sidebar-width) !important;
+        min-width: var(--sidebar-width) !important;
+        max-width: var(--sidebar-width) !important;
+        border-right-width: 1px !important;
+    }
+
+    body.sidebar-open .app-sidebar,
+    body.sidebar-open .main-sidebar {
+        margin-left: 0 !important;
+    }
 }
 
 .app-sidebar .sidebar-brand {

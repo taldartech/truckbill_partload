@@ -3,7 +3,12 @@
         <div class="container-fluid app-header-inner">
             <ul class="navbar-nav app-header-start align-items-center">
                 <li class="nav-item">
-                    <button class="btn btn-link text-muted p-2 app-header-icon-btn" data-lte-toggle="sidebar">
+                    <button
+                        type="button"
+                        class="btn btn-link text-muted p-2 app-header-icon-btn"
+                        aria-label="Toggle sidebar"
+                        @click="toggleSidebar"
+                    >
                         <i class="fas fa-bars"></i>
                     </button>
                 </li>
@@ -77,7 +82,34 @@
 </template>
 
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { onMounted, onUnmounted } from 'vue';
+import { Link, router } from '@inertiajs/vue3';
+import { collapseSidebar, syncSidebarForViewport, toggleSidebar } from '@/utils/sidebarToggle';
+
+const SIDEBAR_BREAKPOINT = 992;
+let removeNavigateListener = null;
+
+onMounted(() => {
+    if (
+        !document.body.classList.contains('sidebar-open')
+        && !document.body.classList.contains('sidebar-collapse')
+    ) {
+        syncSidebarForViewport();
+    }
+
+    window.addEventListener('resize', syncSidebarForViewport);
+
+    removeNavigateListener = router.on('navigate', () => {
+        if (window.innerWidth <= SIDEBAR_BREAKPOINT) {
+            collapseSidebar();
+        }
+    });
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', syncSidebarForViewport);
+    removeNavigateListener?.();
+});
 </script>
 
 <style scoped>
