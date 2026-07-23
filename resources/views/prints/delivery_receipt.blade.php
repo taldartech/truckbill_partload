@@ -21,7 +21,7 @@
         .text-right { text-align: right; }
         .footer { margin-top: 20px; display: flex; justify-content: space-between; padding-top: 50px; }
         .signature { text-align: center; width: 30%; border-top: 1px solid #000; padding-top: 5px; }
-        
+
         @media print {
             body { padding: 0; }
             .print-container { border: none; }
@@ -29,6 +29,13 @@
     </style>
 </head>
 <body onload="window.print()">
+    @php
+        $gstOnLabel = match ($receipt->gst_on) {
+            'delivery_charge' => 'Delivery Charge',
+            'total_charge' => 'Total Charge',
+            default => $receipt->gst_on ?: '—',
+        };
+    @endphp
     <div class="print-container">
         <div class="header">
             <h1>{{ $company->name ?? 'TRANSPORT COMPANY' }}</h1>
@@ -47,7 +54,7 @@
                 <div class="box">
                     <strong>Consignee:</strong> {{ $receipt->consignee->name ?? '____' }}<br>
                     <strong>Mode of Payment:</strong> {{ $receipt->mode_of_payment }}<br>
-                    <strong>Payment Due From:</strong> {{ $receipt->payment_due_from }}
+                    <strong>Payment Due From:</strong> {{ $receipt->paymentDueFrom->name ?? '—' }}
                 </div>
             </div>
         </div>
@@ -55,16 +62,18 @@
         <h4>Charges Breakdown</h4>
         <table style="width: 50%; margin: 0 auto;">
             <tbody>
-                <tr><td>Freight</td><td class="text-right">₹ {{ number_format($receipt->freight, 2) }}</td></tr>
-                <tr><td>Handling Charge</td><td class="text-right">₹ {{ number_format($receipt->handling_charge, 2) }}</td></tr>
-                <tr><td>Risk/DD Charge</td><td class="text-right">₹ {{ number_format($receipt->risk_dd_charge, 2) }}</td></tr>
-                <tr><td>Delivery Charge</td><td class="text-right">₹ {{ number_format($receipt->delivery_charge, 2) }}</td></tr>
-                <tr><td>Demurrage</td><td class="text-right">₹ {{ number_format($receipt->demurrage, 2) }}</td></tr>
-                <tr><td>Other Charge</td><td class="text-right">₹ {{ number_format($receipt->other_charge, 2) }}</td></tr>
-                <tr style="background-color: #f0f0f0;"><td><strong>Sub Total</strong></td><td class="text-right"><strong>₹ {{ number_format($receipt->total_amount, 2) }}</strong></td></tr>
-                <tr><td>GST</td><td class="text-right">₹ {{ number_format($receipt->gst, 2) }}</td></tr>
-                <tr><td>Less</td><td class="text-right">- ₹ {{ number_format($receipt->less, 2) }}</td></tr>
-                <tr style="font-size: 16px;"><td><strong>FINAL AMOUNT</strong></td><td class="text-right"><strong>₹ {{ number_format($receipt->final_amount, 2) }}</strong></td></tr>
+                <tr><td>Freight</td><td class="text-right">₹ {{ number_format($receipt->freight ?? 0, 2) }}</td></tr>
+                <tr><td>Handling Charge</td><td class="text-right">₹ {{ number_format($receipt->handling_charge ?? 0, 2) }}</td></tr>
+                <tr><td>Delivery Charge</td><td class="text-right">₹ {{ number_format($receipt->delivery_charge ?? 0, 2) }}</td></tr>
+                <tr><td>Stationery Charge</td><td class="text-right">₹ {{ number_format($receipt->stationery_charge ?? 0, 2) }}</td></tr>
+                <tr><td>Demurrage</td><td class="text-right">₹ {{ number_format($receipt->demurrage ?? 0, 2) }}</td></tr>
+                <tr><td>Other Charge</td><td class="text-right">₹ {{ number_format($receipt->other_charge ?? 0, 2) }}</td></tr>
+                <tr><td>Carriage Charge</td><td class="text-right">₹ {{ number_format($receipt->carriage_charge ?? 0, 2) }}</td></tr>
+                <tr style="background-color: #f0f0f0;"><td><strong>Sub Total</strong></td><td class="text-right"><strong>₹ {{ number_format($receipt->total_amount ?? 0, 2) }}</strong></td></tr>
+                <tr><td>GST On</td><td class="text-right">{{ $gstOnLabel }}</td></tr>
+                <tr><td>GST ({{ number_format($receipt->gst_rate ?? 0, 2) }}% · {{ $receipt->gst_pay_by ?: '—' }})</td><td class="text-right">₹ {{ number_format($receipt->gst ?? 0, 2) }}</td></tr>
+                <tr><td>Less</td><td class="text-right">- ₹ {{ number_format($receipt->less ?? 0, 2) }}</td></tr>
+                <tr style="font-size: 16px;"><td><strong>FINAL AMOUNT</strong></td><td class="text-right"><strong>₹ {{ number_format($receipt->final_amount ?? 0, 2) }}</strong></td></tr>
             </tbody>
         </table>
 

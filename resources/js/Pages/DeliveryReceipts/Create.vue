@@ -10,8 +10,9 @@
                         <div class="card-body">
                             <div class="row mb-3">
                                 <div class="col-md-3">
-                                    <label class="form-label">Receipt No.</label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.delivery_receipt_no">
+                                    <label class="form-label">Receipt No. <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm" v-model="form.delivery_receipt_no" required>
+                                    <div v-if="form.errors.delivery_receipt_no" class="text-danger small mt-1">{{ form.errors.delivery_receipt_no }}</div>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Date <span class="text-danger">*</span></label>
@@ -32,32 +33,47 @@
                                     <div v-if="grFetchError" class="text-danger small mt-1">{{ grFetchError }}</div>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label">Mode of Payment</label>
-                                    <select class="form-select form-select-sm" v-model="form.mode_of_payment">
+                                    <label class="form-label">Mode of Payment <span class="text-danger">*</span></label>
+                                    <select
+                                        ref="modeOfPaymentEl"
+                                        class="form-select form-select-sm"
+                                        v-model="form.mode_of_payment"
+                                        required
+                                    >
+                                        <option value="" disabled>Select Mode</option>
                                         <option value="Cash">Cash</option>
                                         <option value="Bank">Bank</option>
-                                        <option value="To Pay">To Pay</option>
+                                        <option value="Due">Due</option>
                                     </select>
+                                    <div v-if="form.errors.mode_of_payment" class="text-danger small mt-1">{{ form.errors.mode_of_payment }}</div>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label">Consignee <span class="text-danger">*</span></label>
+                                    <input
+                                        type="text"
+                                        class="form-control form-control-sm bg-light"
+                                        :value="consigneeName"
+                                        readonly
+                                        tabindex="-1"
+                                    >
+                                    <div v-if="form.errors.consignee_id" class="text-danger small mt-1">{{ form.errors.consignee_id }}</div>
+                                </div>
+                                <div v-if="form.mode_of_payment === 'Due'" class="col-md-4">
+                                    <label class="form-label">Payment Due From <span class="text-danger">*</span></label>
                                     <SearchableSelect
                                         :small="true"
-                                        v-model="form.consignee_id"
+                                        v-model="form.payment_due_from_id"
                                         :options="partyOptions"
                                         master="party"
-                                        placeholder="Select Consignee"
+                                        placeholder="Select Party"
                                         @created="(record) => appendMasterOption(partyOptions, record)"
                                     />
+                                    <div v-if="form.errors.payment_due_from_id" class="text-danger small mt-1">{{ form.errors.payment_due_from_id }}</div>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Office Name</label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.office_name">
-                                </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <label class="form-label">Haste</label>
                                     <input type="text" class="form-control form-control-sm" v-model="form.haste">
                                 </div>
@@ -65,7 +81,7 @@
 
                             <hr>
                             <h6 class="mb-3 text-primary">Charges Breakdown</h6>
-                            
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="row mb-2 align-items-center">
@@ -77,16 +93,12 @@
                                         <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.handling_charge" @input="calculateTotals"></div>
                                     </div>
                                     <div class="row mb-2 align-items-center">
-                                        <div class="col-5"><label class="form-label mb-0">Risk/DD Charge</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.risk_dd_charge" @input="calculateTotals"></div>
-                                    </div>
-                                    <div class="row mb-2 align-items-center">
                                         <div class="col-5"><label class="form-label mb-0">Delivery Charge</label></div>
                                         <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.delivery_charge" @input="calculateTotals"></div>
                                     </div>
                                     <div class="row mb-2 align-items-center">
-                                        <div class="col-5"><label class="form-label mb-0">Stationary Charge</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.stationary_charge" @input="calculateTotals"></div>
+                                        <div class="col-5"><label class="form-label mb-0">Stationery Charge</label></div>
+                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.stationery_charge" @input="calculateTotals"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-6 border-start">
@@ -99,8 +111,8 @@
                                         <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.other_charge" @input="calculateTotals"></div>
                                     </div>
                                     <div class="row mb-2 align-items-center">
-                                        <div class="col-5"><label class="form-label mb-0">Cartage Charge</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.cartage_charge" @input="calculateTotals"></div>
+                                        <div class="col-5"><label class="form-label mb-0">Carriage Charge</label></div>
+                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.carriage_charge" @input="calculateTotals"></div>
                                     </div>
                                     <div class="row mb-2 align-items-center">
                                         <div class="col-5"><label class="form-label mb-0 fw-bold">Sub Total Amount</label></div>
@@ -108,28 +120,36 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <hr>
                             <h6 class="mb-3 text-primary">GST & Final Calculation</h6>
                             <div class="row mb-3">
                                 <div class="col-md-3">
                                     <label class="form-label">GST On</label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.gst_on">
+                                    <select class="form-select form-select-sm" v-model="form.gst_on" @change="calculateTotals">
+                                        <option value="delivery_charge">Delivery Charge</option>
+                                        <option value="total_charge">Total Charge</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label">GST</label>
-                                    <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.gst" @input="calculateTotals">
+                                    <label class="form-label">GST ({{ Number(form.gst_rate || 0) }}%)</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.gst" readonly>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">GST Pay By</label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.gst_pay_by">
+                                    <select class="form-select form-select-sm" v-model="form.gst_pay_by" @change="calculateTotals">
+                                        <option value="Consignor">Consignor</option>
+                                        <option value="Consignee">Consignee</option>
+                                        <option value="Transporter">Transporter</option>
+                                        <option value="Exempted">Exempted</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Less</label>
                                     <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.less" @input="calculateTotals">
                                 </div>
                             </div>
-                            
+
                             <div class="row">
                                 <div class="col-md-8"></div>
                                 <div class="col-md-4">
@@ -139,7 +159,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
                         </div>
                         <div class="card-footer d-flex justify-content-end gap-2 bg-light">
                             <Link href="/delivery-receipts" class="btn btn-secondary">Cancel</Link>
@@ -149,6 +168,13 @@
                 </div>
             </div>
         </div>
+
+        <DeliveryReceiptGrConfirmModal
+            :show="showGrConfirm"
+            :details="pendingGrDetails"
+            @confirm="confirmGrSelection"
+            @cancel="cancelGrSelection"
+        />
 
         <DeliveryReceiptConfirmModal
             :show="showConfirm"
@@ -162,6 +188,7 @@
 </template>
 
 <script setup>
+import DeliveryReceiptGrConfirmModal from '@/Components/DeliveryReceiptGrConfirmModal.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import DeliveryReceiptConfirmModal from '@/Components/FormConfirm/DeliveryReceiptConfirmModal.vue';
@@ -170,13 +197,17 @@ import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import http from '@/utils/http';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
 const props = defineProps({
     parties: Array,
     gr_sources: {
         type: Array,
         default: () => [],
+    },
+    gst_rate: {
+        type: Number,
+        default: 0,
     },
 });
 
@@ -186,6 +217,10 @@ watch(() => props.parties, (v) => { partyOptions.value = [...(v || [])]; });
 const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 const grSourceKey = ref('');
 const grFetchError = ref('');
+const showGrConfirm = ref(false);
+const pendingGrDetails = ref(null);
+const consigneeName = ref('');
+const modeOfPaymentEl = ref(null);
 
 const grOptions = computed(() => props.gr_sources ?? []);
 
@@ -193,26 +228,41 @@ const form = useForm({
     delivery_receipt_no: '',
     date: new Date().toISOString().substr(0, 10),
     gr_no_bilty_no: '',
-    mode_of_payment: 'Cash',
-    office_name: '',
+    mode_of_payment: '',
     consignee_id: '',
     haste: '',
-    payment_due_from: '',
+    payment_due_from_id: '',
     freight: 0,
     handling_charge: 0,
-    risk_dd_charge: 0,
     delivery_charge: 0,
-    stationary_charge: 0,
+    stationery_charge: 0,
     demurrage: 0,
     other_charge: 0,
+    carriage_charge: 0,
     total_amount: 0,
-    gst_on: '',
+    gst_on: 'total_charge',
+    gst_rate: props.gst_rate,
     gst: 0,
-    gst_pay_by: '',
+    gst_pay_by: 'Consignee',
     less: 0,
     final_amount: 0,
-    cartage_charge: 0
 });
+
+watch(() => form.mode_of_payment, (mode) => {
+    if (mode !== 'Due') {
+        form.payment_due_from_id = '';
+    } else if (!form.payment_due_from_id && form.consignee_id) {
+        form.payment_due_from_id = form.consignee_id;
+    }
+});
+
+const clearGrSelection = () => {
+    grSourceKey.value = '';
+    form.gr_no_bilty_no = '';
+    form.consignee_id = '';
+    consigneeName.value = '';
+    pendingGrDetails.value = null;
+};
 
 const applyFetchedDetails = (data) => {
     Object.entries(data).forEach(([key, value]) => {
@@ -220,6 +270,8 @@ const applyFetchedDetails = (data) => {
             form[key] = value ?? '';
         }
     });
+    form.gst_rate = props.gst_rate;
+    consigneeName.value = data.consignee_name || '';
     calculateTotals();
 };
 
@@ -227,7 +279,8 @@ const onGrSourceChange = async () => {
     grFetchError.value = '';
 
     if (!grSourceKey.value) {
-        form.gr_no_bilty_no = '';
+        clearGrSelection();
+
         return;
     }
 
@@ -235,32 +288,56 @@ const onGrSourceChange = async () => {
         const { data } = await http.get('/delivery-receipts/gr-lookup', {
             params: { key: grSourceKey.value },
         });
-        applyFetchedDetails(data);
+        pendingGrDetails.value = data;
+        showGrConfirm.value = true;
     } catch (error) {
         grFetchError.value = error.response?.data?.message || 'Could not load details for the selected GR.';
+        clearGrSelection();
     }
 };
 
+const confirmGrSelection = async () => {
+    if (pendingGrDetails.value) {
+        applyFetchedDetails(pendingGrDetails.value);
+    }
+    showGrConfirm.value = false;
+    await nextTick();
+    modeOfPaymentEl.value?.focus();
+};
+
+const cancelGrSelection = () => {
+    showGrConfirm.value = false;
+    clearGrSelection();
+};
+
 const calculateTotals = () => {
-    let subTotal = 
-        parseFloat(form.freight || 0) + 
-        parseFloat(form.handling_charge || 0) + 
-        parseFloat(form.risk_dd_charge || 0) + 
-        parseFloat(form.delivery_charge || 0) + 
-        parseFloat(form.stationary_charge || 0) + 
-        parseFloat(form.demurrage || 0) + 
-        parseFloat(form.other_charge || 0) + 
-        parseFloat(form.cartage_charge || 0);
-        
+    const subTotal =
+        parseFloat(form.freight || 0) +
+        parseFloat(form.handling_charge || 0) +
+        parseFloat(form.delivery_charge || 0) +
+        parseFloat(form.stationery_charge || 0) +
+        parseFloat(form.demurrage || 0) +
+        parseFloat(form.other_charge || 0) +
+        parseFloat(form.carriage_charge || 0);
+
     form.total_amount = subTotal.toFixed(2);
-    
-    let finalTotal = subTotal + parseFloat(form.gst || 0) - parseFloat(form.less || 0);
+
+    const gstBase = form.gst_on === 'delivery_charge'
+        ? parseFloat(form.delivery_charge || 0)
+        : subTotal;
+
+    const rate = form.gst_pay_by === 'Exempted' ? 0 : parseFloat(form.gst_rate || 0);
+    const gstAmount = gstBase * (rate / 100);
+    form.gst = gstAmount.toFixed(2);
+
+    const finalTotal = subTotal + gstAmount - parseFloat(form.less || 0);
     form.final_amount = finalTotal.toFixed(2);
 };
 
 const submit = () => {
     if (!form.gr_no_bilty_no) {
         grFetchError.value = 'Please select a GR number.';
+
         return;
     }
 

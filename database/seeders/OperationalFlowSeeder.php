@@ -689,6 +689,12 @@ class OperationalFlowSeeder extends Seeder
                 'consignee_id' => $detail->consignee_id,
                 'freight' => $detail->freight,
                 'delivery_charge' => $detail->home_delivery_charge ?? 0,
+                'stationery_charge' => 0,
+                'carriage_charge' => 0,
+                'gst_on' => 'total_charge',
+                'gst_rate' => 18,
+                'gst_pay_by' => 'Consignee',
+                'payment_due_from_id' => $detail->consignee_id,
                 'total_amount' => $total,
                 'final_amount' => $total,
             ]));
