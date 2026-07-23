@@ -2,18 +2,9 @@
     <div class="app-wrapper app-shell layout-fixed sidebar-expand-lg bg-body-tertiary">
         <Navbar />
         <Sidebar />
-        <main class="app-main main-content" :class="compactContent ? 'py-2' : 'py-4'">
-            <!-- <div class="app-content-header mb-4">
-                <div class="container-fluid px-4">
-                    <div class="row align-items-center">
-                        <div class="col-sm-6">
-                            <h4 class="mb-0 fw-bold text-dark">{{ title }}</h4>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
+        <main class="app-main main-content py-2">
             <div class="app-content">
-                <div class="container-fluid" :class="compactContent ? 'px-3' : 'px-4'">
+                <div class="container-fluid px-0">
                     <div v-if="$page.props.flash?.success" class="alert alert-success">{{ $page.props.flash.success }}</div>
                     <div v-if="$page.props.flash?.error" class="alert alert-danger">{{ $page.props.flash.error }}</div>
                     <SubscriptionAccessBanner />
@@ -163,10 +154,6 @@ defineProps({
         type: String,
         default: 'Dashboard'
     },
-    compactContent: {
-        type: Boolean,
-        default: false,
-    }
 });
 
 const page = usePage();
