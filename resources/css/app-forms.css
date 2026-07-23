@@ -511,11 +511,16 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.bilty-form-grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .bilty-form-grid--5 {
     grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 @media (max-width: 1199.98px) {
+    .bilty-form-grid--4,
     .bilty-form-grid--5 {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
@@ -523,6 +528,7 @@
 
 @media (max-width: 991.98px) {
     .bilty-form-grid--3,
+    .bilty-form-grid--4,
     .bilty-form-grid--5 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -531,6 +537,7 @@
 @media (max-width: 575.98px) {
     .bilty-form-grid--2,
     .bilty-form-grid--3,
+    .bilty-form-grid--4,
     .bilty-form-grid--5 {
         grid-template-columns: 1fr;
     }

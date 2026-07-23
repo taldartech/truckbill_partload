@@ -23,7 +23,7 @@
                         </div>
                     </div>
                     <div class="bilty-section__body">
-                        <div class="bilty-form-grid bilty-form-grid--5">
+                        <div class="bilty-form-grid bilty-form-grid--4">
                             <div class="bilty-field">
                                 <label class="bilty-field__label">From Station<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect
@@ -47,18 +47,6 @@
                                     @created="(record) => appendMasterOption(stationOptions, record)"
                                 />
                                 <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
-                            </div>
-                            <div class="bilty-field">
-                                <label class="bilty-field__label">Add Bilties For</label>
-                                <SearchableSelect
-                                    ref="fetchStationSelect"
-                                    :small="true"
-                                    v-model="fetch_station_id"
-                                    :options="destinationStationOptions"
-                                    placeholder="Select Destination Station"
-                                    open-on-enter
-                                    @change="onFetchStationChange"
-                                />
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Truck No.<span class="bilty-field__req">*</span></label>
@@ -89,6 +77,22 @@
                             <div>
                                 <h2 class="bilty-section__title">Loaded Bilties</h2>
                                 <p class="bilty-section__desc">Bilties included in this loading report</p>
+                            </div>
+                        </div>
+                        <div class="bilty-section__head-right">
+                            <div class="bilty-id">
+                                <div class="bilty-id__field" style="min-width: 14rem;">
+                                    <span class="bilty-id__label">Add Bilties For</span>
+                                    <SearchableSelect
+                                        ref="fetchStationSelect"
+                                        :small="true"
+                                        v-model="fetch_station_id"
+                                        :options="destinationStationOptions"
+                                        placeholder="Select Destination Station"
+                                        open-on-enter
+                                        @change="onFetchStationChange"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -163,34 +167,18 @@
                         </div>
                     </div>
                     <div class="bilty-section__body">
-                        <div class="row g-3">
-                            <div class="col-lg-7">
-                                <div class="bilty-charge-list">
-                                    <div class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">Total Packages</label>
-                                        <input type="number" class="form-control form-control-sm bg-light fw-semibold" :value="totalPackages" readonly>
-                                    </div>
-                                    <div class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">Total Weight</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light fw-semibold" :value="totalWeight" readonly>
-                                    </div>
-                                    <div class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">Remarks</label>
-                                        <textarea class="form-control form-control-sm" rows="2" v-model="form.remark"></textarea>
-                                    </div>
-                                </div>
+                        <div class="bilty-form-grid bilty-form-grid--3">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Packages</label>
+                                <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="totalPackages" readonly>
                             </div>
-                            <div class="col-lg-5">
-                                <div class="bilty-total-panel">
-                                    <div class="bilty-total">
-                                        <span class="bilty-total__label">PACKAGES</span>
-                                        <input type="text" class="form-control form-control-sm bilty-total__input" :value="totalPackages" readonly>
-                                    </div>
-                                    <div class="bilty-total">
-                                        <span class="bilty-total__label">TOTAL WEIGHT</span>
-                                        <input type="text" class="form-control form-control-sm bilty-total__input" :value="totalWeight" readonly>
-                                    </div>
-                                </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Total Weight</label>
+                                <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="totalWeight" readonly>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Remarks</label>
+                                <textarea class="form-control form-control-sm" rows="1" v-model="form.remark"></textarea>
                             </div>
                         </div>
                     </div>
