@@ -11,10 +11,10 @@ class BiltyPrint
     public const COPY_KEYS = BranchSetting::COPY_KEYS;
 
     public const COPY_LABELS = [
-        'consignor' => 'CONSIGNOR COPY',
-        'consignee' => 'CONSIGNEE COPY',
-        'driver' => 'DRIVER COPY',
-        'office' => 'OFFICE COPY',
+        'consignor' => 'Consignor Copy',
+        'consignee' => 'Consignee Copy',
+        'driver' => 'Driver Copy',
+        'office' => 'Office Copy',
     ];
 
     /**
@@ -50,6 +50,17 @@ class BiltyPrint
             'TBB' => 'To be billed',
             'FOC' => 'FOC',
             default => $paymentType ?: '—',
+        };
+    }
+
+    public static function paymentStampLabel(?string $paymentType): string
+    {
+        return match (strtoupper(trim((string) $paymentType))) {
+            'TO PAY' => 'TO PAY',
+            'PAID' => 'PAID',
+            'TBB' => 'To BE BILLED',
+            'FOC' => 'FOC',
+            default => strtoupper(trim((string) $paymentType)) ?: '—',
         };
     }
 

@@ -98,6 +98,14 @@ class BiltyPrintTest extends TestCase
         }
     }
 
+    public function test_payment_stamp_label_matches_sample_wording(): void
+    {
+        $this->assertSame('To BE BILLED', BiltyPrint::paymentStampLabel('TBB'));
+        $this->assertSame('TO PAY', BiltyPrint::paymentStampLabel('To Pay'));
+        $this->assertSame('PAID', BiltyPrint::paymentStampLabel('Paid'));
+        $this->assertSame('FOC', BiltyPrint::paymentStampLabel('FOC'));
+    }
+
     public function test_copies_to_print_uses_branch_settings_and_payment_type(): void
     {
         $user = User::factory()->create();

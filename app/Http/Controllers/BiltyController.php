@@ -207,8 +207,23 @@ class BiltyController extends Controller implements HasMiddleware
 
     public function print(Bilty $bilty)
     {
-        $bilty->load(['fromStation', 'toStation', 'consignor', 'consignee', 'vendor', 'creator', 'biltyDetails.good', 'biltyDetails.packageType', 'ewayBills', 'branch.company', 'branch.city', 'branch.state', 'branch.settings']);
-        $company = Company::find($bilty->company_id);
+        $bilty->load([
+            'company',
+            'fromStation',
+            'toStation.state',
+            'consignor',
+            'consignee',
+            'vendor',
+            'creator',
+            'biltyDetails.good',
+            'biltyDetails.packageType',
+            'ewayBills',
+            'branch.company',
+            'branch.city',
+            'branch.state',
+            'branch.settings',
+        ]);
+        $company = $bilty->company ?? Company::find($bilty->company_id);
         $branch = $bilty->branch ?? new Branch;
         $printData = $this->buildPrintData($bilty);
 
@@ -265,7 +280,7 @@ class BiltyController extends Controller implements HasMiddleware
         $addCharge('Bilty Charge', $bilty->bilty_charge);
         $addCharge('Surcharge', $bilty->surcharge);
         $addCharge('Handling Charge', $bilty->handling_charge);
-        $addCharge('Risk / DD Charge', $bilty->risk_dd_charge);
+        $addCharge('Risk/Door Delivery', $bilty->risk_dd_charge);
         $cartageLabel = 'Cartage';
         if ((float) ($bilty->cartage ?? 0) != 0 && ! empty($bilty->cartage_type)) {
             $cartageType = in_array(strtolower((string) $bilty->cartage_type), ['due'], true) ? 'Due' : 'Cash';
@@ -321,12 +336,14 @@ class BiltyController extends Controller implements HasMiddleware
             }
         };
 
-        $pushCharge('FREIGHT', $bilty->freight);
-        $pushCharge('HANDLING', $bilty->handling_charge);
-        $pushCharge('CARTAGE', $bilty->cartage);
-        $pushCharge('STATIONERY CHAR.', $bilty->bilty_charge);
-        $pushCharge('SURCHARGE', $bilty->surcharge);
-        $pushCharge('RISK / DD CHAR.', $bilty->risk_dd_charge);
+        $pushCharge('Total Freight', $bilty->freight);
+        $pushCharge('Bilty Charge', $bilty->bilty_charge);
+        $pushCharge('Surcharge', $bilty->surcharge);
+        $pushCharge('Handling Charge', $bilty->handling_charge);
+        $pushCharge('Risk/Door Delivery', $bilty->risk_dd_charge);
+        $pushCharge($cartageLabel, $bilty->cartage);
+
+        $addonLines = [];
 
         foreach ($bilty->addon_charges ?? [] as $addon) {
             $amount = (float) ($addon['amount'] ?? 0);
@@ -334,10 +351,39 @@ class BiltyController extends Controller implements HasMiddleware
                 continue;
             }
 
+            $label = (string) ($addon['particulars'] ?? $addon['description'] ?? 'Addon Charge');
             $lrChargeLines[] = [
-                'label' => strtoupper($addon['particulars'] ?? $addon['description'] ?? 'ADDON'),
+                'label' => $label,
                 'amount' => $amount,
             ];
+            $addonLines[] = [
+                'label' => $label,
+                'amount' => $amount,
+            ];
+        }
+
+        $gstRateLabel = rtrim(rtrim(number_format($gstRate, 2), '0'), '.');
+        $sidebarCharges = array_values(array_filter([
+            ['label' => 'Total Freight', 'amount' => (float) ($bilty->freight ?? 0)],
+            ['label' => 'Bilty Charge', 'amount' => (float) ($bilty->bilty_charge ?? 0)],
+            ['label' => 'Surcharge', 'amount' => (float) ($bilty->surcharge ?? 0)],
+            ['label' => $cartageLabel, 'amount' => (float) ($bilty->cartage ?? 0)],
+            ['label' => 'Handling Charge', 'amount' => (float) ($bilty->handling_charge ?? 0)],
+            ['label' => 'Risk/Door Delivery', 'amount' => (float) ($bilty->risk_dd_charge ?? 0)],
+            ...$addonLines,
+            ['label' => 'GST ('.$gstRateLabel.'%)', 'amount' => (float) $gstAmount],
+            ['label' => 'Less Advance Received', 'amount' => (float) ($bilty->less_advance_received ?? 0)],
+        ], fn (array $line) => (float) $line['amount'] != 0));
+
+        $cgstRate = 0.0;
+        $sgstRate = 0.0;
+        $igstRate = 0.0;
+
+        if ($igst > 0) {
+            $igstRate = $gstRate;
+        } elseif ($cgst > 0 || $sgst > 0 || $gstAmount != 0) {
+            $cgstRate = round($gstRate / 2, 2);
+            $sgstRate = round($gstRate - $cgstRate, 2);
         }
 
         return [
@@ -350,10 +396,14 @@ class BiltyController extends Controller implements HasMiddleware
             ],
             'charges' => $charges,
             'lr_charge_lines' => $lrChargeLines,
+            'sidebar_charges' => $sidebarCharges,
             'charge_total' => round($subtotal, 2),
             'sgst' => round($sgst, 2),
             'cgst' => round($cgst, 2),
             'igst' => round($igst, 2),
+            'cgst_rate' => $cgstRate,
+            'sgst_rate' => $sgstRate,
+            'igst_rate' => $igstRate,
             'less_advance' => (float) ($bilty->less_advance_received ?? 0),
             'subtotal' => $subtotal,
             'gst_amount' => $gstAmount,
