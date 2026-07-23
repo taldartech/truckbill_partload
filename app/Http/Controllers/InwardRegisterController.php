@@ -27,14 +27,62 @@ class InwardRegisterController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $registers = InwardRegister::with(['fromStation', 'toStation', 'truck', 'details'])
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'from_date' => ['nullable', 'date'],
+            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+            'from_station_id' => ['nullable', 'integer', 'exists:stations,id'],
+            'truck_id' => ['nullable', 'integer', 'exists:trucks,id'],
+        ]);
+
+        $fromDate = $validated['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $validated['to_date'] ?? now()->endOfMonth()->toDateString();
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $registers = InwardRegister::query()
+            ->with(['fromStation', 'toStation', 'truck', 'details'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('inward_register_no', 'like', '%'.$search.'%')
+                        ->orWhere('challan_number', 'like', '%'.$search.'%')
+                        ->orWhere('driver_name', 'like', '%'.$search.'%')
+                        ->orWhereHas('truck', function ($truckQuery) use ($search) {
+                            $truckQuery->where('truck_number', 'like', '%'.$search.'%');
+                        });
+                });
+            })
+            ->when($fromDate, fn ($query) => $query->whereDate('date', '>=', $fromDate))
+            ->when($toDate, fn ($query) => $query->whereDate('date', '<=', $toDate))
+            ->when(! empty($validated['from_station_id']), function ($query) use ($validated) {
+                $query->where('from_station_id', $validated['from_station_id']);
+            })
+            ->when(! empty($validated['truck_id']), function ($query) use ($validated) {
+                $query->where('truck_id', $validated['truck_id']);
+            })
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('InwardRegisters/Index', [
             'registers' => $registers,
+            'stations' => Station::query()->orderBy('name')->get(['id', 'name']),
+            'trucks' => Truck::query()
+                ->orderBy('truck_number')
+                ->get(['id', 'truck_number'])
+                ->map(fn (Truck $truck) => [
+                    'id' => $truck->id,
+                    'name' => $truck->truck_number,
+                ]),
+            'filters' => [
+                'search' => $search,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'from_station_id' => isset($validated['from_station_id']) ? (string) $validated['from_station_id'] : '',
+                'truck_id' => isset($validated['truck_id']) ? (string) $validated['truck_id'] : '',
+            ],
         ]);
     }
 

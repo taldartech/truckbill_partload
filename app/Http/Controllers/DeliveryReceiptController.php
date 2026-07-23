@@ -28,12 +28,46 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $receipts = DeliveryReceipt::with('consignee')->orderBy('id', 'desc')->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'from_date' => ['nullable', 'date'],
+            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+            'consignee_id' => ['nullable', 'integer', 'exists:parties,id'],
+        ]);
+
+        $fromDate = $validated['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $validated['to_date'] ?? now()->endOfMonth()->toDateString();
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $receipts = DeliveryReceipt::query()
+            ->with('consignee')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('delivery_receipt_no', 'like', '%'.$search.'%')
+                        ->orWhere('gr_no_bilty_no', 'like', '%'.$search.'%');
+                });
+            })
+            ->when($fromDate, fn ($query) => $query->whereDate('date', '>=', $fromDate))
+            ->when($toDate, fn ($query) => $query->whereDate('date', '<=', $toDate))
+            ->when(! empty($validated['consignee_id']), function ($query) use ($validated) {
+                $query->where('consignee_id', $validated['consignee_id']);
+            })
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('DeliveryReceipts/Index', [
             'receipts' => $receipts,
+            'parties' => Party::query()->orderBy('name')->get(['id', 'name']),
+            'filters' => [
+                'search' => $search,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'consignee_id' => isset($validated['consignee_id']) ? (string) $validated['consignee_id'] : '',
+            ],
         ]);
     }
 

@@ -1,271 +1,293 @@
 <template>
     <AdminLayout title="Edit Inward Register">
-        <div class="row">
-            <div class="col-md-12 mx-auto">
-                <div class="card ops-form-card">
-                    <div class="card-header">
-                        <h3 class="card-title">Edit Inward Register</h3>
-                    </div>
-
-                    <form @submit.prevent="submit">
-                        <div class="card-body">
-                            <h5 class="border-bottom pb-2 mb-3 text-warning">Register Details</h5>
-                            <div class="row mb-3">
-                                <div class="col-md-3">
-                                    <label class="form-label">Inward No.</label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.inward_register_no">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Date <span class="text-danger">*</span></label>
-                                    <input type="date" class="form-control form-control-sm" v-model="form.date">
+        <div class="bilty-form-page">
+            <form @submit.prevent="submit" class="bilty-form">
+                <!-- 1. Register & Route -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num">1</div>
+                            <div>
+                                <h2 class="bilty-section__title">Register &amp; Route</h2>
+                                <p class="bilty-section__desc">Inward register and transport details</p>
+                            </div>
+                        </div>
+                        <div class="bilty-section__head-right">
+                            <div class="bilty-id">
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Date<span class="bilty-field__req">*</span></span>
+                                    <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date">
                                     <div v-if="form.errors.date" class="text-danger small mt-1">{{ form.errors.date }}</div>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">From Station <span class="text-danger">*</span></label>
-                                    <SearchableSelect :small="true" v-model="form.from_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
-                                    <div v-if="form.errors.from_station_id" class="text-danger small mt-1">{{ form.errors.from_station_id }}</div>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">To Station <span class="text-danger">*</span></label>
-                                    <SearchableSelect :small="true" v-model="form.to_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
-                                    <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
-                                </div>
-                            </div>
-
-                            <h5 class="border-bottom pb-2 mb-3 text-warning">Transport Details</h5>
-                            <div class="row mb-3">
-                                <div class="col-md-3">
-                                    <label class="form-label">Challan No.</label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.challan_number">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Challan Date</label>
-                                    <input type="date" class="form-control form-control-sm" v-model="form.challan_date">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Driver</label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.driver_name" placeholder="Enter Driver Name" />
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Truck No.</label>
-                                    <SearchableSelect :small="true" v-model="form.truck_id" :options="truckOptions" master="truck" placeholder="Select Truck" @created="(record) => appendMasterOption(truckOptions, record)" />
-                                </div>
-                            </div>
-
-                            <div class="card entry-form-card mb-4">
-                                <div class="card-header d-flex justify-content-between align-items-center py-2">
-                                    <h6 class="mb-0 fw-semibold">
-                                        <i class="fas fa-plus-circle me-2 text-warning"></i>Add Entry
-                                    </h6>
-                                    <span v-if="editingRowIndex !== null" class="badge bg-warning text-dark">
-                                        Editing row {{ editingRowIndex + 1 }}
-                                    </span>
-                                </div>
-                                <div class="card-body p-4">
-                                    <p class="entry-form-section-title">Goods Receipt</p>
-                                    <div class="row g-4 mb-4">
-                                        <div class="col-md-3">
-                                            <label class="form-label">G.R. No.</label>
-                                            <input type="text" class="form-control" v-model="entry.gr_no" placeholder="Enter G.R. number">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Date</label>
-                                            <input type="date" class="form-control" v-model="entry.date">
-                                        </div>
-                                    </div>
-
-                                    <p class="entry-form-section-title">Route &amp; Parties</p>
-                                    <div class="row g-4 mb-4">
-                                        <div class="col-md-3">
-                                            <label class="form-label">From Station</label>
-                                            <SearchableSelect v-model="entry.from_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">To Station <span class="text-danger">*</span></label>
-                                            <SearchableSelect
-                                                v-model="entry.to_station_id"
-                                                :options="stationOptions"
-                                                master="station"
-                                                placeholder="Select Station"
-                                                :disabled="entry.status === 'challaned'"
-                                                @created="(record) => appendMasterOption(stationOptions, record)"
-                                            />
-                                            <span v-if="entry.to_station_id" class="badge mt-1" :class="dispositionBadgeClass(rowDisposition(entry))">
-                                                {{ formatDisposition(rowDisposition(entry)) }}
-                                            </span>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Consignor</label>
-                                            <SearchableSelect v-model="entry.consignor_id" :options="partyOptions" master="party" placeholder="Select Consignor" @created="(record) => appendMasterOption(partyOptions, record)" />
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Consignee</label>
-                                            <SearchableSelect v-model="entry.consignee_id" :options="partyOptions" master="party" placeholder="Select Consignee" @created="(record) => appendMasterOption(partyOptions, record)" />
-                                        </div>
-                                    </div>
-
-                                    <p class="entry-form-section-title">Package &amp; Freight</p>
-                                    <div class="row g-4 mb-4">
-                                        <div class="col-md-4">
-                                            <label class="form-label">Goods Name</label>
-                                            <SearchableSelect v-model="entry.good_id" :options="goodOptions" master="good" placeholder="Select Goods" @created="(record) => appendMasterOption(goodOptions, record)" />
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">No. of Pkg.</label>
-                                            <input type="number" class="form-control" v-model="entry.no_of_packages" placeholder="0">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">Weight (Kg)</label>
-                                            <input type="number" step="0.01" class="form-control" v-model="entry.weight" placeholder="0.00">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Basis of Booking</label>
-                                            <select class="form-select" v-model="entry.basis_of_booking">
-                                                <option value="">Select basis</option>
-                                                <option value="To Pay">To Pay</option>
-                                                <option value="Paid">Paid</option>
-                                                <option value="TBB">TBB</option>
-                                                <option value="FOC">FOC</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row g-4">
-                                        <div class="col-md-3">
-                                            <label class="form-label">Freight</label>
-                                            <input type="number" step="0.01" class="form-control" v-model="entry.freight" placeholder="0.00">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Home Delivery Charge</label>
-                                            <input type="number" step="0.01" class="form-control" v-model="entry.home_delivery_charge" placeholder="0.00">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Private Marka</label>
-                                            <input type="text" class="form-control" v-model="entry.private_marka" placeholder="Enter marka">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Agent</label>
-                                            <SearchableSelect v-model="entry.agent_id" :options="agentOptions" master="agent" placeholder="Select Agent" @created="(record) => appendMasterOption(agentOptions, record)" />
-                                        </div>
-                                    </div>
-
-                                    <div class="d-flex justify-content-end gap-2 pt-4 mt-2 border-top">
-                                        <button type="button" class="btn btn-outline-secondary px-4" @click="clearEntry">
-                                            <i class="fas fa-eraser me-1"></i> Clear Entry
-                                        </button>
-                                        <button type="button" class="btn btn-warning px-4" @click="confirmEntry">
-                                            <i class="fas fa-plus me-1"></i>
-                                            {{ editingRowIndex !== null ? 'Update Entry' : 'Add to List' }}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h5 class="mb-0 text-warning">Entries</h5>
-                                <div class="d-flex gap-2" @click.stop>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" @click="loadSelectedEntry" :disabled="selectedRowIndex === null">
-                                        <i class="fas fa-edit me-1"></i> Edit Selected
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" @click="deleteSelectedRow" :disabled="selectedRowIndex === null">
-                                        <i class="fas fa-trash me-1"></i> Delete Selected
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="table-responsive border rounded" @click="deselectRow">
-                                <table class="table table-sm table-striped mb-0 entries-table">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th class="text-center" style="width: 5%;">Sr.</th>
-                                            <th>G.R. No.</th>
-                                            <th>Date</th>
-                                            <th>From</th>
-                                            <th>To</th>
-                                            <th>Route</th>
-                                            <th>Status</th>
-                                            <th>Consignor</th>
-                                            <th>Consignee</th>
-                                            <th>Goods</th>
-                                            <th class="text-center">Pkg.</th>
-                                            <th class="text-center">Weight</th>
-                                            <th class="text-center" style="width: 5%;"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr
-                                            v-for="(detail, index) in form.details"
-                                            :key="index"
-                                            :class="{ 'entry-row-selected': selectedRowIndex === index }"
-                                            @click.stop="selectRow(index)"
-                                        >
-                                            <td class="text-center align-middle">{{ index + 1 }}</td>
-                                            <td class="align-middle">{{ detail.gr_no || '—' }}</td>
-                                            <td class="align-middle">{{ detail.date || '—' }}</td>
-                                            <td class="align-middle">{{ stationName(detail.from_station_id) }}</td>
-                                            <td class="align-middle">{{ stationName(detail.to_station_id) }}</td>
-                                            <td class="align-middle">
-                                                <span class="badge" :class="dispositionBadgeClass(rowDisposition(detail))">
-                                                    {{ formatDisposition(rowDisposition(detail)) }}
-                                                </span>
-                                            </td>
-                                            <td class="align-middle">
-                                                <span class="badge" :class="detail.status === 'challaned' ? 'bg-warning text-dark' : 'bg-secondary'">
-                                                    {{ detail.status === 'challaned' ? 'Challaned' : 'Pending' }}
-                                                </span>
-                                            </td>
-                                            <td class="align-middle">{{ partyName(detail.consignor_id) }}</td>
-                                            <td class="align-middle">{{ partyName(detail.consignee_id) }}</td>
-                                            <td class="align-middle">{{ goodName(detail.good_id) }}</td>
-                                            <td class="text-center align-middle">{{ detail.no_of_packages || 0 }}</td>
-                                            <td class="text-center align-middle">{{ detail.weight || 0 }}</td>
-                                            <td class="text-center align-middle">
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-sm btn-link text-danger p-0"
-                                                    @click.stop="deleteRow(index)"
-                                                    :disabled="detail.status === 'challaned'"
-                                                >
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr v-if="form.details.length === 0">
-                                            <td colspan="13" class="text-center py-4 text-muted">
-                                                No entries added yet. Fill the form above and click Add to List.
-                                                <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="row mt-3">
-                                <div class="col-md-4 offset-md-8">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-muted">Total Packages</span>
-                                        <strong>{{ totalPackages }}</strong>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-muted">Total Delivery Freight</span>
-                                        <strong>{{ totalDeliveryFreight }}</strong>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <span class="text-muted">Total Crossing Freight</span>
-                                        <strong>{{ totalCrossingFreight }}</strong>
-                                    </div>
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Inward No.</span>
+                                    <input type="text" class="form-control form-control-sm" v-model="form.inward_register_no">
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--3">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">From Station<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect :small="true" v-model="form.from_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
+                                <div v-if="form.errors.from_station_id" class="text-danger small mt-1">{{ form.errors.from_station_id }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">To Station<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect :small="true" v-model="form.to_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
+                                <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Challan No.</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.challan_number">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Challan Date</label>
+                                <input type="date" class="form-control form-control-sm" v-model="form.challan_date">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Driver</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.driver_name" placeholder="Enter Driver Name">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Truck No.</label>
+                                <SearchableSelect :small="true" v-model="form.truck_id" :options="truckOptions" master="truck" placeholder="Select Truck" @created="(record) => appendMasterOption(truckOptions, record)" />
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-                        <div class="card-footer d-flex justify-content-end gap-2 bg-light">
-                            <Link href="/inward-registers" class="btn btn-secondary">Cancel</Link>
-                            <button type="submit" class="btn btn-warning" :disabled="form.processing">
-                                <i class="fas fa-save me-1"></i> Update
+                <!-- 2. Add Entry -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--green">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--green">2</div>
+                            <div>
+                                <h2 class="bilty-section__title">Add Entry</h2>
+                                <p class="bilty-section__desc">Goods receipt, route, parties and freight</p>
+                            </div>
+                        </div>
+                        <div v-if="editingRowIndex !== null" class="bilty-section__head-right">
+                            <span class="badge bg-warning text-dark">Editing row {{ editingRowIndex + 1 }}</span>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <p class="small text-uppercase fw-bold text-muted mb-2">Goods Receipt</p>
+                        <div class="bilty-form-grid bilty-form-grid--3">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">G.R. No.</label>
+                                <input type="text" class="form-control form-control-sm" v-model="entry.gr_no" placeholder="Enter G.R. number">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Date</label>
+                                <input type="date" class="form-control form-control-sm" v-model="entry.date">
+                            </div>
+                        </div>
+
+                        <p class="small text-uppercase fw-bold text-muted mb-2 mt-3">Route &amp; Parties</p>
+                        <div class="bilty-form-grid bilty-form-grid--4">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">From Station</label>
+                                <SearchableSelect :small="true" v-model="entry.from_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">To Station<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="entry.to_station_id"
+                                    :options="stationOptions"
+                                    master="station"
+                                    placeholder="Select Station"
+                                    :disabled="entry.status === 'challaned'"
+                                    @created="(record) => appendMasterOption(stationOptions, record)"
+                                />
+                                <span v-if="entry.to_station_id" class="badge mt-1" :class="dispositionBadgeClass(rowDisposition(entry))">
+                                    {{ formatDisposition(rowDisposition(entry)) }}
+                                </span>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Consignor</label>
+                                <SearchableSelect :small="true" v-model="entry.consignor_id" :options="partyOptions" master="party" placeholder="Select Consignor" @created="(record) => appendMasterOption(partyOptions, record)" />
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Consignee</label>
+                                <SearchableSelect :small="true" v-model="entry.consignee_id" :options="partyOptions" master="party" placeholder="Select Consignee" @created="(record) => appendMasterOption(partyOptions, record)" />
+                            </div>
+                        </div>
+
+                        <p class="small text-uppercase fw-bold text-muted mb-2 mt-3">Package &amp; Freight</p>
+                        <div class="bilty-form-grid bilty-form-grid--4">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Goods Name</label>
+                                <SearchableSelect :small="true" v-model="entry.good_id" :options="goodOptions" master="good" placeholder="Select Goods" @created="(record) => appendMasterOption(goodOptions, record)" />
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">No. of Pkg.</label>
+                                <input type="number" class="form-control form-control-sm" v-model="entry.no_of_packages" placeholder="0">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Weight (Kg)</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.weight" placeholder="0.00">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Basis of Booking</label>
+                                <select class="form-select form-select-sm" v-model="entry.basis_of_booking">
+                                    <option value="">Select basis</option>
+                                    <option value="To Pay">To Pay</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="TBB">TBB</option>
+                                    <option value="FOC">FOC</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="bilty-form-grid bilty-form-grid--4 mt-0">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Freight</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.freight" placeholder="0.00">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Home Delivery Charge</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.home_delivery_charge" placeholder="0.00">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Private Marka</label>
+                                <input type="text" class="form-control form-control-sm" v-model="entry.private_marka" placeholder="Enter marka">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Agent</label>
+                                <SearchableSelect :small="true" v-model="entry.agent_id" :options="agentOptions" master="agent" placeholder="Select Agent" @created="(record) => appendMasterOption(agentOptions, record)" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-3 mt-2 border-top">
+                            <button type="button" class="btn btn-outline-secondary btn-sm px-3" @click="clearEntry">
+                                <i class="fas fa-eraser me-1"></i> Clear Entry
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm px-3" @click="confirmEntry">
+                                <i class="fas fa-plus me-1"></i>
+                                {{ editingRowIndex !== null ? 'Update Entry' : 'Add to List' }}
                             </button>
                         </div>
-                    </form>
+                    </div>
+                </section>
+
+                <!-- 3. Entries -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--orange">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--orange">3</div>
+                            <div>
+                                <h2 class="bilty-section__title">Entries</h2>
+                                <p class="bilty-section__desc">{{ form.details.length }} entry(ies) added</p>
+                            </div>
+                        </div>
+                        <div class="bilty-section__head-right" @click.stop>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" @click="loadSelectedEntry" :disabled="selectedRowIndex === null">
+                                    <i class="fas fa-edit me-1"></i> Edit Selected
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" @click="deleteSelectedRow" :disabled="selectedRowIndex === null">
+                                    <i class="fas fa-trash me-1"></i> Delete Selected
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body bilty-section__body--flush" @click="deselectRow">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm m-0 table-grid entries-table">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="text-center" style="width: 5%;">Sr.</th>
+                                        <th>G.R. No.</th>
+                                        <th>Date</th>
+                                        <th>From</th>
+                                        <th>To</th>
+                                        <th>Route</th>
+                                        <th>Status</th>
+                                        <th>Consignor</th>
+                                        <th>Consignee</th>
+                                        <th>Goods</th>
+                                        <th class="text-center">Pkg.</th>
+                                        <th class="text-center">Weight</th>
+                                        <th class="text-center" style="width: 5%;"><i class="fas fa-cog"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="(detail, index) in form.details"
+                                        :key="index"
+                                        :class="{ 'entry-row-selected': selectedRowIndex === index }"
+                                        @click.stop="selectRow(index)"
+                                    >
+                                        <td class="text-center align-middle">{{ index + 1 }}</td>
+                                        <td class="align-middle">{{ detail.gr_no || '—' }}</td>
+                                        <td class="align-middle">{{ detail.date || '—' }}</td>
+                                        <td class="align-middle">{{ stationName(detail.from_station_id) }}</td>
+                                        <td class="align-middle">{{ stationName(detail.to_station_id) }}</td>
+                                        <td class="align-middle">
+                                            <span class="badge" :class="dispositionBadgeClass(rowDisposition(detail))">
+                                                {{ formatDisposition(rowDisposition(detail)) }}
+                                            </span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="badge" :class="detail.status === 'challaned' ? 'bg-warning text-dark' : 'bg-secondary'">
+                                                {{ detail.status === 'challaned' ? 'Challaned' : 'Pending' }}
+                                            </span>
+                                        </td>
+                                        <td class="align-middle">{{ partyName(detail.consignor_id) }}</td>
+                                        <td class="align-middle">{{ partyName(detail.consignee_id) }}</td>
+                                        <td class="align-middle">{{ goodName(detail.good_id) }}</td>
+                                        <td class="text-center align-middle">{{ detail.no_of_packages || 0 }}</td>
+                                        <td class="text-center align-middle">{{ detail.weight || 0 }}</td>
+                                        <td class="text-center align-middle">
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-link text-danger p-0 bg-transparent"
+                                                @click.stop="deleteRow(index)"
+                                                :disabled="detail.status === 'challaned'"
+                                            >
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="form.details.length === 0">
+                                        <td colspan="13" class="text-center py-4 text-muted">
+                                            No entries added yet. Fill the form above and click Add to List.
+                                            <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body pt-3">
+                        <div class="bilty-form-grid bilty-form-grid--3">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Total Packages</label>
+                                <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="totalPackages" readonly>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Total Delivery Freight</label>
+                                <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="totalDeliveryFreight" readonly>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Total Crossing Freight</label>
+                                <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="totalCrossingFreight" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="bilty-form-actions">
+                    <Link href="/inward-registers" class="btn btn-outline-secondary btn-sm px-3">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </Link>
+                    <button type="submit" class="btn btn-warning btn-sm px-4" :disabled="form.processing">
+                        <i class="fas fa-save me-1"></i> Update
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
 
         <InwardRegisterConfirmModal
@@ -273,7 +295,7 @@
             :form="form"
             :stations="stationOptions"
             :trucks="truckOptions"
-                        :totals="confirmTotals"
+            :totals="confirmTotals"
             @cancel="closeConfirm"
             @confirm="confirmSave"
         />
@@ -498,4 +520,3 @@ const confirmSave = () => {
     });
 };
 </script>
-

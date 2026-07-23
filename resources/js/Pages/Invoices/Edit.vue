@@ -1,157 +1,187 @@
 <template>
     <AdminLayout title="Edit Invoice">
-        <div class="row">
-            <div class="col-md-10 mx-auto">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="card-title">Edit Invoice #{{ invoice.invoice_no }}</h3>
-                        <a :href="`/invoices/${invoice.id}/print`" target="_blank" class="btn btn-sm btn-dark">
-                            <i class="fas fa-print me-1"></i> Print
-                        </a>
+        <div class="bilty-form-page">
+            <form @submit.prevent="submit" class="bilty-form">
+                <!-- 1. Invoice Details -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num">1</div>
+                            <div>
+                                <h2 class="bilty-section__title">Invoice Details</h2>
+                                <p class="bilty-section__desc">Party and invoice identification</p>
+                            </div>
+                        </div>
+                        <div class="bilty-section__head-right">
+                            <div class="bilty-id">
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Date<span class="text-danger">*</span></span>
+                                    <input type="date" class="form-control form-control-sm" v-model="form.date" required>
+                                </div>
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Invoice No.</span>
+                                    <input type="text" class="form-control form-control-sm bg-light" v-model="form.invoice_no" readonly>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <form @submit.prevent="submit">
-                        <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Invoice No.</label>
-                                    <input type="text" class="form-control" v-model="form.invoice_no" readonly>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Date <span class="text-danger">*</span></label>
-                                    <input type="date" class="form-control" v-model="form.date" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Party (Bill To) <span class="text-danger">*</span></label>
-                                    <SearchableSelect
-                                        v-model="form.party_id"
-                                        :options="partyOptions"
-                                        master="party"
-                                        placeholder="Select Party"
-                                        :disabled="!canChangeParty"
-                                        @created="(record) => appendMasterOption(partyOptions, record)"
-                                    />
-                                    <p v-if="!canChangeParty" class="text-muted small mb-0 mt-1">
-                                        Party cannot be changed after payment has been recorded.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Payment Status</label>
-                                    <div>
-                                        <span class="badge" :class="statusBadgeClass(invoice.status)">
-                                            {{ displayStatus(invoice.status) }}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Amount Received</label>
-                                    <div class="fw-bold text-success">₹ {{ formatAmount(paidAmount) }}</div>
-                                </div>
-                            </div>
-
-                            <hr>
-                            <h5 class="text-primary mb-3">TBB Bilties on Invoice</h5>
-                            <p v-if="loadingBilties" class="text-muted small">Loading bilties...</p>
-
-                            <div class="border rounded p-2 mb-3 bg-light">
-                                <table class="table table-sm mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th width="40"></th>
-                                            <th>Bilty No</th>
-                                            <th>Date</th>
-                                            <th>From -> To</th>
-                                            <th class="text-end">Freight</th>
-                                            <th class="text-end">Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr
-                                            v-for="bilty in bilties"
-                                            :key="bilty.id"
-                                            :class="{ 'table-warning': isSelected(bilty.id) && !hasValidFreight(bilty) }"
-                                        >
-                                            <td>
-                                                <input
-                                                    type="checkbox"
-                                                    :checked="isSelected(bilty.id)"
-                                                    @change="toggleBilty(bilty, $event)"
-                                                >
-                                            </td>
-                                            <td>{{ bilty.bilty_number }}</td>
-                                            <td>{{ bilty.date }}</td>
-                                            <td>{{ bilty.from_station?.name }} -> {{ bilty.to_station?.name }}</td>
-                                            <td class="text-end">
-                                                <span v-if="isSelected(bilty.id) && !hasValidFreight(bilty)" class="badge bg-warning text-dark">Pending</span>
-                                                <span v-else-if="isSelected(bilty.id)">₹ {{ formatAmount(displayFreight(bilty)) }}</span>
-                                                <span v-else-if="needsPendingFreight(bilty)" class="text-muted small">On select</span>
-                                                <span v-else>₹ {{ formatAmount(storedFreightTotal(bilty)) }}</span>
-                                            </td>
-                                            <td class="text-end">
-                                                <span v-if="isSelected(bilty.id)">₹ {{ formatAmount(displayAmount(bilty)) }}</span>
-                                                <span v-else class="text-muted">—</span>
-                                            </td>
-                                        </tr>
-                                        <tr v-if="!loadingBilties && bilties.length === 0">
-                                            <td colspan="6" class="text-center text-muted">No bilties available for this party.</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div v-if="form.bilty_ids.length > 0" class="border rounded p-3 mb-3 bg-white">
-                                <h6 class="text-primary mb-3">Invoice Breakdown</h6>
-                                <div class="row g-3">
-                                    <div class="col-md-3">
-                                        <div class="small text-muted">Selected Bilties</div>
-                                        <div class="fw-bold fs-5">{{ invoiceBreakdown.count }}</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="small text-muted">Total Amount</div>
-                                        <div class="fw-bold fs-5">₹ {{ formatAmount(invoiceBreakdown.total_amount) }}</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="small text-muted">GST Amount</div>
-                                        <div class="fw-bold fs-5">₹ {{ formatAmount(invoiceBreakdown.gst_amount) }}</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="small text-muted">Net Amount</div>
-                                        <div class="fw-bold fs-5 text-success">₹ {{ formatAmount(invoiceBreakdown.net_amount) }}</div>
-                                    </div>
-                                </div>
-                                <p v-if="invoiceBreakdown.pending_freight > 0" class="text-danger small mb-0 mt-2">
-                                    {{ invoiceBreakdown.pending_freight }} selected bilty(ies) still need freight.
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--3">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Party (Bill To)<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.party_id"
+                                    :options="partyOptions"
+                                    master="party"
+                                    placeholder="Select Party"
+                                    :disabled="!canChangeParty"
+                                    @created="(record) => appendMasterOption(partyOptions, record)"
+                                />
+                                <p v-if="!canChangeParty" class="text-muted small mb-0 mt-1">
+                                    Party cannot be changed after payment has been recorded.
                                 </p>
-                                <p v-if="paidAmount > invoiceBreakdown.net_amount" class="text-danger small mb-0 mt-2">
-                                    Net amount cannot be less than amount already received (₹ {{ formatAmount(paidAmount) }}).
-                                </p>
+                                <div v-if="form.errors.party_id" class="text-danger small mt-1">{{ form.errors.party_id }}</div>
                             </div>
-
-                            <div v-if="form.errors.bilty_ids" class="text-danger small mb-2">{{ form.errors.bilty_ids }}</div>
-                            <div v-if="form.errors.bilty_detail_freight" class="text-danger small mb-2">{{ form.errors.bilty_detail_freight }}</div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-12">
-                                    <label class="form-label">Remark</label>
-                                    <input type="text" class="form-control" v-model="form.remark">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Payment Status</label>
+                                <div>
+                                    <span class="badge" :class="statusBadgeClass(invoice.status)">
+                                        {{ displayStatus(invoice.status) }}
+                                    </span>
                                 </div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Amount Received</label>
+                                <div class="form-control form-control-sm bg-light fw-semibold text-success">₹ {{ formatAmount(paidAmount) }}</div>
                             </div>
                         </div>
-                        <div class="card-footer d-flex justify-content-end gap-2 bg-light">
-                            <Link href="/invoices" class="btn btn-secondary">Cancel</Link>
-                            <button
-                                type="submit"
-                                class="btn btn-warning"
-                                :disabled="form.processing || form.bilty_ids.length === 0 || invoiceBreakdown.pending_freight > 0 || paidAmount > invoiceBreakdown.net_amount"
-                            >
-                                Update Invoice
-                            </button>
+                    </div>
+                </section>
+
+                <!-- 2. TBB Bilties -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--green">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--green">2</div>
+                            <div>
+                                <h2 class="bilty-section__title">Select TBB Bilties</h2>
+                                <p v-if="loadingBilties" class="bilty-section__desc mb-0">Loading bilties...</p>
+                                <p v-else class="bilty-section__desc mb-0">Bilties included on this invoice</p>
+                            </div>
                         </div>
-                    </form>
+                    </div>
+                    <div class="bilty-section__body bilty-section__body--flush">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm m-0 table-grid">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th width="40" class="text-center"></th>
+                                        <th>Bilty No.</th>
+                                        <th>Date</th>
+                                        <th>From &rarr; To</th>
+                                        <th class="text-end">Freight</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="bilty in bilties"
+                                        :key="bilty.id"
+                                        class="bg-white"
+                                        :class="{ 'table-warning': isSelected(bilty.id) && !hasValidFreight(bilty) }"
+                                    >
+                                        <td class="text-center align-middle">
+                                            <input
+                                                type="checkbox"
+                                                :checked="isSelected(bilty.id)"
+                                                @change="toggleBilty(bilty, $event)"
+                                            >
+                                        </td>
+                                        <td class="align-middle fw-semibold">{{ bilty.bilty_number }}</td>
+                                        <td class="align-middle">{{ bilty.date }}</td>
+                                        <td class="align-middle">{{ bilty.from_station?.name }} &rarr; {{ bilty.to_station?.name }}</td>
+                                        <td class="text-end align-middle">
+                                            <span v-if="isSelected(bilty.id) && !hasValidFreight(bilty)" class="badge bg-warning text-dark">Pending</span>
+                                            <span v-else-if="isSelected(bilty.id)">₹ {{ formatAmount(displayFreight(bilty)) }}</span>
+                                            <span v-else-if="needsPendingFreight(bilty)" class="text-muted small">On select</span>
+                                            <span v-else>₹ {{ formatAmount(storedFreightTotal(bilty)) }}</span>
+                                        </td>
+                                        <td class="text-end align-middle">
+                                            <span v-if="isSelected(bilty.id)">₹ {{ formatAmount(displayAmount(bilty)) }}</span>
+                                            <span v-else class="text-muted">—</span>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="!loadingBilties && bilties.length === 0">
+                                        <td colspan="6" class="text-center text-muted py-3">No bilties available for this party.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div v-if="form.errors.bilty_ids" class="text-danger small p-2">{{ form.errors.bilty_ids }}</div>
+                        <div v-if="form.errors.bilty_detail_freight" class="text-danger small px-2 pb-2">{{ form.errors.bilty_detail_freight }}</div>
+                    </div>
+                </section>
+
+                <!-- 3. Summary -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--orange">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--orange">3</div>
+                            <div>
+                                <h2 class="bilty-section__title">Summary</h2>
+                                <p class="bilty-section__desc">Totals and remarks</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--4">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Selected Bilties</label>
+                                <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="invoiceBreakdown.count" readonly>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Total Amount</label>
+                                <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="'₹ ' + formatAmount(invoiceBreakdown.total_amount)" readonly>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">GST Amount</label>
+                                <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="'₹ ' + formatAmount(invoiceBreakdown.gst_amount)" readonly>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Net Amount</label>
+                                <input type="text" class="form-control form-control-sm bg-light fw-semibold text-success" :value="'₹ ' + formatAmount(invoiceBreakdown.net_amount)" readonly>
+                            </div>
+                        </div>
+                        <p v-if="form.bilty_ids.length > 0 && invoiceBreakdown.pending_freight > 0" class="text-danger small mb-2 mt-2">
+                            {{ invoiceBreakdown.pending_freight }} selected bilty(ies) still need freight.
+                        </p>
+                        <p v-if="form.bilty_ids.length > 0 && paidAmount > invoiceBreakdown.net_amount" class="text-danger small mb-2 mt-2">
+                            Net amount cannot be less than amount already received (₹ {{ formatAmount(paidAmount) }}).
+                        </p>
+                        <div class="bilty-field mt-2">
+                            <label class="bilty-field__label">Remark</label>
+                            <input type="text" class="form-control form-control-sm" v-model="form.remark">
+                        </div>
+                    </div>
+                </section>
+
+                <div class="bilty-form-actions">
+                    <a :href="`/invoices/${invoice.id}/print`" target="_blank" class="btn btn-dark btn-sm px-3">
+                        <i class="fas fa-print me-1"></i> Print
+                    </a>
+                    <Link href="/invoices" class="btn btn-outline-secondary btn-sm px-3">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </Link>
+                    <button
+                        type="submit"
+                        class="btn btn-warning btn-sm px-4"
+                        :disabled="form.processing || form.bilty_ids.length === 0 || invoiceBreakdown.pending_freight > 0 || paidAmount > invoiceBreakdown.net_amount"
+                    >
+                        <i class="fas fa-save me-1"></i> Update Invoice
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
 
         <div class="modal fade" ref="freightModalEl" tabindex="-1" aria-hidden="true">

@@ -1,172 +1,214 @@
 <template>
     <AdminLayout title="Add Delivery Receipt">
-        <div class="row">
-            <div class="col-md-10 mx-auto">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Create Delivery Receipt</h3>
-                    </div>
-                    <form @submit.prevent="submit">
-                        <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-md-3">
-                                    <label class="form-label">Receipt No. <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.delivery_receipt_no" required>
+        <div class="bilty-form-page">
+            <form @submit.prevent="submit" class="bilty-form">
+                <!-- 1. Receipt Details -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num">1</div>
+                            <div>
+                                <h2 class="bilty-section__title">Receipt Details</h2>
+                                <p class="bilty-section__desc">GR reference, payment and consignee</p>
+                            </div>
+                        </div>
+                        <div class="bilty-section__head-right">
+                            <div class="bilty-id">
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Receipt No.<span class="bilty-field__req">*</span></span>
+                                    <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.delivery_receipt_no }" v-model="form.delivery_receipt_no" required>
                                     <div v-if="form.errors.delivery_receipt_no" class="text-danger small mt-1">{{ form.errors.delivery_receipt_no }}</div>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Date <span class="text-danger">*</span></label>
-                                    <input type="date" class="form-control form-control-sm" v-model="form.date" required>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">GR No. <span class="text-danger">*</span></label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="grSourceKey"
-                                        :options="grOptions"
-                                        value-key="id"
-                                        label-key="label"
-                                        placeholder="Select GR No."
-                                        @change="onGrSourceChange"
-                                    />
-                                    <div v-if="form.errors.gr_no_bilty_no" class="text-danger small mt-1">{{ form.errors.gr_no_bilty_no }}</div>
-                                    <div v-if="grFetchError" class="text-danger small mt-1">{{ grFetchError }}</div>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Mode of Payment <span class="text-danger">*</span></label>
-                                    <select
-                                        ref="modeOfPaymentEl"
-                                        class="form-select form-select-sm"
-                                        v-model="form.mode_of_payment"
-                                        required
-                                    >
-                                        <option value="" disabled>Select Mode</option>
-                                        <option value="Cash">Cash</option>
-                                        <option value="Bank">Bank</option>
-                                        <option value="Due">Due</option>
-                                    </select>
-                                    <div v-if="form.errors.mode_of_payment" class="text-danger small mt-1">{{ form.errors.mode_of_payment }}</div>
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Date<span class="bilty-field__req">*</span></span>
+                                    <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date" required>
+                                    <div v-if="form.errors.date" class="invalid-feedback d-block">{{ form.errors.date }}</div>
                                 </div>
                             </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Consignee <span class="text-danger">*</span></label>
-                                    <input
-                                        type="text"
-                                        class="form-control form-control-sm bg-light"
-                                        :value="consigneeName"
-                                        readonly
-                                        tabindex="-1"
-                                    >
-                                    <div v-if="form.errors.consignee_id" class="text-danger small mt-1">{{ form.errors.consignee_id }}</div>
-                                </div>
-                                <div v-if="form.mode_of_payment === 'Due'" class="col-md-4">
-                                    <label class="form-label">Payment Due From <span class="text-danger">*</span></label>
-                                    <SearchableSelect
-                                        :small="true"
-                                        v-model="form.payment_due_from_id"
-                                        :options="partyOptions"
-                                        master="party"
-                                        placeholder="Select Party"
-                                        @created="(record) => appendMasterOption(partyOptions, record)"
-                                    />
-                                    <div v-if="form.errors.payment_due_from_id" class="text-danger small mt-1">{{ form.errors.payment_due_from_id }}</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Haste</label>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.haste">
-                                </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--4">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">GR No.<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="grSourceKey"
+                                    :options="grOptions"
+                                    value-key="id"
+                                    label-key="label"
+                                    placeholder="Select GR No."
+                                    @change="onGrSourceChange"
+                                />
+                                <div v-if="form.errors.gr_no_bilty_no" class="text-danger small mt-1">{{ form.errors.gr_no_bilty_no }}</div>
+                                <div v-if="grFetchError" class="text-danger small mt-1">{{ grFetchError }}</div>
                             </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Mode of Payment<span class="bilty-field__req">*</span></label>
+                                <select
+                                    ref="modeOfPaymentEl"
+                                    class="form-select form-select-sm"
+                                    :class="{ 'is-invalid': form.errors.mode_of_payment }"
+                                    v-model="form.mode_of_payment"
+                                    required
+                                >
+                                    <option value="" disabled>Select Mode</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Bank">Bank</option>
+                                    <option value="Due">Due</option>
+                                </select>
+                                <div v-if="form.errors.mode_of_payment" class="text-danger small mt-1">{{ form.errors.mode_of_payment }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Consignee<span class="bilty-field__req">*</span></label>
+                                <input
+                                    type="text"
+                                    class="form-control form-control-sm bg-light"
+                                    :value="consigneeName"
+                                    readonly
+                                    tabindex="-1"
+                                >
+                                <div v-if="form.errors.consignee_id" class="text-danger small mt-1">{{ form.errors.consignee_id }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Haste</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.haste">
+                            </div>
+                            <div v-if="form.mode_of_payment === 'Due'" class="bilty-field">
+                                <label class="bilty-field__label">Payment Due From<span class="bilty-field__req">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.payment_due_from_id"
+                                    :options="partyOptions"
+                                    master="party"
+                                    placeholder="Select Party"
+                                    @created="(record) => appendMasterOption(partyOptions, record)"
+                                />
+                                <div v-if="form.errors.payment_due_from_id" class="text-danger small mt-1">{{ form.errors.payment_due_from_id }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-                            <hr>
-                            <h6 class="mb-3 text-primary">Charges Breakdown</h6>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-5"><label class="form-label mb-0">Freight</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.freight" @input="calculateTotals"></div>
+                <!-- 2. Charges -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--green">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--green">2</div>
+                            <div>
+                                <h2 class="bilty-section__title">Charges</h2>
+                                <p class="bilty-section__desc">Freight, handling and other charges</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="bilty-charge-list">
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Freight</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.freight" @input="calculateTotals">
                                     </div>
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-5"><label class="form-label mb-0">Handling Charge</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.handling_charge" @input="calculateTotals"></div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Handling Charge</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.handling_charge" @input="calculateTotals">
                                     </div>
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-5"><label class="form-label mb-0">Delivery Charge</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.delivery_charge" @input="calculateTotals"></div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Delivery Charge</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.delivery_charge" @input="calculateTotals">
                                     </div>
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-5"><label class="form-label mb-0">Stationery Charge</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.stationery_charge" @input="calculateTotals"></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 border-start">
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-5"><label class="form-label mb-0">Demurrage</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.demurrage" @input="calculateTotals"></div>
-                                    </div>
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-5"><label class="form-label mb-0">Other Charge</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.other_charge" @input="calculateTotals"></div>
-                                    </div>
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-5"><label class="form-label mb-0">Carriage Charge</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm" v-model="form.carriage_charge" @input="calculateTotals"></div>
-                                    </div>
-                                    <div class="row mb-2 align-items-center">
-                                        <div class="col-5"><label class="form-label mb-0 fw-bold">Sub Total Amount</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.total_amount" readonly></div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Stationery Charge</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.stationery_charge" @input="calculateTotals">
                                     </div>
                                 </div>
                             </div>
-
-                            <hr>
-                            <h6 class="mb-3 text-primary">GST & Final Calculation</h6>
-                            <div class="row mb-3">
-                                <div class="col-md-3">
-                                    <label class="form-label">GST On</label>
-                                    <select class="form-select form-select-sm" v-model="form.gst_on" @change="calculateTotals">
-                                        <option value="delivery_charge">Delivery Charge</option>
-                                        <option value="total_charge">Total Charge</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">GST ({{ Number(form.gst_rate || 0) }}%)</label>
-                                    <input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.gst" readonly>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">GST Pay By</label>
-                                    <select class="form-select form-select-sm" v-model="form.gst_pay_by" @change="calculateTotals">
-                                        <option value="Consignor">Consignor</option>
-                                        <option value="Consignee">Consignee</option>
-                                        <option value="Transporter">Transporter</option>
-                                        <option value="Exempted">Exempted</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Less</label>
-                                    <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.less" @input="calculateTotals">
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-8"></div>
-                                <div class="col-md-4">
-                                    <div class="row align-items-center border p-2 bg-light rounded">
-                                        <div class="col-5"><label class="form-label mb-0 fw-bold fs-5 text-danger">Final Amount</label></div>
-                                        <div class="col-7"><input type="number" step="0.01" class="form-control fw-bold text-danger fs-5" v-model="form.final_amount" readonly></div>
+                            <div class="col-lg-6">
+                                <div class="bilty-charge-list">
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Demurrage</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.demurrage" @input="calculateTotals">
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Other Charge</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.other_charge" @input="calculateTotals">
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Carriage Charge</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.carriage_charge" @input="calculateTotals">
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label fw-bold">Sub Total Amount</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light fw-bold" v-model="form.total_amount" readonly>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="card-footer d-flex justify-content-end gap-2 bg-light">
-                            <Link href="/delivery-receipts" class="btn btn-secondary">Cancel</Link>
-                            <button type="submit" class="btn btn-primary" :disabled="form.processing">Save</button>
+                    </div>
+                </section>
+
+                <!-- 3. GST & Total -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--orange">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--orange">3</div>
+                            <div>
+                                <h2 class="bilty-section__title">GST &amp; Total</h2>
+                                <p class="bilty-section__desc">Tax details and payable amount</p>
+                            </div>
                         </div>
-                    </form>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="row g-3">
+                            <div class="col-lg-7">
+                                <div class="bilty-form-grid bilty-form-grid--4">
+                                    <div class="bilty-field">
+                                        <label class="bilty-field__label">GST On</label>
+                                        <select class="form-select form-select-sm" v-model="form.gst_on" @change="calculateTotals">
+                                            <option value="delivery_charge">Delivery Charge</option>
+                                            <option value="total_charge">Total Charge</option>
+                                        </select>
+                                    </div>
+                                    <div class="bilty-field">
+                                        <label class="bilty-field__label">GST ({{ Number(form.gst_rate || 0) }}%)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.gst" readonly>
+                                    </div>
+                                    <div class="bilty-field">
+                                        <label class="bilty-field__label">GST Pay By</label>
+                                        <select class="form-select form-select-sm" v-model="form.gst_pay_by" @change="calculateTotals">
+                                            <option value="Consignor">Consignor</option>
+                                            <option value="Consignee">Consignee</option>
+                                            <option value="Transporter">Transporter</option>
+                                            <option value="Exempted">Exempted</option>
+                                        </select>
+                                    </div>
+                                    <div class="bilty-field">
+                                        <label class="bilty-field__label">Less</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.less" @input="calculateTotals">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="bilty-total-panel">
+                                    <div class="bilty-total">
+                                        <span class="bilty-total__label">FINAL AMOUNT</span>
+                                        <input type="number" step="0.01" class="form-control form-control-sm bilty-total__input" v-model="form.final_amount" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="bilty-form-actions">
+                    <Link href="/delivery-receipts" class="btn btn-outline-secondary btn-sm px-3">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </Link>
+                    <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
+                        <i class="fas fa-save me-1"></i> Save
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
 
         <DeliveryReceiptGrConfirmModal

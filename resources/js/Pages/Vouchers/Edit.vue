@@ -1,66 +1,95 @@
 <template>
     <AdminLayout title="Edit Voucher">
-        <div class="row">
-            <div class="col-md-8 mx-auto">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Edit Voucher</h3>
+        <div class="bilty-form-page">
+            <form @submit.prevent="submit" class="bilty-form">
+                <!-- 1. Voucher Details -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num">1</div>
+                            <div>
+                                <h2 class="bilty-section__title">Voucher Details</h2>
+                                <p class="bilty-section__desc">Type, account and amount</p>
+                            </div>
+                        </div>
+                        <div class="bilty-section__head-right">
+                            <div class="bilty-id">
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Date</span>
+                                    <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date" required>
+                                    <div v-if="form.errors.date" class="invalid-feedback d-block">{{ form.errors.date }}</div>
+                                </div>
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Voucher No.</span>
+                                    <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.voucher_number }" v-model="form.voucher_number">
+                                    <div v-if="form.errors.voucher_number" class="text-danger small mt-1">{{ form.errors.voucher_number }}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <form @submit.prevent="submit">
-                        <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Date <span class="text-danger">*</span></label>
-                                    <input type="date" class="form-control" v-model="form.date" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Voucher No.</label>
-                                    <input type="text" class="form-control" v-model="form.voucher_number">
-                                </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--4">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Voucher Type<span class="bilty-field__req">*</span></label>
+                                <select class="form-select form-select-sm" :class="{ 'is-invalid': form.errors.voucher_type }" v-model="form.voucher_type" required>
+                                    <option value="Payment">Payment</option>
+                                    <option value="Receipt">Receipt</option>
+                                    <option value="Journal">Journal</option>
+                                    <option value="Contra">Contra</option>
+                                </select>
+                                <div v-if="form.errors.voucher_type" class="text-danger small mt-1">{{ form.errors.voucher_type }}</div>
                             </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Voucher Type <span class="text-danger">*</span></label>
-                                    <select class="form-select" v-model="form.voucher_type" required>
-                                        <option value="Payment">Payment</option>
-                                        <option value="Receipt">Receipt</option>
-                                        <option value="Journal">Journal</option>
-                                        <option value="Contra">Contra</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Account Head <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" v-model="form.account_head" required>
-                                </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Account Head<span class="bilty-field__req">*</span></label>
+                                <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.account_head }" v-model="form.account_head" required>
+                                <div v-if="form.errors.account_head" class="text-danger small mt-1">{{ form.errors.account_head }}</div>
                             </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Dr / Cr <span class="text-danger">*</span></label>
-                                    <select class="form-select" v-model="form.debit_credit" required>
-                                        <option value="Dr">Dr (Debit)</option>
-                                        <option value="Cr">Cr (Credit)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Amount <span class="text-danger">*</span></label>
-                                    <input type="number" step="0.01" class="form-control" v-model="form.amount" required>
-                                </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Dr / Cr<span class="bilty-field__req">*</span></label>
+                                <select class="form-select form-select-sm" :class="{ 'is-invalid': form.errors.debit_credit }" v-model="form.debit_credit" required>
+                                    <option value="Dr">Dr (Debit)</option>
+                                    <option value="Cr">Cr (Credit)</option>
+                                </select>
+                                <div v-if="form.errors.debit_credit" class="text-danger small mt-1">{{ form.errors.debit_credit }}</div>
                             </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Remark</label>
-                                <textarea class="form-control" rows="3" v-model="form.remark"></textarea>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Amount<span class="bilty-field__req">*</span></label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.amount }" v-model="form.amount" required>
+                                <div v-if="form.errors.amount" class="text-danger small mt-1">{{ form.errors.amount }}</div>
                             </div>
                         </div>
-                        <div class="card-footer d-flex justify-content-end gap-2 bg-light">
-                            <Link href="/vouchers" class="btn btn-secondary">Cancel</Link>
-                            <button type="submit" class="btn btn-warning" :disabled="form.processing">Update</button>
+                    </div>
+                </section>
+
+                <!-- 2. Remark -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--orange">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--orange">2</div>
+                            <div>
+                                <h2 class="bilty-section__title">Remark</h2>
+                                <p class="bilty-section__desc">Optional notes for this voucher</p>
+                            </div>
                         </div>
-                    </form>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-field">
+                            <label class="bilty-field__label">Remark</label>
+                            <textarea class="form-control form-control-sm" rows="3" :class="{ 'is-invalid': form.errors.remark }" v-model="form.remark"></textarea>
+                            <div v-if="form.errors.remark" class="text-danger small mt-1">{{ form.errors.remark }}</div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="bilty-form-actions">
+                    <Link href="/vouchers" class="btn btn-outline-secondary btn-sm px-3">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </Link>
+                    <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
+                        <i class="fas fa-save me-1"></i> Update
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
     </AdminLayout>
 </template>

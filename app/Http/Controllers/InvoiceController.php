@@ -32,14 +32,40 @@ class InvoiceController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'from_date' => ['nullable', 'date'],
+            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+            'party_id' => ['nullable', 'integer', 'exists:parties,id'],
+            'status' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $fromDate = $validated['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $validated['to_date'] ?? now()->endOfMonth()->toDateString();
+        $search = trim((string) ($validated['search'] ?? ''));
+
         $latestInvoiceId = Invoice::query()->max('id');
 
-        $invoices = Invoice::with('party')
+        $invoices = Invoice::query()
+            ->with('party')
             ->withSum('payments as paid_amount', 'amount')
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where('invoice_no', 'like', '%'.$search.'%');
+            })
+            ->when($fromDate, fn ($query) => $query->whereDate('date', '>=', $fromDate))
+            ->when($toDate, fn ($query) => $query->whereDate('date', '<=', $toDate))
+            ->when(! empty($validated['party_id']), function ($query) use ($validated) {
+                $query->where('party_id', $validated['party_id']);
+            })
+            ->when(! empty($validated['status']), function ($query) use ($validated) {
+                $query->where('status', $validated['status']);
+            })
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         $invoices->getCollection()->transform(function (Invoice $invoice) use ($latestInvoiceId) {
             $invoice->can_delete = (int) $invoice->id === (int) $latestInvoiceId
@@ -51,6 +77,14 @@ class InvoiceController extends Controller implements HasMiddleware
 
         return Inertia::render('Invoices/Index', [
             'invoices' => $invoices,
+            'parties' => Party::query()->orderBy('name')->get(['id', 'name']),
+            'filters' => [
+                'search' => $search,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'party_id' => isset($validated['party_id']) ? (string) $validated['party_id'] : '',
+                'status' => $validated['status'] ?? '',
+            ],
         ]);
     }
 

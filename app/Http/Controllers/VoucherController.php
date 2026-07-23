@@ -22,10 +22,45 @@ class VoucherController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'from_date' => ['nullable', 'date'],
+            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+            'voucher_type' => ['nullable', 'in:Payment,Receipt,Journal,Contra'],
+        ]);
+
+        $fromDate = $validated['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $validated['to_date'] ?? now()->endOfMonth()->toDateString();
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $vouchers = Voucher::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('voucher_number', 'like', '%'.$search.'%')
+                        ->orWhere('account_head', 'like', '%'.$search.'%')
+                        ->orWhere('remark', 'like', '%'.$search.'%');
+                });
+            })
+            ->when($fromDate, fn ($query) => $query->whereDate('date', '>=', $fromDate))
+            ->when($toDate, fn ($query) => $query->whereDate('date', '<=', $toDate))
+            ->when(! empty($validated['voucher_type']), function ($query) use ($validated) {
+                $query->where('voucher_type', $validated['voucher_type']);
+            })
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
+
         return Inertia::render('Vouchers/Index', [
-            'vouchers' => Voucher::orderBy('id', 'desc')->paginate(10)
+            'vouchers' => $vouchers,
+            'filters' => [
+                'search' => $search,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'voucher_type' => $validated['voucher_type'] ?? '',
+            ],
         ]);
     }
 
