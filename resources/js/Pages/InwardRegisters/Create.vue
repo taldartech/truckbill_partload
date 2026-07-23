@@ -47,12 +47,12 @@
                                 <input type="date" class="form-control form-control-sm" v-model="form.challan_date">
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Driver</label>
-                                <input type="text" class="form-control form-control-sm" v-model="form.driver_name" placeholder="Enter Driver Name">
-                            </div>
-                            <div class="bilty-field">
                                 <label class="bilty-field__label">Truck No.</label>
                                 <SearchableSelect :small="true" v-model="form.truck_id" :options="truckOptions" master="truck" placeholder="Select Truck" @created="(record) => appendMasterOption(truckOptions, record)" />
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Driver</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.driver_name" placeholder="Enter Driver Name">
                             </div>
                         </div>
                     </div>
