@@ -48,6 +48,8 @@
 .app-shell .app-sidebar,
 .app-shell .main-sidebar {
     --sidebar-width: 250px;
+    display: flex !important;
+    flex-direction: column !important;
     width: var(--sidebar-width) !important;
     min-width: var(--sidebar-width) !important;
     max-width: var(--sidebar-width) !important;
@@ -60,6 +62,8 @@
 .app-shell .app-sidebar .sidebar-container {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
     height: 100%;
     max-height: 100vh;
     overflow: hidden;
