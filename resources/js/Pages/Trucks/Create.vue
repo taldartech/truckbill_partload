@@ -1,179 +1,230 @@
 <template>
     <AdminLayout title="Add Truck">
-        <div class="row">
-            <div class="col-md-10 mx-auto">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Truck Details</h3>
-                    </div>
-                    <form @submit.prevent="submit">
-                        <div class="card-body">
-                            <!-- Core Info -->
-                            <h5 class="text-primary border-bottom pb-2 mb-3">Core Information</h5>
-                            <div class="row">
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Truck Number *</label>
+        <div class="bilty-form-page">
+            <form @submit.prevent="submit" class="bilty-form">
+                <!-- 1. Core Information -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num">1</div>
+                            <div>
+                                <h2 class="bilty-section__title">Core Information</h2>
+                                <p class="bilty-section__desc">Truck identity, type and status</p>
+                            </div>
+                        </div>
+                        <div class="bilty-section__head-right">
+                            <div class="bilty-id">
+                                <div class="bilty-id__field" style="min-width: 12rem;">
+                                    <span class="bilty-id__label">Truck Number<span class="bilty-field__req">*</span></span>
                                     <input
                                         type="text"
-                                        class="form-control text-uppercase"
+                                        class="form-control form-control-sm text-uppercase"
+                                        :class="{ 'is-invalid': form.errors.truck_number }"
                                         :value="form.truck_number"
                                         placeholder="e.g. MH04AB1234"
                                         required
                                         @input="onTruckNumberInput"
                                     >
-                                    <div v-if="form.errors.truck_number" class="text-danger small">{{ form.errors.truck_number }}</div>
-                                </div>
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Truck Type</label>
-                                    <SearchableSelect
-                                        v-model="form.truck_type_id"
-                                        :options="truckTypeOptions"
-                                        master="truck_type"
-                                        placeholder="Select Type"
-                                        @created="(record) => appendMasterOption(truckTypeOptions, record)"
-                                    />
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Capacity (in Tons)</label>
-                                    <input type="text" class="form-control" v-model="form.capacity" placeholder="e.g. 15">
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Status</label>
-                                    <select class="form-control" v-model="form.status">
-                                        <option value="Available">Available</option>
-                                        <option value="Booked">Booked</option>
-                                        <option value="In Transit">In Transit</option>
-                                        <option value="Maintenance">Maintenance</option>
-                                    </select>
+                                    <div v-if="form.errors.truck_number" class="text-danger small mt-1">{{ form.errors.truck_number }}</div>
                                 </div>
                             </div>
-
-                            <!-- Current Location Details -->
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Current Location</h5>
-                            <div class="row">
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Current State</label>
-                                    <SearchableSelect
-                                        v-model="form.current_state_id"
-                                        :options="stateOptions"
-                                        master="state"
-                                        placeholder="Select State"
-                                        @created="(record) => appendMasterOption(stateOptions, record)"
-                                    />
-                                </div>
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Current City</label>
-                                    <SearchableSelect
-                                        v-model="form.current_city_id"
-                                        :options="filteredCities"
-                                        master="city"
-                                        :quick-add-context="{ state_id: form.current_state_id }"
-                                        placeholder="Select City"
-                                        :disabled="!form.current_state_id"
-                                        @created="(record) => appendMasterOption(cityOptions, record)"
-                                    />
-                                </div>
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Current Station</label>
-                                    <SearchableSelect
-                                        v-model="form.current_station_id"
-                                        :options="filteredStations"
-                                        master="station"
-                                        placeholder="Select Station"
-                                        :disabled="!form.current_city_id"
-                                        @created="(record) => appendMasterOption(stationOptions, record)"
-                                    />
-                                </div>
-                            </div>
-
-                            <!-- Owner Details -->
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Owner Details</h5>
-                            <div class="row">
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Owner Name</label>
-                                    <input type="text" class="form-control" v-model="form.owner_name">
-                                </div>
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Owner Mobile</label>
-                                    <input type="text" class="form-control" v-model="form.owner_mobile">
-                                </div>
-                                <div class="col-md-4 form-group mb-3">
-                                    <label>Owner Email</label>
-                                    <input type="email" class="form-control" v-model="form.owner_email">
-                                </div>
-                                <div class="col-md-6 form-group mb-3">
-                                    <label>Owner Address</label>
-                                    <input type="text" class="form-control" v-model="form.owner_address">
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Owner City</label>
-                                    <input type="text" class="form-control" v-model="form.owner_city">
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Owner State</label>
-                                    <input type="text" class="form-control" v-model="form.owner_state">
-                                </div>
-                            </div>
-
-                            <!-- Compliance & Documentation -->
-                            <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Compliance & Documents</h5>
-                            <div class="row">
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>RC Number</label>
-                                    <input type="text" class="form-control" v-model="form.rc_no">
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>RC Expiry Date</label>
-                                    <input type="date" class="form-control" v-model="form.rc_expiry_date">
-                                </div>
-
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Insurance No.</label>
-                                    <input type="text" class="form-control" v-model="form.insurance_no">
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Insurance Expiry Date</label>
-                                    <input type="date" class="form-control" v-model="form.insurance_expiry_date">
-                                </div>
-
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Fitness No.</label>
-                                    <input type="text" class="form-control" v-model="form.fitness_no">
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Fitness Expiry Date</label>
-                                    <input type="date" class="form-control" v-model="form.fitness_expiry_date">
-                                </div>
-
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Pollution No.</label>
-                                    <input type="text" class="form-control" v-model="form.pollution_no">
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Pollution Expiry Date</label>
-                                    <input type="date" class="form-control" v-model="form.pollution_expiry_date">
-                                </div>
-
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Permit No.</label>
-                                    <input type="text" class="form-control" v-model="form.permit_no">
-                                </div>
-                                <div class="col-md-3 form-group mb-3">
-                                    <label>Permit Expiry Date</label>
-                                    <input type="date" class="form-control" v-model="form.permit_expiry_date">
-                                </div>
-                            </div>
-
                         </div>
-                        <div class="card-footer d-flex justify-content-between">
-                            <Link href="/trucks" class="btn btn-back">Cancel</Link>
-                            <button type="submit" class="btn btn-primary" :disabled="form.processing">
-                                <i class="fas fa-save me-1"></i> Save Truck
-                            </button>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--3">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Truck Type</label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.truck_type_id"
+                                    :options="truckTypeOptions"
+                                    master="truck_type"
+                                    placeholder="Select Type"
+                                    @created="(record) => appendMasterOption(truckTypeOptions, record)"
+                                />
+                                <div v-if="form.errors.truck_type_id" class="text-danger small mt-1">{{ form.errors.truck_type_id }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Capacity (in Tons)</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.capacity" placeholder="e.g. 15">
+                                <div v-if="form.errors.capacity" class="text-danger small mt-1">{{ form.errors.capacity }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Status</label>
+                                <select class="form-select form-select-sm" v-model="form.status">
+                                    <option value="Available">Available</option>
+                                    <option value="Booked">Booked</option>
+                                    <option value="In Transit">In Transit</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                </select>
+                                <div v-if="form.errors.status" class="text-danger small mt-1">{{ form.errors.status }}</div>
+                            </div>
                         </div>
-                    </form>
+                    </div>
+                </section>
+
+                <!-- 2. Current Location -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--green">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--green">2</div>
+                            <div>
+                                <h2 class="bilty-section__title">Current Location</h2>
+                                <p class="bilty-section__desc">Where the truck is currently based</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--3">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Current State</label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.current_state_id"
+                                    :options="stateOptions"
+                                    master="state"
+                                    placeholder="Select State"
+                                    @created="(record) => appendMasterOption(stateOptions, record)"
+                                />
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Current City</label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.current_city_id"
+                                    :options="filteredCities"
+                                    master="city"
+                                    :quick-add-context="{ state_id: form.current_state_id }"
+                                    placeholder="Select City"
+                                    :disabled="!form.current_state_id"
+                                    @created="(record) => appendMasterOption(cityOptions, record)"
+                                />
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Current Station</label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.current_station_id"
+                                    :options="filteredStations"
+                                    master="station"
+                                    placeholder="Select Station"
+                                    :disabled="!form.current_city_id"
+                                    @created="(record) => appendMasterOption(stationOptions, record)"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Owner Details -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num">3</div>
+                            <div>
+                                <h2 class="bilty-section__title">Owner Details</h2>
+                                <p class="bilty-section__desc">Owner contact and address</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--3">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Owner Name</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.owner_name">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Owner Mobile</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.owner_mobile" maxlength="10">
+                                <div v-if="form.errors.owner_mobile" class="text-danger small mt-1">{{ form.errors.owner_mobile }}</div>
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Owner Email</label>
+                                <input type="email" class="form-control form-control-sm" v-model="form.owner_email">
+                                <div v-if="form.errors.owner_email" class="text-danger small mt-1">{{ form.errors.owner_email }}</div>
+                            </div>
+                            <div class="bilty-field" style="grid-column: span 1;">
+                                <label class="bilty-field__label">Owner Address</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.owner_address">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Owner City</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.owner_city">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Owner State</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.owner_state">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Compliance & Documents -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head bilty-section__head--orange">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num bilty-step-num--orange">4</div>
+                            <div>
+                                <h2 class="bilty-section__title">Compliance &amp; Documents</h2>
+                                <p class="bilty-section__desc">RC, insurance, fitness, pollution and permit</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <div class="bilty-form-grid bilty-form-grid--4">
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">RC Number</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.rc_no">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">RC Expiry Date</label>
+                                <input type="date" class="form-control form-control-sm" v-model="form.rc_expiry_date">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Insurance No.</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.insurance_no">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Insurance Expiry Date</label>
+                                <input type="date" class="form-control form-control-sm" v-model="form.insurance_expiry_date">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Fitness No.</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.fitness_no">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Fitness Expiry Date</label>
+                                <input type="date" class="form-control form-control-sm" v-model="form.fitness_expiry_date">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Pollution No.</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.pollution_no">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Pollution Expiry Date</label>
+                                <input type="date" class="form-control form-control-sm" v-model="form.pollution_expiry_date">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Permit No.</label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.permit_no">
+                            </div>
+                            <div class="bilty-field">
+                                <label class="bilty-field__label">Permit Expiry Date</label>
+                                <input type="date" class="form-control form-control-sm" v-model="form.permit_expiry_date">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="bilty-form-actions">
+                    <Link href="/trucks" class="btn btn-outline-secondary btn-sm px-3">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </Link>
+                    <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
+                        <i class="fas fa-save me-1"></i> Save Truck
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
     </AdminLayout>
 </template>

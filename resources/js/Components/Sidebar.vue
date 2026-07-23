@@ -25,6 +25,13 @@
                         </Link>
                     </li>
 
+                    <li class="nav-item">
+                        <Link href="/loading-reports" class="nav-link" :class="{ active: $page.url.startsWith('/loading-reports') }">
+                            <i class="nav-icon fas fa-truck-loading"></i>
+                            <p>Loading Reports</p>
+                        </Link>
+                    </li>
+
                     <li class="nav-item" v-if="can('view challans')">
                         <Link href="/challans" class="nav-link" :class="{ active: $page.url.startsWith('/challans') }">
                             <i class="nav-icon fas fa-file-contract"></i>
@@ -36,13 +43,6 @@
                         <Link href="/main-challans" class="nav-link" :class="{ active: $page.url.startsWith('/main-challans') }">
                             <i class="nav-icon fas fa-file-alt"></i>
                             <p>Main Challans</p>
-                        </Link>
-                    </li>
-
-                    <li class="nav-item">
-                        <Link href="/loading-reports" class="nav-link" :class="{ active: $page.url.startsWith('/loading-reports') }">
-                            <i class="nav-icon fas fa-truck-loading"></i>
-                            <p>Loading Reports</p>
                         </Link>
                     </li>
 
