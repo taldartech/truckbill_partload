@@ -16,7 +16,13 @@
                             <div class="bilty-id">
                                 <div class="bilty-id__field">
                                     <span class="bilty-id__label">Bilty Number</span>
-                                    <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.bilty_number }" v-model="form.bilty_number">
+                                    <input
+                                        ref="biltyNumberInput"
+                                        type="text"
+                                        class="form-control form-control-sm"
+                                        :class="{ 'is-invalid': form.errors.bilty_number }"
+                                        v-model="form.bilty_number"
+                                    >
                                     <div v-if="form.errors.bilty_number" class="text-danger small mt-1">{{ form.errors.bilty_number }}</div>
                                 </div>
                                 <div class="bilty-id__field">
@@ -570,9 +576,10 @@ import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { watch, ref, onMounted, computed } from 'vue';
+import { watch, ref, onMounted, computed, nextTick } from 'vue';
 
 const gstAmount = ref('0.00');
+const biltyNumberInput = ref(null);
 const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
 const props = defineProps({
@@ -728,7 +735,11 @@ const applyCompanyGst = () => {
 
 watch(() => form.gst_liability_by, applyCompanyGst);
 
-onMounted(() => enforceMinBiltyCharge());
+onMounted(async () => {
+    enforceMinBiltyCharge();
+    await nextTick();
+    biltyNumberInput.value?.focus();
+});
 
 const addEwayBill = () => {
     form.eway_bills.push({ eway_bill_no: '', eway_bill_valid_till: '' });
