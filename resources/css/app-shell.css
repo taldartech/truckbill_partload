@@ -648,6 +648,13 @@
     font-size: 0.875rem;
 }
 
+.app-shell .app-footer {
+    grid-area: auto;
+    position: static;
+    width: 100%;
+    max-width: none;
+}
+
 .app-shell .app-footer a {
     color: var(--brand-primary);
 }

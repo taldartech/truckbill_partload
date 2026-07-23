@@ -2,17 +2,17 @@
     <div class="app-wrapper app-shell layout-fixed sidebar-expand-lg bg-body-tertiary">
         <Navbar />
         <Sidebar />
-        <main class="app-main main-content py-2">
+        <main class="app-main main-content pt-2 px-0">
             <div class="app-content">
-                <div class="container-fluid px-0">
+                <div class="container-fluid px-2">
                     <div v-if="$page.props.flash?.success" class="alert alert-success">{{ $page.props.flash.success }}</div>
                     <div v-if="$page.props.flash?.error" class="alert alert-danger">{{ $page.props.flash.error }}</div>
                     <SubscriptionAccessBanner />
                     <slot />
                 </div>
             </div>
+            <Footer />
         </main>
-        <Footer />
 
         <!-- Global Shortcuts Modal (F1) -->
         <Transition name="fade">
@@ -426,9 +426,24 @@ onUnmounted(() => {
 }
 
 .app-main {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
     transition: margin-left 0.3s;
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+.app-main > .app-content {
+    flex: 1 0 auto;
+}
+
+.app-main > .app-footer {
+    flex: 0 0 auto;
+    grid-area: auto;
+    width: 100%;
+    max-width: none;
+    margin-top: auto;
 }
 
 /* Glassmorphism Shortcut Modal Styles */
