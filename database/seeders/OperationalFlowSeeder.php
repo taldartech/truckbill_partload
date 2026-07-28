@@ -186,7 +186,7 @@ class OperationalFlowSeeder extends Seeder
      */
     private function createBranch(Company $company, array $geo): Branch
     {
-        return Branch::create([
+        return tap(Branch::create([
             'company_id' => $company->id,
             'name' => 'Mumbai Head Office',
             'address' => 'Andheri East, Mumbai',
@@ -204,7 +204,7 @@ class OperationalFlowSeeder extends Seeder
             'contact_person' => 'Priya Sharma',
             'contact_number' => '9820098765',
             'email' => 'mumbai@shreeganeshtransport.in',
-        ])->tap(function (Branch $branch) {
+        ]), function (Branch $branch): void {
             $branch->settings()->update([
                 'bilty_initial' => 'SGT/',
                 'challan_initial' => 'CH/',
