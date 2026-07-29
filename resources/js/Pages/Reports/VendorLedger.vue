@@ -1,0 +1,105 @@
+<template>
+    <AdminLayout title="Vendor Ledger">
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-book-open me-2"></i>Vendor Ledger</h3>
+                    </div>
+                    <div class="card-body">
+                        <form @submit.prevent="filterReports" class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Select Vendor <span class="text-danger">*</span></label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.vendor_id"
+                                    :options="vendors"
+                                    placeholder="-- Select Vendor --"
+                                />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control form-control-sm" v-model="form.start_date">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control form-control-sm" v-model="form.end_date">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-success btn-sm w-100" :disabled="!form.vendor_id">Get Ledger</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" v-if="vendor">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="m-0 fw-bold">{{ vendor.name }} - Ledger</h4>
+                        <span class="badge bg-primary fs-6">Net Balance: ₹ {{ Math.abs(currentBalance).toFixed(2) }} {{ currentBalance >= 0 ? 'Dr' : 'Cr' }}</span>
+                    </div>
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-hover table-bordered text-sm m-0">
+                            <thead class="bg-secondary text-white">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Ref No.</th>
+                                    <th>Particulars</th>
+                                    <th class="text-end">Debit (Dr) ₹</th>
+                                    <th class="text-end">Credit (Cr) ₹</th>
+                                    <th class="text-end">Balance ₹</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(entry, index) in ledger" :key="index">
+                                    <td>{{ entry.date }}</td>
+                                    <td><span class="badge bg-secondary">{{ entry.type }}</span></td>
+                                    <td>{{ entry.ref_no || '—' }}</td>
+                                    <td>{{ entry.description || '—' }}</td>
+                                    <td class="text-end text-danger">{{ entry.debit > 0 ? Number(entry.debit).toFixed(2) : '-' }}</td>
+                                    <td class="text-end text-success">{{ entry.credit > 0 ? Number(entry.credit).toFixed(2) : '-' }}</td>
+                                    <td class="text-end fw-bold">{{ Number(entry.balance).toFixed(2) }} {{ entry.balance >= 0 ? 'Dr' : 'Cr' }}</td>
+                                </tr>
+                                <tr v-if="ledger.length === 0">
+                                    <td colspan="7" class="text-center py-5 text-muted">No transactions found.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AdminLayout>
+</template>
+
+<script setup>
+import SearchableSelect from '@/Components/SearchableSelect.vue';
+import { computed } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
+
+const props = defineProps({
+    vendors: Array,
+    vendor: Object,
+    ledger: Array,
+    filters: Object,
+});
+
+const form = useForm({
+    vendor_id: props.filters?.vendor_id || '',
+    start_date: props.filters?.start_date || '',
+    end_date: props.filters?.end_date || '',
+});
+
+const filterReports = () => {
+    form.get('/reports/vendor-ledger', { preserveState: true });
+};
+
+const currentBalance = computed(() => {
+    return props.ledger?.length ? props.ledger[props.ledger.length - 1].balance : 0;
+});
+</script>

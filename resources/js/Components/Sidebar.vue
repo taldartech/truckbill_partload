@@ -76,6 +76,13 @@
                         </Link>
                     </li>
 
+                    <li class="nav-item" v-if="can('view bank_accounts')">
+                        <Link href="/bank-accounts" class="nav-link" :class="{ active: $page.url.startsWith('/bank-accounts') }">
+                            <i class="nav-icon fas fa-university"></i>
+                            <p>Bank Accounts</p>
+                        </Link>
+                    </li>
+
                     <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small">MASTER DATA</li>
 
                     <li class="nav-item" v-if="can('view parties')">
@@ -161,6 +168,27 @@
                         <Link href="/reports/party-ledger" class="nav-link" :class="{ active: $page.url.startsWith('/reports/party-ledger') }">
                             <i class="nav-icon fas fa-book"></i>
                             <p>Party Ledger</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item">
+                        <Link href="/reports/vendor-ledger" class="nav-link" :class="{ active: $page.url.startsWith('/reports/vendor-ledger') }">
+                            <i class="nav-icon fas fa-book-open"></i>
+                            <p>Vendor Ledger</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item">
+                        <Link href="/reports/agent-ledger" class="nav-link" :class="{ active: $page.url.startsWith('/reports/agent-ledger') }">
+                            <i class="nav-icon fas fa-journal-whills"></i>
+                            <p>Agent Ledger</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item">
+                        <Link href="/reports/cash-bank-book" class="nav-link" :class="{ active: $page.url.startsWith('/reports/cash-bank-book') }">
+                            <i class="nav-icon fas fa-wallet"></i>
+                            <p>Cash / Bank Book</p>
                         </Link>
                     </li>
                     </template>

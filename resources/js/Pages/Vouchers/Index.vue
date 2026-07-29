@@ -56,8 +56,6 @@
                             <option value="">All types</option>
                             <option value="Payment">Payment</option>
                             <option value="Receipt">Receipt</option>
-                            <option value="Journal">Journal</option>
-                            <option value="Contra">Contra</option>
                         </select>
                     </div>
                 </AppIndexCollapsibleFilters>
@@ -71,8 +69,8 @@
                                     <th>Date</th>
                                     <th>Voucher No.</th>
                                     <th>Type</th>
-                                    <th>Account Head</th>
-                                    <th>Dr/Cr</th>
+                                    <th>Account</th>
+                                    <th>Mode</th>
                                     <th>Amount</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
@@ -88,15 +86,11 @@
                                             :class="{
                                                 'bg-success': voucher.voucher_type === 'Receipt',
                                                 'bg-danger': voucher.voucher_type === 'Payment',
-                                                'bg-info': voucher.voucher_type === 'Journal',
-                                                'bg-secondary': voucher.voucher_type === 'Contra',
                                             }"
                                         >{{ voucher.voucher_type }}</span>
                                     </td>
-                                    <td>{{ voucher.account_head }}</td>
-                                    <td :class="voucher.debit_credit === 'Dr' ? 'text-danger fw-bold' : 'text-success fw-bold'">
-                                        {{ voucher.debit_credit }}
-                                    </td>
+                                    <td>{{ entityLabel(voucher) }}</td>
+                                    <td>{{ modeLabel(voucher) }}</td>
                                     <td>₹ {{ voucher.amount }}</td>
                                     <td class="text-end">
                                         <Link :href="`/vouchers/${voucher.id}/edit`" class="btn btn-sm btn-info text-white me-2">
@@ -203,6 +197,20 @@ const deleteVoucher = (id) => {
     if (confirm('Are you sure you want to delete this voucher?')) {
         deleteForm.delete(`/vouchers/${id}`);
     }
+};
+
+const entityLabel = (voucher) => {
+    const name = voucher.accountable?.name;
+    if (!name) return '—';
+    const type = (voucher.accountable_type || '').split('\\').pop();
+    return type ? `${name} (${type})` : name;
+};
+
+const modeLabel = (voucher) => {
+    if (voucher.mode === 'bank') {
+        return voucher.bank_account?.name ? `Bank · ${voucher.bank_account.name}` : 'Bank';
+    }
+    return 'Cash';
 };
 </script>
 

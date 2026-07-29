@@ -8,6 +8,7 @@ use App\Models\InwardRegister;
 use App\Models\Party;
 use App\Models\Station;
 use App\Models\Truck;
+use App\Services\Accounting\AccountingPoster;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -98,12 +99,12 @@ class InwardRegisterController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AccountingPoster $poster)
     {
         $this->branchStationId();
         $validated = $this->validateInwardRegister($request);
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated, $poster) {
             $details = $validated['details'];
             unset($validated['details']);
 
@@ -111,6 +112,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
             $register = InwardRegister::create($validated);
             $this->syncDetails($register, $details);
+            $poster->syncInwardRegister($register->fresh());
         });
 
         return redirect()->route('inward-registers.index')->with('success', 'Inward Register created successfully.');
@@ -137,12 +139,12 @@ class InwardRegisterController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function update(Request $request, InwardRegister $inwardRegister)
+    public function update(Request $request, InwardRegister $inwardRegister, AccountingPoster $poster)
     {
         $this->branchStationId();
         $validated = $this->validateInwardRegister($request, $inwardRegister->id);
 
-        DB::transaction(function () use ($validated, $inwardRegister) {
+        DB::transaction(function () use ($validated, $inwardRegister, $poster) {
             $details = $validated['details'];
             unset($validated['details']);
 
@@ -150,14 +152,18 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
             $inwardRegister->update($validated);
             $this->syncDetails($inwardRegister, $details);
+            $poster->syncInwardRegister($inwardRegister->fresh());
         });
 
         return redirect()->route('inward-registers.index')->with('success', 'Inward Register updated successfully.');
     }
 
-    public function destroy(InwardRegister $inwardRegister)
+    public function destroy(InwardRegister $inwardRegister, AccountingPoster $poster)
     {
-        $inwardRegister->delete();
+        DB::transaction(function () use ($inwardRegister, $poster) {
+            $poster->clearReference($inwardRegister);
+            $inwardRegister->delete();
+        });
 
         return redirect()->route('inward-registers.index')->with('success', 'Inward Register deleted successfully.');
     }

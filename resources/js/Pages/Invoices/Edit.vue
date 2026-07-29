@@ -35,25 +35,17 @@
                                     :options="partyOptions"
                                     master="party"
                                     placeholder="Select Party"
-                                    :disabled="!canChangeParty"
                                     @created="(record) => appendMasterOption(partyOptions, record)"
                                 />
-                                <p v-if="!canChangeParty" class="text-muted small mb-0 mt-1">
-                                    Party cannot be changed after payment has been recorded.
-                                </p>
                                 <div v-if="form.errors.party_id" class="text-danger small mt-1">{{ form.errors.party_id }}</div>
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Payment Status</label>
+                                <label class="bilty-field__label">Status</label>
                                 <div>
                                     <span class="badge" :class="statusBadgeClass(invoice.status)">
                                         {{ displayStatus(invoice.status) }}
                                     </span>
                                 </div>
-                            </div>
-                            <div class="bilty-field">
-                                <label class="bilty-field__label">Amount Received</label>
-                                <div class="form-control form-control-sm bg-light fw-semibold text-success">₹ {{ formatAmount(paidAmount) }}</div>
                             </div>
                         </div>
                     </div>
@@ -156,8 +148,8 @@
                         <p v-if="form.bilty_ids.length > 0 && invoiceBreakdown.pending_freight > 0" class="text-danger small mb-2 mt-2">
                             {{ invoiceBreakdown.pending_freight }} selected bilty(ies) still need freight.
                         </p>
-                        <p v-if="form.bilty_ids.length > 0 && paidAmount > invoiceBreakdown.net_amount" class="text-danger small mb-2 mt-2">
-                            Net amount cannot be less than amount already received (₹ {{ formatAmount(paidAmount) }}).
+                        <p v-if="form.bilty_ids.length > 0 && invoiceBreakdown.pending_freight > 0" class="text-danger small mb-2 mt-2">
+                            Set freight on all selected bilties before updating.
                         </p>
                         <div class="bilty-field mt-2">
                             <label class="bilty-field__label">Remark</label>
@@ -176,7 +168,7 @@
                     <button
                         type="submit"
                         class="btn btn-warning btn-sm px-4"
-                        :disabled="form.processing || form.bilty_ids.length === 0 || invoiceBreakdown.pending_freight > 0 || paidAmount > invoiceBreakdown.net_amount"
+                        :disabled="form.processing || form.bilty_ids.length === 0 || invoiceBreakdown.pending_freight > 0"
                     >
                         <i class="fas fa-save me-1"></i> Update Invoice
                     </button>
@@ -296,10 +288,6 @@ const modalBilty = ref(null);
 const freightDetailInputs = ref([]);
 const freightModalErrors = ref({});
 let freightModal = null;
-
-const paidAmount = computed(() => parseFloat(props.invoice.paid_amount || 0));
-
-const canChangeParty = computed(() => props.invoice.status === 'Pending');
 
 const initialBiltyIds = props.invoice.details?.map((detail) => detail.bilty_id) || [];
 
@@ -589,10 +577,6 @@ const fetchBilties = async (partyId) => {
 };
 
 watch(() => form.party_id, (partyId, oldPartyId) => {
-    if (!canChangeParty.value) {
-        return;
-    }
-
     if (oldPartyId && partyId !== oldPartyId) {
         form.bilty_ids = [];
         form.bilty_detail_freight = {};
@@ -616,7 +600,7 @@ const prepareFreightPayload = () => {
 };
 
 const submit = () => {
-    if (invoiceBreakdown.value.pending_freight > 0 || paidAmount.value > invoiceBreakdown.value.net_amount) {
+    if (invoiceBreakdown.value.pending_freight > 0) {
         return;
     }
 

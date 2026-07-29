@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Bilty;
 use App\Models\Challan;
-use App\Models\Invoice;
 use App\Models\Party;
 use App\Models\Station;
-use App\Models\Voucher;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -19,7 +17,7 @@ class ReportController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view reports', only: ['biltyRegister', 'challanRegister', 'partyLedger']),
+            new Middleware('permission:view reports', only: ['biltyRegister', 'challanRegister']),
         ];
     }
 
@@ -75,75 +73,6 @@ class ReportController extends Controller implements HasMiddleware
         return Inertia::render('Reports/ChallanRegister', [
             'challans' => $challans,
             'filters' => $request->all(['start_date', 'end_date']),
-        ]);
-    }
-
-    public function partyLedger(Request $request)
-    {
-        $partyId = $request->input('party_id');
-        $ledger = [];
-        $runningBalance = 0;
-        $party = null;
-
-        if ($partyId) {
-            $party = Party::find($partyId);
-
-            // Get Invoices (Debit)
-            $invoices = Invoice::where('party_id', $partyId)
-                ->when($request->filled('start_date'), function ($q) use ($request) {
-                    return $q->whereDate('date', '>=', $request->start_date);
-                })
-                ->when($request->filled('end_date'), function ($q) use ($request) {
-                    return $q->whereDate('date', '<=', $request->end_date);
-                })
-                ->get()
-                ->map(function ($invoice) {
-                    return [
-                        'date' => $invoice->date,
-                        'type' => 'Invoice',
-                        'ref_no' => $invoice->invoice_no,
-                        'description' => 'Tax Invoice '.$invoice->invoice_no,
-                        'debit' => (float) $invoice->net_amount,
-                        'credit' => 0,
-                    ];
-                });
-
-            // Get Vouchers (Credit - Receipt)
-            $vouchers = Voucher::where('party_id', $partyId)
-                ->whereIn('voucher_type', ['Receipt', 'Journal'])
-                ->when($request->filled('start_date'), function ($q) use ($request) {
-                    return $q->whereDate('date', '>=', $request->start_date);
-                })
-                ->when($request->filled('end_date'), function ($q) use ($request) {
-                    return $q->whereDate('date', '<=', $request->end_date);
-                })
-                ->get()
-                ->map(function ($voucher) {
-                    return [
-                        'date' => $voucher->date,
-                        'type' => 'Voucher',
-                        'ref_no' => $voucher->voucher_no,
-                        'description' => $voucher->remark ?? $voucher->voucher_type.' Voucher',
-                        'debit' => 0,
-                        'credit' => (float) $voucher->amount,
-                    ];
-                });
-
-            // Combine and sort by date
-            $ledger = collect($invoices)->concat($vouchers)->sortBy('date')->values()->all();
-
-            // Calculate running balance (Opening balance not calculated for simplicity in this demo)
-            foreach ($ledger as &$entry) {
-                $runningBalance += ($entry['debit'] - $entry['credit']);
-                $entry['balance'] = $runningBalance;
-            }
-        }
-
-        return Inertia::render('Reports/PartyLedger', [
-            'parties' => Party::all(),
-            'party' => $party,
-            'ledger' => $ledger,
-            'filters' => $request->all(['party_id', 'start_date', 'end_date']),
         ]);
     }
 }

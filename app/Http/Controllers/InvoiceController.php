@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Invoice;
-use App\Models\InvoiceDetail;
-use App\Models\InvoicePayment;
-use App\Models\Party;
 use App\Models\Bilty;
 use App\Models\BiltyDetail;
+use App\Models\Invoice;
+use App\Models\InvoiceDetail;
+use App\Models\Party;
+use App\Services\Accounting\AccountingPoster;
+use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use App\Support\RedirectsWithOptionalPrint;
 use Inertia\Inertia;
 
 class InvoiceController extends Controller implements HasMiddleware
@@ -24,10 +24,10 @@ class InvoiceController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view invoices', only: ['index', 'show', 'print', 'payments']),
+            new Middleware('permission:view invoices', only: ['index', 'show', 'print']),
             new Middleware('permission:create invoices|edit invoices', only: ['pendingBilties']),
             new Middleware('permission:create invoices', only: ['create', 'store']),
-            new Middleware('permission:edit invoices', only: ['edit', 'update', 'storePayment']),
+            new Middleware('permission:edit invoices', only: ['edit', 'update']),
             new Middleware('permission:delete invoices', only: ['destroy']),
         ];
     }
@@ -50,7 +50,6 @@ class InvoiceController extends Controller implements HasMiddleware
 
         $invoices = Invoice::query()
             ->with('party')
-            ->withSum('payments as paid_amount', 'amount')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where('invoice_no', 'like', '%'.$search.'%');
             })
@@ -70,7 +69,7 @@ class InvoiceController extends Controller implements HasMiddleware
         $invoices->getCollection()->transform(function (Invoice $invoice) use ($latestInvoiceId) {
             $invoice->can_delete = (int) $invoice->id === (int) $latestInvoiceId
                 && $invoice->status === 'Pending';
-            $invoice->can_edit = $invoice->status !== 'Paid';
+            $invoice->can_edit = true;
 
             return $invoice;
         });
@@ -300,6 +299,8 @@ class InvoiceController extends Controller implements HasMiddleware
                 ]);
             }
 
+            app(AccountingPoster::class)->syncInvoice($invoice);
+
             return $invoice;
         });
 
@@ -319,18 +320,12 @@ class InvoiceController extends Controller implements HasMiddleware
 
     public function edit(Invoice $invoice)
     {
-        if ($invoice->status === 'Paid') {
-            return redirect()->route('invoices.index')
-                ->with('error', 'Paid invoices cannot be edited.');
-        }
-
         $invoice->load([
             'party',
             'details.bilty.fromStation',
             'details.bilty.toStation',
             'details.bilty.biltyDetails.good',
         ]);
-        $invoice->loadSum('payments as paid_amount', 'amount');
 
         return Inertia::render('Invoices/Edit', [
             'invoice' => $invoice,
@@ -340,12 +335,6 @@ class InvoiceController extends Controller implements HasMiddleware
 
     public function update(Request $request, Invoice $invoice)
     {
-        if ($invoice->status === 'Paid') {
-            throw ValidationException::withMessages([
-                'invoice' => 'Paid invoices cannot be edited.',
-            ]);
-        }
-
         $validated = $request->validate([
             'date' => 'required|date',
             'party_id' => 'required|exists:parties,id',
@@ -359,17 +348,9 @@ class InvoiceController extends Controller implements HasMiddleware
             'bilty_detail_freight.*.*.rate' => 'required|numeric|min:0.01',
         ]);
 
-        if ($invoice->status !== 'Pending'
-            && (int) $validated['party_id'] !== (int) $invoice->party_id) {
-            throw ValidationException::withMessages([
-                'party_id' => 'Party cannot be changed unless the invoice is pending.',
-            ]);
-        }
-
         $biltyDetailFreight = $validated['bilty_detail_freight'] ?? [];
         $partyId = (int) $validated['party_id'];
         $invoiceNo = $invoice->invoice_no;
-        $paidAmount = (float) $invoice->payments()->sum('amount');
 
         $bilties = Bilty::with('biltyDetails')->whereIn('id', $validated['bilty_ids'])->get();
 
@@ -483,27 +464,13 @@ class InvoiceController extends Controller implements HasMiddleware
         $gstAmount = round(collect($preparedBilties)->sum('gst_amount'), 2);
         $netAmount = round(collect($preparedBilties)->sum('amount'), 2);
 
-        if ($paidAmount > $netAmount) {
-            throw ValidationException::withMessages([
-                'bilty_ids' => 'Invoice amount cannot be less than the amount already received (₹ '.number_format($paidAmount, 2, '.', '').').',
-            ]);
-        }
-
         $invoice->load('details');
         $removedBiltyIds = $invoice->details
             ->pluck('bilty_id')
             ->diff(collect($validated['bilty_ids']))
             ->values();
 
-        if ($paidAmount <= 0) {
-            $status = 'Pending';
-        } elseif ($paidAmount < $netAmount) {
-            $status = 'Partial';
-        } else {
-            $status = 'Paid';
-        }
-
-        DB::transaction(function () use ($invoice, $validated, $preparedBilties, $invoiceNo, $totalAmount, $gstAmount, $netAmount, $removedBiltyIds, $status) {
+        DB::transaction(function () use ($invoice, $validated, $preparedBilties, $invoiceNo, $totalAmount, $gstAmount, $netAmount, $removedBiltyIds) {
             if ($removedBiltyIds->isNotEmpty()) {
                 Bilty::whereIn('id', $removedBiltyIds)->update(['invoice_number' => null]);
             }
@@ -533,8 +500,9 @@ class InvoiceController extends Controller implements HasMiddleware
                 'total_amount' => $totalAmount,
                 'gst_amount' => $gstAmount,
                 'net_amount' => $netAmount,
-                'status' => $status,
             ]);
+
+            app(AccountingPoster::class)->syncInvoice($invoice->fresh());
         });
 
         return $this->indexRedirectWithOptionalPrint(
@@ -546,7 +514,7 @@ class InvoiceController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(Invoice $invoice)
+    public function destroy(Invoice $invoice, AccountingPoster $poster)
     {
         $latestInvoiceId = Invoice::query()->max('id');
 
@@ -566,11 +534,12 @@ class InvoiceController extends Controller implements HasMiddleware
 
         $biltyIds = $invoice->details->pluck('bilty_id');
 
-        DB::transaction(function () use ($invoice, $biltyIds) {
+        DB::transaction(function () use ($invoice, $biltyIds, $poster) {
             if ($biltyIds->isNotEmpty()) {
                 Bilty::whereIn('id', $biltyIds)->update(['invoice_number' => null]);
             }
 
+            $poster->clearReference($invoice);
             $invoice->delete();
         });
 
@@ -584,69 +553,5 @@ class InvoiceController extends Controller implements HasMiddleware
         $branch = $invoice->branch;
 
         return view('prints.invoice', compact('invoice', 'company', 'branch'));
-    }
-
-    public function payments(Invoice $invoice): JsonResponse
-    {
-        $invoice->load(['party', 'payments' => fn ($query) => $query->orderByDesc('date')->orderByDesc('id')]);
-
-        $paidAmount = (float) $invoice->payments->sum('amount');
-        $netAmount = (float) $invoice->net_amount;
-
-        return response()->json([
-            'invoice' => [
-                'id' => $invoice->id,
-                'invoice_no' => $invoice->invoice_no,
-                'date' => $invoice->date,
-                'party_name' => $invoice->party?->name,
-                'net_amount' => $netAmount,
-                'paid_amount' => $paidAmount,
-                'balance_amount' => max($netAmount - $paidAmount, 0),
-                'status' => $invoice->status,
-            ],
-            'payments' => $invoice->payments,
-        ]);
-    }
-
-    public function storePayment(Request $request, Invoice $invoice)
-    {
-        $paidAmount = (float) $invoice->payments()->sum('amount');
-        $netAmount = (float) $invoice->net_amount;
-        $balance = round(max($netAmount - $paidAmount, 0), 2);
-
-        $validated = $request->validate([
-            'date' => 'required|date',
-            'amount' => 'required|numeric|min:0.01|max:'.$balance,
-            'payment_mode' => 'required|string|in:Cash,Cheque,RTGS,NEFT,UPI,Bank',
-            'reference_no' => 'nullable|string|max:100',
-            'remark' => 'nullable|string|max:500',
-        ], [
-            'amount.max' => 'Payment amount cannot exceed the outstanding balance.',
-        ]);
-
-        if ($balance <= 0) {
-            throw ValidationException::withMessages([
-                'amount' => 'This invoice is already fully paid.',
-            ]);
-        }
-
-        DB::transaction(function () use ($invoice, $validated) {
-            $invoice->payments()->create($validated);
-
-            $paidTotal = (float) $invoice->payments()->sum('amount');
-            $netAmount = (float) $invoice->net_amount;
-
-            if ($paidTotal <= 0) {
-                $status = 'Pending';
-            } elseif ($paidTotal < $netAmount) {
-                $status = 'Partial';
-            } else {
-                $status = 'Paid';
-            }
-
-            $invoice->update(['status' => $status]);
-        });
-
-        return redirect()->route('invoices.index')->with('success', 'Payment recorded successfully.');
     }
 }

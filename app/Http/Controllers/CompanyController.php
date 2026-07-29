@@ -96,6 +96,7 @@ class CompanyController extends Controller implements HasMiddleware
 
         $company = Company::create($validated);
         $this->pricingService->createTrialSubscription($company);
+        app(\App\Services\Accounting\EnsureCompanyLedgerAccounts::class)->handle($company);
 
         return redirect()->route('companies.index')->with('success', 'Company created successfully.');
     }

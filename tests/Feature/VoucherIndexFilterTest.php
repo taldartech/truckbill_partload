@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\Company;
 use App\Models\CompanySubscription;
 use App\Models\Country;
+use App\Models\Party;
 use App\Models\State;
 use App\Models\Station;
 use App\Models\User;
@@ -108,15 +109,22 @@ class VoucherIndexFilterTest extends TestCase
         ]);
         $user->givePermissionTo('view vouchers');
 
+        $party = Party::create([
+            'company_id' => $company->id,
+            'name' => 'Filter Party',
+        ]);
+
         $match = Voucher::create([
             'company_id' => $company->id,
             'branch_id' => $branch->id,
             'date' => now()->toDateString(),
             'voucher_number' => 'VCH-1001',
             'voucher_type' => 'Payment',
-            'account_head' => 'Office Rent',
-            'debit_credit' => 'Dr',
+            'accountable_type' => Party::class,
+            'accountable_id' => $party->id,
             'amount' => 1500,
+            'mode' => 'cash',
+            'remark' => 'Office Rent',
         ]);
 
         $other = Voucher::create([
@@ -125,9 +133,11 @@ class VoucherIndexFilterTest extends TestCase
             'date' => now()->subMonths(2)->toDateString(),
             'voucher_number' => 'VCH-2002',
             'voucher_type' => 'Receipt',
-            'account_head' => 'Freight Income',
-            'debit_credit' => 'Cr',
+            'accountable_type' => Party::class,
+            'accountable_id' => $party->id,
             'amount' => 2500,
+            'mode' => 'cash',
+            'remark' => 'Freight Income',
         ]);
 
         return [

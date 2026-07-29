@@ -12,6 +12,7 @@ use App\Models\PackageType;
 use App\Models\Party;
 use App\Models\Station;
 use App\Models\Vendor;
+use App\Services\Accounting\AccountingPoster;
 use App\Support\BiltyPrint;
 use App\Support\DocumentNumber;
 use App\Support\RedirectsWithOptionalPrint;
@@ -102,13 +103,13 @@ class BiltyController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function store(BiltyRequest $request)
+    public function store(BiltyRequest $request, AccountingPoster $poster)
     {
         $validated = $request->validated();
         $validated['status'] = $validated['status'] ?? 'Pending';
         $validated['created_by'] = Auth::id();
 
-        $bilty = DB::transaction(function () use ($validated) {
+        $bilty = DB::transaction(function () use ($validated, $poster) {
             $details = $validated['details'] ?? [];
             $ewayBills = $validated['eway_bills'] ?? [];
             unset($validated['details'], $validated['eway_bills']);
@@ -130,6 +131,7 @@ class BiltyController extends Controller implements HasMiddleware
             }
 
             $this->syncEwayBills($bilty, $ewayBills);
+            $poster->syncBilty($bilty);
 
             return $bilty;
         });
@@ -160,11 +162,11 @@ class BiltyController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function update(BiltyRequest $request, Bilty $bilty)
+    public function update(BiltyRequest $request, Bilty $bilty, AccountingPoster $poster)
     {
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated, $bilty) {
+        DB::transaction(function () use ($validated, $bilty, $poster) {
             $details = $validated['details'] ?? [];
             $ewayBills = $validated['eway_bills'] ?? [];
             unset($validated['details'], $validated['eway_bills']);
@@ -187,6 +189,7 @@ class BiltyController extends Controller implements HasMiddleware
             }
 
             $this->syncEwayBills($bilty, $ewayBills);
+            $poster->syncBilty($bilty->fresh());
         });
 
         return $this->indexRedirectWithOptionalPrint(
@@ -198,9 +201,12 @@ class BiltyController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(Bilty $bilty)
+    public function destroy(Bilty $bilty, AccountingPoster $poster)
     {
-        $bilty->delete();
+        DB::transaction(function () use ($bilty, $poster) {
+            $poster->clearReference($bilty);
+            $bilty->delete();
+        });
 
         return redirect()->route('bilties.index')->with('success', 'Bilty deleted successfully.');
     }

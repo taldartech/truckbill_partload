@@ -3,6 +3,7 @@
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\Api\OnboardingController as ApiOnboardingController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\BiltyController;
 use App\Http\Controllers\BranchContextController;
 use App\Http\Controllers\BranchController;
@@ -123,11 +124,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('vendors/quick/form-data', [VendorController::class, 'quickFormData'])->name('vendors.quick-form-data');
         Route::post('vendors/quick', [VendorController::class, 'quickStore'])->name('vendors.quick-store');
         Route::resource('vendors', VendorController::class);
+        Route::resource('bank-accounts', BankAccountController::class);
 
         // Administration
         Route::resource('users', UserController::class);
         Route::get('loading-reports/{loading_report}/print', [LoadingReportController::class, 'print'])->name('loading-reports.print');
         Route::resource('loading-reports', LoadingReportController::class);
+        Route::get('vouchers/entity-balance', [VoucherController::class, 'entityBalance'])->name('vouchers.entity-balance');
         Route::resource('vouchers', VoucherController::class);
         Route::resource('inward-registers', InwardRegisterController::class);
 
@@ -136,15 +139,16 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('delivery-receipts', DeliveryReceiptController::class);
 
         Route::get('invoices/pending-bilties', [\App\Http\Controllers\InvoiceController::class, 'pendingBilties'])->name('invoices.pending-bilties');
-        Route::get('invoices/{invoice}/payments', [\App\Http\Controllers\InvoiceController::class, 'payments'])->name('invoices.payments.index');
-        Route::post('invoices/{invoice}/payments', [\App\Http\Controllers\InvoiceController::class, 'storePayment'])->name('invoices.payments.store');
         Route::get('invoices/{invoice}/print', [\App\Http\Controllers\InvoiceController::class, 'print'])->name('invoices.print');
         Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
 
         // Reports
         Route::get('reports/bilty-register', [\App\Http\Controllers\ReportController::class, 'biltyRegister'])->name('reports.bilty-register');
         Route::get('reports/challan-register', [\App\Http\Controllers\ReportController::class, 'challanRegister'])->name('reports.challan-register');
-        Route::get('reports/party-ledger', [\App\Http\Controllers\ReportController::class, 'partyLedger'])->name('reports.party-ledger');
+        Route::get('reports/party-ledger', [\App\Http\Controllers\LedgerReportController::class, 'partyLedger'])->name('reports.party-ledger');
+        Route::get('reports/vendor-ledger', [\App\Http\Controllers\LedgerReportController::class, 'vendorLedger'])->name('reports.vendor-ledger');
+        Route::get('reports/agent-ledger', [\App\Http\Controllers\LedgerReportController::class, 'agentLedger'])->name('reports.agent-ledger');
+        Route::get('reports/cash-bank-book', [\App\Http\Controllers\LedgerReportController::class, 'cashBankBook'])->name('reports.cash-bank-book');
 
         Route::resource('roles', RoleController::class);
     });

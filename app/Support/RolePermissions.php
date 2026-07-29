@@ -11,7 +11,7 @@ class RolePermissions
             'stations', 'parties', 'vendors', 'agents', 'groups',
             'goods', 'package_types', 'truck_types',
             'bilties', 'challans', 'delivery_receipts', 'invoices',
-            'inward_registers', 'loading_reports', 'vouchers',
+            'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts',
             'subscriptions', 'subscription_plans', 'roles', 'users',
             'reports',
         ];
@@ -23,7 +23,7 @@ class RolePermissions
             'branches', 'trucks', 'stations', 'parties',
             'vendors', 'agents', 'groups', 'goods', 'package_types', 'truck_types',
             'bilties', 'challans', 'delivery_receipts', 'invoices',
-            'inward_registers', 'loading_reports', 'vouchers', 'reports',
+            'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts', 'reports',
         ];
     }
 
@@ -66,7 +66,7 @@ class RolePermissions
     {
         return array_merge(
             self::permissionNames(
-                ['branches', 'trucks', 'stations', 'parties', 'vendors', 'agents', 'bilties', 'challans', 'delivery_receipts', 'invoices', 'inward_registers', 'loading_reports', 'vouchers'],
+                ['branches', 'trucks', 'stations', 'parties', 'vendors', 'agents', 'bilties', 'challans', 'delivery_receipts', 'invoices', 'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts'],
                 ['view']
             ),
             ['view reports'],

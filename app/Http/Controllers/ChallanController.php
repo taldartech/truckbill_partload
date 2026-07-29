@@ -9,6 +9,7 @@ use App\Models\ChallanDetail;
 use App\Models\InwardRegisterDetail;
 use App\Models\Station;
 use App\Models\Truck;
+use App\Services\Accounting\AccountingPoster;
 use App\Support\DocumentNumber;
 use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
@@ -166,6 +167,8 @@ class ChallanController extends Controller implements HasMiddleware
             return $challan;
         });
 
+        app(AccountingPoster::class)->syncChallan($challan->fresh());
+
         return $this->indexRedirectWithOptionalPrint(
             $request,
             'challans.index',
@@ -243,6 +246,8 @@ class ChallanController extends Controller implements HasMiddleware
             $this->syncChallanDetails($challan, $details);
         });
 
+        app(AccountingPoster::class)->syncChallan($challan->fresh());
+
         return $this->indexRedirectWithOptionalPrint(
             $request,
             'challans.index',
@@ -252,9 +257,9 @@ class ChallanController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(Challan $challan)
+    public function destroy(Challan $challan, AccountingPoster $poster)
     {
-        DB::transaction(function () use ($challan) {
+        DB::transaction(function () use ($challan, $poster) {
             $inwardIds = $challan->details()
                 ->whereNotNull('inward_register_detail_id')
                 ->pluck('inward_register_detail_id');
@@ -265,6 +270,7 @@ class ChallanController extends Controller implements HasMiddleware
 
             InwardRegisterDetail::whereIn('id', $inwardIds)->update(['status' => 'pending']);
             Bilty::whereIn('id', $biltyIds)->update(['status' => 'Pending']);
+            $poster->clearReference($challan);
             $challan->delete();
         });
 

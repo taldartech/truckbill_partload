@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
-    use \App\Traits\BelongsToCompany;
     use \App\Traits\BelongsToBranch;
+    use \App\Traits\BelongsToCompany;
 
     protected $guarded = [];
 
@@ -24,10 +24,5 @@ class Invoice extends Model
     public function details()
     {
         return $this->hasMany(InvoiceDetail::class);
-    }
-
-    public function payments()
-    {
-        return $this->hasMany(InvoicePayment::class);
     }
 }
