@@ -164,10 +164,93 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
 
     public function print(DeliveryReceipt $delivery_receipt)
     {
-        $delivery_receipt->load(['consignee', 'paymentDueFrom']);
-        $company = \App\Models\Company::find($delivery_receipt->company_id);
+        $delivery_receipt->load([
+            'consignee.city',
+            'consignee.state',
+            'paymentDueFrom',
+            'branch.company',
+            'branch.city',
+            'branch.state',
+        ]);
 
-        return view('prints.delivery_receipt', ['receipt' => $delivery_receipt, 'company' => $company]);
+        $branch = $delivery_receipt->branch;
+        $company = $branch?->company ?? \App\Models\Company::find($delivery_receipt->company_id);
+        $grSource = $this->resolveGrSourceForPrint($delivery_receipt->gr_no_bilty_no);
+
+        return view('prints.delivery_receipt', [
+            'receipt' => $delivery_receipt,
+            'company' => $company,
+            'branch' => $branch,
+            'grSource' => $grSource,
+        ]);
+    }
+
+    /**
+     * @return array{
+     *     consignor: ?string,
+     *     from_station: ?string,
+     *     goods_name: ?string,
+     *     private_marka: ?string,
+     *     packages: float|int|null,
+     *     weight: float|int|null,
+     *     gr_date: ?string,
+     *     received_date: ?string,
+     *     basis_of_booking: ?string
+     * }
+     */
+    private function resolveGrSourceForPrint(?string $grNo): array
+    {
+        $empty = [
+            'consignor' => null,
+            'from_station' => null,
+            'goods_name' => null,
+            'private_marka' => null,
+            'packages' => null,
+            'weight' => null,
+            'gr_date' => null,
+            'received_date' => null,
+            'basis_of_booking' => null,
+        ];
+
+        $grNo = trim((string) $grNo);
+        if ($grNo === '') {
+            return $empty;
+        }
+
+        $detail = InwardRegisterDetail::query()
+            ->with([
+                'consignor:id,name',
+                'fromStation:id,name',
+                'good:id,name',
+                'inwardRegister:id,date',
+            ])
+            ->where(function ($query) use ($grNo) {
+                $query->where('gr_no', $grNo);
+
+                if (preg_match('/^GR-(\d+)$/i', $grNo, $matches)) {
+                    $query->orWhere('id', (int) $matches[1]);
+                }
+            })
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $detail) {
+            return $empty;
+        }
+
+        return [
+            'consignor' => $detail->consignor?->name,
+            'from_station' => $detail->fromStation?->name,
+            'goods_name' => $detail->good?->name,
+            'private_marka' => $detail->private_marka,
+            'packages' => $detail->no_of_packages,
+            'weight' => $detail->weight,
+            'gr_date' => $detail->date ? date('d/m/Y', strtotime((string) $detail->date)) : null,
+            'received_date' => $detail->inwardRegister?->date
+                ? date('d/m/Y', strtotime((string) $detail->inwardRegister->date))
+                : null,
+            'basis_of_booking' => $detail->basis_of_booking,
+        ];
     }
 
     /**

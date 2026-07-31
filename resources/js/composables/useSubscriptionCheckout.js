@@ -128,7 +128,7 @@ export function useSubscriptionCheckout({
         fetchQuote();
     }
 
-    async function pay(companyName) {
+    async function pay() {
         paying.value = true;
 
         try {
@@ -147,8 +147,9 @@ export function useSubscriptionCheckout({
                 amount: order.razorpay_amount_paise,
                 currency: 'INR',
                 order_id: order.razorpay_order_id,
-                name: companyName,
-                description: 'TruckBill subscription',
+                description: order.description || 'TruckBill subscription',
+                prefill: order.prefill || {},
+                notes: order.notes || {},
                 handler: async (response) => {
                     await http.post('/subscription/callback', response);
                     router.visit(manageUrl);

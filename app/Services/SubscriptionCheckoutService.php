@@ -28,12 +28,19 @@ class SubscriptionCheckoutService
             throw new \InvalidArgumentException(implode(' ', $quote['blocking_errors'] ?: ['Checkout is not available.']));
         }
 
+        $checkoutMeta = $this->razorpayCheckoutMeta($company, $actorUserId, $quote);
+        $description = $this->razorpayDescription($quote);
+
         $api = new Api(config('subscription.razorpay_key'), config('subscription.razorpay_secret'));
-        $order = $api->order->create([
+        $orderPayload = [
             'receipt' => 'sub_'.$company->id.'_'.time(),
             'amount' => Money::toPaise($quote['total_amount']),
             'currency' => 'INR',
-        ]);
+        ];
+        if ($checkoutMeta['notes'] !== []) {
+            $orderPayload['notes'] = $checkoutMeta['notes'];
+        }
+        $order = $api->order->create($orderPayload);
 
         $payment = SubscriptionPayment::create([
             'company_id' => $company->id,
@@ -64,7 +71,175 @@ class SubscriptionCheckoutService
             'razorpay_key' => config('subscription.razorpay_key'),
             'amount' => (float) $quote['total_amount'],
             'razorpay_amount_paise' => Money::toPaise($quote['total_amount']),
+            'description' => $description,
+            'prefill' => $checkoutMeta['prefill'],
+            'notes' => $checkoutMeta['notes'],
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $quote
+     * @return array{notes: array<string, string>, prefill: array<string, string>}
+     */
+    private function razorpayCheckoutMeta(Company $company, int $actorUserId, array $quote): array
+    {
+        $actor = \App\Models\User::query()->find($actorUserId);
+        $contact = $this->normalizeIndianMobile($company->contact_number);
+        $pan = $company->pan_number ?? $company->pan_no ?? null;
+
+        $notes = array_filter([
+            'company_name' => $company->name,
+            'mobile' => $company->contact_number,
+            'gst_number' => $company->gst_number,
+            'pan_number' => $pan,
+            'contact_person' => $company->contact_person,
+            'gst_type' => $company->gst_type,
+            'gst_scheme' => $company->gst_scheme,
+            'address' => filled($company->address) ? (string) $company->address : null,
+            'product' => $this->productDisplayName(),
+            'purchase_type' => (string) ($quote['purchase_type'] ?? ''),
+            'promo_code' => $this->promoCodeFromQuote($quote),
+            'promo_discount' => ((float) ($quote['promo_discount'] ?? 0)) > 0
+                ? $this->formatRupee((float) $quote['promo_discount'])
+                : null,
+            'plan_details' => $this->formatPlanDetails($quote),
+            'charges_breakdown' => $this->formatChargesBreakdown($quote),
+        ], fn ($value) => filled($value));
+
+        $notes = array_map(
+            static fn ($value): string => \Illuminate\Support\Str::limit((string) $value, 256, ''),
+            $notes,
+        );
+
+        $prefill = array_filter([
+            'name' => $company->contact_person ?: $company->name,
+            'email' => $company->email ?: $actor?->email,
+            'contact' => $contact,
+        ], fn ($value) => filled($value));
+
+        return [
+            'notes' => $notes,
+            'prefill' => array_map(static fn ($value): string => (string) $value, $prefill),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $quote
+     */
+    private function razorpayDescription(array $quote): string
+    {
+        $type = (string) ($quote['purchase_type'] ?? 'subscription');
+
+        return $this->productDisplayName().' '.$type;
+    }
+
+    private function productDisplayName(): string
+    {
+        return match ((string) config('subscription.product')) {
+            'broker' => 'TruckBill Broker',
+            'ownfleet' => 'TruckBill Ownfleet',
+            'parchun' => 'TruckBill Parchun',
+            default => 'TruckBill',
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $quote
+     */
+    private function formatPlanDetails(array $quote): string
+    {
+        $catalog = is_array($quote['catalog_snapshot'] ?? null) ? $quote['catalog_snapshot'] : [];
+        $quantities = is_array($quote['quantities'] ?? null) ? $quote['quantities'] : [];
+        $parts = [];
+
+        if (isset($catalog['included_branches']) || isset($quantities['addon_branches'])) {
+            $parts[] = 'Branches '.(int) ($catalog['included_branches'] ?? 0).'+'.(int) ($quantities['addon_branches'] ?? 0);
+        }
+        if (isset($catalog['users_per_branch']) || isset($quantities['addon_users'])) {
+            $parts[] = 'Users/branch '.(int) ($catalog['users_per_branch'] ?? 0).'+'.(int) ($quantities['addon_users'] ?? 0).' users';
+        }
+        if ((int) ($catalog['included_lr_credits'] ?? 0) > 0 || (int) ($quantities['addon_lr_credits'] ?? 0) > 0) {
+            $parts[] = 'LR credits '.(int) ($catalog['included_lr_credits'] ?? 0).'+'.(int) ($quantities['addon_lr_credits'] ?? 0);
+        }
+        if ((int) ($catalog['included_trucks'] ?? 0) > 0 || (int) ($quantities['addon_trucks'] ?? 0) > 0) {
+            $parts[] = 'Trucks '.(int) ($catalog['included_trucks'] ?? 0).'+'.(int) ($quantities['addon_trucks'] ?? 0);
+        }
+        if (! empty($quote['proration']['remaining_days'])) {
+            $parts[] = 'Prorated '.$quote['proration']['remaining_days'].' days';
+        }
+
+        return implode('; ', $parts);
+    }
+
+    /**
+     * @param  array<string, mixed>  $quote
+     */
+    private function formatChargesBreakdown(array $quote): string
+    {
+        $parts = [];
+        $promoCode = $this->promoCodeFromQuote($quote);
+
+        foreach ($quote['line_items'] ?? [] as $item) {
+            if (! is_array($item) || ! isset($item['label'])) {
+                continue;
+            }
+
+            $label = (string) $item['label'];
+            if ($promoCode !== null && stripos($label, 'promo') !== false) {
+                $label .= ' ('.$promoCode.')';
+            }
+
+            $parts[] = $label.': '.$this->formatRupee((float) ($item['amount'] ?? 0));
+        }
+
+        if ($promoCode !== null && ((float) ($quote['promo_discount'] ?? 0)) > 0) {
+            $hasPromoLine = collect($parts)->contains(
+                fn (string $part) => stripos($part, 'promo') !== false
+            );
+            if (! $hasPromoLine) {
+                $parts[] = 'Promo discount ('.$promoCode.'): -'.$this->formatRupee((float) $quote['promo_discount']);
+            }
+        }
+
+        $gstRate = $quote['gst_rate_percent'] ?? null;
+        $gstLabel = $gstRate !== null ? 'GST ('.$gstRate.'%)' : 'GST';
+        $parts[] = $gstLabel.': '.$this->formatRupee((float) ($quote['gst_amount'] ?? 0));
+        $parts[] = 'Total: '.$this->formatRupee((float) ($quote['total_amount'] ?? 0));
+
+        return implode('; ', $parts);
+    }
+
+    /**
+     * @param  array<string, mixed>  $quote
+     */
+    private function promoCodeFromQuote(array $quote): ?string
+    {
+        $snapshot = $quote['promo_snapshot'] ?? null;
+        if (is_array($snapshot) && filled($snapshot['code'] ?? null)) {
+            return (string) $snapshot['code'];
+        }
+
+        return null;
+    }
+
+    private function formatRupee(float $amount): string
+    {
+        return 'INR '.number_format($amount, 2, '.', '');
+    }
+
+    private function normalizeIndianMobile(?string $mobile): ?string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $mobile) ?: '';
+
+        if ($digits === '') {
+            return null;
+        }
+
+        if (strlen($digits) > 10) {
+            $digits = substr($digits, -10);
+        }
+
+        return $digits;
     }
 
     public function handleCallback(array $payload, int $actorUserId): SubscriptionPayment

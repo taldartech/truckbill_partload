@@ -7,9 +7,14 @@
     <style>
         body { font-family: Arial, sans-serif; font-size: 12px; margin: 0; padding: 20px; }
         .print-container { width: 100%; max-width: 900px; margin: 0 auto; border: 1px solid #000; padding: 10px; box-sizing: border-box; }
-        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 10px; }
+        .header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 10px; }
+        .header-top { display: flex; align-items: center; gap: 12px; }
+        .header-logo { flex: 0 0 auto; }
+        .header-logo img { max-height: 64px; max-width: 72px; display: block; }
+        .header-company { flex: 1 1 auto; text-align: center; }
         .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
         .header h3 { margin: 5px 0 0; font-size: 14px; }
+        .header-doc-title { text-align: center; margin-top: 6px; font-size: 14px; font-weight: bold; }
         .row { display: flex; flex-wrap: wrap; margin-bottom: 10px; }
         .col-3 { width: 25%; box-sizing: border-box; }
         .col-4 { width: 33.33%; box-sizing: border-box; }
@@ -41,6 +46,13 @@
                 ->filter()
                 ->implode(', '),
         );
+        $logoPath = $branch?->resolvedLogo();
+        $logoUrl = null;
+        if ($logoPath) {
+            $logoUrl = str_starts_with($logoPath, 'http://') || str_starts_with($logoPath, 'https://')
+                ? $logoPath
+                : url($logoPath);
+        }
 
         $challanRows = collect();
         foreach ($main_challan->details as $mainDetail) {
@@ -116,9 +128,18 @@
     @endphp
     <div class="print-container">
         <div class="header">
-            <h1>{{ $company->name }}</h1>
-            <h3>{{ $branchAddress }}, Phone: {{ $branch->contact_number ?? $company->contact_number }}</h3>
-            <h3>MAIN CHALLAN</h3>
+            <div class="header-top">
+                @if ($logoUrl)
+                    <div class="header-logo">
+                        <img src="{{ $logoUrl }}" alt="Logo">
+                    </div>
+                @endif
+                <div class="header-company">
+                    <h1>{{ $company->name }}</h1>
+                    <h3>{{ $branchAddress }}, Phone: {{ $branch->contact_number ?? $company->contact_number }}</h3>
+                    <div class="header-doc-title">MAIN CHALLAN</div>
+                </div>
+            </div>
         </div>
 
         <div class="row">
