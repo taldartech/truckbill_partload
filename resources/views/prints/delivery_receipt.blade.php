@@ -215,9 +215,9 @@
     $ifsc = $branch?->ifsc_code ?: ($company?->ifsc_code ?? '');
     $bankers = collect([
         $bankName ? $bankName : null,
-        $accountNo ? 'A/c No. : '.$accountNo : null,
-        $ifsc ? 'IFSC : '.$ifsc : null,
-    ])->filter()->implode(' + ');
+        $accountNo ? '<strong>A/c No.:</strong> '.$accountNo : null,
+        $ifsc ? '<strong>IFSC:</strong> '.$ifsc : null,
+    ])->filter()->implode(', ');
 
     $receiptDate = $receipt->date ? date('d/m/Y', strtotime((string) $receipt->date)) : '—';
     $consignee = $receipt->consignee;
@@ -323,15 +323,15 @@
                         <td class="amt">{{ $fmt($receipt->freight) }}</td>
                     </tr>
                     <tr>
-                        <td>Handling Ch.</td>
+                        <td>Handling Charge</td>
                         <td class="amt">{{ $fmt($receipt->handling_charge) }}</td>
                     </tr>
                     <tr>
-                        <td>Delivery Cha.</td>
+                        <td>Delivery Charge</td>
                         <td class="amt">{{ $fmt($receipt->delivery_charge) }}</td>
                     </tr>
                     <tr>
-                        <td>Stationery Ch.</td>
+                        <td>Stationery Charge</td>
                         <td class="amt">{{ $fmt($receipt->stationery_charge) }}</td>
                     </tr>
                     <tr>
@@ -339,7 +339,7 @@
                         <td class="amt">{{ $fmt($receipt->demurrage) }}</td>
                     </tr>
                     <tr>
-                        <td>OSC</td>
+                        <td>Other Charge</td>
                         <td class="amt">{{ $fmt($receipt->other_charge) }}</td>
                     </tr>
                     <tr>
@@ -365,7 +365,7 @@
         <div class="panel-footer">
             <div class="bankers">
                 @if ($bankers)
-                    <strong>Our Banker's :</strong> {{ $bankers }}
+                    <strong>Our Banker's :</strong> {!! $bankers !!}
                 @endif
             </div>
             <div class="prepared">
@@ -433,16 +433,16 @@
 
             <div class="gate-totals">
                 <div class="line">
-                    <span>TOTAL FREIGHT :</span>
-                    <span>{{ strtoupper((string) $receipt->mode_of_payment) }} &nbsp; {{ $fmt($freightTotal) }}</span>
+                    <span>Freight Amount:</span>
+                    <span>{{ $fmt($freightTotal) }}</span>
                 </div>
                 <div class="line">
-                    <span>THELLA BHADA :</span>
-                    <span>{{ $fmt($thella) }}</span>
+                    <span>Carriage Charge :</span>
+                    <span>{{ $fmt($receipt->carriage_charge) }}</span>
                 </div>
                 <div class="sum">
-                    <span>TOTAL :</span>
-                    <span>{{ $fmt($grandTotal) }}</span>
+                    <span>Grand Total :</span>
+                    <span>{{ $fmt($receipt->final_amount) }}</span>
                 </div>
             </div>
         </div>
@@ -450,7 +450,7 @@
         <div class="panel-footer">
             <div class="bankers">
                 @if ($bankers)
-                    <strong>Our Banker's :</strong> {{ $bankers }}
+                    <strong>Our Banker's :</strong> {!! $bankers !!}
                 @endif
             </div>
             <div class="prepared">
