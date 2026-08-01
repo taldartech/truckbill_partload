@@ -9,10 +9,12 @@ use App\Models\LedgerEntry;
 use App\Models\Party;
 use App\Models\Vendor;
 use App\Services\Accounting\LedgerAccountResolver;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class LedgerReportController extends Controller implements HasMiddleware
@@ -41,11 +43,7 @@ class LedgerReportController extends Controller implements HasMiddleware
 
     public function cashBankBook(Request $request, LedgerAccountResolver $resolver)
     {
-        $validated = $request->validate([
-            'account' => ['nullable', 'string'],
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-        ]);
+        [$startDate, $endDate] = $this->validatedDateRange($request);
 
         $companyId = (int) ($this->tenant()->activeCompanyId() ?? 0);
         $bankAccounts = BankAccount::query()->orderBy('name')->get(['id', 'name', 'bank_name']);
@@ -57,7 +55,7 @@ class LedgerReportController extends Controller implements HasMiddleware
             'name' => $bank->bank_name ? "{$bank->name} ({$bank->bank_name})" : $bank->name,
         ]))->values();
 
-        $accountKey = $validated['account'] ?? null;
+        $accountKey = $request->input('account');
         $ledgerAccount = null;
         $selectedLabel = null;
 
@@ -75,11 +73,7 @@ class LedgerReportController extends Controller implements HasMiddleware
 
         $ledger = [];
         if ($ledgerAccount) {
-            $ledger = $this->buildLedgerRows(
-                $ledgerAccount,
-                $validated['start_date'] ?? null,
-                $validated['end_date'] ?? null,
-            );
+            $ledger = $this->buildLedgerRows($ledgerAccount, $startDate, $endDate);
         }
 
         return Inertia::render('Reports/CashBankBook', [
@@ -88,8 +82,8 @@ class LedgerReportController extends Controller implements HasMiddleware
             'ledger' => $ledger,
             'filters' => [
                 'account' => $accountKey ?? '',
-                'start_date' => $validated['start_date'] ?? '',
-                'end_date' => $validated['end_date'] ?? '',
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ],
         ]);
     }
@@ -105,10 +99,10 @@ class LedgerReportController extends Controller implements HasMiddleware
         string $component,
         string $collectionKey,
     ) {
+        [$startDate, $endDate] = $this->validatedDateRange($request);
+
         $validated = $request->validate([
             $param.'_id' => ['nullable', 'integer'],
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
         ]);
 
         $entityId = $validated[$param.'_id'] ?? null;
@@ -117,11 +111,7 @@ class LedgerReportController extends Controller implements HasMiddleware
 
         if ($entity) {
             $account = $resolver->forEntity($entity);
-            $ledger = $this->buildLedgerRows(
-                $account,
-                $validated['start_date'] ?? null,
-                $validated['end_date'] ?? null,
-            );
+            $ledger = $this->buildLedgerRows($account, $startDate, $endDate);
         }
 
         return Inertia::render($component, [
@@ -130,35 +120,54 @@ class LedgerReportController extends Controller implements HasMiddleware
             'ledger' => $ledger,
             'filters' => [
                 $param.'_id' => $entityId ? (string) $entityId : '',
-                'start_date' => $validated['start_date'] ?? '',
-                'end_date' => $validated['end_date'] ?? '',
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ],
         ]);
     }
 
     /**
-     * @return list<array{date: mixed, type: string, ref_no: ?string, description: ?string, debit: float, credit: float, balance: float}>
+     * @return array{0: string, 1: string}
      */
-    private function buildLedgerRows(LedgerAccount $account, ?string $startDate, ?string $endDate): array
+    private function validatedDateRange(Request $request): array
     {
-        $openingDebit = 0.0;
-        $openingCredit = 0.0;
+        $validated = $request->validate([
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+        ]);
 
-        if ($startDate) {
-            $opening = LedgerEntry::query()
-                ->where('ledger_account_id', $account->id)
-                ->whereDate('date', '<', $startDate)
-                ->selectRaw('COALESCE(SUM(debit),0) as debit_total, COALESCE(SUM(credit),0) as credit_total')
-                ->first();
+        $startDate = $validated['start_date'] ?? now()->startOfMonth()->toDateString();
+        $endDate = $validated['end_date'] ?? now()->endOfMonth()->toDateString();
 
-            $openingDebit = (float) ($opening->debit_total ?? 0);
-            $openingCredit = (float) ($opening->credit_total ?? 0);
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->startOfDay();
+
+        if ($end->gt($start->copy()->addMonthNoOverflow())) {
+            throw ValidationException::withMessages([
+                'end_date' => 'Date range cannot exceed 1 month.',
+            ]);
         }
 
+        return [$start->toDateString(), $end->toDateString()];
+    }
+
+    /**
+     * @return list<array{date: mixed, type: string, ref_no: ?string, description: ?string, debit: float, credit: float, balance: float}>
+     */
+    private function buildLedgerRows(LedgerAccount $account, string $startDate, string $endDate): array
+    {
+        $opening = LedgerEntry::query()
+            ->where('ledger_account_id', $account->id)
+            ->whereDate('date', '<', $startDate)
+            ->selectRaw('COALESCE(SUM(debit),0) as debit_total, COALESCE(SUM(credit),0) as credit_total')
+            ->first();
+
+        $openingDebit = (float) ($opening->debit_total ?? 0);
+        $openingCredit = (float) ($opening->credit_total ?? 0);
         $running = round($openingDebit - $openingCredit, 2);
         $rows = [];
 
-        if ($startDate && ($openingDebit != 0.0 || $openingCredit != 0.0)) {
+        if ($openingDebit != 0.0 || $openingCredit != 0.0) {
             $rows[] = [
                 'date' => $startDate,
                 'type' => 'Opening',
@@ -172,8 +181,8 @@ class LedgerReportController extends Controller implements HasMiddleware
 
         $entries = LedgerEntry::query()
             ->where('ledger_account_id', $account->id)
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->whereDate('date', '>=', $startDate)
+            ->whereDate('date', '<=', $endDate)
             ->orderBy('date')
             ->orderBy('id')
             ->get();
@@ -194,6 +203,7 @@ class LedgerReportController extends Controller implements HasMiddleware
             ];
         }
 
-        return $rows;
+        // Latest entry first (running balance still computed chronologically).
+        return array_reverse($rows);
     }
 }

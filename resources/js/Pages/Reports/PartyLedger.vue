@@ -11,19 +11,29 @@
                             <div class="col-md-4">
                                 <label class="form-label">Select Party <span class="text-danger">*</span></label>
                                 <SearchableSelect
-    :small="true"
-    v-model="form.party_id"
-    :options="parties"
-    placeholder="-- Select Party --"
-/>
+                                    :small="true"
+                                    v-model="form.party_id"
+                                    :options="parties"
+                                    placeholder="-- Select Party --"
+                                />
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Start Date</label>
-                                <input type="date" class="form-control form-control-sm" v-model="form.start_date">
+                                <input
+                                    type="date"
+                                    class="form-control form-control-sm"
+                                    v-model="form.start_date"
+                                    @change="onDateChange('start_date')"
+                                >
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">End Date</label>
-                                <input type="date" class="form-control form-control-sm" v-model="form.end_date">
+                                <input
+                                    type="date"
+                                    class="form-control form-control-sm"
+                                    v-model="form.end_date"
+                                    @change="onDateChange('end_date')"
+                                >
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
                                 <button type="submit" class="btn btn-success btn-sm w-100" :disabled="!form.party_id">Get Ledger</button>
@@ -40,7 +50,7 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="m-0 fw-bold">{{ party.name }} - Ledger</h4>
                         <div>
-                            <span class="badge bg-primary fs-6">Net Balance: ₹ {{ currentBalance.toFixed(2) }} {{ currentBalance >= 0 ? 'Dr' : 'Cr' }}</span>
+                            <span class="badge bg-primary fs-6">Net Balance: ₹ {{ Math.abs(currentBalance).toFixed(2) }} {{ currentBalance >= 0 ? 'Dr' : 'Cr' }}</span>
                         </div>
                     </div>
                     <div class="card-body p-0 table-responsive">
@@ -62,11 +72,11 @@
                                     <td>
                                         <span class="badge" :class="entry.type === 'Invoice' ? 'bg-primary' : 'bg-success'">{{ entry.type }}</span>
                                     </td>
-                                    <td>{{ entry.ref_no }}</td>
-                                    <td>{{ entry.description }}</td>
-                                    <td class="text-end text-danger">{{ entry.debit > 0 ? entry.debit.toFixed(2) : '-' }}</td>
-                                    <td class="text-end text-success">{{ entry.credit > 0 ? entry.credit.toFixed(2) : '-' }}</td>
-                                    <td class="text-end fw-bold">{{ entry.balance.toFixed(2) }} {{ entry.balance >= 0 ? 'Dr' : 'Cr' }}</td>
+                                    <td>{{ entry.ref_no || '—' }}</td>
+                                    <td>{{ entry.description || '—' }}</td>
+                                    <td class="text-end text-danger">{{ entry.debit > 0 ? Number(entry.debit).toFixed(2) : '-' }}</td>
+                                    <td class="text-end text-success">{{ entry.credit > 0 ? Number(entry.credit).toFixed(2) : '-' }}</td>
+                                    <td class="text-end fw-bold">{{ Number(entry.balance).toFixed(2) }} {{ entry.balance >= 0 ? 'Dr' : 'Cr' }}</td>
                                 </tr>
                                 <tr v-if="ledger.length === 0">
                                     <td colspan="7" class="text-center py-5 text-muted">
@@ -75,14 +85,6 @@
                                     </td>
                                 </tr>
                             </tbody>
-                            <tfoot class="bg-light" v-if="ledger.length > 0">
-                                <tr>
-                                    <td colspan="4" class="text-end fw-bold">Total:</td>
-                                    <td class="text-end fw-bold text-danger">₹ {{ totalDebit.toFixed(2) }}</td>
-                                    <td class="text-end fw-bold text-success">₹ {{ totalCredit.toFixed(2) }}</td>
-                                    <td class="text-end fw-bold">₹ {{ currentBalance.toFixed(2) }} {{ currentBalance >= 0 ? 'Dr' : 'Cr' }}</td>
-                                </tr>
-                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -96,37 +98,40 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 import { computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { clampLedgerDateRange, thisMonthDateRange } from '@/utils/ledgerDateRange';
 
 const props = defineProps({
     parties: Array,
     party: Object,
     ledger: Array,
-    filters: Object
+    filters: Object,
 });
+
+const defaults = thisMonthDateRange();
 
 const form = useForm({
     party_id: props.filters?.party_id || '',
-    start_date: props.filters?.start_date || '',
-    end_date: props.filters?.end_date || ''
+    start_date: props.filters?.start_date || defaults.start_date,
+    end_date: props.filters?.end_date || defaults.end_date,
 });
 
+const onDateChange = (field) => {
+    clampLedgerDateRange(form, field);
+};
+
 const filterReports = () => {
+    clampLedgerDateRange(form, 'end_date');
     form.get('/reports/party-ledger', {
-        preserveState: true
+        preserveState: true,
     });
 };
 
-const totalDebit = computed(() => {
-    return props.ledger ? props.ledger.reduce((sum, item) => sum + parseFloat(item.debit || 0), 0) : 0;
-});
-
-const totalCredit = computed(() => {
-    return props.ledger ? props.ledger.reduce((sum, item) => sum + parseFloat(item.credit || 0), 0) : 0;
-});
-
 const currentBalance = computed(() => {
-    return props.ledger && props.ledger.length > 0 
-        ? props.ledger[props.ledger.length - 1].balance 
-        : 0;
+    if (!props.ledger?.length) {
+        return 0;
+    }
+
+    // Latest entry is first after server reverse.
+    return Number(props.ledger[0].balance || 0);
 });
 </script>

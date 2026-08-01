@@ -19,11 +19,21 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Start Date</label>
-                                <input type="date" class="form-control form-control-sm" v-model="form.start_date">
+                                <input
+                                    type="date"
+                                    class="form-control form-control-sm"
+                                    v-model="form.start_date"
+                                    @change="onDateChange('start_date')"
+                                >
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">End Date</label>
-                                <input type="date" class="form-control form-control-sm" v-model="form.end_date">
+                                <input
+                                    type="date"
+                                    class="form-control form-control-sm"
+                                    v-model="form.end_date"
+                                    @change="onDateChange('end_date')"
+                                >
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
                                 <button type="submit" class="btn btn-success btn-sm w-100" :disabled="!form.account">Get Book</button>
@@ -81,6 +91,7 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 import { computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { clampLedgerDateRange, thisMonthDateRange } from '@/utils/ledgerDateRange';
 
 const props = defineProps({
     accounts: Array,
@@ -89,17 +100,24 @@ const props = defineProps({
     filters: Object,
 });
 
+const defaults = thisMonthDateRange();
+
 const form = useForm({
     account: props.filters?.account || '',
-    start_date: props.filters?.start_date || '',
-    end_date: props.filters?.end_date || '',
+    start_date: props.filters?.start_date || defaults.start_date,
+    end_date: props.filters?.end_date || defaults.end_date,
 });
 
+const onDateChange = (field) => {
+    clampLedgerDateRange(form, field);
+};
+
 const filterReports = () => {
+    clampLedgerDateRange(form, 'end_date');
     form.get('/reports/cash-bank-book', { preserveState: true });
 };
 
 const currentBalance = computed(() => {
-    return props.ledger?.length ? props.ledger[props.ledger.length - 1].balance : 0;
+    return props.ledger?.length ? Number(props.ledger[0].balance || 0) : 0;
 });
 </script>
