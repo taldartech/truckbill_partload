@@ -44,7 +44,6 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th>Company</th>
                                     <th>Mobile</th>
                                     <th>City</th>
                                     <th class="text-end">Actions</th>
@@ -54,7 +53,6 @@
                                 <tr v-for="agent in agents.data" :key="agent.id">
                                     <td>{{ agent.id }}</td>
                                     <td>{{ agent.name }}</td>
-                                    <td>{{ agent.company ? agent.company.name : 'N/A' }}</td>
                                     <td>{{ agent.mobile || 'N/A' }}</td>
                                     <td>{{ agent.city?.name || agent.city || 'N/A' }}</td>
                                     <td class="text-end">

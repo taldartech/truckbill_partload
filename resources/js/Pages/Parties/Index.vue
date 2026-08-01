@@ -43,7 +43,6 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>ID</th>
-                                    <th>Company</th>
                                     <th>Name</th>
                                     <th>GST Number</th>
                                     <th>Mobile</th>
@@ -53,7 +52,6 @@
                             <tbody>
                                 <tr v-for="party in parties.data" :key="party.id">
                                     <td>{{ party.id }}</td>
-                                    <td>{{ party.company ? party.company.name : 'N/A' }}</td>
                                     <td>{{ party.name }}</td>
                                     <td>{{ party.gst_number || 'N/A' }}</td>
                                     <td>{{ party.mobile || 'N/A' }}</td>

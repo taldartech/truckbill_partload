@@ -44,7 +44,6 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th>Company</th>
                                     <th>Mobile</th>
                                     <th>GST Number</th>
                                     <th class="text-end">Actions</th>
@@ -54,7 +53,6 @@
                                 <tr v-for="vendor in vendors.data" :key="vendor.id">
                                     <td>{{ vendor.id }}</td>
                                     <td>{{ vendor.name }}</td>
-                                    <td>{{ vendor.company ? vendor.company.name : 'N/A' }}</td>
                                     <td>{{ vendor.mobile || 'N/A' }}</td>
                                     <td>{{ vendor.gst_number || 'N/A' }}</td>
                                     <td class="text-end">
