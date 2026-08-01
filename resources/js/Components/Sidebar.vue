@@ -150,19 +150,19 @@
 
                     <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small">REPORTS</li>
 
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <Link href="/reports/bilty-register" class="nav-link" :class="{ active: $page.url.startsWith('/reports/bilty-register') }">
                             <i class="nav-icon fas fa-list-alt"></i>
                             <p>Bilty Register</p>
                         </Link>
-                    </li>
+                    </li> -->
 
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <Link href="/reports/challan-register" class="nav-link" :class="{ active: $page.url.startsWith('/reports/challan-register') }">
                             <i class="nav-icon fas fa-list"></i>
                             <p>Challan Register</p>
                         </Link>
-                    </li>
+                    </li> -->
 
                     <li class="nav-item">
                         <Link href="/reports/party-ledger" class="nav-link" :class="{ active: $page.url.startsWith('/reports/party-ledger') }">
