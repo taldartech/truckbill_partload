@@ -209,11 +209,11 @@
                                             <div v-if="detailError(index, 'no_of_packages')" class="text-danger small">{{ detailError(index, 'no_of_packages') }}</div>
                                         </td>
                                         <td>
-                                            <input type="number" min="0" max="120000" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'gross_weight') }" v-model="detail.gross_weight" @input="calculateGridRow(index)">
+                                            <input type="number" min="0" max="120000" step="1" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'gross_weight') }" v-model="detail.gross_weight" @input="calculateGridRow(index)">
                                             <div v-if="detailError(index, 'gross_weight')" class="text-danger small">{{ detailError(index, 'gross_weight') }}</div>
                                         </td>
                                         <td>
-                                            <input type="number" min="0" max="120000" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'charged_weight') }" v-model="detail.charged_weight" @input="calculateGridRow(index)">
+                                            <input type="number" min="0" max="120000" step="1" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'charged_weight') }" v-model="detail.charged_weight" @input="calculateGridRow(index)">
                                             <div v-if="detailError(index, 'charged_weight')" class="text-danger small">{{ detailError(index, 'charged_weight') }}</div>
                                         </td>
                                         <td>
@@ -226,7 +226,7 @@
                                             <div v-if="detailError(index, 'rate_type')" class="text-danger small">{{ detailError(index, 'rate_type') }}</div>
                                         </td>
                                         <td>
-                                            <input type="number" min="0" step="0.01" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'rate') }" v-model="detail.rate" @input="calculateGridRow(index)">
+                                            <input type="number" min="0" step="1" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'rate') }" v-model="detail.rate" @input="calculateGridRow(index)">
                                             <div v-if="detailError(index, 'rate')" class="text-danger small">{{ detailError(index, 'rate') }}</div>
                                         </td>
                                         <td class="text-center align-middle fw-bold">
@@ -284,14 +284,14 @@
                                 <div class="bilty-charge-list">
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Total Freight</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light fw-bold" v-model="form.freight" readonly>
+                                        <input type="number" step="1" class="form-control form-control-sm bg-light fw-bold" v-model="form.freight" readonly>
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Bilty Charge</label>
                                         <div>
                                             <input
                                                 type="number"
-                                                step="0.01"
+                                                step="1"
                                                 min="0"
                                                 class="form-control form-control-sm"
                                                 :class="{ 'is-invalid': form.errors.bilty_charge }"
@@ -303,11 +303,11 @@
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Surcharge</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.surcharge" @input="calculateFinalTotal">
+                                        <input type="number" step="1" min="0" class="form-control form-control-sm" v-model="form.surcharge" @input="calculateFinalTotal">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Cartage</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.cartage" @input="onCartageChange">
+                                        <input type="number" step="1" min="0" class="form-control form-control-sm" v-model="form.cartage" @input="onCartageChange">
                                     </div>
                                     <div v-if="showCartageOptions" class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Cartage Type</label>
@@ -336,11 +336,11 @@
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Handling Charge</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.handling_charge" @input="calculateFinalTotal">
+                                        <input type="number" step="1" min="0" class="form-control form-control-sm" v-model="form.handling_charge" @input="calculateFinalTotal">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Risk/Door Delivery</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.risk_dd_charge" @input="calculateFinalTotal" data-dynamic-grid-trigger="addon">
+                                        <input type="number" step="1" min="0" class="form-control form-control-sm" v-model="form.risk_dd_charge" @input="calculateFinalTotal" data-dynamic-grid-trigger="addon">
                                     </div>
                                     <div class="bilty-charge-row bilty-charge-row--stack">
                                         <label class="bilty-charge-row__label">Addon Charges</label>
@@ -380,7 +380,7 @@
                                                         <input
                                                             type="number"
                                                             min="0"
-                                                            step="0.01"
+                                                            step="1"
                                                             class="form-control form-control-sm"
                                                             v-model="charge.amount"
                                                             placeholder="0.00"
@@ -407,7 +407,7 @@
                                 <div class="bilty-total-panel">
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">GST Amount</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light" :value="gstAmount" readonly>
+                                        <input type="number" step="1" class="form-control form-control-sm bg-light" :value="gstAmount" readonly>
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">GST Liability By</label>
@@ -421,11 +421,11 @@
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Less Advance Received</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.less_advance_received" @input="calculateFinalTotal">
+                                        <input type="number" step="1" min="0" class="form-control form-control-sm" v-model="form.less_advance_received" @input="calculateFinalTotal">
                                     </div>
                                     <div class="bilty-total">
                                         <span class="bilty-total__label">TOTAL AMOUNT</span>
-                                        <input type="number" step="0.01" class="form-control form-control-sm bilty-total__input" v-model="form.amount" readonly>
+                                        <input type="number" step="1" class="form-control form-control-sm bilty-total__input" v-model="form.amount" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -463,11 +463,11 @@
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Weight Actual</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.weight_actual" readonly>
+                                <input type="number" step="1" class="form-control form-control-sm bg-light" v-model="form.weight_actual" readonly>
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Declared Value <span class="text-muted fw-normal">(Optional)</span></label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.declared_value">
+                                <input type="number" step="1" min="0" class="form-control form-control-sm" v-model="form.declared_value">
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Invoice No. <span class="text-muted fw-normal">(Optional)</span></label>
