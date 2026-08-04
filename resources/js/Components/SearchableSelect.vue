@@ -92,7 +92,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'change', 'created']);
 
-const { register, unregister } = useMasterQuickAdd();
+const { register, unregister, clearActive } = useMasterQuickAdd();
 const fieldToken = Symbol('searchable-select');
 
 const rootEl = ref(null);
@@ -171,7 +171,13 @@ const selectedVisibleIndex = () => visibleOptions.value.findIndex((option) => is
 
 const syncMasterRegistration = () => {
     if (!props.master || props.disabled || !props.canCreate) {
-        unregister({ master: props.master, token: fieldToken });
+        // Clear stale F3 target when this control is focused (another field's master
+        // would otherwise remain active and open the wrong quick-add form).
+        if (document.activeElement === inputEl.value) {
+            clearActive();
+        } else {
+            unregister({ master: props.master, token: fieldToken });
+        }
 
         return;
     }

@@ -458,7 +458,9 @@
                                     :options="filteredAgents"
                                     valueKey="name"
                                     labelKey="name"
+                                    master="agent"
                                     placeholder="Select Delivery Agent"
+                                    @created="(record) => appendMasterOption(agentOptions, record, 'name')"
                                 />
                             </div>
                             <div class="bilty-field">

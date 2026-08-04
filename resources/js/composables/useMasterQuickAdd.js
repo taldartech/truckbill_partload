@@ -126,6 +126,11 @@ export function useMasterQuickAdd() {
         activeField.value = null;
     };
 
+    /** Clear F3 target when focus moves to a field that cannot quick-add. */
+    const clearActive = () => {
+        activeField.value = null;
+    };
+
     const openQuickAdd = () => {
         const field = activeField.value;
 
@@ -181,6 +186,7 @@ export function useMasterQuickAdd() {
         canOpen,
         register,
         unregister,
+        clearActive,
         openQuickAdd,
         closeQuickAdd,
         notifyCreated,
