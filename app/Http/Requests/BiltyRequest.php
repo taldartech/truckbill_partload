@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Party;
 use App\Services\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -172,23 +171,6 @@ class BiltyRequest extends FormRequest
 
             if ($cartage > 0 && $cartageType === 'Due' && empty($this->input('vendor_id'))) {
                 $validator->errors()->add('vendor_id', 'Please select vendor for due cartage.');
-            }
-
-            $consignorId = $this->input('consignor_id');
-            if ($consignorId) {
-                $partyMinCharge = Party::query()->whereKey($consignorId)->value('bilty_charge');
-
-                if ($partyMinCharge !== null && $partyMinCharge !== '') {
-                    $minCharge = round((float) $partyMinCharge, 2);
-                    $biltyCharge = round((float) ($this->input('bilty_charge') ?? 0), 2);
-
-                    if ($biltyCharge < $minCharge) {
-                        $validator->errors()->add(
-                            'bilty_charge',
-                            "Bilty charge cannot be less than the consignor's defined charge ({$minCharge})."
-                        );
-                    }
-                }
             }
         });
     }

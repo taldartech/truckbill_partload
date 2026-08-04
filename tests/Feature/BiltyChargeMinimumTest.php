@@ -13,13 +13,13 @@ class BiltyChargeMinimumTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_bilty_charge_cannot_be_less_than_consignor_party_charge(): void
+    public function test_bilty_charge_below_party_charge_is_allowed(): void
     {
         $payload = $this->payload(partyBiltyCharge: 50, biltyCharge: 25);
 
         $errors = $this->validateBiltyCharge($payload);
 
-        $this->assertArrayHasKey('bilty_charge', $errors);
+        $this->assertArrayNotHasKey('bilty_charge', $errors);
     }
 
     public function test_bilty_charge_equal_to_party_charge_is_allowed(): void
@@ -40,9 +40,9 @@ class BiltyChargeMinimumTest extends TestCase
         $this->assertArrayNotHasKey('bilty_charge', $errors);
     }
 
-    public function test_bilty_charge_has_no_floor_when_party_charge_is_unset(): void
+    public function test_bilty_charge_zero_is_allowed_when_party_charge_is_set(): void
     {
-        $payload = $this->payload(partyBiltyCharge: null, biltyCharge: 0);
+        $payload = $this->payload(partyBiltyCharge: 50, biltyCharge: 0);
 
         $errors = $this->validateBiltyCharge($payload);
 

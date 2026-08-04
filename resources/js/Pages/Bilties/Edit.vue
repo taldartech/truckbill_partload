@@ -287,20 +287,16 @@
                                         <input type="number" step="0.01" class="form-control form-control-sm bg-light fw-bold" v-model="form.freight" readonly>
                                     </div>
                                     <div class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">
-                                            Bilty Charge
-                                            <span v-if="minBiltyCharge > 0" class="fw-normal text-muted">(≥ {{ minBiltyCharge }})</span>
-                                        </label>
+                                        <label class="bilty-charge-row__label">Bilty Charge</label>
                                         <div>
                                             <input
                                                 type="number"
                                                 step="0.01"
+                                                min="0"
                                                 class="form-control form-control-sm"
                                                 :class="{ 'is-invalid': form.errors.bilty_charge }"
                                                 v-model="form.bilty_charge"
-                                                :min="minBiltyCharge"
                                                 @input="calculateFinalTotal"
-                                                @blur="enforceMinBiltyCharge"
                                             >
                                             <div v-if="form.errors.bilty_charge" class="text-danger small">{{ form.errors.bilty_charge }}</div>
                                         </div>
@@ -747,28 +743,23 @@ const partyState = (partyId) => findParty(partyId)?.state?.name || '';
 const partyCity = (partyId) => findParty(partyId)?.city?.name || '';
 const partyMobile = (partyId) => findParty(partyId)?.mobile || '';
 
-const minBiltyCharge = computed(() => {
+const applyDefaultBiltyCharge = () => {
     if (!form.consignor_id) {
-        return 0;
+        calculateFinalTotal();
+        return;
     }
-    const party = partyOptions.value.find(p => p.id === form.consignor_id);
-    const charge = parseFloat(party?.bilty_charge);
-    return Number.isFinite(charge) && charge > 0 ? charge : 0;
-});
 
-const enforceMinBiltyCharge = () => {
-    const min = minBiltyCharge.value;
-    if (min > 0) {
-        const current = parseFloat(form.bilty_charge);
-        if (!Number.isFinite(current) || current < min) {
-            form.bilty_charge = min;
-        }
+    const party = partyOptions.value.find((p) => p.id === form.consignor_id);
+    const charge = parseFloat(party?.bilty_charge);
+    if (Number.isFinite(charge) && charge >= 0) {
+        form.bilty_charge = charge;
     }
+
     calculateFinalTotal();
 };
 
 watch(() => form.consignor_id, () => {
-    enforceMinBiltyCharge();
+    applyDefaultBiltyCharge();
 });
 
 const showCartageOptions = computed(() => parseFloat(form.cartage || 0) > 0);
@@ -799,7 +790,7 @@ const applyCompanyGst = () => {
 watch(() => form.gst_liability_by, applyCompanyGst);
 
 onMounted(async () => {
-    enforceMinBiltyCharge();
+    calculateFinalTotal();
     await nextTick();
     biltyNumberInput.value?.focus();
 });
