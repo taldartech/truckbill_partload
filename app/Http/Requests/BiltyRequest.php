@@ -57,6 +57,16 @@ class BiltyRequest extends FormRequest
             $vendorId = null;
         }
 
+        $advancePaymentMode = $this->input('advance_payment_mode');
+        if (in_array($advancePaymentMode, ['cash', 'bank'], true)) {
+            $advancePaymentMode = $advancePaymentMode === 'cash' ? 'Cash' : 'Bank';
+        }
+
+        $lessAdvanceReceived = (float) ($this->input('less_advance_received') ?? 0);
+        if ($lessAdvanceReceived <= 0) {
+            $advancePaymentMode = null;
+        }
+
         $context = app(TenantContext::class);
 
         $this->merge([
@@ -64,6 +74,7 @@ class BiltyRequest extends FormRequest
             'branch_id' => $context->requireBranchId(),
             'cartage_type' => $cartageType,
             'vendor_id' => $vendorId,
+            'advance_payment_mode' => $advancePaymentMode,
             'addon_charges' => empty($addonCharges) ? null : $addonCharges,
             'eway_bills' => empty($ewayBills) ? null : $ewayBills,
         ]);
@@ -113,6 +124,7 @@ class BiltyRequest extends FormRequest
             'addon_charges.*.particulars' => 'nullable|string|max:255|required_with:addon_charges.*.amount',
             'addon_charges.*.amount' => 'nullable|numeric|min:0',
             'less_advance_received' => 'nullable|numeric|min:0',
+            'advance_payment_mode' => 'nullable|string|in:Cash,Bank,cash,bank',
             'gst' => 'nullable|numeric|min:0|max:100',
             'cgst' => 'nullable|numeric|min:0|max:100',
             'sgst' => 'nullable|numeric|min:0|max:100',
@@ -173,6 +185,11 @@ class BiltyRequest extends FormRequest
             if ($cartage > 0 && $cartageType === 'Due' && empty($this->input('vendor_id'))) {
                 $validator->errors()->add('vendor_id', 'Please select vendor for due cartage.');
             }
+
+            $lessAdvanceReceived = (float) ($this->input('less_advance_received') ?? 0);
+            if ($lessAdvanceReceived > 0 && empty($this->input('advance_payment_mode'))) {
+                $validator->errors()->add('advance_payment_mode', 'Please select payment mode for advance received.');
+            }
         });
     }
 
@@ -195,6 +212,7 @@ class BiltyRequest extends FormRequest
             'cartage.min' => 'Cartage cannot be negative.',
             'addon_charges.*.amount.min' => 'Addon charge amount cannot be negative.',
             'less_advance_received.min' => 'Less advance received cannot be negative.',
+            'advance_payment_mode.in' => 'Advance payment mode must be Cash or Bank.',
             'gst.min' => 'GST cannot be negative.',
             'gst.max' => 'GST cannot be more than 100%.',
             'cgst.max' => 'CGST cannot be more than 100%.',

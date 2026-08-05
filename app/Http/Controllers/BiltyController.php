@@ -308,8 +308,15 @@ class BiltyController extends Controller implements HasMiddleware
         }
 
         if ((float) ($bilty->less_advance_received ?? 0) != 0) {
+            $advanceLabel = 'Less Advance Received';
+            if (! empty($bilty->advance_payment_mode)) {
+                $advanceMode = in_array(strtolower((string) $bilty->advance_payment_mode), ['bank'], true)
+                    ? 'Bank'
+                    : 'Cash';
+                $advanceLabel = 'Less Advance Received ('.$advanceMode.')';
+            }
             $charges[] = [
-                'label' => 'Less Advance Received',
+                'label' => $advanceLabel,
                 'amount' => -(float) $bilty->less_advance_received,
             ];
         }
@@ -369,6 +376,13 @@ class BiltyController extends Controller implements HasMiddleware
         }
 
         $gstRateLabel = rtrim(rtrim(number_format($gstRate, 2), '0'), '.');
+        $advanceSidebarLabel = 'Less Advance Received';
+        if ((float) ($bilty->less_advance_received ?? 0) != 0 && ! empty($bilty->advance_payment_mode)) {
+            $advanceSidebarMode = in_array(strtolower((string) $bilty->advance_payment_mode), ['bank'], true)
+                ? 'Bank'
+                : 'Cash';
+            $advanceSidebarLabel = 'Less Advance Received ('.$advanceSidebarMode.')';
+        }
         $sidebarCharges = array_values(array_filter([
             ['label' => 'Total Freight', 'amount' => (float) ($bilty->freight ?? 0)],
             ['label' => 'Bilty Charge', 'amount' => (float) ($bilty->bilty_charge ?? 0)],
@@ -378,7 +392,7 @@ class BiltyController extends Controller implements HasMiddleware
             ['label' => 'Risk/Door Delivery', 'amount' => (float) ($bilty->risk_dd_charge ?? 0)],
             ...$addonLines,
             ['label' => 'GST ('.$gstRateLabel.'%)', 'amount' => (float) $gstAmount],
-            ['label' => 'Less Advance Received', 'amount' => (float) ($bilty->less_advance_received ?? 0)],
+            ['label' => $advanceSidebarLabel, 'amount' => (float) ($bilty->less_advance_received ?? 0)],
         ], fn (array $line) => (float) $line['amount'] != 0));
 
         $cgstRate = 0.0;

@@ -421,7 +421,18 @@
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Less Advance Received</label>
-                                        <input type="number" step="1" min="0" class="form-control form-control-sm" v-model="form.less_advance_received" @input="calculateFinalTotal">
+                                        <input type="number" step="1" min="0" class="form-control form-control-sm" v-model="form.less_advance_received" @input="onAdvanceReceivedChange">
+                                    </div>
+                                    <div v-if="showAdvancePaymentMode" class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Advance Payment Mode</label>
+                                        <div>
+                                            <select class="form-select form-select-sm" v-model="form.advance_payment_mode">
+                                                <option value="">Select</option>
+                                                <option value="Cash">Cash</option>
+                                                <option value="Bank">Bank</option>
+                                            </select>
+                                            <div v-if="form.errors.advance_payment_mode" class="text-danger small">{{ form.errors.advance_payment_mode }}</div>
+                                        </div>
                                     </div>
                                     <div class="bilty-total">
                                         <span class="bilty-total__label">TOTAL AMOUNT</span>
@@ -703,6 +714,7 @@ const form = useForm({
     vendor_id: props.bilty.vendor_id || '',
     addon_charges: initialAddonCharges,
     less_advance_received: props.bilty.less_advance_received || 0,
+    advance_payment_mode: props.bilty.advance_payment_mode || '',
     amount: props.bilty.amount || 0,
     status: props.bilty.status || 'Pending'
 });
@@ -765,11 +777,19 @@ watch(() => form.consignor_id, () => {
 });
 
 const showCartageOptions = computed(() => parseFloat(form.cartage || 0) > 0);
+const showAdvancePaymentMode = computed(() => parseFloat(form.less_advance_received || 0) > 0);
 
 const onCartageChange = () => {
     if (!showCartageOptions.value) {
         form.cartage_type = '';
         form.vendor_id = '';
+    }
+    calculateFinalTotal();
+};
+
+const onAdvanceReceivedChange = () => {
+    if (!showAdvancePaymentMode.value) {
+        form.advance_payment_mode = '';
     }
     calculateFinalTotal();
 };

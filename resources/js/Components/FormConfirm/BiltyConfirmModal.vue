@@ -241,6 +241,7 @@ const detailFields = computed(() => {
     pushField(fields, 'Delivery At', props.form.delivery_at);
     pushField(fields, 'Cartage Type', props.form.cartage_type);
     pushField(fields, 'Vendor', lookupLabel(props.vendors, props.form.vendor_id));
+    pushField(fields, 'Advance Payment Mode', props.form.advance_payment_mode);
 
     return fields;
 });
@@ -341,7 +342,10 @@ const extraChargeLines = computed(() => {
 
     const lessAdvance = parseFloat(props.form.less_advance_received || 0);
     if (lessAdvance !== 0) {
-        lines.push({ label: 'Less Advance', amount: -Math.abs(lessAdvance) });
+        const mode = props.form.advance_payment_mode
+            ? ` (${props.form.advance_payment_mode})`
+            : '';
+        lines.push({ label: `Less Advance${mode}`, amount: -Math.abs(lessAdvance) });
     }
 
     return lines;
