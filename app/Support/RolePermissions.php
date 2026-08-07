@@ -37,6 +37,16 @@ class RolePermissions
         return ['stations', 'goods', 'package_types', 'truck_types'];
     }
 
+    /**
+     * Company-scoped masters shared across all branches (no branch_id).
+     *
+     * @return list<string>
+     */
+    public static function companyMasterDataModules(): array
+    {
+        return ['agents', 'vendors', 'parties', 'groups', 'trucks', 'rate_lists', 'bank_accounts'];
+    }
+
     public static function permissionNames(array $modules, array $actions): array
     {
         $permissions = [];

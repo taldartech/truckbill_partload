@@ -93,7 +93,6 @@ class AccountingModuleTest extends TestCase
         $vendor = $context['vendor'];
         $bank = BankAccount::create([
             'company_id' => $context['company']->id,
-            'branch_id' => $context['branch']->id,
             'name' => 'SBI',
             'is_active' => true,
         ]);

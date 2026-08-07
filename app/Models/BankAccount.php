@@ -26,11 +26,6 @@ class BankAccount extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
-    }
-
     public function ledgerAccount(): HasOne
     {
         return $this->hasOne(LedgerAccount::class);
