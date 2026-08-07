@@ -23,6 +23,7 @@
                         Branch Name<span class="text-danger"> *</span>
                     </label>
                     <AppFormToggle
+                        v-if="showHeadOfficeToggle"
                         input-id="is_head_office"
                         v-model="form.is_head_office"
                         label="Head Office"
@@ -296,6 +297,7 @@ const props = defineProps({
     cityOptions: { type: Array, required: true },
     filteredCities: { type: Array, required: true },
     showCompanyField: { type: Boolean, default: false },
+    branchId: { type: [Number, String], default: null },
     companyLogoUrl: { type: String, default: '' },
     branchLogoUrl: { type: String, default: '' },
 });
@@ -315,6 +317,22 @@ const selectedCompany = computed(() => {
 
     return props.companies.length === 1 ? props.companies[0] : null;
 });
+
+const showHeadOfficeToggle = computed(() => {
+    const headOfficeBranchId = selectedCompany.value?.head_office_branch_id;
+
+    if (!headOfficeBranchId) {
+        return true;
+    }
+
+    return props.branchId != null && String(headOfficeBranchId) === String(props.branchId);
+});
+
+watch(showHeadOfficeToggle, (visible) => {
+    if (!visible) {
+        props.form.is_head_office = false;
+    }
+}, { immediate: true });
 
 const resolvedCompanyLogoUrl = computed(
     () => props.companyLogoUrl || selectedCompany.value?.company_logo || '',

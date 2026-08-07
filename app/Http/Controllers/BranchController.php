@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Country;
+use App\Models\Scopes\CompanyScope;
 use App\Models\State;
 use App\Models\Station;
 use App\Services\SubscriptionGuard;
@@ -14,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class BranchController extends Controller implements HasMiddleware
@@ -115,6 +117,7 @@ class BranchController extends Controller implements HasMiddleware
 
         $validated['company_id'] = $companyId;
         $validated = $this->normalizeBranchPayload($request, $validated);
+        $this->ensureUniqueHeadOffice($validated);
 
         Branch::create($validated);
 
@@ -190,6 +193,7 @@ class BranchController extends Controller implements HasMiddleware
         $this->validateStationForOwner($validated['station_id']);
 
         $validated = $this->normalizeBranchPayload($request, $validated, $branch);
+        $this->ensureUniqueHeadOffice($validated, $branch);
 
         $branch->update($validated);
 
@@ -206,6 +210,7 @@ class BranchController extends Controller implements HasMiddleware
 
     private function normalizeBranchPayload(Request $request, array $validated, ?Branch $branch = null): array
     {
+        $validated['is_head_office'] = (bool) ($validated['is_head_office'] ?? false);
         $validated['has_gst'] = (bool) ($validated['has_gst'] ?? false);
         $validated['use_company_logo'] = (bool) ($validated['use_company_logo'] ?? true);
 
@@ -230,35 +235,76 @@ class BranchController extends Controller implements HasMiddleware
         return $validated;
     }
 
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function ensureUniqueHeadOffice(array $validated, ?Branch $branch = null): void
+    {
+        if (! ($validated['is_head_office'] ?? false)) {
+            return;
+        }
+
+        $companyId = $validated['company_id'] ?? $branch?->company_id;
+
+        if (! $companyId) {
+            return;
+        }
+
+        $alreadyHasHeadOffice = Branch::query()
+            ->withoutGlobalScope(CompanyScope::class)
+            ->where('company_id', $companyId)
+            ->where('is_head_office', true)
+            ->when($branch, fn ($query) => $query->whereKeyNot($branch->id))
+            ->exists();
+
+        if ($alreadyHasHeadOffice) {
+            throw ValidationException::withMessages([
+                'is_head_office' => 'This company already has a head office branch.',
+            ]);
+        }
+    }
+
     private function availableCompanies()
     {
         $context = app(TenantContext::class);
         $columns = [
-            'id',
-            'name',
-            'address',
-            'country_id',
-            'state_id',
-            'city_id',
-            'pin_code',
-            'company_logo',
-            'has_gst',
-            'gst_number',
-            'gst_type',
-            'gst_scheme',
-            'gst_slab',
-            'gst_exemption_limit',
-            'bank_name',
-            'account_number',
-            'ifsc_code',
+            'companies.id',
+            'companies.name',
+            'companies.address',
+            'companies.country_id',
+            'companies.state_id',
+            'companies.city_id',
+            'companies.pin_code',
+            'companies.company_logo',
+            'companies.has_gst',
+            'companies.gst_number',
+            'companies.gst_type',
+            'companies.gst_scheme',
+            'companies.gst_slab',
+            'companies.gst_exemption_limit',
+            'companies.bank_name',
+            'companies.account_number',
+            'companies.ifsc_code',
         ];
 
+        $query = Company::query()
+            ->select($columns)
+            ->addSelect([
+                'head_office_branch_id' => Branch::query()
+                    ->withoutGlobalScope(CompanyScope::class)
+                    ->select('id')
+                    ->whereColumn('branches.company_id', 'companies.id')
+                    ->where('is_head_office', true)
+                    ->limit(1),
+            ])
+            ->orderBy('companies.name');
+
         if ($context->isMasterAdmin()) {
-            return Company::orderBy('name')->get($columns);
+            return $query->get();
         }
 
         if ($context->isSuperAdmin()) {
-            return Company::where('user_id', auth()->id())->orderBy('name')->get($columns);
+            return $query->where('companies.user_id', auth()->id())->get();
         }
 
         $companyId = $context->activeCompanyId();
@@ -267,7 +313,7 @@ class BranchController extends Controller implements HasMiddleware
             return collect();
         }
 
-        return Company::query()->whereKey($companyId)->get($columns);
+        return $query->whereKey($companyId)->get();
     }
 
     private function availableStations()

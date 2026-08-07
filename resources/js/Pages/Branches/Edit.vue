@@ -19,6 +19,7 @@
                 :city-options="cityOptions"
                 :filtered-cities="filteredCities"
                 :show-company-field="showCompanyField"
+                :branch-id="branch.id"
                 :company-logo-url="branch.company?.company_logo || ''"
                 :branch-logo-url="branch.branch_logo || ''"
                 @logo-change="onLogoChange"
