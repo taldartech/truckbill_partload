@@ -7,10 +7,9 @@ use App\Models\Branch;
 use App\Models\Company;
 use App\Models\User;
 use App\Support\RolePermissions;
-use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Str;
 
 class TenantContext
 {
@@ -260,6 +259,10 @@ class TenantContext
             'subscription.',
             'subscriptions.',
             'branch-context.',
+            // Geo helpers used while creating companies/branches (before a branch is selected).
+            'cities.',
+            'countries.',
+            'states.',
         ];
 
         foreach ($setupPrefixes as $prefix) {

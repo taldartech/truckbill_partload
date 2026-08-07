@@ -9,4 +9,14 @@ const http = axios.create({
     withXSRFToken: true,
 });
 
+http.interceptors.response.use((response) => {
+    const contentType = String(response.headers?.['content-type'] || '');
+
+    if (contentType.includes('text/html')) {
+        return Promise.reject(new Error('Expected a JSON response.'));
+    }
+
+    return response;
+});
+
 export default http;

@@ -410,7 +410,7 @@ const loadCities = async (stateId) => {
     citiesLoading.value = true;
     try {
         const { data } = await http.get(`/cities/by-state/${stateId}`);
-        cities.value = data;
+        cities.value = Array.isArray(data) ? data : [];
     } catch {
         cities.value = [];
     } finally {
@@ -429,10 +429,12 @@ const loadFormData = async () => {
     loading.value = true;
     try {
         const { data } = await http.get(config.formData);
-        lookups.countries = data.countries || [];
-        lookups.states = data.states || [];
-        lookups.groups = data.groups || [];
-        lookups.truckTypes = data.truckTypes || data.truck_types || [];
+        lookups.countries = Array.isArray(data?.countries) ? data.countries : [];
+        lookups.states = Array.isArray(data?.states) ? data.states : [];
+        lookups.groups = Array.isArray(data?.groups) ? data.groups : [];
+        lookups.truckTypes = Array.isArray(data?.truckTypes)
+            ? data.truckTypes
+            : (Array.isArray(data?.truck_types) ? data.truck_types : []);
     } catch (error) {
         loadError.value = error.response?.data?.message || 'Unable to load form data.';
     } finally {

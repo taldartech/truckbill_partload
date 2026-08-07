@@ -109,8 +109,10 @@ let suppressFocusOpen = false;
 let isTyping = false;
 let ignoreMouseHighlightUntil = 0;
 
+const optionList = computed(() => (Array.isArray(props.options) ? props.options : []));
+
 const selectedItem = computed(() => (
-    props.options.find((opt) => String(opt[props.valueKey]) === String(props.modelValue)) || null
+    optionList.value.find((opt) => String(opt[props.valueKey]) === String(props.modelValue)) || null
 ));
 
 const hasSelection = computed(() => selectedItem.value !== null);
@@ -126,10 +128,10 @@ const filteredOptions = computed(() => {
     const needle = inputText.value.trim().toLowerCase();
 
     if (!needle || (!isTyping && selectedLabel.value && inputText.value === selectedLabel.value)) {
-        return props.options;
+        return optionList.value;
     }
 
-    return props.options.filter((opt) => {
+    return optionList.value.filter((opt) => {
         const label = opt[props.labelKey] ? String(opt[props.labelKey]) : '';
 
         return label.toLowerCase().includes(needle);
