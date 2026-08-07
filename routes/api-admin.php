@@ -12,5 +12,6 @@ Route::prefix('api/admin/subscriptions')
         Route::get('/{id}', [AdminSubscriptionController::class, 'show']);
         Route::post('/{id}/quote', [AdminSubscriptionController::class, 'quote']);
         Route::post('/{id}/offline-payment', [AdminSubscriptionController::class, 'recordOfflinePayment']);
+        Route::post('/{id}/extend-trial', [AdminSubscriptionController::class, 'extendTrial']);
         Route::patch('/{id}', [AdminSubscriptionController::class, 'update']);
     });

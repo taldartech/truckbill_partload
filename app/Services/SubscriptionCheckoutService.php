@@ -314,6 +314,96 @@ class SubscriptionCheckoutService
         });
     }
 
+    /**
+     * Admin-only chargeable trial extension. Updates trial/access end dates and records a payment.
+     *
+     * @param  array{trial_ends_on: string, amount: float|int|string, reference?: string|null, notes?: string|null, admin_user_id?: int|null}  $input
+     * @return array{payment: SubscriptionPayment, subscription: CompanySubscription}
+     */
+    public function recordTrialExtension(Company $company, array $input, ?int $actorUserId = null): array
+    {
+        $trialEndsOn = Carbon::parse($input['trial_ends_on'])->startOfDay();
+        $today = now()->startOfDay();
+
+        if ($trialEndsOn->lt($today)) {
+            throw new \InvalidArgumentException('Trial end date must be today or a future date.');
+        }
+
+        $amount = round((float) $input['amount'], 2);
+
+        if ($amount < 0) {
+            throw new \InvalidArgumentException('Amount charged must be zero or greater.');
+        }
+
+        return DB::transaction(function () use ($company, $input, $trialEndsOn, $amount, $actorUserId) {
+            $subscription = $company->subscription ?? CompanySubscription::create([
+                'company_id' => $company->id,
+                'status' => 'trial',
+                'starts_on' => now()->toDateString(),
+                'ends_on' => $trialEndsOn->toDateString(),
+                'trial_ends_on' => $trialEndsOn->toDateString(),
+                'included_branches' => 2,
+                'users_per_branch' => 3,
+                'included_lr_credits' => 0,
+                'included_trucks' => 0,
+                'lr_credits_remaining' => 0,
+            ]);
+
+            $previousEndsOn = $subscription->ends_on?->toDateString();
+            $previousTrialEndsOn = $subscription->trial_ends_on?->toDateString();
+
+            $subscription->update([
+                'status' => 'trial',
+                'starts_on' => $subscription->starts_on?->toDateString() ?? now()->toDateString(),
+                'ends_on' => $trialEndsOn->toDateString(),
+                'trial_ends_on' => $trialEndsOn->toDateString(),
+            ]);
+
+            $payment = SubscriptionPayment::create([
+                'company_id' => $company->id,
+                'type' => 'trial_extension',
+                'status' => 'completed',
+                'promo_code' => null,
+                'quantities' => [],
+                'subtotal' => $amount,
+                'promo_discount' => 0,
+                'gst_amount' => 0,
+                'total_amount' => $amount,
+                'catalog_snapshot' => null,
+                'usage_snapshot_at_purchase' => $this->usageService->usageForCompany($company),
+                'razorpay_response' => [
+                    'offline' => true,
+                    'trial_extension' => true,
+                    'reference' => $input['reference'] ?? null,
+                    'notes' => $input['notes'] ?? null,
+                    'trial_ends_on' => $trialEndsOn->toDateString(),
+                    'amount_charged' => $amount,
+                ],
+            ]);
+
+            SubscriptionEvent::create([
+                'company_id' => $company->id,
+                'event_type' => 'trial_extended',
+                'payment_id' => $payment->id,
+                'actor_user_id' => $actorUserId,
+                'metadata' => array_filter([
+                    'trial_ends_on' => $trialEndsOn->toDateString(),
+                    'amount' => $amount,
+                    'previous_ends_on' => $previousEndsOn,
+                    'previous_trial_ends_on' => $previousTrialEndsOn,
+                    'reference' => $input['reference'] ?? null,
+                    'notes' => $input['notes'] ?? null,
+                    'admin_user_id' => $input['admin_user_id'] ?? null,
+                ], fn ($value) => $value !== null && $value !== ''),
+            ]);
+
+            return [
+                'payment' => $payment->fresh(),
+                'subscription' => $subscription->fresh(),
+            ];
+        });
+    }
+
     private function fulfillCompletedPayment(
         SubscriptionPayment $payment,
         ?int $actorUserId,

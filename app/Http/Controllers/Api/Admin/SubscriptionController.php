@@ -113,6 +113,27 @@ class SubscriptionController extends Controller
         ]);
     }
 
+    public function extendTrial(Request $request, int $id): JsonResponse
+    {
+        $company = Company::with('subscription')->findOrFail($id);
+
+        $validated = $request->validate([
+            'trial_ends_on' => ['required', 'date', 'after_or_equal:today'],
+            'amount' => ['required', 'numeric', 'min:0'],
+            'reference' => ['nullable', 'string', 'max:100'],
+            'notes' => ['nullable', 'string', 'max:500'],
+            'admin_user_id' => ['nullable', 'integer'],
+        ]);
+
+        try {
+            $result = $this->checkoutService->recordTrialExtension($company, $validated, null);
+        } catch (\InvalidArgumentException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
+
+        return response()->json($result);
+    }
+
     public function update(Request $request, int $id): JsonResponse
     {
         $company = Company::with('subscription')->findOrFail($id);
