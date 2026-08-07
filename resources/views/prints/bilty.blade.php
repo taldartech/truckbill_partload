@@ -59,15 +59,17 @@
 
         .bi-items-wrap { flex: 1 1 auto; min-height: 70px; display: flex; }
         .bi-items-main { width: 70%; display: flex; flex-direction: column; }
-        .bi-charges-side { width: 30%; position: relative; }
-        .bi-items {
+        .bi-charges-side { width: 30%; position: relative; display: flex; flex-direction: column; }
+        .bi-items,
+        .bi-charges {
             width: 100%;
             height: 100%;
             flex: 1 1 auto;
             border-collapse: collapse;
             table-layout: fixed;
         }
-        .bi-items thead th {
+        .bi-items thead th,
+        .bi-charges thead th {
             background: #e8e8e8;
             font-weight: bold;
             text-align: center;
@@ -75,36 +77,35 @@
             padding: 3px 4px;
             border: 1px solid #000;
         }
-        .bi-items tbody td {
+        .bi-charges thead th {
+            border-left: none;
+        }
+        .bi-items tbody td,
+        .bi-charges tbody td {
             border: 1px solid #000;
             border-top: none;
             padding: 3px 4px;
             font-size: 13px;
             vertical-align: top;
         }
-        .bi-items tbody tr.bi-fill td { height: 100%; border-bottom: none; }
-        .bi-items tfoot td {
+        .bi-charges tbody td {
+            border-left: none;
+        }
+        .bi-items tbody tr.bi-fill td,
+        .bi-charges tbody tr.bi-fill td {
+            height: 100%;
+            border-bottom: none;
+        }
+        .bi-items tfoot td,
+        .bi-charges tfoot td {
             border: 1px solid #000;
             font-weight: bold;
             padding: 3px 4px;
             font-size: 13px;
         }
-        .bi-charges {
-            width: 100%;
-            height: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-        .bi-charges td {
-            border: 1px solid #000;
+        .bi-charges tfoot td {
             border-left: none;
-            padding: 2px 5px;
-            font-size: 10px;
-            line-height: 1.3;
-            vertical-align: middle;
         }
-        .bi-charges .money { text-align: right; width: 42%; white-space: nowrap; }
-        .bi-charges .net-row td { font-weight: bold; }
         .bi-stamp {
             position: absolute;
             inset: 0px 0px 0px 168px;

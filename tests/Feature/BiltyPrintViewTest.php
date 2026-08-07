@@ -40,12 +40,14 @@ class BiltyPrintViewTest extends TestCase
         $response->assertSee('Bilty / Tax Invoice', false);
         $response->assertSee('Consignor:', false);
         $response->assertSee('Consignee:', false);
-        $response->assertSee('From:', false);
-        $response->assertSee('To Place:', false);
-        $response->assertSee('Delivery @:', false);
+        $response->assertSee('From Station:', false);
+        $response->assertSee('To Station:', false);
+        $response->assertSee('Delivery At:', false);
         $response->assertSee('Item Description', false);
         $response->assertSee('Packages', false);
         $response->assertSee('Weight', false);
+        $response->assertSee('Charges', false);
+        $response->assertSee('Amount', false);
         $response->assertSee('Handling Charge', false);
         $response->assertSee('Bilty Charge', false);
         $response->assertSee('Total Freight', false);

@@ -126,15 +126,13 @@
                             <span class="val">{{ $bilty->consignee->mobile ?? '' }}</span>
                         </div>
                     </td>
-                    <td class="w-30">
-                        <div><span class="lbl">From:</span> <span class="val">{{ $bilty->fromStation->name ?? '—' }}</span></div>
-                        <div><span class="lbl">To Place:</span> <span class="val">{{ $bilty->toStation->name ?? '—' }}</span></div>
-                        <div><span class="lbl">To State:</span> <span class="val">{{ $bilty->toStation->state->name ?? '—' }}</span></div>
+                    <td class="w-30" style="font-size:13px;">
+                        <div><span class="lbl">From Station:</span> <span class="val">{{ $bilty->fromStation->name ?? '—' }}</span></div>
+                        <div><span class="lbl">To Station:</span> <span class="val">{{ $bilty->toStation->name ?? '—' }}</span></div>
                     </td>
-                    <td class="w-30">
-                        <div><span class="lbl">Bilty No:</span> <span class="val" style="font-size:14px;font-weight:bold;">{{ $bilty->bilty_number ?? '—' }}</span></div>
+                    <td class="w-30" style="font-size:13px;">
+                        <div><span class="lbl">Bilty No:</span> <span class="val" style="font-size:15px;font-weight:bold;">{{ $bilty->bilty_number ?? '—' }}</span></div>
                         <div><span class="lbl">Date:</span> <span class="val">{{ $bilty->date ? date('d-M-Y', strtotime($bilty->date)) : '—' }}</span></div>
-                        <div><span class="lbl">Delivery @:</span> <span class="val">{{ $bilty->delivery_at ?: '—' }}</span></div>
                     </td>
                 </tr>
             </table>
@@ -180,24 +178,38 @@
                         <div class="bi-stamp"><span>{{ $paymentStamp }}</span></div>
                     @endif
                     <table class="bi-charges">
-                        @foreach ($printData['sidebar_charges'] as $line)
+                        <thead>
                             <tr>
-                                <td>{{ $line['label'] }}</td>
-                                <td class="money">
+                                <th>Charges</th>
+                                <th width="42%">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($printData['sidebar_charges'] as $line)
+                                <tr>
+                                    <td>{{ $line['label'] }}</td>
+                                    <td class="text-right">
+                                        @if ($showAmount)
+                                            {{ $formatAmount($line['amount']) }}
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                            <tr class="bi-fill">
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="text-right">Net Amount</td>
+                                <td class="text-right">
                                     @if ($showAmount)
-                                        {{ $formatAmount($line['amount']) }}
+                                        {{ $formatAmount($printData['total_amount']) }}
                                     @endif
                                 </td>
                             </tr>
-                        @endforeach
-                        <tr class="net-row">
-                            <td>Net Amount</td>
-                            <td class="money">
-                                @if ($showAmount)
-                                    {{ $formatAmount($printData['total_amount']) }}
-                                @endif
-                            </td>
-                        </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -219,8 +231,14 @@
                         <span class="val">{{ $bilty->declared_value ?: '' }}</span>
                     </td>
                 </tr>
+            </table>
+            <table class="border-top-none" style="font-size:12px;">
                 <tr>
-                    <td colspan="3">
+                    <td style="width: 30%;">
+                        <span class="lbl">Delivery At:</span>
+                        <span class="val">{{ $bilty->delivery_at ?: '—' }}</span>
+                    </td>
+                    <td colspan="2">
                         <span class="lbl">E-Way Bill:</span>
                         {{ $ewayBillText }}
                     </td>
