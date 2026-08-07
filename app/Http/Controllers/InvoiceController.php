@@ -256,7 +256,8 @@ class InvoiceController extends Controller implements HasMiddleware
 
             $gstRate = $bilty->gst_liability_by === 'Exempted' ? 0 : (float) ($bilty->gst ?? 0);
             $gstAmount = round($subtotal * $gstRate / 100, 2);
-            $amount = round($subtotal + $gstAmount, 2);
+            $gstInTotal = $bilty->gst_liability_by === 'Transporter' ? $gstAmount : 0.0;
+            $amount = round($subtotal + $gstInTotal, 2);
 
             $preparedBilties[] = [
                 'bilty' => $bilty,
@@ -449,7 +450,8 @@ class InvoiceController extends Controller implements HasMiddleware
 
             $gstRate = $bilty->gst_liability_by === 'Exempted' ? 0 : (float) ($bilty->gst ?? 0);
             $gstAmount = round($subtotal * $gstRate / 100, 2);
-            $amount = round($subtotal + $gstAmount, 2);
+            $gstInTotal = $bilty->gst_liability_by === 'Transporter' ? $gstAmount : 0.0;
+            $amount = round($subtotal + $gstInTotal, 2);
 
             $preparedBilties[] = [
                 'bilty' => $bilty,

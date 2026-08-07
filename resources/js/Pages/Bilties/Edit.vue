@@ -405,11 +405,11 @@
                             </div>
                             <div class="col-lg-5">
                                 <div class="bilty-total-panel">
-                                    <div class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">GST Amount</label>
+                                    <div v-if="showGstFields" class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">GST Amount ({{ Number(form.gst || 0) }}%)</label>
                                         <input type="number" step="1" class="form-control form-control-sm bg-light" :value="gstAmount" readonly>
                                     </div>
-                                    <div class="bilty-charge-row">
+                                    <div v-if="showGstFields" class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">GST Liability By</label>
                                         <select class="form-select form-select-sm" v-model="form.gst_liability_by">
                                             <option value="">Select</option>
@@ -571,6 +571,7 @@
             :goods="goodOptions"
             :package-types="packageTypeOptions"
             :vendors="vendorOptions"
+            :gst-exemption-limit="gst_exemption_limit"
             @cancel="closeConfirm"
             @confirm="confirmSave"
             @confirm-print="confirmSaveAndPrint"
@@ -602,6 +603,7 @@ const props = defineProps({
     package_types: Array,
     agents: Array,
     default_gst_percent: { type: Number, default: 0 },
+    gst_exemption_limit: { type: Number, default: 0 },
 });
 
 const partyOptions = ref([...(props.parties || [])]);
@@ -778,6 +780,16 @@ watch(() => form.consignor_id, () => {
 
 const showCartageOptions = computed(() => parseFloat(form.cartage || 0) > 0);
 const showAdvancePaymentMode = computed(() => parseFloat(form.less_advance_received || 0) > 0);
+const gstChargeBase = computed(() => (
+    parseFloat(form.freight || 0) +
+    parseFloat(form.bilty_charge || 0) +
+    parseFloat(form.surcharge || 0) +
+    parseFloat(form.handling_charge || 0) +
+    parseFloat(form.risk_dd_charge || 0) +
+    parseFloat(form.cartage || 0) +
+    totalAddonCharges()
+));
+const showGstFields = computed(() => gstChargeBase.value > Number(props.gst_exemption_limit || 0));
 
 const onCartageChange = () => {
     if (!showCartageOptions.value) {
@@ -992,13 +1004,17 @@ const calculateFinalTotal = () => {
         parseFloat(form.cartage || 0) +
         totalAddonCharges();
 
-    const gstRate = form.gst_liability_by === 'Exempted' ? 0 : (parseFloat(form.gst) || 0);
+    let gstRate = form.gst_liability_by === 'Exempted' ? 0 : (parseFloat(form.gst) || 0);
+    if (subtotal <= Number(props.gst_exemption_limit || 0)) {
+        gstRate = 0;
+    }
     const gstValue = subtotal * (gstRate / 100);
 
     gstAmount.value = gstValue.toFixed(2);
 
     const lessAdvanceReceived = parseFloat(form.less_advance_received || 0);
-    form.amount = (subtotal + gstValue - lessAdvanceReceived).toFixed(2);
+    const gstInTotal = form.gst_liability_by === 'Transporter' ? gstValue : 0;
+    form.amount = (subtotal + gstInTotal - lessAdvanceReceived).toFixed(2);
 };
 
 const submit = () => {

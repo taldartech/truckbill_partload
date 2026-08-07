@@ -87,12 +87,16 @@ const props = defineProps({
 defineEmits(['cancel', 'confirm', 'confirm-print']);
 
 const gstOnLabel = computed(() => {
+    const total = Number(props.form.total_amount || 0);
+    const freight = Number(props.form.freight || 0);
+    const deliveryBase = Math.max(total - freight, 0);
+
     if (props.form.gst_on === 'delivery_charge') {
-        return 'Delivery Charge';
+        return `Delivery Charge (₹ ${deliveryBase.toFixed(2)})`;
     }
 
     if (props.form.gst_on === 'total_charge') {
-        return 'Total Charge';
+        return `Total Charge (₹ ${total.toFixed(2)})`;
     }
 
     return props.form.gst_on || '—';
@@ -134,8 +138,10 @@ const detailFields = computed(() => {
     }
 
     pushField(fields, 'Haste', props.form.haste);
-    pushField(fields, 'GST On', gstOnLabel.value);
-    pushField(fields, 'GST Pay By', props.form.gst_pay_by);
+    pushField(fields, 'GST On', gstOnLabel.value, { always: true });
+    if (hasGst.value) {
+        pushField(fields, 'GST Pay By', props.form.gst_pay_by);
+    }
 
     return fields;
 });

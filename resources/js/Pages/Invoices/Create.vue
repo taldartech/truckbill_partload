@@ -386,11 +386,12 @@ const amountBreakdown = (bilty) => {
         - (parseFloat(bilty.less_advance_received) || 0);
     const gstRate = bilty.gst_liability_by === 'Exempted' ? 0 : (parseFloat(bilty.gst) || 0);
     const gstAmount = subtotal * (gstRate / 100);
+    const gstInTotal = bilty.gst_liability_by === 'Transporter' ? gstAmount : 0;
 
     return {
         subtotal,
         gst_amount: gstAmount,
-        net_amount: subtotal + gstAmount,
+        net_amount: subtotal + gstInTotal,
     };
 };
 

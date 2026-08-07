@@ -15,6 +15,7 @@ class Company extends Model
 
     protected $casts = [
         'has_gst' => 'boolean',
+        'gst_exemption_limit' => 'decimal:2',
     ];
 
     public function users()

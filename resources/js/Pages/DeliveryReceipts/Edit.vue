@@ -165,15 +165,15 @@
                                     <div class="bilty-field">
                                         <label class="bilty-field__label">GST On</label>
                                         <select class="form-select form-select-sm" v-model="form.gst_on" @change="calculateTotals">
-                                            <option value="delivery_charge">Delivery Charge</option>
-                                            <option value="total_charge">Total Charge</option>
+                                            <option value="delivery_charge">Delivery Charge (₹ {{ formatGstOnAmount(deliveryChargeGstBase) }})</option>
+                                            <option value="total_charge">Total Charge (₹ {{ formatGstOnAmount(chargesSubTotal) }})</option>
                                         </select>
                                     </div>
-                                    <div class="bilty-field">
+                                    <div v-if="showGstFields" class="bilty-field">
                                         <label class="bilty-field__label">GST ({{ Number(form.gst_rate || 0) }}%)</label>
                                         <input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.gst" readonly>
                                     </div>
-                                    <div class="bilty-field">
+                                    <div v-if="showGstFields" class="bilty-field">
                                         <label class="bilty-field__label">GST Pay By</label>
                                         <select class="form-select form-select-sm" v-model="form.gst_pay_by" @change="calculateTotals">
                                             <option value="Consignor">Consignor</option>
@@ -249,6 +249,10 @@ const props = defineProps({
         default: () => [],
     },
     gst_rate: {
+        type: Number,
+        default: 0,
+    },
+    gst_exemption_limit: {
         type: Number,
         default: 0,
     },
@@ -385,27 +389,46 @@ const cancelGrSelection = () => {
     clearGrSelection();
 };
 
+const chargesSubTotal = computed(() => (
+    parseFloat(form.freight || 0) +
+    parseFloat(form.handling_charge || 0) +
+    parseFloat(form.delivery_charge || 0) +
+    parseFloat(form.stationery_charge || 0) +
+    parseFloat(form.demurrage || 0) +
+    parseFloat(form.other_charge || 0) +
+    parseFloat(form.carriage_charge || 0)
+));
+
+const deliveryChargeGstBase = computed(() => (
+    Math.max(chargesSubTotal.value - parseFloat(form.freight || 0), 0)
+));
+
+const gstTaxableBase = computed(() => (
+    form.gst_on === 'delivery_charge'
+        ? deliveryChargeGstBase.value
+        : chargesSubTotal.value
+));
+
+const showGstFields = computed(() => gstTaxableBase.value > Number(props.gst_exemption_limit || 0));
+
+const formatGstOnAmount = (amount) => Number(amount || 0).toFixed(2);
+
 const calculateTotals = () => {
-    const subTotal =
-        parseFloat(form.freight || 0) +
-        parseFloat(form.handling_charge || 0) +
-        parseFloat(form.delivery_charge || 0) +
-        parseFloat(form.stationery_charge || 0) +
-        parseFloat(form.demurrage || 0) +
-        parseFloat(form.other_charge || 0) +
-        parseFloat(form.carriage_charge || 0);
+    const subTotal = chargesSubTotal.value;
 
     form.total_amount = subTotal.toFixed(2);
 
-    const gstBase = form.gst_on === 'delivery_charge'
-        ? parseFloat(form.delivery_charge || 0)
-        : subTotal;
+    const gstBase = gstTaxableBase.value;
 
-    const rate = form.gst_pay_by === 'Exempted' ? 0 : parseFloat(form.gst_rate || 0);
+    let rate = form.gst_pay_by === 'Exempted' ? 0 : parseFloat(form.gst_rate || 0);
+    if (gstBase <= Number(props.gst_exemption_limit || 0)) {
+        rate = 0;
+    }
     const gstAmount = gstBase * (rate / 100);
     form.gst = gstAmount.toFixed(2);
 
-    const finalTotal = subTotal + gstAmount - parseFloat(form.less || 0);
+    const gstInTotal = form.gst_pay_by === 'Transporter' ? gstAmount : 0;
+    const finalTotal = subTotal + gstInTotal - parseFloat(form.less || 0);
     form.final_amount = finalTotal.toFixed(2);
 };
 

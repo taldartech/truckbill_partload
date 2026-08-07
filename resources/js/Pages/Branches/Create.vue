@@ -67,6 +67,7 @@ const form = useForm({
     gst_type: '',
     gst_scheme: '',
     gst_slab: '',
+    gst_exemption_limit: '',
     bank_name: '',
     account_number: '',
     ifsc_code: '',

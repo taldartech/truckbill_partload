@@ -220,6 +220,18 @@
                     :readonly="gstFieldsReadonly"
                 >
             </FormField>
+            <FormField label="GST Exemption Limit" field-id="gst_exemption_limit" :error="form.errors.gst_exemption_limit" required col="col-md-3">
+                <input
+                    id="gst_exemption_limit"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    class="form-control"
+                    v-model="form.gst_exemption_limit"
+                    required
+                    :readonly="gstFieldsReadonly"
+                >
+            </FormField>
         </div>
     </FormSection>
 
@@ -403,6 +415,7 @@ const applyGstFromCompany = () => {
     props.form.gst_type = company.gst_type || '';
     props.form.gst_scheme = company.gst_scheme || '';
     props.form.gst_slab = company.gst_slab ?? '';
+    props.form.gst_exemption_limit = company.gst_exemption_limit ?? '';
 };
 
 const applyBankFromCompany = () => {

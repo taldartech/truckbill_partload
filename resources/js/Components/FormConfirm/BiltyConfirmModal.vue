@@ -155,6 +155,7 @@ const props = defineProps({
     goods: { type: Array, default: () => [] },
     packageTypes: { type: Array, default: () => [] },
     vendors: { type: Array, default: () => [] },
+    gstExemptionLimit: { type: Number, default: 0 },
     showPrintButton: { type: Boolean, default: true },
 });
 
@@ -229,7 +230,18 @@ const detailFields = computed(() => {
     pushField(fields, 'Payment', props.form.payment_type || '—', { always: true, accent: true });
     pushField(fields, 'From', lookupLabel(props.stations, props.form.from_station_id), { always: true });
     pushField(fields, 'To', lookupLabel(props.stations, props.form.to_station_id), { always: true });
-    pushField(fields, 'GST Liability', props.form.gst_liability_by);
+    const chargeBase = [
+        props.form.freight,
+        props.form.bilty_charge,
+        props.form.surcharge,
+        props.form.handling_charge,
+        props.form.risk_dd_charge,
+        props.form.cartage,
+        ...(props.form.addon_charges || []).map((charge) => charge.amount),
+    ].reduce((sum, value) => sum + (parseFloat(value || 0)), 0);
+    if (chargeBase > Number(props.gstExemptionLimit || 0)) {
+        pushField(fields, 'GST Liability', props.form.gst_liability_by);
+    }
     pushField(fields, 'Consignor', lookupLabel(props.parties, props.form.consignor_id), { always: true });
     pushField(fields, 'Cnr GST', partyGst(props.form.consignor_id));
     pushField(fields, 'Consignee', lookupLabel(props.parties, props.form.consignee_id), { always: true });
@@ -334,7 +346,10 @@ const extraChargeLines = computed(() => {
         ...(props.form.addon_charges || []).map((charge) => charge.amount),
     ].reduce((sum, value) => sum + (parseFloat(value || 0)), 0);
 
-    const gstRate = props.form.gst_liability_by === 'Exempted' ? 0 : parseFloat(props.form.gst || 0);
+    let gstRate = props.form.gst_liability_by === 'Exempted' ? 0 : parseFloat(props.form.gst || 0);
+    if (chargeBase <= Number(props.gstExemptionLimit || 0)) {
+        gstRate = 0;
+    }
     const gstAmount = chargeBase * (gstRate / 100);
     if (gstAmount !== 0) {
         lines.push({ label: `GST (${gstRate}%)`, amount: gstAmount });

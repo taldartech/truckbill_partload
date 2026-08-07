@@ -98,6 +98,9 @@
             <FormField label="GST Slab (%)" field-id="company_gst_slab" :error="form.errors.gst_slab" required col="col-md-3">
                 <input id="company_gst_slab" type="number" step="0.01" class="form-control" v-model="form.gst_slab" required>
             </FormField>
+            <FormField label="GST Exemption Limit" field-id="company_gst_exemption_limit" :error="form.errors.gst_exemption_limit" required col="col-md-3">
+                <input id="company_gst_exemption_limit" type="number" step="0.01" min="0" class="form-control" v-model="form.gst_exemption_limit" required>
+            </FormField>
         </div>
     </FormSection>
 

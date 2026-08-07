@@ -71,6 +71,7 @@ const form = useForm({
     gst_type: props.branch.gst_type || '',
     gst_scheme: props.branch.gst_scheme || '',
     gst_slab: props.branch.gst_slab || '',
+    gst_exemption_limit: props.branch.gst_exemption_limit ?? '',
     bank_name: props.branch.bank_name || '',
     account_number: props.branch.account_number || '',
     ifsc_code: props.branch.ifsc_code || '',

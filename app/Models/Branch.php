@@ -17,6 +17,7 @@ class Branch extends Model
         'has_gst' => 'boolean',
         'use_company_logo' => 'boolean',
         'is_head_office' => 'boolean',
+        'gst_exemption_limit' => 'decimal:2',
     ];
 
     protected static function booted(): void

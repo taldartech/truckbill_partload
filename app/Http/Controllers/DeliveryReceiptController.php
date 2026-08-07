@@ -79,6 +79,7 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'parties' => Party::query()->orderBy('name')->get(['id', 'name']),
             'gr_sources' => $this->grSourceOptions(),
             'gst_rate' => $branchGstRate,
+            'gst_exemption_limit' => $this->gstExemptionLimit(),
         ]);
     }
 
@@ -132,6 +133,7 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'parties' => Party::query()->orderBy('name')->get(['id', 'name']),
             'gr_sources' => $this->grSourceOptions($deliveryReceipt->id),
             'gst_rate' => $branchGstRate,
+            'gst_exemption_limit' => $this->gstExemptionLimit(),
         ]);
     }
 
@@ -374,5 +376,16 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         }
 
         return (float) ($branch->gst_slab ?? 0);
+    }
+
+    private function gstExemptionLimit(): float
+    {
+        $branch = $this->activeBranch();
+
+        if (! $branch || ! $branch->has_gst) {
+            return 0.0;
+        }
+
+        return (float) ($branch->gst_exemption_limit ?? 0);
     }
 }

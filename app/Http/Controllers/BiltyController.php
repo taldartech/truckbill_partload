@@ -100,6 +100,7 @@ class BiltyController extends Controller implements HasMiddleware
             'agents' => Agent::orderBy('name')->get(),
             'next_bilty_number' => $nextNumber,
             'default_gst_percent' => $this->defaultGstPercent($branch),
+            'gst_exemption_limit' => $this->gstExemptionLimit($branch),
         ]);
     }
 
@@ -159,6 +160,7 @@ class BiltyController extends Controller implements HasMiddleware
             'package_types' => PackageType::all(),
             'agents' => Agent::orderBy('name')->get(),
             'default_gst_percent' => $this->defaultGstPercent($branch),
+            'gst_exemption_limit' => $this->gstExemptionLimit($branch),
         ]);
     }
 
@@ -257,19 +259,26 @@ class BiltyController extends Controller implements HasMiddleware
 
         $addonTotal = collect($bilty->addon_charges ?? [])->sum(fn ($charge) => (float) ($charge['amount'] ?? 0));
 
-        $subtotal =
+        $chargeBase =
             (float) ($bilty->freight ?? 0) +
             (float) ($bilty->bilty_charge ?? 0) +
             (float) ($bilty->surcharge ?? 0) +
             (float) ($bilty->handling_charge ?? 0) +
             (float) ($bilty->risk_dd_charge ?? 0) +
             (float) ($bilty->cartage ?? 0) +
-            $addonTotal -
-            (float) ($bilty->less_advance_received ?? 0);
+            $addonTotal;
+
+        $lessAdvance = (float) ($bilty->less_advance_received ?? 0);
+        $subtotal = $chargeBase - $lessAdvance;
 
         $gstRate = $bilty->gst_liability_by === 'Exempted' ? 0 : (float) ($bilty->gst ?? 0);
-        $gstAmount = $subtotal * ($gstRate / 100);
-        $totalAmount = (float) ($bilty->amount ?? ($subtotal + $gstAmount));
+        $exemptionLimit = (float) ($bilty->branch?->gst_exemption_limit ?? 0);
+        if ($chargeBase <= $exemptionLimit) {
+            $gstRate = 0;
+        }
+        $gstAmount = $chargeBase * ($gstRate / 100);
+        $gstInTotal = $bilty->gst_liability_by === 'Transporter' ? $gstAmount : 0.0;
+        $totalAmount = (float) ($bilty->amount ?? ($chargeBase + $gstInTotal - $lessAdvance));
 
         $charges = [];
 
@@ -517,5 +526,14 @@ class BiltyController extends Controller implements HasMiddleware
         }
 
         return (float) ($branch->gst_slab ?? 0);
+    }
+
+    private function gstExemptionLimit(?Branch $branch): float
+    {
+        if (! $branch || ! $branch->has_gst) {
+            return 0;
+        }
+
+        return (float) ($branch->gst_exemption_limit ?? 0);
     }
 }

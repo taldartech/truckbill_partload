@@ -71,6 +71,7 @@ class CompanyController extends Controller implements HasMiddleware
             'gst_type' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|string|max:50',
             'gst_scheme' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|string|max:50',
             'gst_slab' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|numeric|min:0|max:100',
+            'gst_exemption_limit' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|numeric|min:0',
             'bank_name' => 'nullable|string|max:255',
             'account_number' => 'nullable|string|regex:/^\d{9,18}$/',
             'ifsc_code' => 'nullable|string|size:11|regex:/^[A-Z]{4}0[A-Z0-9]{6}$/i',
@@ -134,6 +135,7 @@ class CompanyController extends Controller implements HasMiddleware
             'gst_type' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|string|max:50',
             'gst_scheme' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|string|max:50',
             'gst_slab' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|numeric|min:0|max:100',
+            'gst_exemption_limit' => 'nullable|required_if:has_gst,1|required_if:has_gst,true|numeric|min:0',
             'bank_name' => 'nullable|string|max:255',
             'account_number' => 'nullable|string|regex:/^\d{9,18}$/',
             'ifsc_code' => 'nullable|string|size:11|regex:/^[A-Z]{4}0[A-Z0-9]{6}$/i',
@@ -179,6 +181,7 @@ class CompanyController extends Controller implements HasMiddleware
             $validated['gst_type'] = null;
             $validated['gst_scheme'] = null;
             $validated['gst_slab'] = null;
+            $validated['gst_exemption_limit'] = null;
         }
 
         if ($request->hasFile('company_logo')) {
