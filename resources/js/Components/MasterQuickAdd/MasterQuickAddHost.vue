@@ -153,7 +153,7 @@
                                     <input type="text" class="form-control form-control-sm" v-model="form.name" required>
                                     <div v-if="fieldError('name')" class="text-danger small">{{ fieldError('name') }}</div>
                                 </div>
-                                <div class="row mb-0">
+                                <div class="row mb-2">
                                     <div class="col-md-6">
                                         <label class="form-label small mb-1">State *</label>
                                         <SearchableSelect
@@ -175,6 +175,16 @@
                                         />
                                         <div v-if="fieldError('city_id')" class="text-danger small">{{ fieldError('city_id') }}</div>
                                     </div>
+                                </div>
+                                <div v-if="lookups.canSetDefaultAgent" class="mb-0">
+                                    <label class="form-label small mb-1">Default Agent</label>
+                                    <SearchableSelect
+                                        :small="true"
+                                        v-model="form.default_agent_id"
+                                        :options="lookups.agents"
+                                        placeholder="Select Default Agent"
+                                    />
+                                    <div v-if="fieldError('default_agent_id')" class="text-danger small">{{ fieldError('default_agent_id') }}</div>
                                 </div>
                             </template>
 
@@ -325,6 +335,8 @@ const lookups = reactive({
     states: [],
     groups: [],
     truckTypes: [],
+    agents: [],
+    canSetDefaultAgent: false,
 });
 
 const form = reactive({});
@@ -355,7 +367,7 @@ const emptyFormFor = (type, ctx = {}) => {
         case 'party':
             return { group_id: '', name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_number: '' };
         case 'station':
-            return { name: '', state_id: '', city_id: '' };
+            return { name: '', state_id: '', city_id: '', default_agent_id: '' };
         case 'agent':
             return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_no: '' };
         case 'vendor':
@@ -435,6 +447,8 @@ const loadFormData = async () => {
         lookups.truckTypes = Array.isArray(data?.truckTypes)
             ? data.truckTypes
             : (Array.isArray(data?.truck_types) ? data.truck_types : []);
+        lookups.agents = Array.isArray(data?.agents) ? data.agents : [];
+        lookups.canSetDefaultAgent = !!data?.can_set_default_agent;
     } catch (error) {
         loadError.value = error.response?.data?.message || 'Unable to load form data.';
     } finally {

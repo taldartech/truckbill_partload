@@ -7,6 +7,7 @@ use App\Models\Agent;
 use App\Models\Bilty;
 use App\Models\Branch;
 use App\Models\Company;
+use App\Models\CompanyStationAgent;
 use App\Models\Good;
 use App\Models\PackageType;
 use App\Models\Party;
@@ -94,7 +95,7 @@ class BiltyController extends Controller implements HasMiddleware
         return Inertia::render('Bilties/Create', [
             'parties' => $this->partyOptions(),
             'vendors' => Vendor::all(),
-            'stations' => Station::all(),
+            'stations' => $this->stationOptions(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
             'agents' => Agent::orderBy('name')->get(),
@@ -155,7 +156,7 @@ class BiltyController extends Controller implements HasMiddleware
             'bilty' => $bilty,
             'parties' => $this->partyOptions(),
             'vendors' => Vendor::all(),
-            'stations' => Station::all(),
+            'stations' => $this->stationOptions(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
             'agents' => Agent::orderBy('name')->get(),
@@ -517,6 +518,34 @@ class BiltyController extends Controller implements HasMiddleware
                 'city_id',
                 'bilty_charge',
             ]);
+    }
+
+    private function stationOptions()
+    {
+        $companyId = $this->companyId();
+
+        $defaultAgentNames = CompanyStationAgent::query()
+            ->where('company_id', $companyId)
+            ->with('agent:id,name')
+            ->get()
+            ->mapWithKeys(fn (CompanyStationAgent $mapping) => [
+                $mapping->station_id => $mapping->agent?->name,
+            ]);
+
+        return Station::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'country_id', 'state_id', 'city_id'])
+            ->map(function (Station $station) use ($defaultAgentNames) {
+                return [
+                    'id' => $station->id,
+                    'name' => $station->name,
+                    'country_id' => $station->country_id,
+                    'state_id' => $station->state_id,
+                    'city_id' => $station->city_id,
+                    'default_agent_name' => $defaultAgentNames->get($station->id),
+                ];
+            })
+            ->values();
     }
 
     private function defaultGstPercent(?Branch $branch): float

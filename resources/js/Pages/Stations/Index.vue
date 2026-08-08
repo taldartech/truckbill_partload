@@ -137,6 +137,19 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div v-if="canSetDefaultAgent" class="form-group mb-0">
+                                <label>Default Agent</label>
+                                <SearchableSelect
+                                    v-model="form.default_agent_id"
+                                    :options="agentOptions"
+                                    master="agent"
+                                    placeholder="Select Default Agent"
+                                    @created="(record) => appendMasterOption(agentOptions, record)"
+                                />
+                                <div class="form-text">Used as Delivery At when this station is selected as To Station on a bilty.</div>
+                                <div v-if="form.errors.default_agent_id" class="text-danger small mt-1">{{ form.errors.default_agent_id }}</div>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" @click="closeModal">Close</button>
@@ -166,6 +179,8 @@ const props = defineProps({
     stations: Object,
     states: Array,
     cities: Array,
+    agents: { type: Array, default: () => [] },
+    can_set_default_agent: { type: Boolean, default: false },
     filters: {
         type: Object,
         default: () => ({}),
@@ -176,17 +191,21 @@ const { searching, filters, applyFilters, resetFilters } = useMasterIndexSearch(
 
 const page = usePage();
 const can = (permission) => page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
+const canSetDefaultAgent = computed(() => !!props.can_set_default_agent);
 
 const stateOptions = ref([...(props.states || [])]);
 const cityOptions = ref([...(props.cities || [])]);
+const agentOptions = ref([...(props.agents || [])]);
 watch(() => props.states, (v) => { stateOptions.value = [...(v || [])]; });
 watch(() => props.cities, (v) => { cityOptions.value = [...(v || [])]; });
+watch(() => props.agents, (v) => { agentOptions.value = [...(v || [])]; });
 
 const form = useForm({
     id: null,
     name: '',
     state_id: '',
     city_id: '',
+    default_agent_id: '',
 });
 
 const editMode = ref(false);
@@ -229,6 +248,7 @@ const editItem = (station) => {
     form.name = station.name || '';
     form.state_id = station.state_id || station.state?.id || '';
     form.city_id = station.city_id || station.city?.id || '';
+    form.default_agent_id = station.default_agent_id || '';
     modal.show();
 };
 

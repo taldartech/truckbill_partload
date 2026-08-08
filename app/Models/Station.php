@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Station extends Model
 {
     use \App\Traits\BelongsToOwner;
-
     use SoftDeletes;
 
     protected $guarded = [];
@@ -26,5 +26,10 @@ class Station extends Model
     public function city()
     {
         return $this->belongsTo(City::class);
+    }
+
+    public function companyDefaultAgents(): HasMany
+    {
+        return $this->hasMany(CompanyStationAgent::class);
     }
 }

@@ -735,6 +735,29 @@ const filteredAgents = computed(() => {
     return filtered.length > 0 ? filtered : agentOptions.value;
 });
 
+const stationDefaultAgentName = (stationId) => {
+    const station = stationOptions.value.find((item) => String(item.id) === String(stationId));
+    return station?.default_agent_name || '';
+};
+
+let previousToStationDefaultAgent = stationDefaultAgentName(form.to_station_id);
+
+watch(() => form.to_station_id, (nextStationId, previousStationId) => {
+    if (String(nextStationId || '') === String(previousStationId || '')) {
+        return;
+    }
+
+    const nextDefault = stationDefaultAgentName(nextStationId);
+    const currentDeliveryAt = String(form.delivery_at || '');
+    const previousDefault = previousToStationDefaultAgent;
+
+    if (!currentDeliveryAt || currentDeliveryAt === previousDefault) {
+        form.delivery_at = nextDefault;
+    }
+
+    previousToStationDefaultAgent = nextDefault;
+});
+
 const getConsignorGST = () => {
     if(!form.consignor_id) return '';
     const party = partyOptions.value.find(p => p.id === form.consignor_id);

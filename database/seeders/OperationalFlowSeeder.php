@@ -10,6 +10,7 @@ use App\Models\Branch;
 use App\Models\Challan;
 use App\Models\ChallanDetail;
 use App\Models\Company;
+use App\Models\CompanyStationAgent;
 use App\Models\CompanySubscription;
 use App\Models\DeliveryReceipt;
 use App\Models\Good;
@@ -279,8 +280,15 @@ class OperationalFlowSeeder extends Seeder
             'country_id' => $geo['country_id'],
             'state_id' => $geo['state_id'],
             'city_id' => $geo['city_id'],
-            'agency_id' => $agents[$i % count($agents)]->id,
         ]));
+
+        foreach ($stations as $index => $station) {
+            CompanyStationAgent::create([
+                'company_id' => $companyId,
+                'station_id' => $station->id,
+                'agent_id' => $agents[$index % count($agents)]->id,
+            ]);
+        }
 
         $goods = $this->seedCollection($this->goodNames(), fn (string $name) => Good::create([
             'owner_id' => $ownerId,
