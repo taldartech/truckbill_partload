@@ -19,7 +19,7 @@
     <link href="{{ asset('css/sidebar.css') }}" rel="stylesheet">
     <link href="{{ asset('css/partload-extensions.css') }}" rel="stylesheet">
 
-    @vite(['resources/css/app.css', 'resources/css/app-shell.css', 'resources/css/app-forms.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/app-shell.css', 'resources/css/app-forms.css', 'resources/css/app-show.css', 'resources/js/app.js'])
     @inertiaHead
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">

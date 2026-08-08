@@ -86,7 +86,11 @@
                             <tbody>
                                 <tr v-for="bilty in bilties.data" :key="bilty.id">
                                     <td>{{ bilty.id }}</td>
-                                    <td>{{ bilty.bilty_number || 'N/A' }}</td>
+                                    <td>
+                                        <Link :href="`/bilties/${bilty.id}`" class="fw-semibold text-decoration-none">
+                                            {{ bilty.bilty_number || 'N/A' }}
+                                        </Link>
+                                    </td>
                                     <td>{{ bilty.date || 'N/A' }}</td>
                                     <td>
                                         <span class="text-bold">{{ bilty.from_station?.name }}</span>
@@ -117,10 +121,19 @@
                                         >
                                             <i class="fas fa-print"></i>
                                         </BiltyPrintButton>
-                                        <Link :href="`/bilties/${bilty.id}/edit`" class="btn btn-sm btn-info text-white me-2">
+                                        <Link
+                                            v-if="can('edit bilties')"
+                                            :href="`/bilties/${bilty.id}/edit`"
+                                            class="btn btn-sm btn-info text-white me-2"
+                                        >
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(bilty.id)">
+                                        <button
+                                            v-if="can('delete bilties')"
+                                            type="button"
+                                            class="btn btn-sm btn-danger"
+                                            @click="deleteItem(bilty.id)"
+                                        >
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>

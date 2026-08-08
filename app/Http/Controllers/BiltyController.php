@@ -147,6 +147,27 @@ class BiltyController extends Controller implements HasMiddleware
         );
     }
 
+    public function show(Bilty $bilty)
+    {
+        $bilty->load([
+            'consignor.state',
+            'consignor.city',
+            'consignee.state',
+            'consignee.city',
+            'fromStation',
+            'toStation',
+            'vendor',
+            'creator',
+            'biltyDetails.good',
+            'biltyDetails.packageType',
+            'ewayBills',
+        ]);
+
+        return Inertia::render('Bilties/Show', [
+            'bilty' => $bilty,
+        ]);
+    }
+
     public function edit(Bilty $bilty)
     {
         $bilty->load(['biltyDetails', 'ewayBills']);
