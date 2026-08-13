@@ -44,7 +44,6 @@
                                     <th>Location</th>
                                     <th>Registration Date</th>
                                     <th>Truck Owner</th>
-                                    <!-- <th>Driver</th> -->
                                     <th class="text-start">Actions</th>
                                 </tr>
                             </thead>
@@ -73,7 +72,6 @@
                                     </td>
                                     <td>{{ truck.rc_expiry_date || '—' }}</td>
                                     <td>{{ truck.owner_name || '—' }}</td>
-                                    <!-- <td>{{ truck.driver?.name || '—' }}</td> -->
                                     <td class="text-start">
                                         <button
                                             v-if="can('edit trucks')"
