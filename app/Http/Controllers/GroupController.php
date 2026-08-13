@@ -43,7 +43,6 @@ class GroupController extends Controller implements HasMiddleware
         ]);
     }
 
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -53,6 +52,13 @@ class GroupController extends Controller implements HasMiddleware
         Group::create($validated);
 
         return redirect()->back()->with('success', 'Groups created successfully.');
+    }
+
+    public function show(Group $group)
+    {
+        return Inertia::render('Groups/Show', [
+            'group' => $group,
+        ]);
     }
 
     public function quickStore(Request $request): JsonResponse
@@ -86,6 +92,6 @@ class GroupController extends Controller implements HasMiddleware
     {
         $group->delete();
 
-        return redirect()->back()->with('success', 'Groups deleted successfully.');
+        return redirect()->route('groups.index')->with('success', 'Groups deleted successfully.');
     }
 }

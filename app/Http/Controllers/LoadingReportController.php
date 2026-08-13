@@ -148,6 +148,23 @@ class LoadingReportController extends Controller implements HasMiddleware
         );
     }
 
+    public function show(LoadingReport $loadingReport)
+    {
+        $loadingReport->load([
+            'fromStation',
+            'toStation',
+            'truck',
+            'details.bilty.toStation',
+            'details.good',
+            'details.packageType',
+            'details.consignee',
+        ]);
+
+        return Inertia::render('LoadingReports/Show', [
+            'report' => $loadingReport,
+        ]);
+    }
+
     public function edit(LoadingReport $loadingReport)
     {
         $loadingReport->load('details');

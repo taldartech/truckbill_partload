@@ -13,7 +13,6 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>City</th>
@@ -24,8 +23,11 @@
                             </thead>
                             <tbody>
                                 <tr v-for="company in companies.data" :key="company.id">
-                                    <td>{{ company.id }}</td>
-                                    <td>{{ company.name }}</td>
+                                    <td>
+                                        <Link :href="`/companies/${company.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ company.name }}
+                                        </Link>
+                                    </td>
                                     <td>{{ company.email || 'N/A' }}</td>
                                     <td>{{ company.city?.name || 'N/A' }}</td>
                                     <td>{{ company.contact_person || 'N/A' }}</td>
@@ -40,7 +42,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="companies.data.length === 0">
-                                    <td colspan="7" class="text-center py-4">No companies found.</td>
+                                    <td colspan="6" class="text-center py-4">No companies found.</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -124,6 +124,21 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         );
     }
 
+    public function show(DeliveryReceipt $deliveryReceipt)
+    {
+        $deliveryReceipt->load([
+            'consignee.state',
+            'consignee.city',
+            'paymentDueFrom.state',
+            'paymentDueFrom.city',
+        ]);
+
+        return Inertia::render('DeliveryReceipts/Show', [
+            'receipt' => $deliveryReceipt,
+            'gr_source' => $this->resolveGrSource($deliveryReceipt->gr_no_bilty_no),
+        ]);
+    }
+
     public function edit(DeliveryReceipt $deliveryReceipt)
     {
         $branchGstRate = $this->branchGstRate();
@@ -177,7 +192,9 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
 
         $branch = $delivery_receipt->branch;
         $company = $branch?->company ?? \App\Models\Company::find($delivery_receipt->company_id);
-        $grSource = $this->resolveGrSourceForPrint($delivery_receipt->gr_no_bilty_no);
+        $grSource = $this->formatGrSourceForPrint(
+            $this->resolveGrSource($delivery_receipt->gr_no_bilty_no)
+        );
 
         return view('prints.delivery_receipt', [
             'receipt' => $delivery_receipt,
@@ -191,20 +208,26 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
      * @return array{
      *     consignor: ?string,
      *     from_station: ?string,
+     *     to_station: ?string,
      *     goods_name: ?string,
      *     private_marka: ?string,
      *     packages: float|int|null,
      *     weight: float|int|null,
      *     gr_date: ?string,
      *     received_date: ?string,
-     *     basis_of_booking: ?string
+     *     basis_of_booking: ?string,
+     *     freight: float|int|null,
+     *     home_delivery_charge: float|int|null,
+     *     disposition: ?string,
+     *     status: ?string
      * }
      */
-    private function resolveGrSourceForPrint(?string $grNo): array
+    private function resolveGrSource(?string $grNo): array
     {
         $empty = [
             'consignor' => null,
             'from_station' => null,
+            'to_station' => null,
             'goods_name' => null,
             'private_marka' => null,
             'packages' => null,
@@ -212,6 +235,10 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'gr_date' => null,
             'received_date' => null,
             'basis_of_booking' => null,
+            'freight' => null,
+            'home_delivery_charge' => null,
+            'disposition' => null,
+            'status' => null,
         ];
 
         $grNo = trim((string) $grNo);
@@ -223,6 +250,7 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             ->with([
                 'consignor:id,name',
                 'fromStation:id,name',
+                'toStation:id,name',
                 'good:id,name',
                 'inwardRegister:id,date',
             ])
@@ -243,15 +271,66 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         return [
             'consignor' => $detail->consignor?->name,
             'from_station' => $detail->fromStation?->name,
+            'to_station' => $detail->toStation?->name,
             'goods_name' => $detail->good?->name,
             'private_marka' => $detail->private_marka,
             'packages' => $detail->no_of_packages,
             'weight' => $detail->weight,
-            'gr_date' => $detail->date ? date('d/m/Y', strtotime((string) $detail->date)) : null,
+            'gr_date' => $detail->date ? date('Y-m-d', strtotime((string) $detail->date)) : null,
             'received_date' => $detail->inwardRegister?->date
-                ? date('d/m/Y', strtotime((string) $detail->inwardRegister->date))
+                ? date('Y-m-d', strtotime((string) $detail->inwardRegister->date))
                 : null,
             'basis_of_booking' => $detail->basis_of_booking,
+            'freight' => $detail->freight,
+            'home_delivery_charge' => $detail->home_delivery_charge,
+            'disposition' => $detail->disposition,
+            'status' => $detail->status,
+        ];
+    }
+
+    /**
+     * @param  array{
+     *     consignor: ?string,
+     *     from_station: ?string,
+     *     to_station: ?string,
+     *     goods_name: ?string,
+     *     private_marka: ?string,
+     *     packages: float|int|null,
+     *     weight: float|int|null,
+     *     gr_date: ?string,
+     *     received_date: ?string,
+     *     basis_of_booking: ?string,
+     *     freight: float|int|null,
+     *     home_delivery_charge: float|int|null,
+     *     disposition: ?string,
+     *     status: ?string
+     * }  $source
+     * @return array{
+     *     consignor: ?string,
+     *     from_station: ?string,
+     *     goods_name: ?string,
+     *     private_marka: ?string,
+     *     packages: float|int|null,
+     *     weight: float|int|null,
+     *     gr_date: ?string,
+     *     received_date: ?string,
+     *     basis_of_booking: ?string
+     * }
+     */
+    private function formatGrSourceForPrint(array $source): array
+    {
+        return [
+            'consignor' => $source['consignor'],
+            'from_station' => $source['from_station'],
+            'goods_name' => $source['goods_name'],
+            'private_marka' => $source['private_marka'],
+            'packages' => $source['packages'],
+            'weight' => $source['weight'],
+            'gr_date' => $source['gr_date'] ? date('d/m/Y', strtotime($source['gr_date'])) : null,
+            'received_date' => $source['received_date']
+                ? date('d/m/Y', strtotime($source['received_date']))
+                : null,
+            'basis_of_booking' => $source['basis_of_booking'],
         ];
     }
 

@@ -73,7 +73,6 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Number</th>
                                     <th>Date</th>
                                     <th>From - To</th>
@@ -85,7 +84,6 @@
                             </thead>
                             <tbody>
                                 <tr v-for="bilty in bilties.data" :key="bilty.id">
-                                    <td>{{ bilty.id }}</td>
                                     <td>
                                         <Link :href="`/bilties/${bilty.id}`" class="fw-semibold text-decoration-none">
                                             {{ bilty.bilty_number || 'N/A' }}
@@ -139,7 +137,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="bilties.data.length === 0">
-                                    <td colspan="8" class="text-center text-muted py-4">
+                                    <td colspan="7" class="text-center text-muted py-4">
                                         No bilties found for selected filters.
                                     </td>
                                 </tr>

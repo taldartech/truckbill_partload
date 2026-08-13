@@ -56,6 +56,15 @@ class BankAccountController extends Controller implements HasMiddleware
         return redirect()->route('bank-accounts.index');
     }
 
+    public function show(BankAccount $bankAccount)
+    {
+        $bankAccount->load(['company', 'ledgerAccount']);
+
+        return Inertia::render('BankAccounts/Show', [
+            'bankAccount' => $bankAccount,
+        ]);
+    }
+
     public function store(Request $request, LedgerAccountResolver $resolver)
     {
         $validated = $this->validatedPayload($request);
@@ -90,7 +99,7 @@ class BankAccountController extends Controller implements HasMiddleware
     {
         $bankAccount->delete();
 
-        return redirect()->back()->with('success', 'Bank account deleted successfully.');
+        return redirect()->route('bank-accounts.index')->with('success', 'Bank account deleted successfully.');
     }
 
     /**

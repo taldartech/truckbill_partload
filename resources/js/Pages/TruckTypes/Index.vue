@@ -45,7 +45,11 @@
                             <tbody>
                                 <tr v-for="type in truckTypes.data" :key="type.id">
                                     <td>{{ type.id }}</td>
-                                    <td>{{ type.name }}</td>
+                                    <td>
+                                        <Link :href="`/truck-types/${type.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ type.name }}
+                                        </Link>
+                                    </td>
                                     <td class="text-end">
                                         <button type="button" class="btn btn-edit btn-sm me-2" @click="editType(type)">
                                             <i class="fas fa-edit"></i>
@@ -96,7 +100,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
+import { Link, useForm, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
@@ -123,6 +127,13 @@ let modal = null;
 
 onMounted(() => {
     modal = new bootstrap.Modal(document.getElementById('truckTypeModal'));
+
+    const editId = new URLSearchParams(window.location.search).get('edit');
+    const editTarget = editId ? props.truckTypes.data.find((type) => String(type.id) === editId) : null;
+
+    if (editTarget) {
+        editType(editTarget);
+    }
 });
 
 const openModal = () => {

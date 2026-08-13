@@ -27,7 +27,11 @@
                             <tbody>
                                 <tr v-for="user in users.data" :key="user.id">
                                     <td>{{ user.id }}</td>
-                                    <td>{{ user.name }}</td>
+                                    <td>
+                                        <Link :href="`/users/${user.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ user.name }}
+                                        </Link>
+                                    </td>
                                     <td>{{ user.email }}</td>
                                     <td>{{ user.company ? user.company.name : 'System/Global' }}</td>
                                     <td>{{ user.branch ? user.branch.name : '—' }}</td>
@@ -123,7 +127,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useForm, router, usePage } from '@inertiajs/vue3';
+import { Link, useForm, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
@@ -206,6 +210,14 @@ const defaultBranchId = (companyId) => {
 
 onMounted(() => {
     modal = new bootstrap.Modal(document.getElementById('userModal'));
+
+    const editId = new URLSearchParams(window.location.search).get('edit');
+    if (editId) {
+        const user = props.users.data.find((item) => String(item.id) === String(editId) && item.can_manage);
+        if (user) {
+            editUser(user);
+        }
+    }
 });
 
 const openModal = () => {

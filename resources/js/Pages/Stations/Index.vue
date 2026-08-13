@@ -52,7 +52,11 @@
                             <tbody>
                                 <tr v-for="station in stations.data" :key="station.id">
                                     <td>{{ station.id }}</td>
-                                    <td>{{ station.name || 'N/A' }}</td>
+                                    <td>
+                                        <Link :href="`/stations/${station.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ station.name || 'N/A' }}
+                                        </Link>
+                                    </td>
                                     <td>{{ station.city?.name || 'N/A' }}</td>
                                     <td>{{ station.state?.name || 'N/A' }}</td>
                                     <td class="text-end">
@@ -166,7 +170,7 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
-import { router, useForm, usePage } from '@inertiajs/vue3';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
@@ -274,4 +278,21 @@ const deleteItem = (id) => {
         router.delete(`/stations/${id}`);
     }
 };
+
+onMounted(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = Number(params.get('edit') || 0);
+
+    if (!editId) {
+        return;
+    }
+
+    const row = props.stations.data.find((station) => station.id === editId);
+
+    if (row) {
+        editItem(row);
+    }
+
+    window.history.replaceState({}, '', window.location.pathname);
+});
 </script>

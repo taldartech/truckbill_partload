@@ -73,7 +73,6 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Number</th>
                                     <th>Date</th>
                                     <th>Route</th>
@@ -85,8 +84,9 @@
                             </thead>
                             <tbody>
                                 <tr v-for="challan in challans.data" :key="challan.id">
-                                    <td>{{ challan.id }}</td>
-                                    <td>{{ challan.challan_number || 'N/A' }}</td>
+                                    <td>
+                                        <Link :href="`/challans/${challan.id}`">{{ challan.challan_number || 'N/A' }}</Link>
+                                    </td>
                                     <td>{{ challan.date || 'N/A' }}</td>
                                     <td>
                                         <span class="text-bold">{{ challan.from_station?.name }}</span>
@@ -133,7 +133,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="challans.data.length === 0">
-                                    <td colspan="8" class="text-center text-muted py-4">
+                                    <td colspan="7" class="text-center text-muted py-4">
                                         No challans found for selected filters.
                                     </td>
                                 </tr>

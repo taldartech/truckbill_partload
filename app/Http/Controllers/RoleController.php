@@ -6,9 +6,9 @@ use App\Enums\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller implements HasMiddleware
 {
@@ -31,6 +31,21 @@ class RoleController extends Controller implements HasMiddleware
         return Inertia::render('Roles/Index', [
             'roles' => Role::with('permissions')->get(),
             'permissions' => Permission::all(),
+        ]);
+    }
+
+    public function show(Role $role)
+    {
+        if (! auth()->user()?->isMasterAdmin()) {
+            abort(403, 'Only Master Admin can manage roles.');
+        }
+
+        $role->load('permissions');
+
+        return Inertia::render('Roles/Show', [
+            'role' => array_merge($role->toArray(), [
+                'is_system_role' => in_array($role->name, UserRole::all(), true),
+            ]),
         ]);
     }
 

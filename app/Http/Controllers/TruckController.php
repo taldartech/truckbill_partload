@@ -57,6 +57,15 @@ class TruckController extends Controller implements HasMiddleware
         ]);
     }
 
+    public function show(Truck $truck)
+    {
+        $truck->load(['company', 'truckType', 'currentState', 'currentCity', 'currentStation']);
+
+        return Inertia::render('Trucks/Show', [
+            'truck' => $truck,
+        ]);
+    }
+
     public function create()
     {
         return Inertia::render('Trucks/Create', [

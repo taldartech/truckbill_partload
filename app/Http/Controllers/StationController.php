@@ -74,6 +74,26 @@ class StationController extends Controller implements HasMiddleware
         ]);
     }
 
+    public function show(Station $station)
+    {
+        $station->load(['state', 'city', 'country']);
+
+        $companyId = app(TenantContext::class)->activeCompanyId();
+
+        $defaultAgent = $companyId
+            ? CompanyStationAgent::query()
+                ->with('agent:id,name')
+                ->where('company_id', $companyId)
+                ->where('station_id', $station->id)
+                ->first()?->agent
+            : null;
+
+        return Inertia::render('Stations/Show', [
+            'station' => $station,
+            'default_agent' => $defaultAgent,
+        ]);
+    }
+
     public function create()
     {
         return redirect()->route('stations.index');
@@ -213,7 +233,7 @@ class StationController extends Controller implements HasMiddleware
     {
         $station->delete();
 
-        return redirect()->back()->with('success', 'Station deleted successfully.');
+        return redirect()->route('stations.index')->with('success', 'Station deleted successfully.');
     }
 
     private function syncDefaultAgent(Station $station, ?int $agentId): void

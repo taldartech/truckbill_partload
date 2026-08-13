@@ -76,6 +76,29 @@ class VoucherController extends Controller implements HasMiddleware
         return Inertia::render('Vouchers/Create', $this->formOptions());
     }
 
+    public function show(Voucher $voucher)
+    {
+        $voucher->load(['accountable', 'bankAccount']);
+
+        return Inertia::render('Vouchers/Show', [
+            'voucher' => [
+                'id' => $voucher->id,
+                'voucher_number' => $voucher->voucher_number,
+                'date' => $voucher->date,
+                'voucher_type' => $voucher->voucher_type,
+                'amount' => $voucher->amount,
+                'mode' => $voucher->mode,
+                'bank_account' => $voucher->bankAccount,
+                'remark' => $voucher->remark,
+                'entity_name' => $voucher->accountable?->name,
+                'entity_type' => $this->entityKeyFromClass($voucher->accountable_type),
+                'entity_type_label' => class_basename($voucher->accountable_type),
+                'created_at' => $voucher->created_at,
+                'updated_at' => $voucher->updated_at,
+            ],
+        ]);
+    }
+
     public function store(Request $request, AccountingPoster $poster, EntityBalance $balances)
     {
         $validated = $this->validatedVoucher($request);
@@ -84,7 +107,7 @@ class VoucherController extends Controller implements HasMiddleware
 
         $voucher = DB::transaction(function () use ($validated, $entity, $poster) {
             $voucher = Voucher::create([
-                'voucher_number' => $validated['voucher_number'] ?? null,
+                'voucher_number' => $validated['voucher_number'],
                 'date' => $validated['date'],
                 'voucher_type' => $validated['voucher_type'],
                 'accountable_type' => $entity::class,
@@ -138,7 +161,7 @@ class VoucherController extends Controller implements HasMiddleware
 
         DB::transaction(function () use ($validated, $entity, $voucher, $poster) {
             $voucher->update([
-                'voucher_number' => $validated['voucher_number'] ?? null,
+                'voucher_number' => $validated['voucher_number'],
                 'date' => $validated['date'],
                 'voucher_type' => $validated['voucher_type'],
                 'accountable_type' => $entity::class,
@@ -205,7 +228,7 @@ class VoucherController extends Controller implements HasMiddleware
     private function validatedVoucher(Request $request): array
     {
         return $request->validate([
-            'voucher_number' => ['nullable', 'string', 'max:255'],
+            'voucher_number' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
             'voucher_type' => ['required', 'in:Payment,Receipt'],
             'accountable_type' => ['required', 'in:vendor,agent,party'],
