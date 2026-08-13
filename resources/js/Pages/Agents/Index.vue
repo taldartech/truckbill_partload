@@ -46,7 +46,7 @@
                                     <th>Name</th>
                                     <th>Mobile</th>
                                     <th>City</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end" v-if="can('delete agents')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -55,7 +55,7 @@
                                     <td>{{ agent.name }}</td>
                                     <td>{{ agent.mobile || 'N/A' }}</td>
                                     <td>{{ agent.city?.name || agent.city || 'N/A' }}</td>
-                                    <td class="text-end">
+                                    <td class="text-end" v-if="can('delete agents')">
                                         <button
                                             v-if="can('edit agents')"
                                             type="button"

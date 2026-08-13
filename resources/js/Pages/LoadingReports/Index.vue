@@ -103,10 +103,10 @@
                                         >
                                             <i class="fas fa-print"></i>
                                         </a>
-                                        <Link :href="`/loading-reports/${report.id}/edit`" class="btn btn-sm btn-info text-white me-2">
+                                        <Link :href="`/loading-reports/${report.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('loading_reports.edit')" >
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteReport(report.id)">
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteReport(report.id)" v-if="can('loading_reports.delete')"  >
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>

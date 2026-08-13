@@ -82,7 +82,7 @@
                                     <th>Total Pkg.</th>
                                     <th>Delivery Freight</th>
                                     <th>Crossing Freight</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end" v-if="can('inward_registers.edit')" >Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -100,7 +100,7 @@
                                     <td>{{ register.total_packages ?? register.details?.length ?? 0 }}</td>
                                     <td>{{ register.total_delivery_freight ?? '0.00' }}</td>
                                     <td>{{ register.total_crossing_freight ?? '0.00' }}</td>
-                                    <td class="text-end">
+                                    <td class="text-end" v-if="can('inward_registers.edit')">
                                         <Link :href="`/inward-registers/${register.id}/edit`" class="btn btn-sm btn-info text-white me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>

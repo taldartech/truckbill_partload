@@ -46,7 +46,7 @@
                                     <th>Name</th>
                                     <th>Mobile</th>
                                     <th>GST Number</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end" v-if="can('delete vendors')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -55,7 +55,7 @@
                                     <td>{{ vendor.name }}</td>
                                     <td>{{ vendor.mobile || 'N/A' }}</td>
                                     <td>{{ vendor.gst_number || 'N/A' }}</td>
-                                    <td class="text-end">
+                                    <td class="text-end" v-if="can('delete vendors')">
                                         <button
                                             v-if="can('edit vendors')"
                                             type="button"

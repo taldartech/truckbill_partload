@@ -46,7 +46,7 @@
                                     <th>Name</th>
                                     <th>GST Number</th>
                                     <th>Mobile</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end"   v-if="can('delete parties')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -55,7 +55,7 @@
                                     <td>{{ party.name }}</td>
                                     <td>{{ party.gst_number || 'N/A' }}</td>
                                     <td>{{ party.mobile || 'N/A' }}</td>
-                                    <td class="text-end">
+                                    <td class="text-end"   v-if="can('delete parties')">
                                         <button
                                             v-if="can('edit parties')"
                                             type="button"

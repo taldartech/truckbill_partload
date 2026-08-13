@@ -44,11 +44,11 @@
                                     <th>Location</th>
                                     <th>Registration Date</th>
                                     <th>Truck Owner</th>
-                                    <th class="text-start">Actions</th>
+                                    <th class="text-start" v-if="can('trucks.delete')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="truck in trucks.data" :key="truck.id">
+                                <tr v-for="truck in trucks.data" :key="truck.id" v-if="can('trucks.delete')">
                                     <td>{{ truck.id }}</td>
                                     <td>
                                         <Link :href="`/trucks/${truck.id}/edit`" class="text-decoration-none fw-bold text-brand-primary">

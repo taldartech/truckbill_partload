@@ -46,7 +46,7 @@
                                     <th>Name</th>
                                     <th>City</th>
                                     <th>State</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end" v-if="can('delete stations')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -55,7 +55,7 @@
                                     <td>{{ station.name || 'N/A' }}</td>
                                     <td>{{ station.city?.name || 'N/A' }}</td>
                                     <td>{{ station.state?.name || 'N/A' }}</td>
-                                    <td class="text-end">
+                                    <td class="text-end" v-if="can('delete stations')">
                                         <button
                                             v-if="can('edit stations')"
                                             type="button"

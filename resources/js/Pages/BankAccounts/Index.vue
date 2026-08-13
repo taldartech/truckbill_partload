@@ -47,7 +47,7 @@
                                     <th>Account No.</th>
                                     <th>IFSC</th>
                                     <th>Status</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end"  v-if="can('edit bank_accounts')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -61,7 +61,7 @@
                                             {{ account.is_active ? 'Active' : 'Inactive' }}
                                         </span>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end"  v-if="can('edit bank_accounts')">
                                         <button
                                             v-if="can('edit bank_accounts')"
                                             type="button"

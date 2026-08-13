@@ -72,7 +72,7 @@
                                     <th>Account</th>
                                     <th>Mode</th>
                                     <th>Amount</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end" v-if="vouchers.edit">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -92,7 +92,7 @@
                                     <td>{{ entityLabel(voucher) }}</td>
                                     <td>{{ modeLabel(voucher) }}</td>
                                     <td>₹ {{ voucher.amount }}</td>
-                                    <td class="text-end">
+                                    <td class="text-end"  v-if="vouchers.edit">
                                         <Link :href="`/vouchers/${voucher.id}/edit`" class="btn btn-sm btn-info text-white me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>

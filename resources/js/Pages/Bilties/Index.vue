@@ -117,10 +117,10 @@
                                         >
                                             <i class="fas fa-print"></i>
                                         </BiltyPrintButton>
-                                        <Link :href="`/bilties/${bilty.id}/edit`" class="btn btn-sm btn-info text-white me-2">
+                                        <Link :href="`/bilties/${bilty.id}/edit`" class="btn btn-sm btn-info text-white me-2"  v-if="can('bilty.edit')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(bilty.id)">
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(bilty.id)"  v-if="can('bilty.delete')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
