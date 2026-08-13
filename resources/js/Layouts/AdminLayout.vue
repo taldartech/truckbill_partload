@@ -2,7 +2,7 @@
     <div
         class="app-wrapper app-shell layout-fixed sidebar-expand-lg bg-body-tertiary"
     >
-        <Navbar />
+        <Navbar @quick-action="quickAction" />
         <Sidebar />
         <main class="app-main main-content pt-2 px-0">
             <div class="app-content">
@@ -39,7 +39,7 @@
                         </button>
                     </div>
                     <div class="shortcut-modal-body">
-                        <p class="text-muted small mb-4">
+                        <p class="text-muted small">
                             Press the shortcut key on your keyboard or click an
                             option below to open the form.
                         </p>
@@ -441,7 +441,10 @@ const handleEnterAsTab = async (event) => {
         }
     }
 };
-
+// toggle shortcut model
+const quickAction = () => {
+     isShortcutModalOpen.value = !isShortcutModalOpen.value;
+};
 const handleKeyDown = (event) => {
     if (isKeyboardConfirmOpen.value) return;
 
@@ -669,7 +672,7 @@ onUnmounted(() => {
 }
 
 .shortcut-modal-body {
-    padding: 24px;
+    padding: 2px 24px;
 }
 
 .shortcut-list {

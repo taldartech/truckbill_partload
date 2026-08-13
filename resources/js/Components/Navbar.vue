@@ -27,6 +27,15 @@
             </ul>
 
             <ul class="navbar-nav app-header-end ms-auto align-items-center">
+                <li>
+                    <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-2 me-2"
+                          @click="$emit('quick-action')">
+                        <span>⚡ Quick Actions</span>
+                        <span class="badge text-bg-secondary d-inline-flex align-items-center justify-content-center">
+                            F1
+                        </span>
+                    </button>
+                </li>
                 <li v-if="$page.props.auth?.is_super_admin" class="nav-item me-2">
                     <Link
                         v-if="$page.props.auth?.is_acting_as_admin"
