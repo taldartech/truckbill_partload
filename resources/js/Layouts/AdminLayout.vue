@@ -1,14 +1,15 @@
 <template>
-    <div class="app-wrapper app-shell layout-fixed sidebar-expand-lg bg-body-tertiary">
+    <div
+        class="app-wrapper app-shell layout-fixed sidebar-expand-lg bg-body-tertiary"
+    >
         <Navbar />
         <Sidebar />
         <main class="app-main main-content pt-2 px-0">
             <div class="app-content">
                 <div class="container-fluid px-2">
-                    <div v-if="$page.props.flash?.success" class="alert alert-success">{{ $page.props.flash.success }}</div>
-                    <div v-if="$page.props.flash?.error" class="alert alert-danger">{{ $page.props.flash.error }}</div>
+
                     <SubscriptionAccessBanner />
-                    <slot />
+                    <slot/>
                 </div>
             </div>
             <Footer />
@@ -16,19 +17,32 @@
 
         <!-- Global Shortcuts Modal (F1) -->
         <Transition name="fade">
-            <div v-if="isShortcutModalOpen" class="shortcut-modal-overlay" @click.self="closeShortcutModal">
+            <div
+                v-if="isShortcutModalOpen"
+                class="shortcut-modal-overlay"
+                @click.self="closeShortcutModal"
+            >
                 <div class="shortcut-modal-card">
                     <div class="shortcut-modal-header">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fas fa-keyboard text-success fs-4"></i>
-                            <h5 class="m-0 fw-bold">Quick Navigation Shortcuts</h5>
+                            <h5 class="m-0 fw-bold">
+                                Quick Navigation Shortcuts
+                            </h5>
                         </div>
-                        <button class="btn-close-custom" @click="closeShortcutModal" aria-label="Close">
+                        <button
+                            class="btn-close-custom"
+                            @click="closeShortcutModal"
+                            aria-label="Close"
+                        >
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                     <div class="shortcut-modal-body">
-                        <p class="text-muted small mb-4">Press the shortcut key on your keyboard or click an option below to open the form.</p>
+                        <p class="text-muted small mb-4">
+                            Press the shortcut key on your keyboard or click an
+                            option below to open the form.
+                        </p>
                         <div class="shortcut-list">
                             <!-- Bilty -->
                             <button
@@ -37,8 +51,12 @@
                                 @click="navigateTo('/bilties/create')"
                             >
                                 <span class="shortcut-item-info">
-                                    <i class="fas fa-file-invoice text-success icon-frame"></i>
-                                    <span class="shortcut-item-name">Create Bilty (Booking)</span>
+                                    <i
+                                        class="fas fa-file-invoice text-success icon-frame"
+                                    ></i>
+                                    <span class="shortcut-item-name"
+                                        >Create Bilty (Booking)</span
+                                    >
                                 </span>
                                 <span class="shortcut-item-badge">F9</span>
                             </button>
@@ -50,8 +68,12 @@
                                 @click="navigateTo('/challans/create')"
                             >
                                 <span class="shortcut-item-info">
-                                    <i class="fas fa-file-contract text-warning icon-frame"></i>
-                                    <span class="shortcut-item-name">Create Challan</span>
+                                    <i
+                                        class="fas fa-file-contract text-warning icon-frame"
+                                    ></i>
+                                    <span class="shortcut-item-name"
+                                        >Create Challan</span
+                                    >
                                 </span>
                                 <span class="shortcut-item-badge">F7</span>
                             </button>
@@ -63,8 +85,12 @@
                                 @click="navigateTo('/main-challans/create')"
                             >
                                 <span class="shortcut-item-info">
-                                    <i class="fas fa-file-alt text-info icon-frame"></i>
-                                    <span class="shortcut-item-name">Create Main Challan</span>
+                                    <i
+                                        class="fas fa-file-alt text-info icon-frame"
+                                    ></i>
+                                    <span class="shortcut-item-name"
+                                        >Create Main Challan</span
+                                    >
                                 </span>
                                 <span class="shortcut-item-badge">F8</span>
                             </button>
@@ -76,8 +102,12 @@
                                 @click="navigateTo('/inward-registers/create')"
                             >
                                 <span class="shortcut-item-info">
-                                    <i class="fas fa-clipboard-list text-secondary icon-frame"></i>
-                                    <span class="shortcut-item-name">Create Inward Register</span>
+                                    <i
+                                        class="fas fa-clipboard-list text-secondary icon-frame"
+                                    ></i>
+                                    <span class="shortcut-item-name"
+                                        >Create Inward Register</span
+                                    >
                                 </span>
                                 <span class="shortcut-item-badge">F5</span>
                             </button>
@@ -89,8 +119,12 @@
                                 @click="navigateTo('/delivery-receipts/create')"
                             >
                                 <span class="shortcut-item-info">
-                                    <i class="fas fa-receipt text-danger icon-frame"></i>
-                                    <span class="shortcut-item-name">Create Delivery Receipt</span>
+                                    <i
+                                        class="fas fa-receipt text-danger icon-frame"
+                                    ></i>
+                                    <span class="shortcut-item-name"
+                                        >Create Delivery Receipt</span
+                                    >
                                 </span>
                                 <span class="shortcut-item-badge">F6</span>
                             </button>
@@ -102,8 +136,12 @@
                                 @click="navigateTo('/vouchers/create')"
                             >
                                 <span class="shortcut-item-info">
-                                    <i class="fas fa-file-invoice-dollar text-primary icon-frame"></i>
-                                    <span class="shortcut-item-name">Create Voucher</span>
+                                    <i
+                                        class="fas fa-file-invoice-dollar text-primary icon-frame"
+                                    ></i>
+                                    <span class="shortcut-item-name"
+                                        >Create Voucher</span
+                                    >
                                 </span>
                                 <span class="shortcut-item-badge">F10</span>
                             </button>
@@ -112,15 +150,24 @@
                                 @click="closeShortcutModal"
                             >
                                 <span class="shortcut-item-info">
-                                    <i class="fas fa-plus-circle text-success icon-frame"></i>
-                                    <span class="shortcut-item-name">Quick add focused master</span>
+                                    <i
+                                        class="fas fa-plus-circle text-success icon-frame"
+                                    ></i>
+                                    <span class="shortcut-item-name"
+                                        >Quick add focused master</span
+                                    >
                                 </span>
                                 <span class="shortcut-item-badge">F3</span>
                             </button>
                         </div>
                     </div>
                     <div class="shortcut-modal-footer">
-                        <span class="text-muted small"><kbd class="bg-dark text-white px-2 py-1 rounded">ESC</kbd> to close</span>
+                        <span class="text-muted small"
+                            ><kbd class="bg-dark text-white px-2 py-1 rounded"
+                                >ESC</kbd
+                            >
+                            to close</span
+                        >
                     </div>
                 </div>
             </div>
@@ -132,45 +179,92 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { usePage, router } from '@inertiajs/vue3';
-import Navbar from '@/Components/Navbar.vue';
-import Sidebar from '@/Components/Sidebar.vue';
-import Footer from '@/Components/Footer.vue';
-import SubscriptionAccessBanner from '@/Components/Subscription/SubscriptionAccessBanner.vue';
-import KeyboardConfirmModal from '@/Components/KeyboardConfirmModal.vue';
-import MasterQuickAddHost from '@/Components/MasterQuickAdd/MasterQuickAddHost.vue';
-import { askKeyboardConfirm, isKeyboardConfirmOpen } from '@/composables/useKeyboardConfirm';
-import { canCreateMaster, useMasterQuickAdd } from '@/composables/useMasterQuickAdd';
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { usePage, router } from "@inertiajs/vue3";
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
+import Navbar from "@/Components/Navbar.vue";
+import Sidebar from "@/Components/Sidebar.vue";
+import Footer from "@/Components/Footer.vue";
+import SubscriptionAccessBanner from "@/Components/Subscription/SubscriptionAccessBanner.vue";
+import KeyboardConfirmModal from "@/Components/KeyboardConfirmModal.vue";
+import MasterQuickAddHost from "@/Components/MasterQuickAdd/MasterQuickAddHost.vue";
+import {
+    askKeyboardConfirm,
+    isKeyboardConfirmOpen,
+} from "@/composables/useKeyboardConfirm";
+import {
+    canCreateMaster,
+    useMasterQuickAdd,
+} from "@/composables/useMasterQuickAdd";
 import {
     findAddRowButton,
     getRowsWithInputs,
     getVisibleRowInputs,
     resolveAddMoreMessage,
-} from '@/utils/dynamicGrid';
+} from "@/utils/dynamicGrid";
 
 defineProps({
     title: {
         type: String,
-        default: 'Dashboard'
+        default: "Dashboard",
     },
 });
 
 const page = usePage();
 const isShortcutModalOpen = ref(false);
-const { openQuickAdd, activeField, isOpen: isMasterQuickAddOpen } = useMasterQuickAdd();
+const {
+    openQuickAdd,
+    activeField,
+    isOpen: isMasterQuickAddOpen,
+} = useMasterQuickAdd();
 
 watch(isShortcutModalOpen, (shortcutOpen) => {
-    document.body.style.overflow = shortcutOpen ? 'hidden' : '';
+    document.body.style.overflow = shortcutOpen ? "hidden" : "";
 });
 
 const auth = computed(() => page.props.auth || {});
 
-const canCreateBilty = computed(() => !!(auth.value.is_admin || (auth.value.permissions && auth.value.permissions.includes('create bilties'))));
-const canCreateChallan = computed(() => !!(auth.value.is_admin || (auth.value.permissions && auth.value.permissions.includes('create challans'))));
-const canCreateVoucher = computed(() => !!(auth.value.is_admin || (auth.value.permissions && auth.value.permissions.includes('create vouchers'))));
-const canCreateInward = computed(() => !!(auth.value.is_admin || (auth.value.permissions && auth.value.permissions.includes('create inward_registers'))));
-const canCreateDelivery = computed(() => !!(auth.value.is_admin || (auth.value.permissions && auth.value.permissions.includes('create delivery_receipts'))));
+const canCreateBilty = computed(
+    () =>
+        !!(
+            auth.value.is_admin ||
+            (auth.value.permissions &&
+                auth.value.permissions.includes("create bilties"))
+        ),
+);
+const canCreateChallan = computed(
+    () =>
+        !!(
+            auth.value.is_admin ||
+            (auth.value.permissions &&
+                auth.value.permissions.includes("create challans"))
+        ),
+);
+const canCreateVoucher = computed(
+    () =>
+        !!(
+            auth.value.is_admin ||
+            (auth.value.permissions &&
+                auth.value.permissions.includes("create vouchers"))
+        ),
+);
+const canCreateInward = computed(
+    () =>
+        !!(
+            auth.value.is_admin ||
+            (auth.value.permissions &&
+                auth.value.permissions.includes("create inward_registers"))
+        ),
+);
+const canCreateDelivery = computed(
+    () =>
+        !!(
+            auth.value.is_admin ||
+            (auth.value.permissions &&
+                auth.value.permissions.includes("create delivery_receipts"))
+        ),
+);
 
 const tryOpenMasterQuickAdd = () => {
     const field = activeField.value;
@@ -179,7 +273,10 @@ const tryOpenMasterQuickAdd = () => {
         return false;
     }
 
-    if (!canCreateMaster(field.master, auth.value) || field.canCreate === false) {
+    if (
+        !canCreateMaster(field.master, auth.value) ||
+        field.canCreate === false
+    ) {
         return false;
     }
 
@@ -192,7 +289,7 @@ const closeShortcutModal = () => {
 
 const navigateTo = (url) => {
     closeShortcutModal();
-    const currentPath = page.url.split('?')[0];
+    const currentPath = page.url.split("?")[0];
     if (currentPath !== url) {
         router.visit(url);
     }
@@ -221,7 +318,7 @@ const focusFirstInputInLastRow = (container) => {
 };
 
 const handleEnterAsTab = async (event) => {
-    if (event.key !== 'Enter' || isKeyboardConfirmOpen.value) return;
+    if (event.key !== "Enter" || isKeyboardConfirmOpen.value) return;
 
     const activeEl = document.activeElement;
     if (!activeEl) return;
@@ -229,30 +326,40 @@ const handleEnterAsTab = async (event) => {
     // Leave Enter handling to SearchableSelect when its dropdown search/list is focused
     // Leave Enter / typing to SearchableSelect while its list is open
     if (
-        activeEl.closest?.('.searchable-select__dropdown, .ss__panel, .ss__list')
-        || (activeEl.classList?.contains('searchable-select__trigger') && activeEl.getAttribute('aria-expanded') === 'true')
-        || (activeEl.classList?.contains('ss__trigger') && activeEl.getAttribute('aria-expanded') === 'true')
+        activeEl.closest?.(
+            ".searchable-select__dropdown, .ss__panel, .ss__list",
+        ) ||
+        (activeEl.classList?.contains("searchable-select__trigger") &&
+            activeEl.getAttribute("aria-expanded") === "true") ||
+        (activeEl.classList?.contains("ss__trigger") &&
+            activeEl.getAttribute("aria-expanded") === "true")
     ) {
         return;
     }
 
     const tagName = activeEl.tagName.toLowerCase();
-    const type = activeEl.type ? activeEl.type.toLowerCase() : '';
+    const type = activeEl.type ? activeEl.type.toLowerCase() : "";
 
     // Ignore textareas, buttons, anchor tags, and standard submit/button inputs
-    if (tagName === 'textarea') return;
-    if (tagName === 'button') return;
-    if (tagName === 'a') return;
-    if (type === 'submit' || type === 'button' || type === 'reset' || type === 'image') return;
+    if (tagName === "textarea") return;
+    if (tagName === "button") return;
+    if (tagName === "a") return;
+    if (
+        type === "submit" ||
+        type === "button" ||
+        type === "reset" ||
+        type === "image"
+    )
+        return;
 
     // Prevent default form submission
     event.preventDefault();
     event.stopPropagation();
 
     // Prompt to add first row when entering an empty e-way / addon section
-    const gridTrigger = activeEl.getAttribute('data-dynamic-grid-trigger');
+    const gridTrigger = activeEl.getAttribute("data-dynamic-grid-trigger");
     if (gridTrigger) {
-        const form = activeEl.closest('form') || document;
+        const form = activeEl.closest("form") || document;
         const grid = form.querySelector(`[data-dynamic-grid="${gridTrigger}"]`);
         if (grid && getRowsWithInputs(grid).length === 0) {
             const addBtn = findAddRowButton(grid);
@@ -264,16 +371,20 @@ const handleEnterAsTab = async (event) => {
     }
 
     // Check if we are inside a table row or dynamic-grid row
-    const tr = activeEl.closest('tr') || activeEl.closest('.dynamic-row');
-    const table = tr ? (tr.closest('table') || tr.closest('.dynamic-grid')) : null;
+    const tr = activeEl.closest("tr") || activeEl.closest(".dynamic-row");
+    const table = tr
+        ? tr.closest("table") || tr.closest(".dynamic-grid")
+        : null;
 
     if (tr && table) {
         const rowInputs = getVisibleRowInputs(tr);
-        const isLastInputInRow = rowInputs.indexOf(activeEl) === rowInputs.length - 1;
+        const isLastInputInRow =
+            rowInputs.indexOf(activeEl) === rowInputs.length - 1;
 
         if (isLastInputInRow) {
             const allRowsWithInputs = getRowsWithInputs(table);
-            const isLastRow = allRowsWithInputs.indexOf(tr) === allRowsWithInputs.length - 1;
+            const isLastRow =
+                allRowsWithInputs.indexOf(tr) === allRowsWithInputs.length - 1;
 
             if (isLastRow) {
                 const addRowBtn = findAddRowButton(table, tr);
@@ -286,21 +397,28 @@ const handleEnterAsTab = async (event) => {
     }
 
     // Default Enter-as-Tab focus progression if not intercepted above
-    const container = activeEl.closest('form') || document.body;
+    const container = activeEl.closest("form") || document.body;
     const focusableElements = Array.from(
         container.querySelectorAll(
             [
                 'input:not([type="hidden"]):not([disabled]):not([type="button"]):not([type="submit"]):not([type="reset"])',
-                'select:not([disabled])',
-                'textarea:not([disabled])',
-                '.searchable-select__trigger:not([disabled]), .ss__trigger:not([disabled])',
-            ].join(', ')
-        )
+                "select:not([disabled])",
+                "textarea:not([disabled])",
+                ".searchable-select__trigger:not([disabled]), .ss__trigger:not([disabled])",
+            ].join(", "),
+        ),
     ).filter((el) => {
-        if (el.tabIndex < 0 || el.getAttribute('tabindex') === '-1') return false;
-        if (el.closest?.('.searchable-select__dropdown, .ss__panel, .ss__list')) return false;
+        if (el.tabIndex < 0 || el.getAttribute("tabindex") === "-1")
+            return false;
+        if (el.closest?.(".searchable-select__dropdown, .ss__panel, .ss__list"))
+            return false;
         const style = window.getComputedStyle(el);
-        return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0;
+        return (
+            style.display !== "none" &&
+            style.visibility !== "hidden" &&
+            el.offsetWidth > 0 &&
+            el.offsetHeight > 0
+        );
     });
 
     const index = focusableElements.indexOf(activeEl);
@@ -311,12 +429,14 @@ const handleEnterAsTab = async (event) => {
 
     // Last field in the form — submit instead of doing nothing
     if (index === focusableElements.length - 1) {
-        const form = activeEl.closest('form');
+        const form = activeEl.closest("form");
         if (form) {
-            if (typeof form.requestSubmit === 'function') {
+            if (typeof form.requestSubmit === "function") {
                 form.requestSubmit();
             } else {
-                form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                form.dispatchEvent(
+                    new Event("submit", { bubbles: true, cancelable: true }),
+                );
             }
         }
     }
@@ -326,7 +446,7 @@ const handleKeyDown = (event) => {
     if (isKeyboardConfirmOpen.value) return;
 
     // ESC to close modal
-    if (event.key === 'Escape') {
+    if (event.key === "Escape") {
         if (isShortcutModalOpen.value) {
             event.preventDefault();
             closeShortcutModal();
@@ -335,14 +455,14 @@ const handleKeyDown = (event) => {
     }
 
     // F1 -> toggle shortcut modal
-    if (event.key === 'F1') {
+    if (event.key === "F1") {
         event.preventDefault();
         isShortcutModalOpen.value = !isShortcutModalOpen.value;
         return;
     }
 
     // F3 -> quick add for focused master select (disabled while quick-add modal is open)
-    if (event.key === 'F3') {
+    if (event.key === "F3") {
         event.preventDefault();
         if (!isMasterQuickAddOpen.value) {
             tryOpenMasterQuickAdd();
@@ -351,72 +471,100 @@ const handleKeyDown = (event) => {
     }
 
     // F5 -> inward registers create
-    if (event.key === 'F5') {
+    if (event.key === "F5") {
         event.preventDefault();
         if (canCreateInward.value) {
-            navigateTo('/inward-registers/create');
+            navigateTo("/inward-registers/create");
         }
         return;
     }
 
     // F6 -> delivery receipts create
-    if (event.key === 'F6') {
+    if (event.key === "F6") {
         event.preventDefault();
         if (canCreateDelivery.value) {
-            navigateTo('/delivery-receipts/create');
+            navigateTo("/delivery-receipts/create");
         }
         return;
     }
 
     // F7 -> challan create
-    if (event.key === 'F7') {
+    if (event.key === "F7") {
         event.preventDefault();
         if (canCreateChallan.value) {
-            navigateTo('/challans/create');
+            navigateTo("/challans/create");
         }
         return;
     }
 
     // F8 -> main challan create
-    if (event.key === 'F8') {
+    if (event.key === "F8") {
         event.preventDefault();
         if (canCreateChallan.value) {
-            navigateTo('/main-challans/create');
+            navigateTo("/main-challans/create");
         }
         return;
     }
 
     // F9 -> bilty create
-    if (event.key === 'F9') {
+    if (event.key === "F9") {
         event.preventDefault();
         if (canCreateBilty.value) {
-            navigateTo('/bilties/create');
+            navigateTo("/bilties/create");
         }
         return;
     }
 
     // F10 -> voucher create
-    if (event.key === 'F10') {
+    if (event.key === "F10") {
         event.preventDefault();
         if (canCreateVoucher.value) {
-            navigateTo('/vouchers/create');
+            navigateTo("/vouchers/create");
         }
         return;
     }
 };
+watch(
+    () => page.props.flash?.success,
+    (message) => {
+        if (message) {
+            toast.success(message, {
+    autoClose: 3000
+})
+        }
+    },
+    { immediate: true }
+)
 
+watch(
+    () => page.props.flash?.error,
+    (message) => {
+        if (message) {
+            toast.error(message,{
+    autoClose: 3000
+})
+        }
+    },
+    { immediate: true }
+)
 onMounted(() => {
-    window.removeEventListener('keydown', handleKeyDown);
-    window.addEventListener('keydown', handleKeyDown);
+    window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
 
-    window.removeEventListener('keydown', handleEnterAsTab);
-    window.addEventListener('keydown', handleEnterAsTab);
+    window.removeEventListener("keydown", handleEnterAsTab);
+    window.addEventListener("keydown", handleEnterAsTab);
 });
 
 onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeyDown);
-    window.removeEventListener('keydown', handleEnterAsTab);
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keydown", handleEnterAsTab);
+
+
+
+
 });
+
+
 </script>
 
 <style>
@@ -467,7 +615,10 @@ onUnmounted(() => {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
     border-radius: 20px;
     width: 90%;
     max-width: 500px;
@@ -500,7 +651,9 @@ onUnmounted(() => {
     color: #64748b;
     font-size: 1.1rem;
     cursor: pointer;
-    transition: color 0.2s, transform 0.2s;
+    transition:
+        color 0.2s,
+        transform 0.2s;
     width: 32px;
     height: 32px;
     border-radius: 50%;

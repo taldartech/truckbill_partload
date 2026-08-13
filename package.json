@@ -17,7 +17,8 @@
     "dependencies": {
         "@inertiajs/vue3": "^3.1.1",
         "@vitejs/plugin-vue": "^6.0.6",
-        "vue": "^3.5.34"
+        "vue": "^3.5.34",
+        "vue3-toastify": "^0.2.9"
     },
     "allowScripts": {
         "esbuild@0.27.7": true,
