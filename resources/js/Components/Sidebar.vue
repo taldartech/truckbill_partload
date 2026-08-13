@@ -99,21 +99,21 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view goods')">
                         <Link href="/goods" class="nav-link" :class="{ active: $page.url.startsWith('/goods') }">
                             <i class="nav-icon fas fa-box"></i>
                             <p>Goods</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view groups')">
                         <Link href="/groups" class="nav-link" :class="{ active: $page.url.startsWith('/groups') }">
                             <i class="nav-icon fas fa-users"></i>
                             <p>Groups</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view package_types')">
                         <Link href="/package-types" class="nav-link" :class="{ active: $page.url.startsWith('/package-types') }">
                             <i class="nav-icon fas fa-boxes"></i>
                             <p>Package Types</p>
@@ -127,14 +127,14 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view truck_types')">
                         <Link href="/truck-types" class="nav-link" :class="{ active: $page.url.startsWith('/truck-types') }">
                             <i class="nav-icon fas fa-truck-moving"></i>
                             <p>Truck Types</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view agents')">
                         <Link href="/agents" class="nav-link" :class="{ active: $page.url.startsWith('/agents') }">
                             <i class="nav-icon fas fa-user-secret"></i>
                             <p>Agents</p>
@@ -264,7 +264,7 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item" v-if="can('view truck_types')">
+                    <li class="nav-item" >
                         <Link href="/truck-types" class="nav-link" :class="{ active: $page.url.startsWith('/truck-types') }">
                             <i class="nav-icon fas fa-truck-moving"></i>
                             <p>Truck Types</p>
