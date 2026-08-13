@@ -43,8 +43,8 @@
                                     <th>Location</th>
                                     <th>Registration Date</th>
                                     <th>Truck Owner</th>
-                                    <th>Driver</th>
-                                    <th class="text-end">Actions</th>
+                                    <!-- <th>Driver</th> -->
+                                    <th class="text-start">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -71,8 +71,8 @@
                                     </td>
                                     <td>{{ truck.rc_expiry_date || '—' }}</td>
                                     <td>{{ truck.owner_name || '—' }}</td>
-                                    <td>{{ truck.driver?.name || '—' }}</td>
-                                    <td class="text-end">
+                                    <!-- <td>{{ truck.driver?.name || '—' }}</td> -->
+                                    <td class="text-start">
                                         <button
                                             v-if="can('edit trucks')"
                                             type="button"
@@ -85,7 +85,7 @@
                                         <Link
                                             v-if="can('edit trucks')"
                                             :href="`/trucks/${truck.id}/edit`"
-                                            class="btn btn-edit btn-sm me-2"
+                                            class="btn btn-edit btn-sm me-2 my-1"
                                         >
                                             <i class="fas fa-edit"></i>
                                         </Link>
