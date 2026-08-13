@@ -46,7 +46,7 @@
                                     <th>Name</th>
                                     <th>Mobile</th>
                                     <th>City</th>
-                                    <th class="text-end" v-if="can('delete agents')">Actions</th>
+                                    <th class="text-end" v-if="can('delete agents') || can('edit agents')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>

@@ -44,7 +44,7 @@
                                     <th>Location</th>
                                     <th>Registration Date</th>
                                     <th>Truck Owner</th>
-                                    <th class="text-start" v-if="can('trucks.delete')">Actions</th>
+                                    <th class="text-start" v-if="can('trucks.delete') || can('trucks.edit')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>

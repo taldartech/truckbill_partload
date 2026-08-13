@@ -39,18 +39,18 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th class="text-end" v-if="can('groups.delete')">Actions</th>
+                                    <th class="text-end" v-if="can('groups.delete') || can('groups.edit')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="item in items.data" :key="item.id">
                                     <td>{{ item.id }}</td>
                                     <td>{{ item.name }}</td>
-                                    <td class="text-end" v-if="can('groups.delete')">
-                                        <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)">
+                                    <td class="text-end" v-if="can('groups.delete')|| can('groups.edit')">
+                                        <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)"  v-if="can('groups.edit')">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item.id)">
+                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item.id)"  v-if="can('groups.delete')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
