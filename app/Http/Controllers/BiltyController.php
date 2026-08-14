@@ -102,7 +102,8 @@ class BiltyController extends Controller implements HasMiddleware
             'next_bilty_number' => $nextNumber,
             'default_gst_percent' => $this->defaultGstPercent($branch),
             'gst_exemption_limit' => $this->gstExemptionLimit($branch),
-        ]);
+            'branch_station_id'=>$branch?->station_id,
+            ]);
     }
 
     public function store(BiltyRequest $request, AccountingPoster $poster)

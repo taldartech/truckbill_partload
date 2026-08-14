@@ -593,6 +593,7 @@ const biltyNumberInput = ref(null);
 const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
 const props = defineProps({
+    branch_station_id:Number,
     parties: Array,
     vendors: Array,
     stations: Array,
@@ -621,7 +622,7 @@ watch(() => props.agents, (v) => { agentOptions.value = [...(v || [])]; });
 const form = useForm({
     consignor_id: '',
     consignee_id: '',
-    from_station_id: '',
+    from_station_id: props.branch_station_id?? '',
     to_station_id: '',
     bilty_number: props.next_bilty_number || '',
     date: new Date().toISOString().substr(0, 10),
