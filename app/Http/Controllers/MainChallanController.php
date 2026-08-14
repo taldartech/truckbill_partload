@@ -91,6 +91,22 @@ class MainChallanController extends Controller implements HasMiddleware
         ]);
     }
 
+    public function show(MainChallan $main_challan)
+    {
+        $main_challan->load([
+            'fromStation',
+            'toStation',
+            'truck',
+            'creator',
+            'details.challan.fromStation',
+            'details.challan.toStation',
+        ]);
+
+        return Inertia::render('MainChallans/Show', [
+            'main_challan' => $main_challan,
+        ]);
+    }
+
     public function create()
     {
         $branch = $this->activeBranch();

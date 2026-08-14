@@ -52,7 +52,11 @@
                             <tbody>
                                 <tr v-for="agent in agents.data" :key="agent.id">
                                     <td>{{ agent.id }}</td>
-                                    <td>{{ agent.name }}</td>
+                                    <td>
+                                        <Link :href="`/agents/${agent.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ agent.name }}
+                                        </Link>
+                                    </td>
                                     <td>{{ agent.mobile || 'N/A' }}</td>
                                     <td>{{ agent.city?.name || agent.city || 'N/A' }}</td>
                                     <td class="text-end" v-if="can('delete agents')">
@@ -167,7 +171,7 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
-import { router, useForm, usePage } from '@inertiajs/vue3';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
@@ -283,4 +287,21 @@ const deleteItem = (id) => {
         router.delete(`/agents/${id}`);
     }
 };
+
+onMounted(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = Number(params.get('edit') || 0);
+
+    if (!editId) {
+        return;
+    }
+
+    const row = props.agents.data.find((agent) => agent.id === editId);
+
+    if (row) {
+        editItem(row);
+    }
+
+    window.history.replaceState({}, '', window.location.pathname);
+});
 </script>

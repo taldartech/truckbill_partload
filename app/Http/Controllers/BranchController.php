@@ -124,6 +124,17 @@ class BranchController extends Controller implements HasMiddleware
         return redirect()->route('branches.index')->with('success', 'Branch created successfully.');
     }
 
+    public function show(Branch $branch)
+    {
+        $this->authorizeBranch($branch);
+
+        $branch->load(['station', 'city', 'state', 'company', 'settings']);
+
+        return Inertia::render('Branches/Show', [
+            'branch' => $branch,
+        ]);
+    }
+
     public function edit(Branch $branch)
     {
         $this->authorizeBranch($branch);

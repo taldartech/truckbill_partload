@@ -43,7 +43,6 @@ class GoodController extends Controller implements HasMiddleware
         ]);
     }
 
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -53,6 +52,13 @@ class GoodController extends Controller implements HasMiddleware
         Good::create($validated);
 
         return redirect()->back()->with('success', 'Goods created successfully.');
+    }
+
+    public function show(Good $good)
+    {
+        return Inertia::render('Goods/Show', [
+            'good' => $good,
+        ]);
     }
 
     public function quickStore(Request $request): JsonResponse
@@ -86,6 +92,6 @@ class GoodController extends Controller implements HasMiddleware
     {
         $good->delete();
 
-        return redirect()->back()->with('success', 'Goods deleted successfully.');
+        return redirect()->route('goods.index')->with('success', 'Goods deleted successfully.');
     }
 }

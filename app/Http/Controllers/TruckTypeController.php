@@ -43,7 +43,6 @@ class TruckTypeController extends Controller implements HasMiddleware
         ]);
     }
 
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -53,6 +52,13 @@ class TruckTypeController extends Controller implements HasMiddleware
         TruckType::create($validated);
 
         return redirect()->back()->with('success', 'Truck type created successfully.');
+    }
+
+    public function show(TruckType $truckType)
+    {
+        return Inertia::render('TruckTypes/Show', [
+            'truckType' => $truckType,
+        ]);
     }
 
     public function quickStore(Request $request): JsonResponse
@@ -86,6 +92,6 @@ class TruckTypeController extends Controller implements HasMiddleware
     {
         $truckType->delete();
 
-        return redirect()->back()->with('success', 'Truck type deleted successfully.');
+        return redirect()->route('truck-types.index')->with('success', 'Truck type deleted successfully.');
     }
 }

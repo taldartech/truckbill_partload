@@ -52,7 +52,11 @@
                             <tbody>
                                 <tr v-for="vendor in vendors.data" :key="vendor.id">
                                     <td>{{ vendor.id }}</td>
-                                    <td>{{ vendor.name }}</td>
+                                    <td>
+                                        <Link :href="`/vendors/${vendor.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ vendor.name }}
+                                        </Link>
+                                    </td>
                                     <td>{{ vendor.mobile || 'N/A' }}</td>
                                     <td>{{ vendor.gst_number || 'N/A' }}</td>
                                     <td class="text-end" v-if="can('delete vendors') || can('edit vendors')">
@@ -167,7 +171,7 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
-import { router, useForm, usePage } from '@inertiajs/vue3';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
@@ -283,4 +287,21 @@ const deleteItem = (id) => {
         router.delete(`/vendors/${id}`);
     }
 };
+
+onMounted(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = Number(params.get('edit') || 0);
+
+    if (!editId) {
+        return;
+    }
+
+    const row = props.vendors.data.find((vendor) => vendor.id === editId);
+
+    if (row) {
+        editItem(row);
+    }
+
+    window.history.replaceState({}, '', window.location.pathname);
+});
 </script>

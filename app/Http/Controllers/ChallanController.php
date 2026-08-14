@@ -98,6 +98,29 @@ class ChallanController extends Controller implements HasMiddleware
         ]);
     }
 
+    public function show(Challan $challan)
+    {
+        $challan->load([
+            'fromStation',
+            'toStation',
+            'truck',
+            'payByAgent',
+            'deliveryAtAgent',
+            'creator',
+            'details.bilty.consignee',
+            'details.bilty.toStation',
+            'details.bilty.biltyDetails.good',
+            'details.inwardRegisterDetail.good',
+            'details.inwardRegisterDetail.consignee',
+            'details.inwardRegisterDetail.toStation',
+            'details.toStation',
+        ]);
+
+        return Inertia::render('Challans/Show', [
+            'challan' => $challan,
+        ]);
+    }
+
     public function create()
     {
         $branch = $this->activeBranch();

@@ -73,7 +73,6 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Reg No.</th>
                                     <th>Date</th>
                                     <th>From → To</th>
@@ -87,8 +86,11 @@
                             </thead>
                             <tbody>
                                 <tr v-for="register in registers.data" :key="register.id">
-                                    <td>{{ register.id }}</td>
-                                    <td>{{ register.inward_register_no || '—' }}</td>
+                                    <td>
+                                        <Link :href="`/inward-registers/${register.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ register.inward_register_no || '—' }}
+                                        </Link>
+                                    </td>
                                     <td>{{ register.date }}</td>
                                     <td>
                                         <span class="text-bold">{{ register.from_station?.name }}</span>
@@ -110,7 +112,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="registers.data.length === 0">
-                                    <td colspan="10" class="text-center text-muted py-4">
+                                    <td colspan="9" class="text-center text-muted py-4">
                                         No inward registers found for selected filters.
                                     </td>
                                 </tr>

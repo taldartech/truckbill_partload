@@ -54,6 +54,15 @@ class VendorController extends Controller implements HasMiddleware
         ]);
     }
 
+    public function show(Vendor $vendor)
+    {
+        $vendor->load(['state', 'city', 'company']);
+
+        return Inertia::render('Vendors/Show', [
+            'vendor' => $vendor,
+        ]);
+    }
+
     public function create()
     {
         return redirect()->route('vendors.index');
@@ -116,7 +125,7 @@ class VendorController extends Controller implements HasMiddleware
     {
         $vendor->delete();
 
-        return redirect()->back()->with('success', 'Vendor deleted successfully.');
+        return redirect()->route('vendors.index')->with('success', 'Vendor deleted successfully.');
     }
 
     /**

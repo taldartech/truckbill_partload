@@ -77,7 +77,6 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Invoice No.</th>
                                     <th>Date</th>
                                     <th>Party Name</th>
@@ -88,8 +87,11 @@
                             </thead>
                             <tbody>
                                 <tr v-for="invoice in invoices.data" :key="invoice.id">
-                                    <td>{{ invoice.id }}</td>
-                                    <td>{{ invoice.invoice_no }}</td>
+                                    <td>
+                                        <Link :href="`/invoices/${invoice.id}`" class="fw-semibold text-decoration-none">
+                                            {{ invoice.invoice_no }}
+                                        </Link>
+                                    </td>
                                     <td>{{ invoice.date }}</td>
                                     <td>{{ invoice.party?.name }}</td>
                                     <td class="fw-bold">₹ {{ formatAmount(invoice.net_amount) }}</td>
@@ -127,7 +129,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="invoices.data.length === 0">
-                                    <td colspan="7" class="text-center text-muted py-4">
+                                    <td colspan="6" class="text-center text-muted py-4">
                                         No invoices found for selected filters.
                                     </td>
                                 </tr>

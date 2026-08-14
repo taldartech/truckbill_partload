@@ -28,6 +28,11 @@ class Station extends Model
         return $this->belongsTo(City::class);
     }
 
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
     public function companyDefaultAgents(): HasMany
     {
         return $this->hasMany(CompanyStationAgent::class);

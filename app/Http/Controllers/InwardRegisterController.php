@@ -118,6 +118,25 @@ class InwardRegisterController extends Controller implements HasMiddleware
         return redirect()->route('inward-registers.index')->with('success', 'Inward Register created successfully.');
     }
 
+    public function show(InwardRegister $inwardRegister)
+    {
+        $inwardRegister->load([
+            'fromStation',
+            'toStation',
+            'truck',
+            'details.fromStation',
+            'details.toStation',
+            'details.consignor',
+            'details.consignee',
+            'details.good',
+            'details.agent',
+        ]);
+
+        return Inertia::render('InwardRegisters/Show', [
+            'register' => $inwardRegister,
+        ]);
+    }
+
     public function edit(InwardRegister $inwardRegister)
     {
         $inwardRegister->load([

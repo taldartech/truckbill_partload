@@ -13,7 +13,6 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
                                     <th>Name</th>
                                     <th>Station</th>
                                     <th>City</th>
@@ -23,8 +22,11 @@
                             </thead>
                             <tbody>
                                 <tr v-for="branch in branches.data" :key="branch.id">
-                                    <td>{{ branch.id }}</td>
-                                    <td>{{ branch.name || 'N/A' }}</td>
+                                    <td>
+                                        <Link :href="`/branches/${branch.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ branch.name || 'N/A' }}
+                                        </Link>
+                                    </td>
                                     <td>{{ branch.station?.name || 'N/A' }}</td>
                                     <td>{{ branch.city?.name || 'N/A' }}</td>
                                     <td>

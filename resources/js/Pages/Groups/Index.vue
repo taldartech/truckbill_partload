@@ -39,15 +39,19 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th class="text-end" v-if="can('delete groups') || can('groups.edit')">Actions</th>
+                                    <th class="text-end" v-if="can('delete groups') || can('edit groups')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="item in items.data" :key="item.id">
                                     <td>{{ item.id }}</td>
-                                    <td>{{ item.name }}</td>
-                                    <td class="text-end" v-if="can('delete groups')|| can('edit groups')|| can('groups.edit')">
-                                        <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)"  v-if="can('edit groups')">
+                                    <td>
+                                        <Link :href="`/groups/${item.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ item.name }}
+                                        </Link>
+                                    </td>
+                                    <td class="text-end" v-if="can('delete groups') || can('edit groups')">
+                                        <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)" v-if="can('edit groups')">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item.id)"  v-if="can('delete groups')">
@@ -96,7 +100,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useForm, router ,usePage} from '@inertiajs/vue3';
+import { Link, useForm, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
@@ -126,6 +130,13 @@ let modal = null;
 
 onMounted(() => {
     modal = new bootstrap.Modal(document.getElementById('modal_groups'));
+
+    const editId = new URLSearchParams(window.location.search).get('edit');
+    const editTarget = editId ? props.items.data.find((item) => String(item.id) === editId) : null;
+
+    if (editTarget) {
+        editItem(editTarget);
+    }
 });
 
 const openModal = () => {

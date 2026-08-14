@@ -11,11 +11,11 @@ use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller implements HasMiddleware
 {
@@ -36,25 +36,29 @@ class UserController extends Controller implements HasMiddleware
     public function index()
     {
         $context = app(TenantContext::class);
-        $query = User::with(['roles', 'company', 'branch']);
-
-        if ($context->isMasterAdmin()) {
-            $query->whereHas('roles', fn ($roleQuery) => $roleQuery->where('name', UserRole::SuperAdmin->value));
-        } elseif ($context->isSuperAdmin()) {
-            $query->whereIn('company_id', $context->ownedCompanyIds())
-                ->whereDoesntHave('roles', fn ($roleQuery) => $roleQuery->where('name', UserRole::SuperAdmin->value));
-        } elseif (auth()->user()?->company_id) {
-            $query->where('company_id', auth()->user()->company_id);
-        }
 
         return Inertia::render('Users/Index', [
-            'users' => $query->paginate(10)->through(fn (User $user) => array_merge($user->toArray(), [
-                'can_manage' => $this->canManageUser($user),
-            ])),
+            'users' => $this->visibleUsersQuery()->with(['roles', 'company', 'branch'])
+                ->paginate(10)->through(fn (User $user) => array_merge($user->toArray(), [
+                    'can_manage' => $this->canManageUser($user),
+                ])),
             'roles' => Role::whereIn('name', $context->assignableRolesFor(auth()->user()))->get(),
             'companies' => $this->availableCompanies(),
             'branches' => $this->availableBranches(),
             'assignable_roles' => $context->assignableRolesFor(auth()->user()),
+        ]);
+    }
+
+    public function show(User $user)
+    {
+        abort_unless($this->visibleUsersQuery()->whereKey($user->id)->exists(), 403);
+
+        $user->load(['roles', 'company', 'branch']);
+
+        return Inertia::render('Users/Show', [
+            'user' => array_merge($user->toArray(), [
+                'can_manage' => $this->canManageUser($user),
+            ]),
         ]);
     }
 
@@ -136,6 +140,23 @@ class UserController extends Controller implements HasMiddleware
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'User deleted successfully.');
+    }
+
+    private function visibleUsersQuery()
+    {
+        $context = app(TenantContext::class);
+        $query = User::query();
+
+        if ($context->isMasterAdmin()) {
+            $query->whereHas('roles', fn ($roleQuery) => $roleQuery->where('name', UserRole::SuperAdmin->value));
+        } elseif ($context->isSuperAdmin()) {
+            $query->whereIn('company_id', $context->ownedCompanyIds())
+                ->whereDoesntHave('roles', fn ($roleQuery) => $roleQuery->where('name', UserRole::SuperAdmin->value));
+        } elseif (auth()->user()?->company_id) {
+            $query->where('company_id', auth()->user()->company_id);
+        }
+
+        return $query;
     }
 
     private function availableCompanies()

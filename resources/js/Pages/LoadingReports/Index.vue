@@ -73,7 +73,6 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Date</th>
                                     <th>From Station</th>
                                     <th>To Station</th>
@@ -86,8 +85,11 @@
                             </thead>
                             <tbody>
                                 <tr v-for="report in reports.data" :key="report.id">
-                                    <td>{{ report.id }}</td>
-                                    <td>{{ report.date }}</td>
+                                    <td>
+                                        <Link :href="`/loading-reports/${report.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ report.date }}
+                                        </Link>
+                                    </td>
                                     <td>{{ report.from_station?.name }}</td>
                                     <td>{{ report.to_station?.name }}</td>
                                     <td>{{ report.truck?.truck_number }}</td>
@@ -112,7 +114,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="reports.data.length === 0">
-                                    <td colspan="9" class="text-center text-muted py-4">
+                                    <td colspan="8" class="text-center text-muted py-4">
                                         No loading reports found for selected filters.
                                     </td>
                                 </tr>

@@ -102,6 +102,17 @@ class CompanyController extends Controller implements HasMiddleware
         return redirect()->route('companies.index')->with('success', 'Company created successfully.');
     }
 
+    public function show(Company $company)
+    {
+        $this->authorizeCompany($company);
+
+        $company->load(['country', 'state', 'city']);
+
+        return Inertia::render('Companies/Show', [
+            'company' => $company,
+        ]);
+    }
+
     public function edit(Company $company)
     {
         $this->authorizeCompany($company);

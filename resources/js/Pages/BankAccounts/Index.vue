@@ -52,7 +52,11 @@
                             </thead>
                             <tbody>
                                 <tr v-for="account in bankAccounts.data" :key="account.id">
-                                    <td>{{ account.name }}</td>
+                                    <td>
+                                        <Link :href="`/bank-accounts/${account.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ account.name }}
+                                        </Link>
+                                    </td>
                                     <td>{{ account.bank_name || '—' }}</td>
                                     <td>{{ account.account_number || '—' }}</td>
                                     <td>{{ account.ifsc_code || '—' }}</td>
@@ -137,7 +141,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { router, useForm, usePage } from '@inertiajs/vue3';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
@@ -167,6 +171,14 @@ const form = useForm({
 
 onMounted(() => {
     modal = new bootstrap.Modal(document.getElementById('modal_bank_accounts'));
+
+    const editId = new URLSearchParams(window.location.search).get('edit');
+    if (editId) {
+        const account = props.bankAccounts.data.find((item) => String(item.id) === String(editId));
+        if (account) {
+            editItem(account);
+        }
+    }
 });
 
 const openModal = () => {

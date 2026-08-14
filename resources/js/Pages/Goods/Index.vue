@@ -45,8 +45,12 @@
                             <tbody>
                                 <tr v-for="item in items.data" :key="item.id">
                                     <td>{{ item.id }}</td>
-                                    <td>{{ item.name }}</td>
-                                    <td class="text-end" v-if="can('edit goods') || can('delete goods') || can('goods.delete')">
+                                    <td>
+                                        <Link :href="`/goods/${item.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ item.name }}
+                                        </Link>
+                                    </td>
+                                    <td class="text-end" v-if="can('edit goods') || can('delete goods')">
                                         <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)" v-if="can('edit goods')">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -96,7 +100,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useForm, router ,usePage} from '@inertiajs/vue3';
+import { Link, useForm, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
@@ -127,6 +131,13 @@ let modal = null;
 
 onMounted(() => {
     modal = new bootstrap.Modal(document.getElementById('modal_goods'));
+
+    const editId = new URLSearchParams(window.location.search).get('edit');
+    const editTarget = editId ? props.items.data.find((item) => String(item.id) === editId) : null;
+
+    if (editTarget) {
+        editItem(editTarget);
+    }
 });
 
 const openModal = () => {

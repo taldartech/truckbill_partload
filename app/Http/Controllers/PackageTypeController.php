@@ -43,7 +43,6 @@ class PackageTypeController extends Controller implements HasMiddleware
         ]);
     }
 
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -53,6 +52,13 @@ class PackageTypeController extends Controller implements HasMiddleware
         PackageType::create($validated);
 
         return redirect()->back()->with('success', 'Package Types created successfully.');
+    }
+
+    public function show(PackageType $package_type)
+    {
+        return Inertia::render('PackageTypes/Show', [
+            'packageType' => $package_type,
+        ]);
     }
 
     public function quickStore(Request $request): JsonResponse
@@ -86,6 +92,6 @@ class PackageTypeController extends Controller implements HasMiddleware
     {
         $package_type->delete();
 
-        return redirect()->back()->with('success', 'Package Types deleted successfully.');
+        return redirect()->route('package-types.index')->with('success', 'Package Types deleted successfully.');
     }
 }

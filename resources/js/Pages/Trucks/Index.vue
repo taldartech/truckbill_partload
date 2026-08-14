@@ -37,25 +37,19 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Truck Number</th>
                                     <th>Truck Type</th>
                                     <th>Status</th>
                                     <th>Location</th>
                                     <th>Registration Date</th>
                                     <th>Truck Owner</th>
-<<<<<<< HEAD
-                                    <th class="text-start" v-if="can('trucks.delete') || can('trucks.edit')">Actions</th>
-=======
                                     <th class="text-start" v-if="can('delete trucks') || can('edit trucks')">Actions</th>
->>>>>>> 994f544 (hide actions buttons based on permissions)
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="truck in trucks.data" :key="truck.id" >
-                                    <td>{{ truck.id }}</td>
+                                <tr v-for="truck in trucks.data" :key="truck.id">
                                     <td>
-                                        <Link :href="`/trucks/${truck.id}/edit`" class="text-decoration-none fw-bold text-brand-primary">
+                                        <Link :href="`/trucks/${truck.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ truck.truck_number }}
                                         </Link>
                                     </td>

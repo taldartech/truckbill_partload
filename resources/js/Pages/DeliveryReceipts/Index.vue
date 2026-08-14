@@ -62,7 +62,6 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Receipt No.</th>
                                     <th>Date</th>
                                     <th>GR/Bilty No.</th>
@@ -74,8 +73,11 @@
                             </thead>
                             <tbody>
                                 <tr v-for="receipt in receipts.data" :key="receipt.id">
-                                    <td>{{ receipt.id }}</td>
-                                    <td>{{ receipt.delivery_receipt_no || '—' }}</td>
+                                    <td>
+                                        <Link :href="`/delivery-receipts/${receipt.id}`" class="fw-semibold text-decoration-none">
+                                            {{ receipt.delivery_receipt_no || '—' }}
+                                        </Link>
+                                    </td>
                                     <td>{{ receipt.date }}</td>
                                     <td>{{ receipt.gr_no_bilty_no }}</td>
                                     <td>{{ receipt.consignee?.name }}</td>
@@ -99,7 +101,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="receipts.data.length === 0">
-                                    <td colspan="8" class="text-center text-muted py-4">
+                                    <td colspan="7" class="text-center text-muted py-4">
                                         No delivery receipts found for selected filters.
                                     </td>
                                 </tr>

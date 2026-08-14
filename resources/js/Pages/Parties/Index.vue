@@ -53,7 +53,11 @@
                             <tbody>
                                 <tr v-for="party in parties.data" :key="party.id">
                                     <td>{{ party.id }}</td>
-                                    <td>{{ party.name }}</td>
+                                    <td>
+                                        <Link :href="`/parties/${party.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ party.name }}
+                                        </Link>
+                                    </td>
                                     <td>{{ party.gst_number || 'N/A' }}</td>
                                     <td>{{ party.mobile || 'N/A' }}</td>
                                     <td class="text-end"   v-if="can('delete parties') || can('edit parties')">
@@ -188,7 +192,7 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
-import { router, useForm, usePage } from '@inertiajs/vue3';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
@@ -316,4 +320,21 @@ const deleteParty = (id) => {
         router.delete(`/parties/${id}`);
     }
 };
+
+onMounted(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = Number(params.get('edit') || 0);
+
+    if (!editId) {
+        return;
+    }
+
+    const row = props.parties.data.find((party) => party.id === editId);
+
+    if (row) {
+        editItem(row);
+    }
+
+    window.history.replaceState({}, '', window.location.pathname);
+});
 </script>

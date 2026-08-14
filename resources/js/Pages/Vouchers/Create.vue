@@ -18,8 +18,8 @@
                                     <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date" required>
                                 </div>
                                 <div class="bilty-id__field">
-                                    <span class="bilty-id__label">Voucher No.</span>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.voucher_number">
+                                    <span class="bilty-id__label">Voucher No.<span class="bilty-field__req">*</span></span>
+                                    <input type="text" class="form-control form-control-sm" v-model="form.voucher_number" required>
                                 </div>
                             </div>
                         </div>

@@ -65,7 +65,6 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Date</th>
                                     <th>Voucher No.</th>
                                     <th>Type</th>
@@ -77,9 +76,12 @@
                             </thead>
                             <tbody>
                                 <tr v-for="voucher in vouchers.data" :key="voucher.id">
-                                    <td>{{ voucher.id }}</td>
                                     <td>{{ voucher.date }}</td>
-                                    <td>{{ voucher.voucher_number || '—' }}</td>
+                                    <td>
+                                        <Link :href="`/vouchers/${voucher.id}`" class="fw-semibold text-decoration-none">
+                                            {{ voucher.voucher_number || '—' }}
+                                        </Link>
+                                    </td>
                                     <td>
                                         <span
                                             class="badge"

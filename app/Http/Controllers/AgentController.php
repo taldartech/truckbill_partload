@@ -54,6 +54,15 @@ class AgentController extends Controller implements HasMiddleware
         ]);
     }
 
+    public function show(Agent $agent)
+    {
+        $agent->load(['state', 'city', 'company']);
+
+        return Inertia::render('Agents/Show', [
+            'agent' => $agent,
+        ]);
+    }
+
     public function create()
     {
         return redirect()->route('agents.index');
@@ -116,7 +125,7 @@ class AgentController extends Controller implements HasMiddleware
     {
         $agent->delete();
 
-        return redirect()->back()->with('success', 'Agent deleted successfully.');
+        return redirect()->route('agents.index')->with('success', 'Agent deleted successfully.');
     }
 
     /**

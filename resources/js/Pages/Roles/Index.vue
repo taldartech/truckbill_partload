@@ -22,7 +22,11 @@
                             </thead>
                             <tbody>
                                 <tr v-for="role in roles" :key="role.id">
-                                    <td class="fw-bold">{{ role.name }}</td>
+                                    <td class="fw-bold">
+                                        <Link :href="`/roles/${role.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                            {{ role.name }}
+                                        </Link>
+                                    </td>
                                     <td>
                                         <div class="d-flex flex-wrap gap-1">
                                             <span v-for="perm in role.permissions" :key="perm.id" class="badge bg-secondary small">
@@ -96,7 +100,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import {  useForm, router , usePage } from '@inertiajs/vue3';
+import { Link, useForm, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 
@@ -132,6 +136,14 @@ const groupedPermissions = computed(() => {
 
 onMounted(() => {
     modal = new bootstrap.Modal(document.getElementById('roleModal'));
+
+    const editId = new URLSearchParams(window.location.search).get('edit');
+    if (editId) {
+        const role = props.roles.find((item) => String(item.id) === String(editId));
+        if (role) {
+            editRole(role);
+        }
+    }
 });
 
 const openModal = () => {

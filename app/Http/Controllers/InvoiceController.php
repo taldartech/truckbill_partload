@@ -316,7 +316,15 @@ class InvoiceController extends Controller implements HasMiddleware
 
     public function show(Invoice $invoice)
     {
-        //
+        $invoice->load([
+            'party',
+            'details.bilty.fromStation',
+            'details.bilty.toStation',
+        ]);
+
+        return Inertia::render('Invoices/Show', [
+            'invoice' => $invoice,
+        ]);
     }
 
     public function edit(Invoice $invoice)

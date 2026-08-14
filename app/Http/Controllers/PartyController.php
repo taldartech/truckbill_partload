@@ -56,6 +56,15 @@ class PartyController extends Controller implements HasMiddleware
         ]);
     }
 
+    public function show(Party $party)
+    {
+        $party->load(['group', 'state', 'city', 'company']);
+
+        return Inertia::render('Parties/Show', [
+            'party' => $party,
+        ]);
+    }
+
     public function create()
     {
         return redirect()->route('parties.index');
@@ -146,7 +155,7 @@ class PartyController extends Controller implements HasMiddleware
     {
         $party->delete();
 
-        return redirect()->back()->with('success', 'Party deleted successfully.');
+        return redirect()->route('parties.index')->with('success', 'Party deleted successfully.');
     }
 
     /**
