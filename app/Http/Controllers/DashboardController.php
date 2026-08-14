@@ -114,12 +114,7 @@ class DashboardController extends Controller
             ];
         }
 
-        if ($context->can('view trucks')) {
-            $stats['trucks'] = [
-                'available' => Truck::where('status', 'Available')->count(),
-                'total' => Truck::count(),
-            ];
-        }
+        
 
         if ($context->can('view challans')) {
             $stats['challans'] = [
