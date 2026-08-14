@@ -10,7 +10,6 @@ use App\Models\Company;
 use App\Models\CompanySubscription;
 use App\Models\InwardRegister;
 use App\Models\MainChallan;
-use App\Models\Truck;
 use App\Models\User;
 use App\Models\Voucher;
 use App\Services\TenantContext;
