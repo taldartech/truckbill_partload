@@ -25,7 +25,7 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view loading-reports')">
                         <Link href="/loading-reports" class="nav-link" :class="{ active: $page.url.startsWith('/loading-reports') }">
                             <i class="nav-icon fas fa-truck-loading"></i>
                             <p>Loading Reports</p>
@@ -48,28 +48,28 @@
 
                     <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small">TRANSACTIONS</li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view inward-registers')">
                         <Link href="/inward-registers" class="nav-link" :class="{ active: $page.url.startsWith('/inward-registers') }">
                             <i class="nav-icon fas fa-clipboard-list"></i>
                             <p>Inward Registers</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item"  v-if="can('view delivery-receipts')">
                         <Link href="/delivery-receipts" class="nav-link" :class="{ active: $page.url.startsWith('/delivery-receipts') }">
                             <i class="nav-icon fas fa-receipt"></i>
                             <p>Delivery Receipts</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view invoices')">
                         <Link href="/invoices" class="nav-link" :class="{ active: $page.url.startsWith('/invoices') }">
                             <i class="nav-icon fas fa-file-invoice-dollar"></i>
                             <p>Invoices</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item"  v-if="can('view vouchers')">
                         <Link href="/vouchers" class="nav-link" :class="{ active: $page.url.startsWith('/vouchers') }">
                             <i class="nav-icon fas fa-money-check-alt"></i>
                             <p>Vouchers</p>
