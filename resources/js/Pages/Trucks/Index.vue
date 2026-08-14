@@ -44,11 +44,15 @@
                                     <th>Location</th>
                                     <th>Registration Date</th>
                                     <th>Truck Owner</th>
+<<<<<<< HEAD
                                     <th class="text-start" v-if="can('trucks.delete') || can('trucks.edit')">Actions</th>
+=======
+                                    <th class="text-start" v-if="can('delete trucks') || can('edit trucks')">Actions</th>
+>>>>>>> 994f544 (hide actions buttons based on permissions)
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="truck in trucks.data" :key="truck.id" v-if="can('trucks.delete')">
+                                <tr v-for="truck in trucks.data" :key="truck.id" >
                                     <td>{{ truck.id }}</td>
                                     <td>
                                         <Link :href="`/trucks/${truck.id}/edit`" class="text-decoration-none fw-bold text-brand-primary">
@@ -72,7 +76,7 @@
                                     </td>
                                     <td>{{ truck.rc_expiry_date || '—' }}</td>
                                     <td>{{ truck.owner_name || '—' }}</td>
-                                    <td class="text-start">
+                                    <td class="text-start" v-if="can('delete trucks') || can('edit trucks')">
                                         <button
                                             v-if="can('edit trucks')"
                                             type="button"

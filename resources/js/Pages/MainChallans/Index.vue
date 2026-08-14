@@ -112,10 +112,10 @@
                                         >
                                             <i class="fas fa-print"></i>
                                         </a>
-                                        <Link :href="`/main-challans/${challan.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('challans.edit')">
+                                        <Link :href="`/main-challans/${challan.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit challans')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(challan.id)" v-if="can('challans.edit')" >
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(challan.id)" v-if="can('delete challans')" >
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>

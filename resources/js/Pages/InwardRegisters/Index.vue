@@ -82,7 +82,7 @@
                                     <th>Total Pkg.</th>
                                     <th>Delivery Freight</th>
                                     <th>Crossing Freight</th>
-                                    <th class="text-end" v-if="can('inward_registers.edit') || can('inward_registers.delete')" >Actions</th>
+                                    <th class="text-end" v-if="can('edit inward_registers') || can('delete inward_registers')" >Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -100,11 +100,11 @@
                                     <td>{{ register.total_packages ?? register.details?.length ?? 0 }}</td>
                                     <td>{{ register.total_delivery_freight ?? '0.00' }}</td>
                                     <td>{{ register.total_crossing_freight ?? '0.00' }}</td>
-                                    <td class="text-end" v-if="can('inward_registers.edit') || can('inward_registers.delete')">
-                                        <Link :href="`/inward-registers/${register.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('inward_registers.edit')">
+                                    <td class="text-end" v-if="can('edit inward_registers') || can('delete inward_registers')">
+                                        <Link :href="`/inward-registers/${register.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit inward_registers')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteRegister(register.id)" v-if="can('inward_registers.delete')">
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteRegister(register.id)" v-if="can('delete inward_registers')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>

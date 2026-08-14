@@ -39,19 +39,19 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th class="text-end" v-if="can('truck_types.delete')">Actions</th>
+                                    <th class="text-end" v-if="can('delete truck_types') || can('edit truck_types')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="type in truckTypes.data" :key="type.id">
                                     <td>{{ type.id }}</td>
                                     <td>{{ type.name }}</td>
-                                    <td class="text-end" v-if="can('truck_types.delete')">
+                                    <td class="text-end" v-if="can('delete truck_types') || can('edit truck_types')">
                                         <button type="button" class="btn btn-edit btn-sm me-2" @click="editType(type)">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="fas fa-edit" v-if="can('edit truck_types')"></i>
                                         </button>
                                         <button type="button" class="btn btn-danger btn-sm" @click="deleteType(type.id)">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="fas fa-trash" v-if="can('delete truck_types')"></i>
                                         </button>
                                     </td>
                                 </tr>

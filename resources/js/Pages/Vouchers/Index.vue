@@ -72,7 +72,7 @@
                                     <th>Account</th>
                                     <th>Mode</th>
                                     <th>Amount</th>
-                                    <th class="text-end" v-if="can('vouchers.edit') || can('vouchers.delete')">Actions</th>
+                                    <th class="text-end" v-if="can('edit vouchers') || can('delete vouchers')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -92,11 +92,11 @@
                                     <td>{{ entityLabel(voucher) }}</td>
                                     <td>{{ modeLabel(voucher) }}</td>
                                     <td>₹ {{ voucher.amount }}</td>
-                                    <td class="text-end"  v-if="can('vouchers.edit') || can('vouchers.delete')"">
-                                        <Link :href="`/vouchers/${voucher.id}/edit`" class="btn btn-sm btn-info text-white me-2">
+                                    <td class="text-end"  v-if="can('edit vouchers') || can('delete vouchers')">
+                                        <Link :href="`/vouchers/${voucher.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit vouchers')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteVoucher(voucher.id)">
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteVoucher(voucher.id)" v-if="can('delete vouchers')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>

@@ -90,10 +90,10 @@
                                         >
                                             <i class="fas fa-print"></i>
                                         </a>
-                                        <Link :href="`/delivery-receipts/${receipt.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('delivery_receipts.edit')">
+                                        <Link :href="`/delivery-receipts/${receipt.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit delivery_receipts')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteReceipt(receipt.id)" v-if="can('delivery_receipts.edit')">
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteReceipt(receipt.id)" v-if="can('delete delivery_receipts')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>

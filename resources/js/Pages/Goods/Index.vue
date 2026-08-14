@@ -39,18 +39,18 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th class="text-end" v-if="can('goods.edit')">Actions</th>
+                                    <th class="text-end" v-if="can('edit goods') || can('delete goods')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="item in items.data" :key="item.id">
                                     <td>{{ item.id }}</td>
                                     <td>{{ item.name }}</td>
-                                    <td class="text-end" v-if="can('goods.edit') || can('goods.delete')">
-                                        <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)" v-if="can('goods.edit')">
+                                    <td class="text-end" v-if="can('edit goods') || can('delete goods') || can('goods.delete')">
+                                        <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)" v-if="can('edit goods')">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item.id)" v-if="can('goods.delete')">
+                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item.id)" v-if="can('delete goods')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
