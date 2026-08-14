@@ -25,7 +25,7 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item" v-if="can('view loading-reports')">
+                    <li class="nav-item" v-if="can('view loading_reports')">
                         <Link href="/loading-reports" class="nav-link" :class="{ active: $page.url.startsWith('/loading-reports') }">
                             <i class="nav-icon fas fa-truck-loading"></i>
                             <p>Loading Reports</p>
