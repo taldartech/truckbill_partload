@@ -409,7 +409,7 @@
                                         <label class="bilty-charge-row__label">GST Amount ({{ Number(form.gst || 0) }}%)</label>
                                         <input type="number" step="1" class="form-control form-control-sm bg-light" :value="gstAmount" readonly>
                                     </div>
-                                    <div v-if="showGstFields" class="bilty-charge-row">
+                                    <div v-if="showGstFields  && Number(form.gst || 0)>0" class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">GST Liability By</label>
                                         <select class="form-select form-select-sm" v-model="form.gst_liability_by">
                                             <option value="">Select</option>
