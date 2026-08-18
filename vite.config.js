@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/css/app-shell.css',
                 'resources/css/app-forms.css',
+                'resources/css/app-show.css',
                 'resources/js/app.js',
             ],
             refresh: true,
