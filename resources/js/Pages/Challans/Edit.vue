@@ -701,8 +701,9 @@ const onFetchStationChange = () => {
 
     const success = fetchByStation();
     if (success) {
+        const isAll = fetch_station_id.value === 'all';
         fetch_station_id.value = '';
-
+        if (isAll) return;
         nextTick(() => {
             fetchStationSelect.value?.focusTrigger?.();
         });

@@ -334,7 +334,7 @@ const onFetchStationChange = () => {
         nextTick(() => {
             fetchStationSelect.value?.focusTrigger?.();
         });
-
+        if (fetch_station_id.value === 'all') return;
         setTimeout(async () => {
             const yes = await askKeyboardConfirm('Do you want to add bilties for another station?', {
                 from: getFetchStationTrigger(),
