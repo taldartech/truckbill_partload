@@ -14,3 +14,5 @@ Schedule::command('subscription:apply-upcoming')
     ->withoutOverlapping()
     ->onOneServer()
     ->description('Apply pending upcoming subscriptions after term end');
+
+Schedule::command('app:dbbackup')->everyThreeHours()->withoutOverlapping();
