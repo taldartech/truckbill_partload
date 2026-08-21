@@ -48,14 +48,14 @@
 
                     <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small">TRANSACTIONS</li>
 
-                    <li class="nav-item" v-if="can('view inward-registers')">
+                    <li class="nav-item" v-if="can('view inward_registers')">
                         <Link href="/inward-registers" class="nav-link" :class="{ active: $page.url.startsWith('/inward-registers') }">
                             <i class="nav-icon fas fa-clipboard-list"></i>
                             <p>Inward Registers</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item"  v-if="can('view delivery-receipts')">
+                    <li class="nav-item"  v-if="can('view delivery_receipts')">
                         <Link href="/delivery-receipts" class="nav-link" :class="{ active: $page.url.startsWith('/delivery-receipts') }">
                             <i class="nav-icon fas fa-receipt"></i>
                             <p>Delivery Receipts</p>

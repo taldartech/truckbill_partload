@@ -61,6 +61,10 @@ return [
         ],
 
     ],
+       'backup' => [
+            'disk' => env('BACKUP_DISK', 'local'),
+            'path' => env('BACKUP_PATH', 'database-backups'),
+        ],
 
     /*
     |--------------------------------------------------------------------------

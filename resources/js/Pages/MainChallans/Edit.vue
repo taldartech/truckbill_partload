@@ -239,14 +239,6 @@
                                         <span class="bilty-total__label">TOTAL</span>
                                         <input type="text" class="form-control form-control-sm bilty-total__input" :class="form.total_amount < 0 ? 'text-danger' : ''" :value="form.total_amount" readonly>
                                     </div>
-                                    <div class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">Total Balance Amt.</label>
-                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="form.total_balance_type" readonly>
-                                    </div>
-                                    <div class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">To (Account)</label>
-                                        <input type="text" class="form-control form-control-sm" v-model="form.pay_by">
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -328,8 +320,6 @@ const form = useForm({
     total_amount: props.main_challan.total_amount || 0,
     total_weight: props.main_challan.total_weight || 0,
     total_packages: props.main_challan.total_packages || 0,
-    total_balance_type: 'Cr',
-    pay_by: props.main_challan.pay_by || '',
     remark: props.main_challan.remark || '',
 });
 
@@ -512,7 +502,6 @@ const calculateTotal = () => {
         - cashReceivedTotal.value;
 
     form.total_amount = total.toFixed(2);
-    form.total_balance_type = total < 0 ? 'Cr' : 'Dr';
 };
 
 const submit = () => {
