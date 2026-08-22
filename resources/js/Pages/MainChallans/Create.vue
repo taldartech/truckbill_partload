@@ -28,7 +28,7 @@
                         </div>
                     </div>
                     <div class="bilty-section__body">
-                        <div class="bilty-form-grid bilty-form-grid--5">
+                        <div class="bilty-form-grid bilty-form-grid--4">
                             <div class="bilty-field">
                                 <label class="bilty-field__label">From Station<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect
@@ -53,19 +53,7 @@
                                 />
                                 <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
                             </div>
-                            <div class="bilty-field">
-                                <label class="bilty-field__label">Add Challan</label>
-                                <SearchableSelect
-                                    ref="fetchChallanSelect"
-                                    :small="true"
-                                    v-model="fetch_challan_id"
-                                    :options="challans"
-                                    labelKey="challan_number"
-                                    placeholder="Select Challan"
-                                    open-on-enter
-                                    @change="onFetchChallanChange"
-                                />
-                            </div>
+                            
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Truck No.<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect
@@ -95,6 +83,14 @@
                             <div>
                                 <h2 class="bilty-section__title">Linked Challans</h2>
                                 <p class="bilty-section__desc">Challans included in this main challan</p>
+                            </div>
+                        </div>
+                        <div class="bilty-field bilty-section__head-right">
+                            <div class="bilty-field">
+                                <span class="bilty-id__label">Add Challan</span>
+                                <SearchableSelect ref="fetchChallanSelect" :small="true" v-model="fetch_challan_id"
+                                    :options="challans" labelKey="challan_number" placeholder="Select Challan"
+                                    open-on-enter @change="onFetchChallanChange" />
                             </div>
                         </div>
                     </div>
