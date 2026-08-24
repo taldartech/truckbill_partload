@@ -3,7 +3,6 @@
         <div class="app-index-page app-index-page--standard">
             <div class="card app-index-list-card">
                 <div class="card-header">
-                    <h1>suthar</h1>
                     <h3 class="card-title mb-0">Manage Parties (Consignees/Customers)</h3>
                     <div class="app-index-card-toolbar d-flex flex-wrap gap-2 align-items-center">
                         <button
