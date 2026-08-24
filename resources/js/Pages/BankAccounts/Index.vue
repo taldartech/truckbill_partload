@@ -147,6 +147,7 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
@@ -219,11 +220,8 @@ const submit = () => {
     });
 };
 
-const deleteItem = (id) => {
-    if (!confirm('Delete this bank account?')) {
-        return;
-    }
-
-    router.delete(`/bank-accounts/${id}`, { preserveScroll: true });
+const deleteItem = async (id) => {
+    const yes = await askKeyboardConfirm('Delete this bank account?');
+    if (yes) router.delete(`/bank-accounts/${id}`, { preserveScroll: true });
 };
 </script>

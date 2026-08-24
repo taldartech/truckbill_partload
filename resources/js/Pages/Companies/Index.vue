@@ -58,6 +58,7 @@
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -70,9 +71,8 @@ defineProps({
 
 const form = useForm({});
 
-const deleteCompany = (id) => {
-    if (confirm('Are you sure you want to delete this company?')) {
-        form.delete(`/companies/${id}`);
-    }
+const deleteCompany = async (id) => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this company?');
+    if (yes) form.delete(`/companies/${id}`);
 };
 </script>

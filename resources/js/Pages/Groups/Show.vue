@@ -69,6 +69,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     group: {
@@ -89,11 +90,8 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.group.updated_at) },
 ]));
 
-const deleteGroup = () => {
-    if (!window.confirm('Are you sure you want to delete this group?')) {
-        return;
-    }
-
-    router.delete(`/groups/${props.group.id}`);
+const deleteGroup = async () => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this group?');
+    if (yes) router.delete(`/groups/${props.group.id}`);
 };
 </script>

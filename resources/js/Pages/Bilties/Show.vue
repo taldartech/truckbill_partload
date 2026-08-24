@@ -174,7 +174,7 @@ import BiltyPrintButton from '@/Components/BiltyPrintButton.vue';
 import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
-
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     bilty: {
         type: Object,
@@ -399,11 +399,8 @@ const recordInfoItems = computed(() => ([
     }
 ]));
 
-const deleteBilty = () => {
-    if (!window.confirm('Are you sure you want to delete this bilty?')) {
-        return;
-    }
-
-    router.delete(`/bilties/${props.bilty.id}`);
+const deleteBilty = async () => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this bilty?');
+    if (yes) router.delete(`/bilties/${props.bilty.id}`);
 };
 </script>

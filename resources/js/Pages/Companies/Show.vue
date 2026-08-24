@@ -88,6 +88,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     company: {
@@ -138,11 +139,8 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.company.updated_at) },
 ]));
 
-const deleteCompany = () => {
-    if (!window.confirm('Are you sure you want to delete this company?')) {
-        return;
-    }
-
-    router.delete(`/companies/${props.company.id}`);
+const deleteCompany = async () => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this company?');
+    if (yes) router.delete(`/companies/${props.company.id}`);
 };
 </script>

@@ -128,6 +128,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatMoney, formatDate, formatDateTime } from '@/utils/showFormatters';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     invoice: {
@@ -192,11 +193,8 @@ const printInvoice = () => {
     window.open(`/invoices/${props.invoice.id}/print`, '_blank');
 };
 
-const deleteInvoice = () => {
-    if (!window.confirm('Are you sure you want to delete this invoice?')) {
-        return;
-    }
-
-    router.delete(`/invoices/${props.invoice.id}`);
+const deleteInvoice = async () => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this invoice?');
+    if (yes) router.delete(`/invoices/${props.invoice.id}`);
 };
 </script>

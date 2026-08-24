@@ -126,6 +126,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -196,10 +197,9 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteReceipt = (id) => {
-    if (confirm('Are you sure you want to delete this delivery receipt?')) {
-        deleteForm.delete(`/delivery-receipts/${id}`);
-    }
+const deleteReceipt = async (id) => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this delivery receipt?');
+    if (yes) deleteForm.delete(`/delivery-receipts/${id}`);
 };
 </script>
 

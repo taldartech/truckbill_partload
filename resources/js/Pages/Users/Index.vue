@@ -132,6 +132,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
 import { usePermissions } from '@/composables/usePermissions';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const { can } = usePermissions();
 const page = usePage();
@@ -261,9 +262,8 @@ const submit = () => {
     }
 };
 
-const deleteUser = (id) => {
-    if (confirm('Are you sure you want to delete this user?')) {
-        router.delete(`/users/${id}`);
-    }
+const deleteUser = async (id) => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this user?');
+    if (yes) router.delete(`/users/${id}`);
 };
 </script>

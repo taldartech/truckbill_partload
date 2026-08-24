@@ -132,7 +132,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatMoney, formatQty, formatDate, formatDateTime } from '@/utils/showFormatters';
-
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     main_challan: {
         type: Object,
@@ -217,11 +217,8 @@ const printMainChallan = () => {
     window.open(`/main-challans/${props.main_challan.id}/print`, '_blank');
 };
 
-const deleteMainChallan = () => {
-    if (!window.confirm('Are you sure you want to delete this main challan?')) {
-        return;
-    }
-
-    router.delete(`/main-challans/${props.main_challan.id}`);
+const deleteMainChallan = async () => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this main challan?');
+    if (yes) router.delete(`/main-challans/${props.main_challan.id}`);
 };
 </script>

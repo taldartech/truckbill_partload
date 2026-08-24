@@ -165,6 +165,7 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -210,10 +211,9 @@ const filteredStations = computed(() => {
     return props.stations.filter(s => String(s.city_id) === String(tourForm.current_city_id));
 });
 
-const deleteTruck = (id) => {
-    if (confirm('Are you sure you want to delete this truck?')) {
-        router.delete(`/trucks/${id}`);
-    }
+const deleteTruck = async (id) => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this truck?');
+    if (yes) router.delete(`/trucks/${id}`);
 };
 
 const openTourModal = (truck) => {

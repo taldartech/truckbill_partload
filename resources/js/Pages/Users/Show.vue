@@ -85,6 +85,7 @@ import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
 import { usePermissions } from '@/composables/usePermissions';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const { can } = usePermissions();
 
@@ -112,11 +113,8 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.user.updated_at) },
 ]));
 
-const deleteUser = () => {
-    if (!window.confirm('Are you sure you want to delete this user?')) {
-        return;
-    }
-
-    router.delete(`/users/${props.user.id}`);
+const deleteUser = async () => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this user?');
+    if (yes) router.delete(`/users/${props.user.id}`);
 };
 </script>

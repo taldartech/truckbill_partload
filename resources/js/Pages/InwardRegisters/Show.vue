@@ -118,7 +118,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatMoney, formatQty, formatDate, formatDateTime } from '@/utils/showFormatters';
-
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     register: {
         type: Object,
@@ -166,11 +166,8 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.register.updated_at) },
 ]));
 
-const deleteRegister = () => {
-    if (!window.confirm('Are you sure you want to delete this inward register?')) {
-        return;
-    }
-
-    router.delete(`/inward-registers/${props.register.id}`);
+const deleteRegister = async () => {
+    const yes= await askKeyboardConfirm('Are you sure you want to delete this inward register?');
+     if(yes){router.delete(`/inward-registers/${props.register.id}`);}
 };
 </script>

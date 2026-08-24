@@ -179,6 +179,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     agents: Object,
@@ -282,10 +283,9 @@ const submit = () => {
     });
 };
 
-const deleteItem = (id) => {
-    if (confirm('Are you sure you want to delete this agent?')) {
-        router.delete(`/agents/${id}`);
-    }
+const deleteItem = async (id) => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this agent?');
+    if (yes) router.delete(`/agents/${id}`);
 };
 
 onMounted(() => {

@@ -81,7 +81,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime, formatMoney } from '@/utils/showFormatters';
-
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     party: {
         type: Object,
@@ -117,11 +117,8 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.party.updated_at) },
 ]));
 
-const deleteParty = () => {
-    if (!window.confirm('Are you sure you want to delete this party?')) {
-        return;
-    }
-
-    router.delete(`/parties/${props.party.id}`);
+const deleteParty = async () => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this party?');
+    if (yes) router.delete(`/parties/${props.party.id}`);
 };
 </script>

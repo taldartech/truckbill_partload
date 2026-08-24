@@ -77,7 +77,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
-
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     vendor: {
         type: Object,
@@ -108,11 +108,8 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.vendor.updated_at) },
 ]));
 
-const deleteVendor = () => {
-    if (!window.confirm('Are you sure you want to delete this vendor?')) {
-        return;
-    }
-
-    router.delete(`/vendors/${props.vendor.id}`);
+const deleteVendor = async () => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this vendor?');
+    if (yes) router.delete(`/vendors/${props.vendor.id}`);
 };
 </script>

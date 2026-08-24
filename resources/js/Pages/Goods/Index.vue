@@ -106,6 +106,8 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+
 const page = usePage();
 const can = (permission) => {
     return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
@@ -169,9 +171,8 @@ const submit = () => {
     }
 };
 
-const deleteItem = (id) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-        router.delete(`/goods/${id}`);
-    }
+const deleteItem = async (id) => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this item?');
+    if (yes) router.delete(`/goods/${id}`);
 };
 </script>

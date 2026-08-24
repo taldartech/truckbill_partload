@@ -154,7 +154,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
-
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 const page = usePage();
 const can = (permission) => {
     return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
@@ -239,10 +239,9 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteItem = (id) => {
-    if (confirm('Are you sure you want to delete this record?')) {
-        form.delete(`/bilties/${id}`);
-    }
+const deleteItem = async (id) => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this record?');
+    if (yes) form.delete(`/bilties/${id}`);
 };
 </script>
 

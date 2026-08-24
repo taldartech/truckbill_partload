@@ -199,6 +199,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     parties: Object,
@@ -314,10 +315,9 @@ const submit = () => {
     });
 };
 
-const deleteParty = (id) => {
-    if (confirm('Are you sure you want to delete this party?')) {
-        router.delete(`/parties/${id}`);
-    }
+const deleteParty = async (id) => {
+    const yes = await askKeyboardConfirm('Are you sure you want to delete this party?');
+    if (yes) router.delete(`/parties/${id}`);
 };
 
 onMounted(() => {
