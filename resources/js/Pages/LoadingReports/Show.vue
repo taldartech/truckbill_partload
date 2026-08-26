@@ -57,7 +57,8 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Bilty No</th>
+                                        <th>GR/Bilty No</th>
+                                        <th>Type</th>
                                         <th>To Station</th>
                                         <th>Consignee</th>
                                         <th>Good</th>
@@ -69,7 +70,8 @@
                                 <tbody>
                                     <tr v-for="(row, index) in detailRows" :key="row.id || index">
                                         <td>{{ index + 1 }}</td>
-                                        <td>{{ row.bilty_number }}</td>
+                                        <td>{{ row.document_number }}</td>
+                                        <td>{{ row.row_type }}</td>
                                         <td>{{ row.to_station_name }}</td>
                                         <td>{{ row.consignee_name }}</td>
                                         <td>{{ row.good_name }}</td>
@@ -78,7 +80,7 @@
                                         <td class="text-end">{{ formatQty(row.gross_weight) }}</td>
                                     </tr>
                                     <tr v-if="detailRows.length === 0">
-                                        <td colspan="8" class="text-center text-muted py-3">No line items recorded</td>
+                                        <td colspan="9" class="text-center text-muted py-3">No line items recorded</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -139,16 +141,28 @@ const headerFields = computed(() => ([
     { label: 'Remark', value: props.report.remark },
 ]));
 
-const detailRows = computed(() => (props.report.details || []).map((detail) => ({
-    id: detail.id,
-    bilty_number: detail.bilty?.bilty_number || '—',
-    to_station_name: detail.bilty?.to_station?.name || detail.bilty?.toStation?.name || '—',
-    consignee_name: detail.consignee?.name || '—',
-    good_name: detail.good?.name || '—',
-    package_type_name: detail.package_type?.name || detail.packageType?.name || '—',
-    no_of_packages: detail.no_of_packages,
-    gross_weight: detail.gross_weight,
-})));
+const detailRows = computed(() => (props.report.details || []).map((detail) => {
+    const inward = detail.inward_register_detail || detail.inwardRegisterDetail;
+    const isInward = Boolean(detail.inward_register_detail_id || inward);
+
+    return {
+        id: detail.id,
+        document_number: detail.bilty?.bilty_number
+            || inward?.gr_no
+            || (inward ? `GR-${inward.id}` : '—'),
+        row_type: isInward ? 'Crossing' : 'Booking',
+        to_station_name: detail.bilty?.to_station?.name
+            || detail.bilty?.toStation?.name
+            || inward?.to_station?.name
+            || inward?.toStation?.name
+            || '—',
+        consignee_name: detail.consignee?.name || inward?.consignee?.name || '—',
+        good_name: detail.good?.name || inward?.good?.name || '—',
+        package_type_name: detail.package_type?.name || detail.packageType?.name || '—',
+        no_of_packages: detail.no_of_packages,
+        gross_weight: detail.gross_weight,
+    };
+}));
 
 const summaryFields = computed(() => ([
     { label: 'Total Packages', value: formatQty(props.report.no_of_packages) },

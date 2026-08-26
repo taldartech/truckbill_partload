@@ -138,7 +138,7 @@
             <thead>
                 <tr>
                     <th class="col-sn">S.N.</th>
-                    <th class="col-bilty">Bilty No.</th>
+                    <th class="col-bilty">GR/Bilty No.</th>
                     <th class="col-marka">Pvt. Marka</th>
                     <th class="col-nugs">Nugs</th>
                     <th class="col-goods">Goods Name</th>
