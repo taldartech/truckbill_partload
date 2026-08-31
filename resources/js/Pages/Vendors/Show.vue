@@ -77,7 +77,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     vendor: {
         type: Object,
@@ -109,7 +109,18 @@ const recordInfoItems = computed(() => ([
 ]));
 
 const deleteVendor = async () => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this vendor?');
-    if (yes) router.delete(`/vendors/${props.vendor.id}`);
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this vendor?
+
+Vendor : ${props.vendor.name || '—'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/vendors/${props.vendor.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

@@ -103,7 +103,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     branch: {
@@ -155,7 +155,21 @@ const recordInfoItems = computed(() => ([
 ]));
 
 const deleteBranch = async () => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this branch?');
-    if (yes) router.delete(`/branches/${props.branch.id}`);
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this branch?
+
+Branch  : ${props.branch.name || '—'}
+Station : ${props.branch.station?.name || '—'}
+City    : ${props.branch.city?.name || '—'}
+Type    : ${props.branch.is_head_office ? 'Head Office' : 'Branch'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/branches/${props.branch.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

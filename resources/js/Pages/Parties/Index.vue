@@ -72,7 +72,7 @@
                                             v-if="can('delete parties')"
                                             type="button"
                                             class="btn btn-sm btn-danger"
-                                            @click="deleteParty(party.id)"
+                                            @click="deleteParty(party)"
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -199,7 +199,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     parties: Object,
@@ -315,9 +315,20 @@ const submit = () => {
     });
 };
 
-const deleteParty = async (id) => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this party?');
-    if (yes) router.delete(`/parties/${id}`);
+const deleteParty = async (party) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this party?
+
+    Party : ${party.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/parties/${party.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 
 onMounted(() => {

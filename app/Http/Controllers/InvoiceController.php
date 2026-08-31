@@ -4,15 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Bilty;
 use App\Models\BiltyDetail;
+use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\InvoiceDetail;
 use App\Models\Party;
 use App\Services\Accounting\AccountingPoster;
+use App\Support\DocumentNumber;
 use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -93,7 +96,7 @@ class InvoiceController extends Controller implements HasMiddleware
 
         return Inertia::render('Invoices/Create', [
             'parties' => Party::all(),
-            'next_invoice_no' => \App\Support\DocumentNumber::next(
+            'next_invoice_no' => DocumentNumber::next(
                 Invoice::query(),
                 'invoice_no',
                 $branch?->invoice_initial
@@ -524,8 +527,11 @@ class InvoiceController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(Invoice $invoice, AccountingPoster $poster)
-    {
+    public function destroy(
+        Request $request,
+        Invoice $invoice,
+        AccountingPoster $poster
+    ) {
         $latestInvoiceId = Invoice::query()->max('id');
 
         if ((int) $invoice->id !== (int) $latestInvoiceId) {
@@ -544,22 +550,30 @@ class InvoiceController extends Controller implements HasMiddleware
 
         $biltyIds = $invoice->details->pluck('bilty_id');
 
-        DB::transaction(function () use ($invoice, $biltyIds, $poster) {
+        DB::transaction(function () use ($request, $invoice, $biltyIds, $poster) {
             if ($biltyIds->isNotEmpty()) {
                 Bilty::whereIn('id', $biltyIds)->update(['invoice_number' => null]);
             }
 
             $poster->clearReference($invoice);
+
+            $invoice->update([
+                'delete_remark' => $request->delete_remark,
+                'deleted_by' => Auth::id(),
+            ]);
+
             $invoice->delete();
         });
 
-        return redirect()->route('invoices.index')->with('success', 'Invoice deleted successfully.');
+        return redirect()
+            ->route('invoices.index')
+            ->with('success', 'Invoice deleted successfully.');
     }
 
     public function print(Invoice $invoice)
     {
         $invoice->load(['party', 'details.bilty.fromStation', 'details.bilty.toStation', 'branch']);
-        $company = \App\Models\Company::find($invoice->company_id);
+        $company = Company::find($invoice->company_id);
         $branch = $invoice->branch;
 
         return view('prints.invoice', compact('invoice', 'company', 'branch'));

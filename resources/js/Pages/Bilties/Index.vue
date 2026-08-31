@@ -122,7 +122,7 @@
                                         <Link :href="`/bilties/${bilty.id}/edit`" class="btn btn-sm btn-info text-white me-2"  v-if="can('edit bilty')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(bilty.id)"  v-if="can('delete bilty')">
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(bilty.id,bilty.bilty_number)"  v-if="can('delete bilty')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -154,7 +154,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const page = usePage();
 const can = (permission) => {
     return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
@@ -239,9 +239,18 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteItem = async (id) => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this record?');
-    if (yes) form.delete(`/bilties/${id}`);
+const deleteItem = async (id,bilty_number) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete Bilty ${bilty_number}?`
+    );
+    if (!remark) {
+        return;
+    }
+    router.delete(`/bilties/${id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>
 

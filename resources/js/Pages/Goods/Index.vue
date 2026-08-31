@@ -54,7 +54,7 @@
                                         <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)" v-if="can('edit goods')">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item.id)" v-if="can('delete goods')">
+                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item)" v-if="can('delete goods')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -106,7 +106,7 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -171,8 +171,19 @@ const submit = () => {
     }
 };
 
-const deleteItem = async (id) => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this item?');
-    if (yes) router.delete(`/goods/${id}`);
+const deleteItem = async (good) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this item?
+
+Item : ${good.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/goods/${good.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

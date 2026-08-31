@@ -106,7 +106,7 @@
                                         <Link :href="`/inward-registers/${register.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit inward_registers')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteRegister(register.id)" v-if="can('delete inward_registers')">
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteRegister(register)" v-if="can('delete inward_registers')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -137,7 +137,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -214,9 +214,25 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteRegister = async (id) => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this register?');
-    if (yes) deleteForm.delete(`/inward-registers/${id}`);
+const deleteRegister = async (register) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this inward register?
+
+Register   : ${register.inward_register_no}
+Date       : ${register.date}
+Truck      : ${register.truck?.truck_number}
+
+From       : ${register.from_station?.name}
+To         : ${register.to_station?.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/inward-registers/${register.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>
 

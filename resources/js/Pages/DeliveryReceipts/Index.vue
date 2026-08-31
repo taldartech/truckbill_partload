@@ -95,7 +95,7 @@
                                         <Link :href="`/delivery-receipts/${receipt.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit delivery_receipts')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteReceipt(receipt.id)" v-if="can('delete delivery_receipts')">
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteReceipt(receipt)" v-if="can('delete delivery_receipts')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -118,7 +118,7 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
-import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
@@ -126,7 +126,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -141,7 +141,6 @@ const props = defineProps({
 
 const defaultRange = thisMonthDateRange();
 const searching = ref(false);
-const deleteForm = useForm({});
 
 const filters = reactive({
     search: props.filters.search ?? '',
@@ -197,9 +196,24 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteReceipt = async (id) => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this delivery receipt?');
-    if (yes) deleteForm.delete(`/delivery-receipts/${id}`);
+const deleteReceipt = async (receipt) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this delivery receipt?
+
+Receipt No : ${receipt.delivery_receipt_no}
+Date       : ${receipt.date}
+GR/Bilty   : ${receipt.gr_no_bilty_no}
+Consignee  : ${receipt.consignee?.name || '—'}
+Amount     : ₹ ${receipt.final_amount}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/delivery-receipts/${receipt.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>
 

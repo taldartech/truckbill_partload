@@ -72,7 +72,7 @@
                                             v-if="can('delete stations')"
                                             type="button"
                                             class="btn btn-sm btn-danger"
-                                            @click="deleteItem(station.id)"
+                                            @click="deleteItem(station)"
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -178,7 +178,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     stations: Object,
@@ -274,9 +274,20 @@ const submit = () => {
     });
 };
 
-const deleteItem = async (id) => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this record?');
-    if (yes) router.delete(`/stations/${id}`);
+const deleteItem = async (station) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this station?
+
+Station : ${station.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/stations/${station.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 
 onMounted(() => {

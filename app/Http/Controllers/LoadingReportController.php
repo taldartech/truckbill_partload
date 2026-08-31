@@ -11,6 +11,7 @@ use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -220,11 +221,18 @@ class LoadingReportController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(LoadingReport $loadingReport)
+    public function destroy(Request $request, LoadingReport $loadingReport)
     {
+        $loadingReport->update([
+            'delete_remark' => $request->delete_remark,
+            'deleted_by' => Auth::id(),
+        ]);
+
         $loadingReport->delete();
 
-        return redirect()->route('loading-reports.index')->with('success', 'Loading Report deleted successfully.');
+        return redirect()
+            ->route('loading-reports.index')
+            ->with('success', 'Loading Report deleted successfully.');
     }
 
     public function print(LoadingReport $loading_report)

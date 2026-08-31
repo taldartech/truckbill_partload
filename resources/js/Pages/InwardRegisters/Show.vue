@@ -118,7 +118,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatMoney, formatQty, formatDate, formatDateTime } from '@/utils/showFormatters';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     register: {
         type: Object,
@@ -167,7 +167,25 @@ const recordInfoItems = computed(() => ([
 ]));
 
 const deleteRegister = async () => {
-    const yes= await askKeyboardConfirm('Are you sure you want to delete this inward register?');
-     if(yes){router.delete(`/inward-registers/${props.register.id}`);}
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this inward register?
+
+Register   : ${props.register.inward_register_no}
+Date       : ${props.register.date}
+Truck      : ${props.register.truck?.truck_number || '—'}
+
+From       : ${props.register.from_station?.name || '—'}
+To         : ${props.register.to_station?.name || '—'}`
+    );
+
+    if (!remark) {
+        return;
+    }
+
+    router.delete(`/inward-registers/${props.register.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

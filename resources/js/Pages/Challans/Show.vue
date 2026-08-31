@@ -132,7 +132,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatMoney, formatQty, formatDate, formatDateTime } from '@/utils/showFormatters';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     challan: {
         type: Object,
@@ -250,7 +250,23 @@ const printChallan = () => {
 };
 
 const deleteChallan = async () => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this challan?');
-    if (yes) {router.delete(`/challans/${props.challan.id}`);}
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this challan?
+
+Challan    : ${props.challan.challan_number}
+Date       : ${props.challan.date}
+Truck      : ${props.challan.truck?.truck_number}
+
+From       : ${props.challan.from_station?.name}
+To         : ${props.challan.to_station?.name}`
+    );
+
+    if (remark) {
+        router.delete(`/challans/${props.challan.id}`, {
+            data: {
+                delete_remark: remark,
+            },
+        });
+    }
 };
 </script>

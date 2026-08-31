@@ -115,7 +115,7 @@
                                         <Link :href="`/main-challans/${challan.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit challans')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(challan.id)" v-if="can('delete challans')" >
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(challan)" v-if="can('delete challans')" >
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -146,7 +146,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const page = usePage();
 const can = (permission) => {
     return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
@@ -236,9 +236,25 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteItem = async (id) => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this record?');
-    if (yes) form.delete(`/main-challans/${id}`);
+const deleteItem = async (challan) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this challan?
+
+Challan    : ${challan.main_challan_number}
+Date       : ${challan.date}
+Truck      : ${challan.truck?.truck_number}
+
+From       : ${challan.from_station?.name}
+To         : ${challan.to_station?.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/main-challans/${challan.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>
 

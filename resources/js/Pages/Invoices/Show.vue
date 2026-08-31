@@ -128,7 +128,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatMoney, formatDate, formatDateTime } from '@/utils/showFormatters';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     invoice: {
@@ -194,7 +194,20 @@ const printInvoice = () => {
 };
 
 const deleteInvoice = async () => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this invoice?');
-    if (yes) router.delete(`/invoices/${props.invoice.id}`);
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this invoice?
+
+Invoice No : ${props.invoice.invoice_no}
+Date       : ${props.invoice.date}
+Party      : ${props.invoice.party?.name || '—'}
+Amount     : ₹ ${formatMoney(props.invoice.net_amount)}
+Status     : ${props.invoice.status || 'Pending'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/invoices/${props.invoice.id}`, {
+        data: { delete_remark: remark },
+    });
 };
 </script>

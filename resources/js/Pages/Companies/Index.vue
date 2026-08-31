@@ -36,7 +36,7 @@
                                         <Link :href="`/companies/${company.id}/edit`" class="btn btn-edit btn-sm me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button @click="deleteCompany(company.id)" class="btn btn-sm btn-danger">
+                                        <button @click="deleteCompany(company)" class="btn btn-sm btn-danger">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -58,7 +58,7 @@
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -71,8 +71,21 @@ defineProps({
 
 const form = useForm({});
 
-const deleteCompany = async (id) => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this company?');
-    if (yes) form.delete(`/companies/${id}`);
+const deleteCompany = async (company) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this company?
+
+Company : ${company.name || '—'}
+Email   : ${company.email || '—'}
+City    : ${company.city?.name || '—'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/companies/${company.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

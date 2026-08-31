@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class GroupController extends Controller implements HasMiddleware
@@ -90,6 +91,10 @@ class GroupController extends Controller implements HasMiddleware
 
     public function destroy(Group $group)
     {
+        $group->update([
+            'delete_remark' => request('delete_remark'),
+            'deleted_by' => Auth::id(),
+        ]);
         $group->delete();
 
         return redirect()->route('groups.index')->with('success', 'Groups deleted successfully.');

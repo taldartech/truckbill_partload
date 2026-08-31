@@ -9,9 +9,11 @@ use App\Models\Party;
 use App\Models\Station;
 use App\Models\Truck;
 use App\Services\Accounting\AccountingPoster;
+use App\Support\DocumentNumber;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -177,14 +179,22 @@ class InwardRegisterController extends Controller implements HasMiddleware
         return redirect()->route('inward-registers.index')->with('success', 'Inward Register updated successfully.');
     }
 
-    public function destroy(InwardRegister $inwardRegister, AccountingPoster $poster)
+    public function destroy(Request $request, InwardRegister $inwardRegister, AccountingPoster $poster)
     {
-        DB::transaction(function () use ($inwardRegister, $poster) {
+        DB::transaction(function () use ($request, $inwardRegister, $poster) {
             $poster->clearReference($inwardRegister);
+
+            $inwardRegister->update([
+                'delete_remark' => $request->delete_remark,
+                'deleted_by' => Auth::id(),
+            ]);
+
             $inwardRegister->delete();
         });
 
-        return redirect()->route('inward-registers.index')->with('success', 'Inward Register deleted successfully.');
+        return redirect()
+            ->route('inward-registers.index')
+            ->with('success', 'Inward Register deleted successfully.');
     }
 
     private function branchStationId(): int
@@ -207,7 +217,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
     {
         $branch = $this->activeBranch();
 
-        return \App\Support\DocumentNumber::next(
+        return DocumentNumber::next(
             InwardRegister::query(),
             'inward_register_no',
             $branch?->inward_register_initial

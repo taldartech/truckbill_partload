@@ -69,7 +69,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     packageType: {
@@ -91,8 +91,19 @@ const recordInfoItems = computed(() => ([
 ]));
 
 const deletePackageType = async () => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this package type?');
-    if (yes) router.delete(`/package-types/${props.packageType.id}`);
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this package type?
+
+Package Type : ${props.packageType.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/package-types/${props.packageType.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>
 import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';

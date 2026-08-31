@@ -69,7 +69,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     truckType: {
@@ -91,7 +91,18 @@ const recordInfoItems = computed(() => ([
 ]));
 
 const deleteTruckType = async () => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this truck type?');
-    if (yes) router.delete(`/truck-types/${props.truckType.id}`);
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this truck type?
+
+Truck Type : ${props.truckType.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/truck-types/${props.truckType.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

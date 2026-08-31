@@ -125,7 +125,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatMoney, formatDate, formatDateTime, formatQty } from '@/utils/showFormatters';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     receipt: {
@@ -276,7 +276,23 @@ const printReceipt = () => {
 };
 
 const deleteReceipt = async () => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this delivery receipt?');
-    if (yes) router.delete(`/delivery-receipts/${props.receipt.id}`);
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this delivery receipt?
+
+Receipt No : ${props.receipt.delivery_receipt_no}
+Date       : ${props.receipt.date}
+GR/Bilty No: ${props.receipt.gr_no_bilty_no}
+Consignee  : ${props.receipt.consignee?.name || '—'}`
+    );
+
+    if (!remark) {
+        return;
+    }
+
+    router.delete(`/delivery-receipts/${props.receipt.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

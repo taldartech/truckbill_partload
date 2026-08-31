@@ -45,7 +45,7 @@
                                         <Link :href="`/branches/${branch.id}/edit`" class="btn btn-edit btn-sm me-2">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button @click="deleteBranch(branch.id)" class="btn btn-sm btn-danger">
+                                        <button @click="deleteBranch(branch)" class="btn btn-sm btn-danger">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -64,10 +64,10 @@
 </template>
 
 <script setup>
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -78,10 +78,23 @@ defineProps({
     branches: Object,
 });
 
-const form = useForm({});
 
-const deleteBranch = async (id) => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this branch?');
-    if (yes) form.delete(`/branches/${id}`);
+const deleteBranch = async (branch) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this branch?
+
+Branch  : ${branch.name || '—'}
+Station : ${branch.station?.name || '—'}
+City    : ${branch.city?.name || '—'}
+Type    : ${branch.is_head_office ? 'Head Office' : 'Branch'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/branches/${branch.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

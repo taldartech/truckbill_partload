@@ -91,7 +91,7 @@
                                             v-if="can('delete trucks')"
                                             type="button"
                                             class="btn btn-sm btn-danger"
-                                            @click="deleteTruck(truck.id)"
+                                            @click="deleteTruck(truck)"
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -165,7 +165,7 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -211,9 +211,20 @@ const filteredStations = computed(() => {
     return props.stations.filter(s => String(s.city_id) === String(tourForm.current_city_id));
 });
 
-const deleteTruck = async (id) => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this truck?');
-    if (yes) router.delete(`/trucks/${id}`);
+const deleteTruck = async (truck) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this truck?
+
+Truck : ${truck.truck_number}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/trucks/${truck.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 
 const openTourModal = (truck) => {

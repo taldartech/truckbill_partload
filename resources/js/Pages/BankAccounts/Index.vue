@@ -78,7 +78,7 @@
                                             v-if="can('delete bank_accounts')"
                                             type="button"
                                             class="btn btn-sm btn-danger"
-                                            @click="deleteItem(account.id)"
+                                            @click="deleteItem(account)"
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -147,7 +147,7 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
@@ -220,8 +220,22 @@ const submit = () => {
     });
 };
 
-const deleteItem = async (id) => {
-    const yes = await askKeyboardConfirm('Delete this bank account?');
-    if (yes) router.delete(`/bank-accounts/${id}`, { preserveScroll: true });
+const deleteItem = async (bankAccount) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this bank account?
+
+Bank Account : ${bankAccount.name}
+Bank Name    : ${bankAccount.bank_name || '—'}
+Account No   : ${bankAccount.account_number || '—'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/bank-accounts/${bankAccount.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+        preserveScroll: true,
+    });
 };
 </script>

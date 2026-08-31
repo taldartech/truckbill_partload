@@ -69,7 +69,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     station: {
@@ -98,7 +98,18 @@ const recordInfoItems = computed(() => ([
 ]));
 
 const deleteStation = async () => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this station?');
-    if (yes) router.delete(`/stations/${props.station.id}`);
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this station?
+
+Station : ${props.station.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/stations/${props.station.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

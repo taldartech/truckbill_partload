@@ -88,7 +88,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     company: {
@@ -140,7 +140,20 @@ const recordInfoItems = computed(() => ([
 ]));
 
 const deleteCompany = async () => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this company?');
-    if (yes) router.delete(`/companies/${props.company.id}`);
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this company?
+
+Company         : ${props.company.name || '—'}
+Email           : ${props.company.email || '—'}
+City            : ${props.company.city?.name || '—'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/companies/${props.company.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

@@ -81,7 +81,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime, formatMoney } from '@/utils/showFormatters';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     party: {
         type: Object,
@@ -118,7 +118,18 @@ const recordInfoItems = computed(() => ([
 ]));
 
 const deleteParty = async () => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this party?');
-    if (yes) router.delete(`/parties/${props.party.id}`);
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this party?
+
+Party : ${props.party.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/parties/${props.party.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

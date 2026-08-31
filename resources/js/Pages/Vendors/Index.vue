@@ -72,7 +72,7 @@
                                             v-if="can('delete vendors')"
                                             type="button"
                                             class="btn btn-sm btn-danger"
-                                            @click="deleteItem(vendor.id)"
+                                            @click="deleteItem(vendor)"
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -179,7 +179,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
-import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     vendors: Object,
@@ -283,9 +283,20 @@ const submit = () => {
     });
 };
 
-const deleteItem = async (id) => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this vendor?');
-    if (yes) router.delete(`/vendors/${id}`);
+const deleteItem = async (vendor) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this vendor?
+
+Vendor : ${vendor.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/vendors/${vendor.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 
 onMounted(() => {

@@ -114,7 +114,22 @@ const recordInfoItems = computed(() => ([
 ]));
 
 const deleteUser = async () => {
-    const yes = await askKeyboardConfirm('Are you sure you want to delete this user?');
-    if (yes) router.delete(`/users/${props.user.id}`);
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this user?
+
+Name    : ${props.user.name || '—'}
+Email   : ${props.user.email || '—'}
+Company : ${props.user.company?.name || 'System/Global'}
+Branch  : ${props.user.branch?.name || '—'}
+Role    : ${props.user.roles?.map(role => role.name)|| '—'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/users/${props.user.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>
