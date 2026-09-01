@@ -48,16 +48,16 @@ class InwardRegisterController extends Controller implements HasMiddleware
             ->with(['fromStation', 'toStation', 'truck', 'details'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
-                    $inner->where('inward_register_no', 'like', '%'.$search.'%')
-                        ->orWhere('challan_number', 'like', '%'.$search.'%')
-                        ->orWhere('driver_name', 'like', '%'.$search.'%')
+                    $inner->where('inward_register_no', 'like', '%' . $search . '%')
+                        ->orWhere('challan_number', 'like', '%' . $search . '%')
+                        ->orWhere('driver_name', 'like', '%' . $search . '%')
                         ->orWhereHas('truck', function ($truckQuery) use ($search) {
-                            $truckQuery->where('truck_number', 'like', '%'.$search.'%');
+                            $truckQuery->where('truck_number', 'like', '%' . $search . '%');
                         });
                 });
             })
-            ->when($fromDate, fn ($query) => $query->whereDate('date', '>=', $fromDate))
-            ->when($toDate, fn ($query) => $query->whereDate('date', '<=', $toDate))
+            ->when($fromDate, fn($query) => $query->whereDate('date', '>=', $fromDate))
+            ->when($toDate, fn($query) => $query->whereDate('date', '<=', $toDate))
             ->when(! empty($validated['from_station_id']), function ($query) use ($validated) {
                 $query->where('from_station_id', $validated['from_station_id']);
             })
@@ -75,7 +75,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
             'trucks' => Truck::query()
                 ->orderBy('truck_number')
                 ->get(['id', 'truck_number'])
-                ->map(fn (Truck $truck) => [
+                ->map(fn(Truck $truck) => [
                     'id' => $truck->id,
                     'name' => $truck->truck_number,
                 ]),
@@ -232,40 +232,49 @@ class InwardRegisterController extends Controller implements HasMiddleware
                     'nullable',
                     'integer',
                     Rule::exists('inward_register_details', 'id')->where(
-                        fn ($query) => $query->where('inward_register_id', $inwardRegisterId)
+                        fn($query) => $query->where('inward_register_id', $inwardRegisterId)
                     ),
                 ],
             ]
             : [];
 
         return $request->validate([
-            'inward_register_no' => 'nullable|string|max:255',
+            'inward_register_no' => 'required|string|max:255',
             'date' => 'required|date',
             'from_station_id' => 'required|exists:stations,id',
             'to_station_id' => 'required|exists:stations,id',
-            'challan_number' => 'nullable|string|max:255',
-            'challan_date' => 'nullable|date',
-            'driver_name' => 'nullable|string|max:255',
-            'truck_id' => 'nullable|exists:trucks,id',
+            'challan_number' => 'required|string|max:255',
+            'challan_date' => 'required|date',
+            'driver_name' => 'required|string|max:255',
+            'truck_id' => 'required|exists:trucks,id',
             'total_packages' => 'nullable|integer|min:0',
             'total_delivery_freight' => 'nullable|numeric|min:0',
             'total_crossing_freight' => 'nullable|numeric|min:0',
             'details' => 'required|array|min:1',
             ...$detailIdRule,
-            'details.*.gr_no' => 'nullable|string|max:255',
-            'details.*.date' => 'nullable|date',
-            'details.*.from_station_id' => 'nullable|exists:stations,id',
+            'details.*.gr_no' => 'required|string|max:255',
+            'details.*.date' => 'required|date',
+            'details.*.from_station_id' => 'required|exists:stations,id',
             'details.*.to_station_id' => 'required|exists:stations,id',
-            'details.*.consignor_id' => 'nullable|exists:parties,id',
-            'details.*.consignee_id' => 'nullable|exists:parties,id',
-            'details.*.good_id' => 'nullable|exists:goods,id',
-            'details.*.no_of_packages' => 'nullable|integer|min:0',
-            'details.*.weight' => 'nullable|numeric|min:0',
-            'details.*.basis_of_booking' => 'nullable|string|max:50',
-            'details.*.freight' => 'nullable|numeric|min:0',
+            'details.*.consignor_id' => 'required|exists:parties,id',
+            'details.*.consignee_id' => 'required|exists:parties,id',
+            'details.*.good_id' => 'required|exists:goods,id',
+            'details.*.no_of_packages' => 'required|integer|min:0',
+            'details.*.weight' => 'required|numeric|min:0',
+            'details.*.basis_of_booking' => 'required|string|max:50',
+            'details.*.freight' => 'required|numeric|min:0',
             'details.*.home_delivery_charge' => 'nullable|numeric|min:0',
             'details.*.private_marka' => 'nullable|string|max:255',
-            'details.*.agent_id' => 'nullable|exists:agents,id',
+            'details.*.agent_id' => 'required|exists:agents,id',
+        ], [
+            'inward_register_no.required' => 'Inward No. is required.',
+            'date.required' => 'Date is required.',
+            'from_station_id.required' => 'From Station is required.',
+            'to_station_id.required' => 'To Station is required.',
+            'challan_number.required' => 'Challan No. is required.',
+            'challan_date.required' => 'Challan Date is required.',
+            'driver_name.required' => 'Driver Name is required.',
+            'truck_id.required' => 'Truck No. is required.',
         ]);
     }
 
@@ -293,15 +302,15 @@ class InwardRegisterController extends Controller implements HasMiddleware
     {
         $rows = collect($details);
 
-        $validated['total_packages'] = $rows->sum(fn ($row) => (int) ($row['no_of_packages'] ?? 0));
+        $validated['total_packages'] = $rows->sum(fn($row) => (int) ($row['no_of_packages'] ?? 0));
 
         $validated['total_delivery_freight'] = $rows
-            ->filter(fn ($row) => $this->resolveDisposition((int) ($row['to_station_id'] ?? 0)) === 'delivery')
-            ->sum(fn ($row) => (float) ($row['freight'] ?? 0));
+            ->filter(fn($row) => $this->resolveDisposition((int) ($row['to_station_id'] ?? 0)) === 'delivery')
+            ->sum(fn($row) => (float) ($row['freight'] ?? 0));
 
         $validated['total_crossing_freight'] = $rows
-            ->filter(fn ($row) => $this->resolveDisposition((int) ($row['to_station_id'] ?? 0)) === 'forward')
-            ->sum(fn ($row) => (float) ($row['freight'] ?? 0));
+            ->filter(fn($row) => $this->resolveDisposition((int) ($row['to_station_id'] ?? 0)) === 'forward')
+            ->sum(fn($row) => (float) ($row['freight'] ?? 0));
     }
 
     private function syncDetails(InwardRegister $register, array $details): void
