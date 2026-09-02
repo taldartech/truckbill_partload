@@ -104,7 +104,7 @@
 
             <table class="bi-meta border-top border-bottom-none">
                 <tr>
-                    <td class="w-40">
+                    <td class="w-30" style="font-size:13px;">
                         <div>
                             <span class="lbl">Consignor:</span>
                             <span class="bi-party-name">{{ $bilty->consignor->name ?? '—' }}</span>
@@ -116,6 +116,10 @@
                             <span class="lbl">Mob:</span>
                             <span class="val">{{ $bilty->consignor->mobile ?? '' }}</span>
                         </div>
+                        <div><span class="lbl">From Station:</span> <span class="val">{{ $bilty->fromStation->name ?? '—' }}</span></div>
+
+                    </td>
+                    <td class="w-30" style="font-size:13px;">
                         <div style="margin-top:3px;">
                             <span class="lbl">Consignee:</span>
                             <span class="bi-party-name">{{ $bilty->consignee->name ?? '—' }}</span>
@@ -127,13 +131,10 @@
                             <span class="lbl">Mob:</span>
                             <span class="val">{{ $bilty->consignee->mobile ?? '' }}</span>
                         </div>
-                    </td>
-                    <td class="w-30" style="font-size:13px;">
-                        <div><span class="lbl">From Station:</span> <span class="val">{{ $bilty->fromStation->name ?? '—' }}</span></div>
                         <div><span class="lbl">To Station:</span> <span class="val">{{ $bilty->toStation->name ?? '—' }}</span></div>
                     </td>
                     <td class="w-30" style="font-size:13px;">
-                        <div><span class="lbl">Bilty No:</span> <span class="val" style="font-size:15px;font-weight:bold;">{{ $bilty->bilty_number ?? '—' }}</span></div>
+                        <div><span class="lbl">Bilty No:</span> <span class="val" style="font-size:16px;font-weight:bold;">{{ $bilty->bilty_number ?? '—' }}</span></div>
                         <div><span class="lbl">Date:</span> <span class="val">{{ $bilty->date ? date('d-M-Y', strtotime($bilty->date)) : '—' }}</span></div>
                     </td>
                 </tr>
@@ -168,6 +169,7 @@
                                 $detail = $itemRows[$rowIndex] ?? null;
                                 $charge = $chargeRows[$rowIndex] ?? null;
                             @endphp
+                            @if ($showAmount || $rowIndex === 0)
                             <tr>
                                 <td class="{{ $detail ? '' : 'bi-item-blank' }}">{{ $detail['good'] ?? '' }}</td>
                                 <td class="text-right {{ $detail ? '' : 'bi-item-blank' }}">{{ $detail ? $formatQty($detail['no_of_packages']) : '' }}</td>
@@ -179,6 +181,7 @@
                                     @endif
                                 </td>
                             </tr>
+                            @endif
                         @endfor
                         <tr class="bi-fill">
                             <td class="bi-item-blank"></td>
@@ -226,7 +229,7 @@
                 <tr>
                     <td style="width: 30%;">
                         <span class="lbl">Delivery At:</span>
-                        <span class="val">{{ $bilty->delivery_at ?: '—' }}</span>
+                        <span class="val" style="font-weight: 600; font-size:15px">{{ $bilty->delivery_at ?: '—' }}</span>
                     </td>
                     <td colspan="2">
                         <span class="lbl">E-Way Bill:</span>
