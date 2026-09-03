@@ -16,7 +16,7 @@
                             <div class="bilty-id">
                                 <div class="bilty-id__field">
                                     <span class="bilty-id__label">Inward No.</span>
-                                    <input ref="challanNumberInput" type="text" class="form-control form-control-sm" v-model="form.challan_number">
+                                    <input ref="challanNumberInput" type="text" class="form-control form-control-sm" v-model="form.inward_register_no">
                                 </div>
                                 <div class="bilty-id__field">
                                     <span class="bilty-id__label">Date<span class="bilty-field__req">*</span></span>
@@ -471,10 +471,10 @@ const confirmSave = () => {
     });
 };
 
-const challanNumberInput = ref(null);
+const inwardNumberInput = ref(null);
 
 onMounted(async () => {
     await nextTick();
-    challanNumberInput.value?.focus();
+    inwardNumberInput.value?.focus();
 });
 </script>

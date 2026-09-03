@@ -114,6 +114,7 @@ const props = defineProps({
     vendors: Array,
     agents: Array,
     bankAccounts: Array,
+    next_voucher_number: String,
 });
 
 const http = useHttp({
@@ -124,7 +125,7 @@ const outstanding = ref(null);
 
 const form = useForm({
     date: new Date().toISOString().substr(0, 10),
-    voucher_number: '',
+    voucher_number: props.next_voucher_number || '',
     voucher_type: 'Payment',
     accountable_type: 'party',
     accountable_id: '',

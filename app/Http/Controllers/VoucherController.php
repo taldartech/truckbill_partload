@@ -73,7 +73,7 @@ class VoucherController extends Controller implements HasMiddleware
 
     public function create()
     {
-        return Inertia::render('Vouchers/Create', $this->formOptions());
+         return Inertia::render('Vouchers/Create', array_merge($this->formOptions(), ['next_voucher_number' => $this->nextVoucherNumber(),]));
     }
 
     public function show(Voucher $voucher)
@@ -208,7 +208,13 @@ class VoucherController extends Controller implements HasMiddleware
             'outstanding' => $balances->outstanding($entity),
         ]);
     }
-
+    private function nextVoucherNumber(): string
+    {
+        return \App\Support\DocumentNumber::next(
+            Voucher::query(),
+            'voucher_number',
+        );
+    }
     /**
      * @return array<string, mixed>
      */

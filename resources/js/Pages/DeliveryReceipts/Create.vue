@@ -255,6 +255,7 @@ const props = defineProps({
         type: Number,
         default: 0,
     },
+    next_delivery_receipt_no: String,
 });
 
 const partyOptions = ref([...(props.parties || [])]);
@@ -271,7 +272,7 @@ const modeOfPaymentEl = ref(null);
 const grOptions = computed(() => props.gr_sources ?? []);
 
 const form = useForm({
-    delivery_receipt_no: '',
+    delivery_receipt_no: props.next_delivery_receipt_no || '',
     date: new Date().toISOString().substr(0, 10),
     gr_no_bilty_no: '',
     mode_of_payment: '',
