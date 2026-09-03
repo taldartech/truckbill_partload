@@ -44,6 +44,7 @@
                             option below to open the form.
                         </p>
                         <div class="shortcut-list">
+                         <template v-if="!showNormalShortcuts">
                             <!-- Bilty -->
                             <button
                                 v-if="canCreateBilty"
@@ -145,6 +146,7 @@
                                 </span>
                                 <span class="shortcut-item-badge">F10</span>
                             </button>
+                         </template>
                             <button
                                 class="shortcut-item"
                                 @click="closeShortcutModal"
@@ -441,6 +443,9 @@ const handleEnterAsTab = async (event) => {
         }
     }
 };
+const showNormalShortcuts = computed(() => {
+    return !page.props.auth?.is_acting_as_admin;
+});
 // toggle shortcut model
 const quickAction = () => {
      isShortcutModalOpen.value = !isShortcutModalOpen.value;
