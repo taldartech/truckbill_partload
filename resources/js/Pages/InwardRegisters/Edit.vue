@@ -15,13 +15,13 @@
                         <div class="bilty-section__head-right">
                             <div class="bilty-id">
                                 <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Inward No.</span>
+                                    <input type="text" class="form-control form-control-sm" v-model="form.inward_register_no">
+                                </div>
+                                <div class="bilty-id__field">
                                     <span class="bilty-id__label">Date<span class="bilty-field__req">*</span></span>
                                     <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date">
                                     <div v-if="form.errors.date" class="text-danger small mt-1">{{ form.errors.date }}</div>
-                                </div>
-                                <div class="bilty-id__field">
-                                    <span class="bilty-id__label">Inward No.</span>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.inward_register_no">
                                 </div>
                             </div>
                         </div>
