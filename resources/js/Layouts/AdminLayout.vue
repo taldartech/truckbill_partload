@@ -218,7 +218,6 @@ const isShortcutModalOpen = ref(false);
 const {
     openQuickAdd,
     activeField,
-    isOpen: isMasterQuickAddOpen,
 } = useMasterQuickAdd();
 
 watch(isShortcutModalOpen, (shortcutOpen) => {
@@ -469,12 +468,10 @@ const handleKeyDown = (event) => {
         return;
     }
 
-    // F3 -> quick add for focused master select (disabled while quick-add modal is open)
+    // F3 -> quick add for focused master select (supports nested F3 inside an open modal)
     if (event.key === "F3") {
         event.preventDefault();
-        if (!isMasterQuickAddOpen.value) {
-            tryOpenMasterQuickAdd();
-        }
+        tryOpenMasterQuickAdd();
         return;
     }
 
