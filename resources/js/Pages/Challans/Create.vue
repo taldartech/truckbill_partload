@@ -16,8 +16,8 @@
                             <div class="bilty-id">
                                 <div class="bilty-id__field">
                                     <span class="bilty-id__label">Challan Number</span>
-                                    <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.challan_number }" v-model="form.challan_number">
-                                    <div v-if="form.errors.challan_number" class="text-danger small mt-1">{{ form.errors.challan_number }}</div>
+                                    <input type="text" ref="challanNumberInput" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.challan_number }" v-model="form.challan_number">
+                                    <div v-if="form.errors.challan_number"  class="text-danger small mt-1">{{ form.errors.challan_number }}</div>
                                 </div>
                                 <div class="bilty-id__field">
                                     <span class="bilty-id__label">Date</span>
@@ -326,7 +326,7 @@ import { useFormConfirm } from '@/composables/useFormConfirm';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { computed, ref, watch, nextTick } from 'vue';
+import { computed, ref, watch, nextTick, onMounted } from 'vue';
 import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const fetch_station_id = ref('');
@@ -819,4 +819,10 @@ const submitChallan = (printAfterSave = false) => {
 
 const confirmSave = () => submitChallan(false);
 const confirmSaveAndPrint = () => submitChallan(true);
+const challanNumberInput = ref(null);
+
+onMounted(async () => {
+    await nextTick();
+    challanNumberInput.value?.focus();
+});
 </script>

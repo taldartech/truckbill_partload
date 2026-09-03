@@ -15,13 +15,13 @@
                         <div class="bilty-section__head-right">
                             <div class="bilty-id">
                                 <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Inward No.</span>
+                                    <input ref="challanNumberInput" type="text" class="form-control form-control-sm" v-model="form.challan_number">
+                                </div>
+                                <div class="bilty-id__field">
                                     <span class="bilty-id__label">Date<span class="bilty-field__req">*</span></span>
                                     <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date">
                                     <div v-if="form.errors.date" class="text-danger small mt-1">{{ form.errors.date }}</div>
-                                </div>
-                                <div class="bilty-id__field">
-                                    <span class="bilty-id__label">Inward No.</span>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.inward_register_no">
                                 </div>
                             </div>
                         </div>
@@ -290,7 +290,7 @@ import InwardRegisterConfirmModal from '@/Components/FormConfirm/InwardRegisterC
 import { useFormConfirm } from '@/composables/useFormConfirm';
 import { useForm, Link, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 const page = usePage();
 const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
@@ -470,4 +470,11 @@ const confirmSave = () => {
         form.post('/inward-registers');
     });
 };
+
+const challanNumberInput = ref(null);
+
+onMounted(async () => {
+    await nextTick();
+    challanNumberInput.value?.focus();
+});
 </script>

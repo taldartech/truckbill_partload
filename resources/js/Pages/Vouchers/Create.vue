@@ -14,12 +14,12 @@
                         <div class="bilty-section__head-right">
                             <div class="bilty-id">
                                 <div class="bilty-id__field">
-                                    <span class="bilty-id__label">Date</span>
-                                    <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date" required>
+                                    <span class="bilty-id__label">Voucher No.<span class="bilty-field__req">*</span></span>
+                                    <input ref="voucherNumberInput" type="text" class="form-control form-control-sm" v-model="form.voucher_number" required>
                                 </div>
                                 <div class="bilty-id__field">
-                                    <span class="bilty-id__label">Voucher No.<span class="bilty-field__req">*</span></span>
-                                    <input type="text" class="form-control form-control-sm" v-model="form.voucher_number" required>
+                                    <span class="bilty-id__label">Date</span>
+                                    <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date" required>
                                 </div>
                             </div>
                         </div>
@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useForm, Link, useHttp } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
@@ -177,4 +177,11 @@ const submit = () => {
     }
     form.post('/vouchers');
 };
+
+const voucherNumberInput = ref(null);
+
+onMounted(async () => {
+    await nextTick();
+    voucherNumberInput.value?.focus();
+});
 </script>
