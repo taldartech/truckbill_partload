@@ -35,6 +35,16 @@
                                     <input type="text" class="form-control" v-model="form.inward_register_initial" placeholder="e.g. IR-">
                                     <div v-if="form.errors.inward_register_initial" class="text-danger small">{{ form.errors.inward_register_initial }}</div>
                                 </div>
+                                <div class="col-md-3 form-group mb-3">
+                                    <label>Delivery initial</label>
+                                    <input type="text" class="form-control" v-model="form.delivery_initial" placeholder="e.g. DI-">
+                                    <div v-if="form.errors.delivery_initial" class="text-danger small">{{ form.errors.delivery_initial }}</div>
+                                </div>
+                                <div class="col-md-3 form-group mb-3">
+                                    <label>Voucher Initial</label>
+                                    <input type="text" class="form-control" v-model="form.voucher_initial" placeholder="e.g. VI-">
+                                    <div v-if="form.errors.voucher_initial" class="text-danger small">{{ form.errors.voucher_initial }}</div>
+                                </div>
                             </div>
 
                             <h5 class="text-primary border-bottom pb-2 mb-3 mt-3">Bilty Print Settings</h5>
@@ -116,6 +126,8 @@ const form = useForm({
     main_challan_initial: props.settings.main_challan_initial ?? '',
     invoice_initial: props.settings.invoice_initial ?? '',
     inward_register_initial: props.settings.inward_register_initial ?? '',
+    voucher_initial: props.settings.voucher_initial ?? '',
+    delivery_initial: props.settings.delivery_initial ?? '',
     bilty_print_config: resolveBiltyPrintConfig(props.settings.bilty_print_config),
 });
 
