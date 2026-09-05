@@ -363,32 +363,6 @@
     margin-left: auto !important;
 }
 
-/* Default widths for filter inputs */
-.app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
-.app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
-.app-index-filters-fields > div {
-    flex: 0 0 180px !important;
-    width: 180px !important;
-}
-
-
-
-/* Wider columns for search inputs */
-.app-index-collapsible-filters__inner > div:has(.app-index-search),
-.app-report-filters-panel__inner > div:has(.app-index-search),
-.app-index-filters-fields > div:has(.app-index-search) {
-    flex: 0 0 280px !important;
-    width: 280px !important;
-}
-
-/* Wider columns for date range pickers */
-.app-index-collapsible-filters__inner > div:has(.dashboard-date-range),
-.app-report-filters-panel__inner > div:has(.dashboard-date-range),
-.app-index-filters-fields > div:has(.dashboard-date-range) {
-    flex: 0 0 260px !important;
-    width: 260px !important;
-}
-
 /* Ensure uniform heights and sizes for all filter controls and buttons globally */
 .app-index-collapsible-filters__inner .form-control,
 .app-index-collapsible-filters__inner .form-select,

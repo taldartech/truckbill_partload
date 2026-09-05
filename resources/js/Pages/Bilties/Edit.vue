@@ -164,7 +164,7 @@
                     </div>
                     <div class="bilty-section__body bilty-section__body--flush">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-sm m-0 table-grid" data-dynamic-add-message="Do you want to add another item?">
+                            <table class="table table-bordered table-sm m-0 table-grid" style="min-width: 1000px;" data-dynamic-add-message="Do you want to add another item?">
                                 <thead class="bg-light">
                                     <tr>
                                         <th width="5%" class="text-center">Sr.No.</th>
@@ -217,12 +217,8 @@
                                             <div v-if="detailError(index, 'charged_weight')" class="text-danger small">{{ detailError(index, 'charged_weight') }}</div>
                                         </td>
                                         <td>
-                                            <select class="form-select form-select-sm bilty-rate-type-select" :class="{ 'is-invalid': detailError(index, 'rate_type') }" v-model="detail.rate_type" @change="calculateGridRow(index)">
-                                                <option value="Fixed">Fixed</option>
-                                                <option value="Per Actual Weight">Per Actual Weight</option>
-                                                <option value="Per Charged Weight">Per Charged Weight</option>
-                                                <option value="Per Package">Per Package</option>
-                                            </select>
+                                            <SearchableSelect v-model="detail.rate_type" :options="rateTypeOptions"
+                                                placeholder="Select Type" :small="true" class="rate-type-select" />
                                             <div v-if="detailError(index, 'rate_type')" class="text-danger small">{{ detailError(index, 'rate_type') }}</div>
                                         </td>
                                         <td>
@@ -253,16 +249,15 @@
                                             </button>
                                         </td>
                                     </tr>
-                                    <tr>
-                                        <td colspan="10" class="bg-light p-1 text-center">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addRow">
-                                                <i class="fas fa-plus"></i> Add Row
-                                            </button>
-                                            <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
+                        </div>
+                                                <div class="text-center bg-light p-1">
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addRow">
+                                <i class="fas fa-plus"></i> Add Row
+                            </button>
+                            <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -365,9 +360,9 @@
                                                 <div
                                                     v-for="(charge, index) in form.addon_charges"
                                                     :key="index"
-                                                    class="bilty-addon-row dynamic-row"
+                                                    class="row g-2 align-items-center"
                                                 >
-                                                    <div class="bilty-addon-row__field">
+                                                    <div class="col-12 col-md-6">
                                                         <input
                                                             type="text"
                                                             class="form-control form-control-sm"
@@ -376,7 +371,7 @@
                                                             @input="calculateFinalTotal"
                                                         >
                                                     </div>
-                                                    <div class="bilty-addon-row__field">
+                                                    <div  class="col-10 col-md-4">
                                                         <input
                                                             type="number"
                                                             min="0"
@@ -387,7 +382,7 @@
                                                             @input="calculateFinalTotal"
                                                         >
                                                     </div>
-                                                    <div class="bilty-addon-row__action">
+                                                    <div class="col-2 col-md-2 text-center">
                                                         <button
                                                             type="button"
                                                             class="btn btn-sm btn-outline-danger bilty-addon-remove"
@@ -1068,5 +1063,11 @@ const clearForm = () => {
 };
 
 const detailError = (index, field) => form.errors[`details.${index}.${field}`];
+const rateTypeOptions = [
+    { id: 'Fixed', name: 'Fixed' },
+    { id: 'Per Actual Weight', name: 'Per Actual Weight' },
+    { id: 'Per Charged Weight', name: 'Per Charged Weight' },
+    { id: 'Per Package', name: 'Per Package' },
+];
 </script>
 

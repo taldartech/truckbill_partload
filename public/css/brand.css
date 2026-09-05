@@ -90,7 +90,33 @@
     --brand-glass-border: rgba(255, 255, 255, 0.4);
     --brand-glass-blur: 10px;
 }
+/* Tablet */
+@media (max-width: 991.98px) {
+    :root {
+        --app-font-size-body: 0.9375rem;
+        --app-font-size-page-title: 1rem;
+        --app-font-size-section-title: 0.9375rem;
+        --app-font-size-label: 0.8125rem;
+        --app-font-size-input: 0.875rem;
+        --app-font-size-meta: 0.75rem;
+        --app-font-size-table: 0.875rem;
+        --app-font-size-table-head: 0.8125rem;
+    }
+}
 
+/* Mobile */
+@media (max-width: 575.98px) {
+    :root {
+        --app-font-size-body: 0.875rem;
+        --app-font-size-page-title: 0.9375rem;
+        --app-font-size-section-title: 0.875rem;
+        --app-font-size-label: 0.75rem;
+        --app-font-size-input: 0.8125rem;
+        --app-font-size-meta: 0.6875rem;
+        --app-font-size-table: 0.8125rem;
+        --app-font-size-table-head: 0.75rem;
+    }
+}
 body {
     color: var(--brand-text-primary);
     background-color: var(--brand-bg);

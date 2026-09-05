@@ -586,6 +586,7 @@ defineExpose({ focusOpen, focusTrigger });
     font-size: var(--app-font-size-input);
     font-weight: var(--form-input-weight);
     color: var(--form-input-color);
+    padding-right: 2.25rem;
 }
 
 .searchable-select__trigger:disabled,
