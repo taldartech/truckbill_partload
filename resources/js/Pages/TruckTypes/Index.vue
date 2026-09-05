@@ -39,7 +39,7 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end" v-if="can('delete truck_types') || can('edit truck_types')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -50,12 +50,12 @@
                                             {{ type.name }}
                                         </Link>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end" v-if="can('delete truck_types') || can('edit truck_types')">
                                         <button type="button" class="btn btn-edit btn-sm me-2" @click="editType(type)">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="fas fa-edit" v-if="can('edit truck_types')"></i>
                                         </button>
-                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteType(type.id)">
-                                            <i class="fas fa-trash"></i>
+                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteType(type)">
+                                            <i class="fas fa-trash" v-if="can('delete truck_types')"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -100,13 +100,17 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Link, useForm, router } from '@inertiajs/vue3';
+import { Link, useForm, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
-
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
+const page = usePage();
+const can = (permission) => {
+    return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
+};
 const props = defineProps({
     truckTypes: Object,
     filters: {
@@ -165,9 +169,19 @@ const submit = () => {
     }
 };
 
-const deleteType = (id) => {
-    if (confirm('Are you sure you want to delete this truck type?')) {
-        router.delete(`/truck-types/${id}`);
-    }
+const deleteType = async (truckType) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this truck type?
+
+Truck Type : ${truckType.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/truck-types/${truckType.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

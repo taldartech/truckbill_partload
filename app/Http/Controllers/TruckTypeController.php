@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class TruckTypeController extends Controller implements HasMiddleware
@@ -90,6 +91,10 @@ class TruckTypeController extends Controller implements HasMiddleware
 
     public function destroy(TruckType $truckType)
     {
+        $truckType->update([
+            'delete_remark' => request('delete_remark'),
+            'deleted_by' => Auth::id(),
+        ]);
         $truckType->delete();
 
         return redirect()->route('truck-types.index')->with('success', 'Truck type deleted successfully.');

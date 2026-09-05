@@ -132,7 +132,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatMoney, formatQty, formatDate, formatDateTime } from '@/utils/showFormatters';
-
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     main_challan: {
         type: Object,
@@ -164,7 +164,6 @@ const mainChallanFields = computed(() => ([
     { label: 'To Station', value: props.main_challan.to_station?.name },
     { label: 'Truck Number', value: props.main_challan.truck?.truck_number },
     { label: 'Driver', value: props.main_challan.driver_name },
-    { label: 'Pay By', value: props.main_challan.pay_by },
     { label: 'Remark', value: props.main_challan.remark },
 ]));
 
@@ -218,11 +217,28 @@ const printMainChallan = () => {
     window.open(`/main-challans/${props.main_challan.id}/print`, '_blank');
 };
 
-const deleteMainChallan = () => {
-    if (!window.confirm('Are you sure you want to delete this main challan?')) {
+const deleteMainChallan = async () => {
+    const challan = props.main_challan;
+
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this challan?
+
+Challan    : ${challan.main_challan_number}
+Date       : ${formatDate(challan.date)}
+Truck      : ${challan.truck?.truck_number || '—'}
+
+From       : ${challan.from_station?.name || '—'}
+To         : ${challan.to_station?.name || '—'}`
+    );
+
+    if (!remark) {
         return;
     }
 
-    router.delete(`/main-challans/${props.main_challan.id}`);
+    router.delete(`/main-challans/${challan.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

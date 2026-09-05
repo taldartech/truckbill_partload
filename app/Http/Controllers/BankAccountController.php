@@ -7,6 +7,7 @@ use App\Services\Accounting\LedgerAccountResolver;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -97,6 +98,9 @@ class BankAccountController extends Controller implements HasMiddleware
 
     public function destroy(BankAccount $bankAccount)
     {
+        $bankAccount->update([
+            'delete_remark' => request('delete_remark'),
+            'deleted_by' => Auth::id(), ]);
         $bankAccount->delete();
 
         return redirect()->route('bank-accounts.index')->with('success', 'Bank account deleted successfully.');

@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class PartyController extends Controller implements HasMiddleware
@@ -153,6 +154,10 @@ class PartyController extends Controller implements HasMiddleware
 
     public function destroy(Party $party)
     {
+        $party->update([
+            'delete_remark' => request('delete_remark'),
+            'deleted_by' => Auth::id(),
+        ]);
         $party->delete();
 
         return redirect()->route('parties.index')->with('success', 'Party deleted successfully.');

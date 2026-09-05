@@ -39,7 +39,7 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end" v-if="can('edit goods') || can('delete goods')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -50,11 +50,11 @@
                                             {{ item.name }}
                                         </Link>
                                     </td>
-                                    <td class="text-end">
-                                        <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)">
+                                    <td class="text-end" v-if="can('edit goods') || can('delete goods')">
+                                        <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)" v-if="can('edit goods')">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item.id)">
+                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item)" v-if="can('delete goods')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -100,12 +100,18 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Link, useForm, router } from '@inertiajs/vue3';
+import { Link, useForm, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
+
+const page = usePage();
+const can = (permission) => {
+    return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
+};
 
 const props = defineProps({
     items: Object,
@@ -165,9 +171,19 @@ const submit = () => {
     }
 };
 
-const deleteItem = (id) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-        router.delete(`/goods/${id}`);
-    }
+const deleteItem = async (good) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this item?
+
+Item : ${good.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/goods/${good.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

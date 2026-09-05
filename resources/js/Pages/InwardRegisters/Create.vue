@@ -13,15 +13,16 @@
                             </div>
                         </div>
                         <div class="bilty-section__head-right">
-                            <div class="bilty-id">
+                            <div class="bilty-id align-items-start">
                                 <div class="bilty-id__field">
                                     <span class="bilty-id__label">Date<span class="bilty-field__req">*</span></span>
                                     <input type="date" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.date }" v-model="form.date">
                                     <div v-if="form.errors.date" class="text-danger small mt-1">{{ form.errors.date }}</div>
                                 </div>
                                 <div class="bilty-id__field">
-                                    <span class="bilty-id__label">Inward No.</span>
+                                    <span class="bilty-id__label">Inward No.<span class="bilty-field__req">*</span></span>
                                     <input type="text" class="form-control form-control-sm" v-model="form.inward_register_no">
+                                    <div v-if="form.errors.inward_register_no" class="text-danger small mt-1">{{ form.errors.inward_register_no }}</div>
                                 </div>
                             </div>
                         </div>
@@ -39,20 +40,24 @@
                                 <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Challan No.</label>
-                                <input type="text" class="form-control form-control-sm" v-model="form.challan_number">
+                                <label class="bilty-field__label">Challan No.<span class="bilty-field__req">*</span></label>
+                                <input type="text" class="form-control form-control-sm" v-model="form.challan_number" placeholder="Enter Challan No">
+                                <div v-if="form.errors.challan_number" class="text-danger small mt-1">{{ form.errors.challan_number }}</div>
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Challan Date</label>
+                                <label class="bilty-field__label">Challan Date<span class="bilty-field__req">*</span></label>
                                 <input type="date" class="form-control form-control-sm" v-model="form.challan_date">
+                                <div v-if="form.errors.challan_date" class="text-danger small mt-1">{{ form.errors.challan_date }}</div>
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Truck No.</label>
+                                <label class="bilty-field__label">Truck No.<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect :small="true" v-model="form.truck_id" :options="truckOptions" master="truck" placeholder="Select Truck" @created="(record) => appendMasterOption(truckOptions, record)" />
+                                <div v-if="form.errors.truck_id" class="text-danger small mt-1">{{ form.errors.truck_id }}</div>
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Driver</label>
+                                <label class="bilty-field__label">Driver<span class="bilty-field__req">*</span></label>
                                 <input type="text" class="form-control form-control-sm" v-model="form.driver_name" placeholder="Enter Driver Name">
+                                <div v-if="form.errors.driver_name" class="text-danger small mt-1">{{ form.errors.driver_name }}</div>
                             </div>
                         </div>
                     </div>
@@ -76,54 +81,63 @@
                         <p class="small text-uppercase fw-bold text-muted mb-2">Goods Receipt</p>
                         <div class="bilty-form-grid bilty-form-grid--3">
                             <div class="bilty-field">
-                                <label class="bilty-field__label">G.R. No.</label>
+                                <label class="bilty-field__label">G.R. No.<span class="bilty-field__req">*</span></label>
                                 <input type="text" class="form-control form-control-sm" v-model="entry.gr_no" placeholder="Enter G.R. number">
+                                <div v-if="entryErrors.gr_no" class="text-danger small mt-1">{{ entryErrors.gr_no }}</div>
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Date</label>
+                                <label class="bilty-field__label">Date<span class="bilty-field__req">*</span></label>
                                 <input type="date" class="form-control form-control-sm" v-model="entry.date">
+                                <div v-if="entryErrors.date" class="text-danger small mt-1">{{ entryErrors.date }}</div>
                             </div>
                         </div>
 
                         <p class="small text-uppercase fw-bold text-muted mb-2 mt-3">Route &amp; Parties</p>
                         <div class="bilty-form-grid bilty-form-grid--4">
                             <div class="bilty-field">
-                                <label class="bilty-field__label">From Station</label>
+                                <label class="bilty-field__label">From Station<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect :small="true" v-model="entry.from_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
+                                <div v-if="entryErrors.from_station_id" class="text-danger small mt-1">{{ entryErrors.from_station_id }}</div>
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">To Station<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect :small="true" v-model="entry.to_station_id" :options="stationOptions" master="station" placeholder="Select Station" @created="(record) => appendMasterOption(stationOptions, record)" />
+                                <div v-if="entryErrors.to_station_id" class="text-danger small mt-1">{{ entryErrors.to_station_id }}</div>
                                 <span v-if="entry.to_station_id" class="badge mt-1" :class="dispositionBadgeClass(rowDisposition(entry))">
                                     {{ formatDisposition(rowDisposition(entry)) }}
                                 </span>
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Consignor</label>
+                                <label class="bilty-field__label">Consignor<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect :small="true" v-model="entry.consignor_id" :options="partyOptions" master="party" placeholder="Select Consignor" @created="(record) => appendMasterOption(partyOptions, record)" />
+                                <div v-if="entryErrors.consignor_id" class="text-danger small mt-1">{{ entryErrors.consignor_id }}</div>
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Consignee</label>
+                                <label class="bilty-field__label">Consignee<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect :small="true" v-model="entry.consignee_id" :options="partyOptions" master="party" placeholder="Select Consignee" @created="(record) => appendMasterOption(partyOptions, record)" />
+                                <div v-if="entryErrors.consignee_id" class="text-danger small mt-1">{{ entryErrors.consignee_id }}</div>
                             </div>
                         </div>
 
                         <p class="small text-uppercase fw-bold text-muted mb-2 mt-3">Package &amp; Freight</p>
                         <div class="bilty-form-grid bilty-form-grid--4">
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Goods Name</label>
+                                <label class="bilty-field__label">Goods Name<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect :small="true" v-model="entry.good_id" :options="goodOptions" master="good" placeholder="Select Goods" @created="(record) => appendMasterOption(goodOptions, record)" />
+                                <div v-if="entryErrors.good_id" class="text-danger small mt-1">{{ entryErrors.good_id }}</div>
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">No. of Pkg.</label>
-                                <input type="number" class="form-control form-control-sm" v-model="entry.no_of_packages" placeholder="0">
+                                <label class="bilty-field__label">No. of Pkg.<span class="bilty-field__req">*</span></label>
+                                <input type="number" class="form-control form-control-sm" v-model="entry.no_of_packages" @keydown="preventLetters" placeholder="0">
+                                <div v-if="entryErrors.no_of_packages" class="text-danger small mt-1">{{ entryErrors.no_of_packages }}</div>
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Weight (Kg)</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.weight" placeholder="0.00">
+                                <label class="bilty-field__label">Weight (Kg)<span class="bilty-field__req">*</span></label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.weight" @keydown="preventLetters" placeholder="0.00">
+                                <div v-if="entryErrors.weight" class="text-danger small mt-1">{{ entryErrors.weight }}</div>
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Basis of Booking</label>
+                                <label class="bilty-field__label">Basis of Booking<span class="bilty-field__req">*</span></label>
                                 <select class="form-select form-select-sm" v-model="entry.basis_of_booking">
                                     <option value="">Select basis</option>
                                     <option value="To Pay">To Pay</option>
@@ -131,24 +145,27 @@
                                     <option value="TBB">TBB</option>
                                     <option value="FOC">FOC</option>
                                 </select>
+                                <div v-if="entryErrors.basis_of_booking" class="text-danger small mt-1">{{ entryErrors.basis_of_booking }}</div>
                             </div>
                         </div>
                         <div class="bilty-form-grid bilty-form-grid--4 mt-0">
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Freight</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.freight" placeholder="0.00">
+                                <label class="bilty-field__label">Freight<span class="bilty-field__req">*</span></label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.freight" @keydown="preventLetters" placeholder="0.00">
+                                <div v-if="entryErrors.freight" class="text-danger small mt-1">{{ entryErrors.freight }}</div>
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Home Delivery Charge</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.home_delivery_charge" placeholder="0.00">
+                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.home_delivery_charge" @keydown="preventLetters" placeholder="0.00">
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Private Marka</label>
                                 <input type="text" class="form-control form-control-sm" v-model="entry.private_marka" placeholder="Enter marka">
                             </div>
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Agent</label>
+                                <label class="bilty-field__label">Agent<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect :small="true" v-model="entry.agent_id" :options="agentOptions" master="agent" placeholder="Select Agent" @created="(record) => appendMasterOption(agentOptions, record)" />
+                                <div v-if="entryErrors.agent_id" class="text-danger small mt-1">{{ entryErrors.agent_id }}</div>
                             </div>
                         </div>
 
@@ -337,6 +354,7 @@ const emptyEntry = () => ({
 });
 
 const entry = ref(emptyEntry());
+const entryErrors = ref({});
 
 const form = useForm({
     inward_register_no: props.next_inward_register_no || '',
@@ -394,6 +412,7 @@ const totalCrossingFreight = computed(() => form.details
 
 const clearEntry = () => {
     entry.value = emptyEntry();
+    entryErrors.value = {};
     editingRowIndex.value = null;
 };
 
@@ -416,13 +435,31 @@ const loadSelectedEntry = () => {
 };
 
 const confirmEntry = () => {
-    if (!entry.value.gr_no && !entry.value.good_id) {
-        alert('Please enter G.R. No. or select Goods Name.');
-        return;
-    }
+    entry.value.home_delivery_charge = entry.value.home_delivery_charge || 0;
+    entryErrors.value = {};
 
-    if (!entry.value.to_station_id) {
-        alert('Please select To Station for this entry.');
+    const requiredFields = {
+        gr_no: 'G.R. No.',
+        date: 'Date',
+        from_station_id: 'From Station',
+        to_station_id: 'To Station',
+        consignor_id: 'Consignor',
+        consignee_id: 'Consignee',
+        good_id: 'Goods Name',
+        no_of_packages: 'No. of Packages',
+        weight: 'Weight',
+        basis_of_booking: 'Basis of Booking',
+        freight: 'Freight',
+        agent_id: 'Agent',
+    };
+
+    Object.entries(requiredFields).forEach(([field, label]) => {
+        if (!entry.value[field]) {
+            entryErrors.value[field] = `${label} is required.`;
+        }
+    });
+
+    if (Object.keys(entryErrors.value).length) {
         return;
     }
 
@@ -430,7 +467,6 @@ const confirmEntry = () => {
 
     if (editingRowIndex.value !== null) {
         form.details[editingRowIndex.value] = row;
-        editingRowIndex.value = null;
     } else {
         form.details.push(row);
     }
@@ -460,6 +496,12 @@ const confirmTotals = computed(() => ({
 
 const submit = () => {
     openConfirm();
+};
+
+const preventLetters = (event) => {
+    if (/^[a-zA-Z]$/.test(event.key)) {
+        event.preventDefault();
+    }
 };
 
 const confirmSave = () => {

@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class PackageTypeController extends Controller implements HasMiddleware
@@ -90,6 +91,10 @@ class PackageTypeController extends Controller implements HasMiddleware
 
     public function destroy(PackageType $package_type)
     {
+        $package_type->update([
+            'delete_remark' => request('delete_remark'),
+            'deleted_by' => Auth::id(),
+        ]);
         $package_type->delete();
 
         return redirect()->route('package-types.index')->with('success', 'Package Types deleted successfully.');

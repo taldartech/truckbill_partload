@@ -103,6 +103,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     branch: {
@@ -153,11 +154,22 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.branch.updated_at) },
 ]));
 
-const deleteBranch = () => {
-    if (!window.confirm('Are you sure you want to delete this branch?')) {
-        return;
-    }
+const deleteBranch = async () => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this branch?
 
-    router.delete(`/branches/${props.branch.id}`);
+Branch  : ${props.branch.name || '—'}
+Station : ${props.branch.station?.name || '—'}
+City    : ${props.branch.city?.name || '—'}
+Type    : ${props.branch.is_head_office ? 'Head Office' : 'Branch'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/branches/${props.branch.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

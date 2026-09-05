@@ -280,9 +280,9 @@ class ChallanController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(Challan $challan, AccountingPoster $poster)
+    public function destroy(Request $request, Challan $challan, AccountingPoster $poster)
     {
-        DB::transaction(function () use ($challan, $poster) {
+        DB::transaction(function () use ($request, $challan, $poster) {
             $inwardIds = $challan->details()
                 ->whereNotNull('inward_register_detail_id')
                 ->pluck('inward_register_detail_id');
@@ -294,6 +294,10 @@ class ChallanController extends Controller implements HasMiddleware
             InwardRegisterDetail::whereIn('id', $inwardIds)->update(['status' => 'pending']);
             Bilty::whereIn('id', $biltyIds)->update(['status' => 'Pending']);
             $poster->clearReference($challan);
+            $challan->update([
+                'delete_remark' => $request->delete_remark,
+                'deleted_by' => Auth::id(),
+            ]);
             $challan->delete();
         });
 

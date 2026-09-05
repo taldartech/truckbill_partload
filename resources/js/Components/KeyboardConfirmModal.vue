@@ -1,36 +1,37 @@
 <template>
     <Transition name="fade">
         <div v-if="show" class="keyboard-confirm-overlay" @click.self="onNo">
-            <div
-                class="keyboard-confirm-card"
-                role="alertdialog"
-                aria-modal="true"
-                :aria-labelledby="titleId"
-            >
+            <div class="keyboard-confirm-card" role="alertdialog" aria-modal="true" :aria-labelledby="titleId">
                 <div class="keyboard-confirm-body">
                     <i class="fas fa-question-circle text-primary"></i>
-                    <p :id="titleId" class="keyboard-confirm-message">{{ message }}</p>
+
+                    <div class="flex-grow-1">
+                        <p :id="titleId" class="keyboard-confirm-message">{{ message }}</p>
+
+                        <div v-if="showRemark" class="keyboard-confirm-remark">
+                            <label for="delete-remark" class="form-label">
+                                Delete Remark <span class="text-danger">*</span>
+                            </label>
+
+                            <textarea id="delete-remark" v-model="remark" class="form-control" rows="3"
+                                placeholder="Enter reason for deletion..."></textarea>
+
+                        </div>
+                    </div>
                 </div>
+
                 <div class="keyboard-confirm-footer">
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary px-3"
-                        @click="onNo"
-                    >
+                    <button type="button" class="btn btn-sm btn-outline-secondary px-3" @click="onNo">
                         No
                         <span class="keyboard-confirm-kbd-group">
-                            <kbd>N</kbd>
+                            <kbd v-if="!showRemark">N</kbd>
                             <kbd>Esc</kbd>
                         </span>
                     </button>
-                    <button
-                        ref="yesButtonRef"
-                        type="button"
-                        class="btn btn-sm btn-primary px-3 fw-bold"
-                        @click="onYes"
-                    >
-                        Yes
-                        <span class="keyboard-confirm-kbd-group">
+
+                    <button ref="yesButtonRef" type="button" class="btn btn-sm btn-primary px-3 fw-bold" @click="onYes">
+                        {{ showRemark ? 'Delete' : 'Yes' }}
+                        <span v-if="!showRemark" class="keyboard-confirm-kbd-group">
                             <kbd>Y</kbd>
                             <kbd>Enter</kbd>
                         </span>
@@ -43,14 +44,31 @@
 
 <script setup>
 import { ref, watch, onUnmounted, nextTick } from 'vue';
-import { useKeyboardConfirm, confirmKeyboardPrompt, cancelKeyboardPrompt } from '@/composables/useKeyboardConfirm';
+import {
+    useKeyboardConfirm,
+    confirmKeyboardPrompt,
+    confirmKeyboardPromptWithRemark,
+    cancelKeyboardPrompt,
+} from '@/composables/useKeyboardConfirm';
 
-const { show, message } = useKeyboardConfirm();
+const {
+    show,
+    message,
+    showRemark,
+    remark,
+} = useKeyboardConfirm();
 
 const titleId = `keyboard-confirm-${Math.random().toString(36).slice(2, 9)}`;
 const yesButtonRef = ref(null);
 
-const onYes = () => confirmKeyboardPrompt();
+const onYes = () => {
+    if (showRemark.value) {
+        confirmKeyboardPromptWithRemark();
+    } else {
+        confirmKeyboardPrompt();
+    }
+};
+
 const onNo = () => cancelKeyboardPrompt();
 
 const handleKeydown = (event) => {
@@ -63,10 +81,24 @@ const handleKeydown = (event) => {
         return;
     }
 
-    if (event.key === 'Enter') {
+    if (showRemark.value) {
+        const target = event.target;
+
+        if (
+            target instanceof HTMLInputElement ||
+            target instanceof HTMLTextAreaElement ||
+            target instanceof HTMLSelectElement
+        ) {
+            return;
+        }
+
+        return;
+    }
+
+    if (event.key === 'n' || event.key === 'N') {
         event.preventDefault();
         event.stopImmediatePropagation();
-        onYes();
+        onNo();
         return;
     }
 
@@ -77,10 +109,10 @@ const handleKeydown = (event) => {
         return;
     }
 
-    if (event.key === 'n' || event.key === 'N') {
+    if (event.key === 'Enter') {
         event.preventDefault();
         event.stopImmediatePropagation();
-        onNo();
+        onYes();
     }
 };
 
@@ -89,7 +121,14 @@ watch(show, (open) => {
 
     if (open) {
         window.addEventListener('keydown', handleKeydown, true);
-        nextTick(() => yesButtonRef.value?.focus());
+
+        nextTick(() => {
+            if (showRemark.value) {
+                document.getElementById('delete-remark')?.focus();
+            } else {
+                yesButtonRef.value?.focus();
+            }
+        });
     } else {
         window.removeEventListener('keydown', handleKeydown, true);
     }
@@ -97,6 +136,7 @@ watch(show, (open) => {
 
 onUnmounted(() => {
     window.removeEventListener('keydown', handleKeydown, true);
+
     if (show.value) {
         document.body.style.overflow = '';
     }
@@ -141,7 +181,18 @@ onUnmounted(() => {
     font-size: 0.95rem;
     font-weight: 600;
     color: #0f172a;
+    white-space: pre-line;
     line-height: 1.45;
+}
+
+.keyboard-confirm-remark {
+    margin-top: 1rem;
+}
+
+.keyboard-confirm-remark .form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
 }
 
 .keyboard-confirm-footer {

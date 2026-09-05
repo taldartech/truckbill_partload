@@ -6,11 +6,13 @@ use App\Models\City;
 use App\Models\Company;
 use App\Models\Country;
 use App\Models\State;
+use App\Services\Accounting\EnsureCompanyLedgerAccounts;
 use App\Services\SubscriptionPricingService;
 use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class CompanyController extends Controller implements HasMiddleware
@@ -97,7 +99,7 @@ class CompanyController extends Controller implements HasMiddleware
 
         $company = Company::create($validated);
         $this->pricingService->createTrialSubscription($company);
-        app(\App\Services\Accounting\EnsureCompanyLedgerAccounts::class)->handle($company);
+        app(EnsureCompanyLedgerAccounts::class)->handle($company);
 
         return redirect()->route('companies.index')->with('success', 'Company created successfully.');
     }
@@ -171,9 +173,13 @@ class CompanyController extends Controller implements HasMiddleware
         return redirect()->route('companies.index')->with('success', 'Company updated successfully.');
     }
 
-    public function destroy(Company $company)
+    public function destroy(Request $request, Company $company)
     {
         $this->authorizeCompany($company);
+        $company->update([
+            'delete_remark' => $request->delete_remark,
+            'deleted_by' => Auth::id(),
+        ]);
         $company->delete();
 
         return redirect()->route('companies.index')->with('success', 'Company deleted successfully.');

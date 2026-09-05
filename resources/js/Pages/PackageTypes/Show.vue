@@ -69,6 +69,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     packageType: {
@@ -89,11 +90,20 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.packageType.updated_at) },
 ]));
 
-const deletePackageType = () => {
-    if (!window.confirm('Are you sure you want to delete this package type?')) {
-        return;
-    }
+const deletePackageType = async () => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this package type?
 
-    router.delete(`/package-types/${props.packageType.id}`);
+Package Type : ${props.packageType.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/package-types/${props.packageType.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>
+import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';

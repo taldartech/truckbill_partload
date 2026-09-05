@@ -30,7 +30,7 @@
                         </div>
                     </div>
                     <div class="bilty-section__body">
-                        <div class="bilty-form-grid bilty-form-grid--5">
+                        <div class="bilty-form-grid bilty-form-grid--4">
                             <div class="bilty-field">
                                 <label class="bilty-field__label">From Station<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect
@@ -55,18 +55,7 @@
                                 />
                                 <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
                             </div>
-                            <div class="bilty-field">
-                                <label class="bilty-field__label">Add For</label>
-                                <SearchableSelect
-                                    ref="fetchStationSelect"
-                                    :small="true"
-                                    v-model="fetch_station_id"
-                                    :options="destinationStationOptions"
-                                    placeholder="Select Station"
-                                    open-on-enter
-                                    @change="onFetchStationChange"
-                                />
-                            </div>
+                            
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Truck No.<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect
@@ -96,6 +85,20 @@
                             <div>
                                 <h2 class="bilty-section__title">Loading Items</h2>
                                 <p class="bilty-section__desc">Bilties and inward entries on this challan</p>
+                            </div>
+                        </div>
+                        <div class="bilty-section_head-right">
+                            <div class="bilty-field">
+                                <span class="bilty-id__label">Add For</span>
+                                <SearchableSelect
+                                    ref="fetchStationSelect"
+                                    :small="true"
+                                    v-model="fetch_station_id"
+                                    :options="destinationStationOptions"
+                                    placeholder="Select Station"
+                                    open-on-enter
+                                    @change="onFetchStationChange"
+                                />
                             </div>
                         </div>
                     </div>
@@ -701,8 +704,9 @@ const onFetchStationChange = () => {
 
     const success = fetchByStation();
     if (success) {
+        const isAll = fetch_station_id.value === 'all';
         fetch_station_id.value = '';
-
+        if (isAll) return;
         nextTick(() => {
             fetchStationSelect.value?.focusTrigger?.();
         });
