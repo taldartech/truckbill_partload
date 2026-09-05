@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class VendorController extends Controller implements HasMiddleware
@@ -123,6 +124,10 @@ class VendorController extends Controller implements HasMiddleware
 
     public function destroy(Vendor $vendor)
     {
+        $vendor->update([
+            'delete_remark' => request('delete_remark'),
+            'deleted_by' => Auth::id(),
+        ]);
         $vendor->delete();
 
         return redirect()->route('vendors.index')->with('success', 'Vendor deleted successfully.');

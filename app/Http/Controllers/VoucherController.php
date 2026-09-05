@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -185,14 +186,22 @@ class VoucherController extends Controller implements HasMiddleware
         return $redirect;
     }
 
-    public function destroy(Voucher $voucher, AccountingPoster $poster)
+    public function destroy(Request $request, Voucher $voucher, AccountingPoster $poster)
     {
-        DB::transaction(function () use ($voucher, $poster) {
+        DB::transaction(function () use ($request, $voucher, $poster) {
             $poster->clearReference($voucher);
+
+            $voucher->update([
+                'delete_remark' => $request->delete_remark,
+                'deleted_by' => Auth::id(),
+            ]);
+
             $voucher->delete();
         });
 
-        return redirect()->route('vouchers.index')->with('success', 'Voucher deleted successfully.');
+        return redirect()
+            ->route('vouchers.index')
+            ->with('success', 'Voucher deleted successfully.');
     }
 
     public function entityBalance(Request $request, EntityBalance $balances)

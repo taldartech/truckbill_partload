@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBranch;
+use App\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LoadingReport extends Model
 {
-    use \App\Traits\BelongsToBranch;
-    use \App\Traits\BelongsToCompany;
+    use BelongsToBranch;
+    use BelongsToCompany;
+    use SoftDeletes;
 
     protected $guarded = [];
 

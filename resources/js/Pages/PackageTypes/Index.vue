@@ -54,7 +54,7 @@
                                         <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)" v-if="can('edit package_types')">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item.id)" v-if="can('delete package_types')">
+                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item)" v-if="can('delete package_types')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -106,6 +106,7 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -169,9 +170,19 @@ const submit = () => {
     }
 };
 
-const deleteItem = (id) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-        router.delete(`/package-types/${id}`);
-    }
+const deleteItem = async (packageType) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this package type?
+
+Package Type : ${packageType.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/package-types/${packageType.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

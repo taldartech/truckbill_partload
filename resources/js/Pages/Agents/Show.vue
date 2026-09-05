@@ -77,6 +77,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     agent: {
@@ -109,11 +110,19 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.agent.updated_at) },
 ]));
 
-const deleteAgent = () => {
-    if (!window.confirm('Are you sure you want to delete this agent?')) {
-        return;
-    }
+const deleteAgent = async () => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this agent?
 
-    router.delete(`/agents/${props.agent.id}`);
+Agent : ${props.agent.name || '—'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/agents/${props.agent.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

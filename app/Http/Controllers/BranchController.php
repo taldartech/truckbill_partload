@@ -14,6 +14,7 @@ use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -211,9 +212,13 @@ class BranchController extends Controller implements HasMiddleware
         return redirect()->route('branches.index')->with('success', 'Branch updated successfully.');
     }
 
-    public function destroy(Branch $branch)
+    public function destroy(Request $request, Branch $branch)
     {
         $this->authorizeBranch($branch);
+        $branch->update([
+            'delete_remark' => $request->delete_remark,
+            'deleted_by' => Auth::id(),
+        ]);
         $branch->delete();
 
         return redirect()->route('branches.index')->with('success', 'Branch deleted successfully.');

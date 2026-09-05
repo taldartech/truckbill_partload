@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class GoodController extends Controller implements HasMiddleware
@@ -90,6 +91,10 @@ class GoodController extends Controller implements HasMiddleware
 
     public function destroy(Good $good)
     {
+        $good->update([
+            'delete_remark' => request('delete_remark'),
+            'deleted_by' => Auth::id(),
+        ]);
         $good->delete();
 
         return redirect()->route('goods.index')->with('success', 'Goods deleted successfully.');

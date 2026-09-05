@@ -108,7 +108,7 @@
                                         <Link :href="`/loading-reports/${report.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit loading_reports')" >
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteReport(report.id)" v-if="can('delete loading_reports')"  >
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteReport(report.id,report.date,report.truck?.truck_number,report.from_station?.name,report.to_station?.name)" v-if="can('delete loading_reports')"  >
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -139,7 +139,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
-
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const page = usePage();
 const can = (permission) => {
     return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
@@ -229,10 +229,26 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteReport = (id) => {
-    if (confirm('Are you sure you want to delete this loading report?')) {
-        deleteForm.delete(`/loading-reports/${id}`);
+const deleteReport = async (id, date, truck, fromStation, toStation) => {
+    const remark = await askKeyboardConfirmWithRemark(
+    `Are you sure you want to delete this loading report?
+
+Date       : ${date}
+Truck      : ${truck}
+
+From       : ${fromStation}
+To         : ${toStation}`
+);
+
+    if (!remark) {
+        return;
     }
+
+    router.delete(`/loading-reports/${id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>
 

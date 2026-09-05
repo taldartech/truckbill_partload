@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToBranch;
+use App\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Voucher extends Model
 {
-    use \App\Traits\BelongsToBranch;
-    use \App\Traits\BelongsToCompany;
+    use BelongsToBranch;
+    use BelongsToCompany;
+    use SoftDeletes;
 
     protected $guarded = [];
 

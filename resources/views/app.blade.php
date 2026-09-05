@@ -13,12 +13,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css">
 
-    <link href="/theme/dist/css/adminlte.css" rel="stylesheet">
-    <link href="{{ asset('css/brand.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/buttons.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/sidebar.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/partload-extensions.css') }}" rel="stylesheet">
-
+    <link href="{{ asset('theme/dist/css/adminlte.css') }}?v={{ config('app.asset_version') }}" rel="stylesheet">
+    <link href="{{ asset('css/brand.css') }}?v={{ config('app.asset_version') }}" rel="stylesheet">
+    <link href="{{ asset('css/buttons.css') }}?v={{ config('app.asset_version') }}" rel="stylesheet">
+    <link href="{{ asset('css/sidebar.css') }}?v={{ config('app.asset_version') }}" rel="stylesheet">
+    <link href="{{ asset('css/partload-extensions.css') }}?v={{ config('app.asset_version') }}" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/css/app-shell.css', 'resources/css/app-forms.css', 'resources/css/app-show.css', 'resources/js/app.js'])
     @inertiaHead
 </head>
@@ -28,6 +27,6 @@
     <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
-    <script src="/theme/dist/js/adminlte.min.js"></script>
+    <script src="{{ asset('theme/dist/js/adminlte.min.js') }}?v={{ config('app.asset_version') }}"></script>
 </body>
 </html>
