@@ -11,6 +11,7 @@ use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -134,9 +135,13 @@ class UserController extends Controller implements HasMiddleware
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
 
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
         $this->authorizeManagedUser($user);
+        $user->update([
+            'delete_remark' => $request->delete_remark,
+            'deleted_by' => Auth::id(),
+        ]);
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'User deleted successfully.');

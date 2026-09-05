@@ -72,7 +72,7 @@
                                             v-if="can('delete agents')"
                                             type="button"
                                             class="btn btn-sm btn-danger"
-                                            @click="deleteItem(agent.id)"
+                                            @click="deleteItem(agent)"
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -179,6 +179,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     agents: Object,
@@ -282,10 +283,20 @@ const submit = () => {
     });
 };
 
-const deleteItem = (id) => {
-    if (confirm('Are you sure you want to delete this agent?')) {
-        router.delete(`/agents/${id}`);
-    }
+const deleteItem = async (agent) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this agent?
+
+Agent : ${agent.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/agents/${agent.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 
 onMounted(() => {

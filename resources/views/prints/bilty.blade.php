@@ -57,19 +57,26 @@
         .val { font-weight: normal; }
         .bi-party-name { font-weight: bold; font-size: 12px; }
 
-        .bi-items-wrap { flex: 1 1 auto; min-height: 70px; display: flex; }
-        .bi-items-main { width: 70%; display: flex; flex-direction: column; }
-        .bi-charges-side { width: 30%; position: relative; display: flex; flex-direction: column; }
-        .bi-items,
-        .bi-charges {
+        .bi-grid-wrap {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+        }
+        .bi-grid {
             width: 100%;
             height: 100%;
             flex: 1 1 auto;
             border-collapse: collapse;
             table-layout: fixed;
         }
-        .bi-items thead th,
-        .bi-charges thead th {
+        .bi-col-item { width: 40%; }
+        .bi-col-pkg { width: 10.5%; }
+        .bi-col-wt { width: 10.5%; }
+        .bi-col-chg { width: 26%; }
+        .bi-col-amt { width: 13%; }
+        .bi-grid thead th {
             background: #e8e8e8;
             font-weight: bold;
             text-align: center;
@@ -77,38 +84,33 @@
             padding: 3px 4px;
             border: 1px solid #000;
         }
-        .bi-charges thead th {
-            border-left: none;
-        }
-        .bi-items tbody td,
-        .bi-charges tbody td {
+        .bi-grid tbody td {
             border: 1px solid #000;
             border-top: none;
             padding: 3px 4px;
             font-size: 13px;
             vertical-align: top;
         }
-        .bi-charges tbody td {
-            border-left: none;
-        }
-        .bi-items tbody tr.bi-fill td,
-        .bi-charges tbody tr.bi-fill td {
+        .bi-grid tbody tr.bi-fill td {
             height: 100%;
             border-bottom: none;
+            padding: 0;
+            line-height: 0;
         }
-        .bi-items tfoot td,
-        .bi-charges tfoot td {
+        .bi-grid tfoot td {
             border: 1px solid #000;
             font-weight: bold;
             padding: 3px 4px;
             font-size: 13px;
-        }
-        .bi-charges tfoot td {
-            border-left: none;
+            vertical-align: middle;
+            background: #fff;
         }
         .bi-stamp {
             position: absolute;
-            inset: 0px 0px 0px 168px;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 13%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -124,6 +126,13 @@
             opacity: 0.85;
             border: 2px solid #000;
             padding: 4px 10px;
+        }
+
+        /* Pad rows for charges without drawing extra horizontal item
+         * rows, but keep the Item / Packages / Weight column separators. */
+        .bi-item-blank {
+            border-top-color: transparent !important;
+            border-bottom-color: transparent !important;
         }
 
         .bi-lower td { font-size: 10px; padding: 3px 5px; line-height: 1.35; }

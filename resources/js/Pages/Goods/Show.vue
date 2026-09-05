@@ -69,6 +69,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     good: {
@@ -89,11 +90,19 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.good.updated_at) },
 ]));
 
-const deleteGood = () => {
-    if (!window.confirm('Are you sure you want to delete this good?')) {
-        return;
-    }
+const deleteGood = async () => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this good?
 
-    router.delete(`/goods/${props.good.id}`);
+Good : ${props.good.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/goods/${props.good.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

@@ -3,46 +3,26 @@
         <div class="app-show-page">
             <div class="app-show-layout">
                 <div class="app-show-main">
-                    <ShowSection
-                        title="Loading Report"
-                        :identity="identity"
-                        first
-                    >
+                    <ShowSection title="Loading Report" :identity="identity" first>
                         <template #title-actions>
-                            <Link
-                                href="/loading-reports"
-                                class="app-show-action-btn app-show-action-btn--back"
-                                title="Back to Loading Reports"
-                            >
+                            <Link href="/loading-reports" class="app-show-action-btn app-show-action-btn--back"
+                                title="Back to Loading Reports">
                                 <i class="fas fa-arrow-left" aria-hidden="true"></i>
                                 <span class="visually-hidden">Back</span>
                             </Link>
-                            <Link
-                                v-if="can('edit loading_reports')"
-                                :href="`/loading-reports/${report.id}/edit`"
-                                class="app-show-action-btn app-show-action-btn--edit"
-                                title="Edit Loading Report"
-                            >
+                            <Link v-if="can('edit loading_reports')" :href="`/loading-reports/${report.id}/edit`"
+                                class="app-show-action-btn app-show-action-btn--edit" title="Edit Loading Report">
                                 <i class="fas fa-edit" aria-hidden="true"></i>
                                 <span class="visually-hidden">Edit</span>
                             </Link>
-                            <a
-                                :href="`/loading-reports/${report.id}/print`"
-                                target="_blank"
-                                rel="noopener"
-                                class="app-show-action-btn app-show-action-btn--print"
-                                title="Print Loading Report"
-                            >
+                            <a :href="`/loading-reports/${report.id}/print`" target="_blank" rel="noopener"
+                                class="app-show-action-btn app-show-action-btn--print" title="Print Loading Report">
                                 <i class="fas fa-print" aria-hidden="true"></i>
                                 <span class="visually-hidden">Print</span>
                             </a>
-                            <button
-                                v-if="can('delete loading_reports')"
-                                type="button"
-                                class="app-show-action-btn app-show-action-btn--danger"
-                                title="Delete Loading Report"
-                                @click="deleteReport"
-                            >
+                            <button v-if="can('delete loading_reports')" type="button"
+                                class="app-show-action-btn app-show-action-btn--danger" title="Delete Loading Report"
+                                @click="deleteReport">
                                 <i class="fas fa-trash" aria-hidden="true"></i>
                                 <span class="visually-hidden">Delete</span>
                             </button>
@@ -93,11 +73,7 @@
 
                     <ShowSection title="Record Info">
                         <div class="app-show-meta-list">
-                            <div
-                                v-for="item in recordInfoItems"
-                                :key="item.label"
-                                class="app-show-meta-list__item"
-                            >
+                            <div v-for="item in recordInfoItems" :key="item.label" class="app-show-meta-list__item">
                                 <span class="app-show-meta-list__label">{{ item.label }}</span>
                                 <span class="app-show-meta-list__value">{{ item.value }}</span>
                             </div>
@@ -117,7 +93,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatQty, formatDate, formatDateTime } from '@/utils/showFormatters';
-
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     report: {
         type: Object,
@@ -160,11 +136,27 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.report.updated_at) },
 ]));
 
-const deleteReport = () => {
-    if (!window.confirm('Are you sure you want to delete this loading report?')) {
+const deleteReport = async () => {
+    const report = props.report;
+
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this loading report?
+
+Date       : ${formatDate(report.date)}
+Truck      : ${report.truck?.truck_number || '—'}
+
+From       : ${report.from_station?.name || '—'}
+To         : ${report.to_station?.name || '—'}`
+    );
+
+    if (!remark) {
         return;
     }
 
-    router.delete(`/loading-reports/${props.report.id}`);
+    router.delete(`/loading-reports/${report.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

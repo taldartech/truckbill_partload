@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('challans', function (Blueprint $table) {
+            $table->text('delete_remark')->nullable();
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('challans', function (Blueprint $table) {
+            $table->dropForeign(['deleted_by']);
+            $table->dropColumn([
+                'delete_remark',
+                'deleted_by',
+            ]);
+        });
+    }
+};

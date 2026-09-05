@@ -122,7 +122,7 @@
                                             type="button"
                                             class="btn btn-sm btn-danger"
                                             title="Delete Invoice"
-                                            @click="deleteInvoice(invoice.id)"
+                                            @click="deleteInvoice(invoice)"
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -154,6 +154,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -228,12 +229,27 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteInvoice = (id) => {
-    if (confirm('Are you sure you want to delete this invoice?')) {
-        deleteForm.delete(`/invoices/${id}`);
-    }
-};
+const deleteInvoice = async (invoice) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this invoice?
 
+Invoice No : ${invoice.invoice_no}
+Date       : ${invoice.date}
+Party      : ${invoice.party?.name || '—'}
+Amount     : ₹ ${formatAmount(invoice.net_amount)}
+Status     : ${invoice.status || 'Pending'}`
+    );
+
+    if (!remark) {
+        return;
+    }
+
+    router.delete(`/invoices/${invoice.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
+};
 const formatAmount = (value) => {
     const amount = parseFloat(value || 0);
     return Number.isFinite(amount) ? amount.toFixed(2) : '0.00';

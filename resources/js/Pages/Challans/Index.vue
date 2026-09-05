@@ -127,7 +127,7 @@
                                         <Link :href="`/challans/${challan.id}/edit`" class="btn btn-edit btn-sm me-2" v-if="can('challans edit')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(challan.id)" v-if="can('challans delete')">
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(challan)" v-if="can('challans delete')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -158,6 +158,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -248,10 +249,25 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteItem = (id) => {
-    if (confirm('Are you sure you want to delete this record?')) {
-        form.delete(`/challans/${id}`);
-    }
+const deleteItem = async (challan) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this challan?
+
+Challan    : ${challan.challan_number}
+Date       : ${challan.date}
+Truck      : ${challan.truck?.truck_number}
+
+From       : ${challan.from_station?.name}
+To         : ${challan.to_station?.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/challans/${challan.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>
 

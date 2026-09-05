@@ -54,7 +54,7 @@
                                         <button type="button" class="btn btn-edit btn-sm me-2" @click="editType(type)">
                                             <i class="fas fa-edit" v-if="can('edit truck_types')"></i>
                                         </button>
-                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteType(type.id)">
+                                        <button type="button" class="btn btn-danger btn-sm" @click="deleteType(type)">
                                             <i class="fas fa-trash" v-if="can('delete truck_types')"></i>
                                         </button>
                                     </td>
@@ -106,6 +106,7 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const page = usePage();
 const can = (permission) => {
     return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
@@ -168,9 +169,19 @@ const submit = () => {
     }
 };
 
-const deleteType = (id) => {
-    if (confirm('Are you sure you want to delete this truck type?')) {
-        router.delete(`/truck-types/${id}`);
-    }
+const deleteType = async (truckType) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this truck type?
+
+Truck Type : ${truckType.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/truck-types/${truckType.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

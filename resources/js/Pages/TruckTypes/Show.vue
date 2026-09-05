@@ -69,6 +69,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     truckType: {
@@ -89,11 +90,19 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.truckType.updated_at) },
 ]));
 
-const deleteTruckType = () => {
-    if (!window.confirm('Are you sure you want to delete this truck type?')) {
-        return;
-    }
+const deleteTruckType = async () => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this truck type?
 
-    router.delete(`/truck-types/${props.truckType.id}`);
+Truck Type : ${props.truckType.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/truck-types/${props.truckType.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

@@ -98,7 +98,7 @@
                                         <Link :href="`/vouchers/${voucher.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit vouchers')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteVoucher(voucher.id)" v-if="can('delete vouchers')">
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteVoucher(voucher)" v-if="can('delete vouchers')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -128,6 +128,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -195,10 +196,24 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteVoucher = (id) => {
-    if (confirm('Are you sure you want to delete this voucher?')) {
-        deleteForm.delete(`/vouchers/${id}`);
-    }
+const deleteVoucher = async (voucher) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this voucher?
+
+Voucher No : ${voucher.voucher_number}
+Date       : ${voucher.date}
+Type       : ${voucher.voucher_type}
+Account    : ${entityLabel(voucher)}
+Amount     : ₹ ${voucher.amount}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/vouchers/${voucher.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 
 const entityLabel = (voucher) => {
