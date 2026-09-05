@@ -149,11 +149,17 @@
                                     <div v-if="form.errors.email" class="text-danger mt-1 small">{{ form.errors.email }}</div>
                                 </div>
                             </div>
-
-                            <div class="form-group mb-3">
-                                <label for="agent_gst_no">GST Number</label>
-                                <input type="text" class="form-control" id="agent_gst_no" v-model="form.gst_no">
-                                <div v-if="form.errors.gst_no" class="text-danger mt-1 small">{{ form.errors.gst_no }}</div>
+                            <div class="row">
+                                <div class="col-md-6 form-group mb-3">
+                                    <label for="agent_gst_no">GST Number</label>
+                                    <input type="text" class="form-control" id="agent_gst_no" v-model="form.gst_no">
+                                    <div v-if="form.errors.gst_no" class="text-danger mt-1 small">{{ form.errors.gst_no }}</div>
+                                </div>
+                                <div class="col-md-6 form-group mb-3">
+                                    <label for="agent_transport_id">Transporter Id</label>
+                                    <input type="text" class="form-control" id="agent_transport_id" v-model="form.transport_id">
+                                    <div v-if="form.errors.transport_id" class="text-danger mt-1 small">{{ form.errors.transport_id }}</div>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -215,6 +221,7 @@ const form = useForm({
     mobile: '',
     email: '',
     gst_no: '',
+    transport_id: '',
 });
 
 const editMode = ref(false);
@@ -261,6 +268,7 @@ const editItem = (agent) => {
     form.mobile = agent.mobile || '';
     form.email = agent.email || '';
     form.gst_no = agent.gst_no || '';
+    form.transport_id = agent.transport_id || '';
     modal.show();
 };
 

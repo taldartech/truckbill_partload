@@ -247,9 +247,7 @@
         <div style="margin-top: 10px;">
             <div><strong>Total Amount (Rs.) :-</strong> {{ number_format(abs($challan->total_amount ?? 0), 2) }} {{ $challan->total_amount > 0 ? 'Dr' : 'Cr' }} To {{ $challan->payByAgent->name ?? '—' }}</div>
             <div><strong>Delivery At :-</strong> {{ $challan->deliveryAtAgent->name ?? '—' }}</div>
-            @if($challan->remark)
-                <div><strong>Remark :-</strong> {{ $challan->remark }}</div>
-            @endif
+                <div><strong>Remark :-</strong> {{ $challan->remark ?? '—'}}</div>
         </div>
 
         <div class="footer">

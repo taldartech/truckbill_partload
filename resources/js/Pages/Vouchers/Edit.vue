@@ -14,12 +14,12 @@
                         <div class="bilty-section__head-right">
                             <div class="bilty-id">
                                 <div class="bilty-id__field">
-                                    <span class="bilty-id__label">Date</span>
-                                    <input type="date" class="form-control form-control-sm" v-model="form.date" required>
-                                </div>
-                                <div class="bilty-id__field">
                                     <span class="bilty-id__label">Voucher No.<span class="bilty-field__req">*</span></span>
                                     <input type="text" class="form-control form-control-sm" v-model="form.voucher_number" required>
+                                </div>
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Date</span>
+                                    <input type="date" class="form-control form-control-sm" v-model="form.date" required>
                                 </div>
                             </div>
                         </div>

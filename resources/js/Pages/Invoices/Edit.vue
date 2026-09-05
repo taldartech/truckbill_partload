@@ -15,12 +15,12 @@
                         <div class="bilty-section__head-right">
                             <div class="bilty-id">
                                 <div class="bilty-id__field">
-                                    <span class="bilty-id__label">Date<span class="text-danger">*</span></span>
-                                    <input type="date" class="form-control form-control-sm" v-model="form.date" required>
-                                </div>
-                                <div class="bilty-id__field">
                                     <span class="bilty-id__label">Invoice No.</span>
                                     <input type="text" class="form-control form-control-sm bg-light" v-model="form.invoice_no" readonly>
+                                </div>
+                                <div class="bilty-id__field">
+                                    <span class="bilty-id__label">Date<span class="text-danger">*</span></span>
+                                    <input type="date" class="form-control form-control-sm" v-model="form.date" required>
                                 </div>
                             </div>
                         </div>

@@ -80,6 +80,7 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'gr_sources' => $this->grSourceOptions(),
             'gst_rate' => $branchGstRate,
             'gst_exemption_limit' => $this->gstExemptionLimit(),
+            'next_delivery_receipt_no' => $this->nextDeliveryReceiptNumber(),
         ]);
     }
 
@@ -202,6 +203,13 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'branch' => $branch,
             'grSource' => $grSource,
         ]);
+    }
+    private function nextDeliveryReceiptNumber(): string
+    {
+        return \App\Support\DocumentNumber::next(
+            DeliveryReceipt::query(),
+            'delivery_receipt_no'
+        );
     }
 
     /**

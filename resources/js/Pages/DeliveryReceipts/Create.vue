@@ -16,7 +16,7 @@
                             <div class="bilty-id">
                                 <div class="bilty-id__field">
                                     <span class="bilty-id__label">Receipt No.<span class="bilty-field__req">*</span></span>
-                                    <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.delivery_receipt_no }" v-model="form.delivery_receipt_no" required>
+                                    <input ref="deliveryReceiptNoInput" type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.delivery_receipt_no }" v-model="form.delivery_receipt_no" required>
                                     <div v-if="form.errors.delivery_receipt_no" class="text-danger small mt-1">{{ form.errors.delivery_receipt_no }}</div>
                                 </div>
                                 <div class="bilty-id__field">
@@ -239,7 +239,7 @@ import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import http from '@/utils/http';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 const props = defineProps({
     parties: Array,
@@ -255,6 +255,7 @@ const props = defineProps({
         type: Number,
         default: 0,
     },
+    next_delivery_receipt_no: String,
 });
 
 const partyOptions = ref([...(props.parties || [])]);
@@ -271,7 +272,7 @@ const modeOfPaymentEl = ref(null);
 const grOptions = computed(() => props.gr_sources ?? []);
 
 const form = useForm({
-    delivery_receipt_no: '',
+    delivery_receipt_no: props.next_delivery_receipt_no || '',
     date: new Date().toISOString().substr(0, 10),
     gr_no_bilty_no: '',
     mode_of_payment: '',
@@ -422,4 +423,11 @@ const submitReceipt = (printAfterSave = false) => {
 
 const confirmSave = () => submitReceipt(false);
 const confirmSaveAndPrint = () => submitReceipt(true);
+
+const deliveryReceiptNoInput = ref(null);
+
+onMounted(async () => {
+    await nextTick();
+    deliveryReceiptNoInput.value?.focus();
+});
 </script>

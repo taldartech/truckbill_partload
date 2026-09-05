@@ -101,6 +101,7 @@ const contactFields = computed(() => ([
 
 const gstFields = computed(() => ([
     { label: 'GST Number', value: props.agent.gst_no },
+    { label: 'Transporter Id', value: props.agent.transport_id },
 ]));
 
 const recordInfoItems = computed(() => ([

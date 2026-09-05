@@ -16,7 +16,7 @@
                             <div class="bilty-id">
                                 <div class="bilty-id__field">
                                     <span class="bilty-id__label">Main Challan No.</span>
-                                    <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.main_challan_number }" v-model="form.main_challan_number">
+                                    <input ref="mainChallanNumberInput" type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.main_challan_number }" v-model="form.main_challan_number">
                                     <div v-if="form.errors.main_challan_number" class="text-danger small mt-1">{{ form.errors.main_challan_number }}</div>
                                 </div>
                                 <div class="bilty-id__field">
@@ -273,7 +273,7 @@ import { useFormConfirm } from '@/composables/useFormConfirm';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const fetch_challan_id = ref('');
@@ -411,6 +411,7 @@ const onFetchChallanChange = () => {
                 setTimeout(() => {
                     const triggerInput = getFetchChallanTrigger();
                     if (triggerInput) {
+                        triggerInput.focus();
                         triggerInput.click();
                     }
                 }, 50);
@@ -504,4 +505,11 @@ const submitMainChallan = (printAfterSave = false) => {
 
 const confirmSave = () => submitMainChallan(false);
 const confirmSaveAndPrint = () => submitMainChallan(true);
+
+const mainChallanNumberInput = ref(null);
+
+onMounted(async () => {
+    await nextTick();
+    mainChallanNumberInput.value?.focus();
+});
 </script>
