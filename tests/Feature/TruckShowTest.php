@@ -8,6 +8,7 @@ use App\Models\CompanySubscription;
 use App\Models\Country;
 use App\Models\State;
 use App\Models\Truck;
+use App\Models\TruckOwner;
 use App\Models\TruckType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,6 +35,7 @@ class TruckShowTest extends TestCase
             ->where('truck.truck_type.name', 'Show Truck Type')
             ->where('truck.current_state.name', 'MH')
             ->where('truck.current_city.name', 'Mumbai')
+            ->where('truck.truck_owner.name', 'Show Owner')
             ->etc()
         );
     }
@@ -90,13 +92,22 @@ class TruckShowTest extends TestCase
 
         $truckType = TruckType::create(['owner_id' => $owner->id, 'name' => 'Show Truck Type']);
 
+        $truckOwner = TruckOwner::create([
+            'company_id' => $company->id,
+            'name' => 'Show Owner',
+            'address' => '1 Owner Street',
+            'state_id' => $state->id,
+            'city_id' => $city->id,
+            'mobile' => '9876543210',
+        ]);
+
         $truck = Truck::create([
             'company_id' => $company->id,
             'truck_number' => 'MH-SHOW-3',
             'truck_type_id' => $truckType->id,
             'current_state_id' => $state->id,
             'current_city_id' => $city->id,
-            'owner_name' => 'Show Owner',
+            'truck_owner_id' => $truckOwner->id,
             'rc_no' => 'RC-1',
             'rc_expiry_date' => now()->addYear()->toDateString(),
         ]);

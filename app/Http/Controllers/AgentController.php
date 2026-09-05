@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class AgentController extends Controller implements HasMiddleware
@@ -123,6 +124,10 @@ class AgentController extends Controller implements HasMiddleware
 
     public function destroy(Agent $agent)
     {
+        $agent->update([
+            'delete_remark' => request('delete_remark'),
+            'deleted_by' => Auth::id(),
+        ]);
         $agent->delete();
 
         return redirect()->route('agents.index')->with('success', 'Agent deleted successfully.');
@@ -141,6 +146,7 @@ class AgentController extends Controller implements HasMiddleware
             'mobile' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
             'email' => 'nullable|string|email|max:255',
             'gst_no' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+            'transport_id' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
         ];
     }
 
@@ -154,6 +160,8 @@ class AgentController extends Controller implements HasMiddleware
             'mobile.regex' => 'Mobile number must be a valid 10-digit Indian mobile number.',
             'gst_no.size' => 'GST number must be exactly 15 characters.',
             'gst_no.regex' => 'GST number format is invalid.',
+            'transport_id.size' => 'Transport id must be exactly 15 characters.',
+            'transport_id.regex' => 'Transport id format is invalid.',
         ];
     }
 }

@@ -77,6 +77,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatMoney, formatDate, formatDateTime } from '@/utils/showFormatters';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     voucher: {
@@ -121,11 +122,23 @@ const recordInfoItems = computed(() => ([
     },
 ]));
 
-const deleteVoucher = () => {
-    if (!window.confirm('Are you sure you want to delete this voucher?')) {
-        return;
-    }
+const deleteVoucher = async () => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this voucher?
 
-    router.delete(`/vouchers/${props.voucher.id}`);
+Voucher No : ${props.voucher.voucher_number}
+Date       : ${props.voucher.date}
+Type       : ${props.voucher.voucher_type}
+Account    : ${entityLabel.value}
+Amount     : ₹ ${props.voucher.amount}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/vouchers/${props.voucher.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

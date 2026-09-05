@@ -46,7 +46,7 @@
                                     <th>Name</th>
                                     <th>City</th>
                                     <th>State</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end" v-if="can('delete stations') || can('edit stations')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -59,7 +59,7 @@
                                     </td>
                                     <td>{{ station.city?.name || 'N/A' }}</td>
                                     <td>{{ station.state?.name || 'N/A' }}</td>
-                                    <td class="text-end">
+                                    <td class="text-end" v-if="can('delete stations') || can('edit stations')">
                                         <button
                                             v-if="can('edit stations')"
                                             type="button"
@@ -72,7 +72,7 @@
                                             v-if="can('delete stations')"
                                             type="button"
                                             class="btn btn-sm btn-danger"
-                                            @click="deleteItem(station.id)"
+                                            @click="deleteItem(station)"
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -178,6 +178,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     stations: Object,
@@ -273,10 +274,20 @@ const submit = () => {
     });
 };
 
-const deleteItem = (id) => {
-    if (confirm('Are you sure you want to delete this record?')) {
-        router.delete(`/stations/${id}`);
-    }
+const deleteItem = async (station) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this station?
+
+Station : ${station.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/stations/${station.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 
 onMounted(() => {

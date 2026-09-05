@@ -29,6 +29,8 @@
     $transporterPan = $company?->pan_no ?? '';
 
     $itemRows = $printData['detail_rows']->values();
+    $chargeRows = collect($printData['sidebar_charges'])->values();
+    $bodyRowCount = max($itemRows->count(), $chargeRows->count());
     $totals = $printData['detail_totals'];
 
     $ewayBillText = $bilty->ewayBills
@@ -102,7 +104,7 @@
 
             <table class="bi-meta border-top border-bottom-none">
                 <tr>
-                    <td class="w-40">
+                    <td class="w-30" style="font-size:13px;">
                         <div>
                             <span class="lbl">Consignor:</span>
                             <span class="bi-party-name">{{ $bilty->consignor->name ?? '—' }}</span>
@@ -114,6 +116,10 @@
                             <span class="lbl">Mob:</span>
                             <span class="val">{{ $bilty->consignor->mobile ?? '' }}</span>
                         </div>
+                        <div><span class="lbl">From Station:</span> <span class="val">{{ $bilty->fromStation->name ?? '—' }}</span></div>
+
+                    </td>
+                    <td class="w-30" style="font-size:13px;">
                         <div style="margin-top:3px;">
                             <span class="lbl">Consignee:</span>
                             <span class="bi-party-name">{{ $bilty->consignee->name ?? '—' }}</span>
@@ -125,13 +131,10 @@
                             <span class="lbl">Mob:</span>
                             <span class="val">{{ $bilty->consignee->mobile ?? '' }}</span>
                         </div>
-                    </td>
-                    <td class="w-30" style="font-size:13px;">
-                        <div><span class="lbl">From Station:</span> <span class="val">{{ $bilty->fromStation->name ?? '—' }}</span></div>
                         <div><span class="lbl">To Station:</span> <span class="val">{{ $bilty->toStation->name ?? '—' }}</span></div>
                     </td>
                     <td class="w-30" style="font-size:13px;">
-                        <div><span class="lbl">Bilty No:</span> <span class="val" style="font-size:15px;font-weight:bold;">{{ $bilty->bilty_number ?? '—' }}</span></div>
+                        <div><span class="lbl">Bilty No:</span> <span class="val" style="font-size:16px;font-weight:bold;">{{ $bilty->bilty_number ?? '—' }}</span></div>
                         <div><span class="lbl">Date:</span> <span class="val">{{ $bilty->date ? date('d-M-Y', strtotime($bilty->date)) : '—' }}</span></div>
                     </td>
                 </tr>
@@ -139,79 +142,69 @@
         </div>
 
         <div class="bi-body">
-            <div class="bi-items-wrap">
-                <div class="bi-items-main">
-                    <table class="bi-items">
-                        <thead>
+            <div class="bi-grid-wrap">
+                @if ($showPaymentStamp)
+                    <div class="bi-stamp"><span>{{ $paymentStamp }}</span></div>
+                @endif
+                <table class="bi-grid">
+                    <colgroup>
+                        <col class="bi-col-item">
+                        <col class="bi-col-pkg">
+                        <col class="bi-col-wt">
+                        <col class="bi-col-chg">
+                        <col class="bi-col-amt">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Item Description</th>
+                            <th>Packages</th>
+                            <th>Weight</th>
+                            <th>Charges</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for ($rowIndex = 0; $rowIndex < $bodyRowCount; $rowIndex++)
+                            @php
+                                $detail = $itemRows[$rowIndex] ?? null;
+                                $charge = $chargeRows[$rowIndex] ?? null;
+                            @endphp
+                            @if ($showAmount || $rowIndex === 0)
                             <tr>
-                                <th>Item Description</th>
-                                <th width="21.42%">Packages</th>
-                                <th width="21.42%">Weight</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($itemRows as $detail)
-                                <tr class="bi">
-                                    <td>{{ $detail['good'] }}</td>
-                                    <td class="text-right">{{ $formatQty($detail['no_of_packages']) }}</td>
-                                    <td class="text-right">{{ $formatQty($detail['gross_weight']) }}</td>
-                                </tr>
-                            @endforeach
-                            <tr class="bi-fill">
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td class="text-right">Total</td>
-                                <td class="text-right">{{ $formatQty($totals['no_of_packages']) }}</td>
-                                <td class="text-right">{{ $formatQty($totals['gross_weight']) }}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-
-                <div class="bi-charges-side">
-                    @if ($showPaymentStamp)
-                        <div class="bi-stamp"><span>{{ $paymentStamp }}</span></div>
-                    @endif
-                    <table class="bi-charges">
-                        <thead>
-                            <tr>
-                                <th>Charges</th>
-                                <th width="42%">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($printData['sidebar_charges'] as $line)
-                                <tr>
-                                    <td>{{ $line['label'] }}</td>
-                                    <td class="text-right">
-                                        @if ($showAmount)
-                                            {{ $formatAmount($line['amount']) }}
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                            <tr class="bi-fill">
-                                <td></td>
-                                <td></td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td class="text-right">Net Amount</td>
+                                <td class="{{ $detail ? '' : 'bi-item-blank' }}">{{ $detail['good'] ?? '' }}</td>
+                                <td class="text-right {{ $detail ? '' : 'bi-item-blank' }}">{{ $detail ? $formatQty($detail['no_of_packages']) : '' }}</td>
+                                <td class="text-right {{ $detail ? '' : 'bi-item-blank' }}">{{ $detail ? $formatQty($detail['gross_weight']) : '' }}</td>
+                                <td>{{ $charge['label'] ?? '' }}</td>
                                 <td class="text-right">
-                                    @if ($showAmount)
-                                        {{ $formatAmount($printData['total_amount']) }}
+                                    @if ($charge && $showAmount)
+                                        {{ $formatAmount($charge['amount']) }}
                                     @endif
                                 </td>
                             </tr>
-                        </tfoot>
-                    </table>
-                </div>
+                            @endif
+                        @endfor
+                        <tr class="bi-fill">
+                            <td class="bi-item-blank"></td>
+                            <td class="text-right bi-item-blank"></td>
+                            <td class="text-right bi-item-blank"></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="text-right">Total</td>
+                            <td class="text-right">{{ $formatQty($totals['no_of_packages']) }}</td>
+                            <td class="text-right">{{ $formatQty($totals['gross_weight']) }}</td>
+                            <td class="text-right">Net Amount</td>
+                            <td class="text-right">
+                                @if ($showAmount)
+                                    {{ $formatAmount($printData['total_amount']) }}
+                                @endif
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
 
@@ -236,7 +229,7 @@
                 <tr>
                     <td style="width: 30%;">
                         <span class="lbl">Delivery At:</span>
-                        <span class="val">{{ $bilty->delivery_at ?: '—' }}</span>
+                        <span class="val" style="font-weight: 600; font-size:15px">{{ $bilty->delivery_at ?: '—' }}</span>
                     </td>
                     <td colspan="2">
                         <span class="lbl">E-Way Bill:</span>

@@ -44,7 +44,7 @@
                                         <button v-if="can('edit users') && user.can_manage" class="btn btn-edit btn-sm me-2" @click="editUser(user)">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button v-if="can('delete users') && user.can_manage" class="btn btn-danger btn-sm" @click="deleteUser(user.id)">
+                                        <button v-if="can('delete users') && user.can_manage" class="btn btn-danger btn-sm" @click="deleteUser(user)">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -132,6 +132,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
 import { usePermissions } from '@/composables/usePermissions';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const { can } = usePermissions();
 const page = usePage();
@@ -261,9 +262,23 @@ const submit = () => {
     }
 };
 
-const deleteUser = (id) => {
-    if (confirm('Are you sure you want to delete this user?')) {
-        router.delete(`/users/${id}`);
-    }
+const deleteUser = async (user) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this user?
+
+Name    : ${user.name || '—'}
+Email   : ${user.email || '—'}
+Company : ${user.company?.name || 'System/Global'}
+Branch  : ${user.branch?.name || '—'}
+Role    : ${user.roles?.map(role => role.name)|| '—'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/users/${user.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

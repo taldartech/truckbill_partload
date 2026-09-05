@@ -220,7 +220,7 @@
                                             <div v-if="detailError(index, 'rate_type')" class="text-danger small">{{ detailError(index, 'rate_type') }}</div>
                                         </td>
                                         <td>
-                                            <input type="number" min="0" step="1" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'rate') }" v-model="detail.rate" @input="calculateGridRow(index)">
+                                            <input type="number" min="0" step="any" class="form-control form-control-sm text-center" :class="{ 'is-invalid': detailError(index, 'rate') }" v-model="detail.rate" @input="calculateGridRow(index)">
                                             <div v-if="detailError(index, 'rate')" class="text-danger small">{{ detailError(index, 'rate') }}</div>
                                         </td>
                                         <td class="text-center align-middle fw-bold">
@@ -402,7 +402,7 @@
                                         <label class="bilty-charge-row__label">GST Amount ({{ Number(form.gst || 0) }}%)</label>
                                         <input type="number" step="1" class="form-control form-control-sm bg-light" :value="gstAmount" readonly>
                                     </div>
-                                    <div v-if="showGstFields" class="bilty-charge-row">
+                                    <div v-if="showGstFields && showGstLiability" class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">GST Liability By</label>
                                         <select class="form-select form-select-sm" v-model="form.gst_liability_by">
                                             <option value="">Select</option>
@@ -588,6 +588,7 @@ const biltyNumberInput = ref(null);
 const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
 const props = defineProps({
+    branch_station_id:Number,
     parties: Array,
     vendors: Array,
     stations: Array,
@@ -616,7 +617,7 @@ watch(() => props.agents, (v) => { agentOptions.value = [...(v || [])]; });
 const form = useForm({
     consignor_id: '',
     consignee_id: '',
-    from_station_id: '',
+    from_station_id: props.branch_station_id?? '',
     to_station_id: '',
     bilty_number: props.next_bilty_number || '',
     date: new Date().toISOString().substr(0, 10),
@@ -745,7 +746,9 @@ const gstChargeBase = computed(() => (
     totalAddonCharges()
 ));
 const showGstFields = computed(() => gstChargeBase.value > Number(props.gst_exemption_limit || 0));
-
+const showGstLiability = computed(() => {  
+    return Number(form.gst || 0) > 0 || form.gst_liability_by === 'Exempted';
+});
 const onCartageChange = () => {
     if (!showCartageOptions.value) {
         form.cartage_type = '';

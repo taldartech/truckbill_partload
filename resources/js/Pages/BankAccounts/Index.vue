@@ -47,7 +47,7 @@
                                     <th>Account No.</th>
                                     <th>IFSC</th>
                                     <th>Status</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end"  v-if="can('edit bank_accounts') || can('edit bank_accounts')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -65,7 +65,7 @@
                                             {{ account.is_active ? 'Active' : 'Inactive' }}
                                         </span>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end"  v-if="can('edit bank_accounts') || can('edit bank_accounts')">
                                         <button
                                             v-if="can('edit bank_accounts')"
                                             type="button"
@@ -78,7 +78,7 @@
                                             v-if="can('delete bank_accounts')"
                                             type="button"
                                             class="btn btn-sm btn-danger"
-                                            @click="deleteItem(account.id)"
+                                            @click="deleteItem(account)"
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -147,6 +147,7 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
@@ -219,11 +220,22 @@ const submit = () => {
     });
 };
 
-const deleteItem = (id) => {
-    if (!confirm('Delete this bank account?')) {
-        return;
-    }
+const deleteItem = async (bankAccount) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this bank account?
 
-    router.delete(`/bank-accounts/${id}`, { preserveScroll: true });
+Bank Account : ${bankAccount.name}
+Bank Name    : ${bankAccount.bank_name || '—'}
+Account No   : ${bankAccount.account_number || '—'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/bank-accounts/${bankAccount.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+        preserveScroll: true,
+    });
 };
 </script>

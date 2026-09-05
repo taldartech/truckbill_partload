@@ -7,11 +7,14 @@ const sessionStack = ref([]);
 const isOpen = ref(false);
 const openRequestId = ref(0);
 
+const MAX_NESTING_DEPTH = 3;
+
 export const MASTER_PERMISSIONS = {
     party: 'create parties',
     station: 'create stations',
     agent: 'create agents',
     vendor: 'create vendors',
+    truck_owner: 'create truck_owners',
     good: 'create goods',
     package_type: 'create package_types',
     truck: 'create trucks',
@@ -27,6 +30,7 @@ export const MASTER_TITLES = {
     station: 'Station',
     agent: 'Agent',
     vendor: 'Vendor',
+    truck_owner: 'Truck Owner',
     good: 'Good',
     package_type: 'Package Type',
     truck: 'Truck',
@@ -85,6 +89,7 @@ export function canCreateMaster(master, auth = {}) {
 export function useMasterQuickAdd() {
     const activeMaster = computed(() => openSession.value?.master ?? activeField.value?.master ?? null);
     const activeContext = computed(() => openSession.value?.context ?? activeField.value?.context ?? {});
+    const nestingDepth = computed(() => sessionStack.value.length);
     const canOpen = computed(() => {
         const field = activeField.value;
 
@@ -138,13 +143,21 @@ export function useMasterQuickAdd() {
             return false;
         }
 
-        // Nested quick-add is disabled while a modal is already open
-        if (isOpen.value) {
+        // Avoid opening the same master on top of itself
+        if (isOpen.value && openSession.value?.master === field.master) {
+            return false;
+        }
+
+        if (isOpen.value && sessionStack.value.length >= MAX_NESTING_DEPTH) {
             return false;
         }
 
         // Dropdowns teleport above Bootstrap's default modal z-index — close them first.
         closeAllSearchableSelects();
+
+        if (isOpen.value && openSession.value) {
+            sessionStack.value.push(openSession.value);
+        }
 
         openSession.value = { ...field };
         isOpen.value = true;
@@ -154,25 +167,48 @@ export function useMasterQuickAdd() {
     };
 
     const closeQuickAdd = () => {
+        const previous = sessionStack.value.pop();
+
+        if (previous) {
+            openSession.value = previous;
+            openRequestId.value += 1;
+            return true;
+        }
+
         openSession.value = null;
         isOpen.value = false;
+        return false;
+    };
+
+    const closeAllQuickAdd = () => {
         sessionStack.value = [];
+        openSession.value = null;
+        isOpen.value = false;
     };
 
     const notifyCreated = (record) => {
         const session = openSession.value;
+        const previous = sessionStack.value.pop();
 
         if (session?.onCreated) {
             session.onCreated(record);
         }
 
+        if (previous) {
+            openSession.value = previous;
+            openRequestId.value += 1;
+
+            return true;
+        }
+
         openSession.value = null;
         isOpen.value = false;
-        sessionStack.value = [];
 
         if (session?.focusTrigger) {
             session.focusTrigger();
         }
+
+        return false;
     };
 
     return {
@@ -181,6 +217,7 @@ export function useMasterQuickAdd() {
         sessionStack,
         activeMaster,
         activeContext,
+        nestingDepth,
         isOpen,
         openRequestId,
         canOpen,
@@ -189,6 +226,7 @@ export function useMasterQuickAdd() {
         clearActive,
         openQuickAdd,
         closeQuickAdd,
+        closeAllQuickAdd,
         notifyCreated,
     };
 }

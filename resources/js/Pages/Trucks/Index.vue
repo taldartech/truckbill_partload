@@ -43,8 +43,7 @@
                                     <th>Location</th>
                                     <th>Registration Date</th>
                                     <th>Truck Owner</th>
-                                    <!-- <th>Driver</th> -->
-                                    <th class="text-start">Actions</th>
+                                    <th class="text-start" v-if="can('delete trucks') || can('edit trucks')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -70,9 +69,8 @@
                                         <span v-else class="text-muted">—</span>
                                     </td>
                                     <td>{{ truck.rc_expiry_date || '—' }}</td>
-                                    <td>{{ truck.owner_name || '—' }}</td>
-                                    <!-- <td>{{ truck.driver?.name || '—' }}</td> -->
-                                    <td class="text-start">
+                                    <td>{{ truck.truck_owner?.name || truck.truckOwner?.name || '—' }}</td>
+                                    <td class="text-start" v-if="can('delete trucks') || can('edit trucks')">
                                         <button
                                             v-if="can('edit trucks')"
                                             type="button"
@@ -93,7 +91,7 @@
                                             v-if="can('delete trucks')"
                                             type="button"
                                             class="btn btn-sm btn-danger"
-                                            @click="deleteTruck(truck.id)"
+                                            @click="deleteTruck(truck)"
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -167,6 +165,7 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -212,10 +211,20 @@ const filteredStations = computed(() => {
     return props.stations.filter(s => String(s.city_id) === String(tourForm.current_city_id));
 });
 
-const deleteTruck = (id) => {
-    if (confirm('Are you sure you want to delete this truck?')) {
-        router.delete(`/trucks/${id}`);
-    }
+const deleteTruck = async (truck) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this truck?
+
+Truck : ${truck.truck_number}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/trucks/${truck.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 
 const openTourModal = (truck) => {

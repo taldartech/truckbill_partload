@@ -10,7 +10,6 @@ use App\Models\Company;
 use App\Models\CompanySubscription;
 use App\Models\InwardRegister;
 use App\Models\MainChallan;
-use App\Models\Truck;
 use App\Models\User;
 use App\Models\Voucher;
 use App\Services\TenantContext;
@@ -114,12 +113,7 @@ class DashboardController extends Controller
             ];
         }
 
-        if ($context->can('view trucks')) {
-            $stats['trucks'] = [
-                'available' => Truck::where('status', 'Available')->count(),
-                'total' => Truck::count(),
-            ];
-        }
+        
 
         if ($context->can('view challans')) {
             $stats['challans'] = [

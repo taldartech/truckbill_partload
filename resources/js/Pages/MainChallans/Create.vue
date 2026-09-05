@@ -16,7 +16,7 @@
                             <div class="bilty-id">
                                 <div class="bilty-id__field">
                                     <span class="bilty-id__label">Main Challan No.</span>
-                                    <input type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.main_challan_number }" v-model="form.main_challan_number">
+                                    <input ref="mainChallanNumberInput" type="text" class="form-control form-control-sm" :class="{ 'is-invalid': form.errors.main_challan_number }" v-model="form.main_challan_number">
                                     <div v-if="form.errors.main_challan_number" class="text-danger small mt-1">{{ form.errors.main_challan_number }}</div>
                                 </div>
                                 <div class="bilty-id__field">
@@ -28,7 +28,7 @@
                         </div>
                     </div>
                     <div class="bilty-section__body">
-                        <div class="bilty-form-grid bilty-form-grid--5">
+                        <div class="bilty-form-grid bilty-form-grid--4">
                             <div class="bilty-field">
                                 <label class="bilty-field__label">From Station<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect
@@ -53,19 +53,7 @@
                                 />
                                 <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
                             </div>
-                            <div class="bilty-field">
-                                <label class="bilty-field__label">Add Challan</label>
-                                <SearchableSelect
-                                    ref="fetchChallanSelect"
-                                    :small="true"
-                                    v-model="fetch_challan_id"
-                                    :options="challans"
-                                    labelKey="challan_number"
-                                    placeholder="Select Challan"
-                                    open-on-enter
-                                    @change="onFetchChallanChange"
-                                />
-                            </div>
+                            
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Truck No.<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect
@@ -95,6 +83,14 @@
                             <div>
                                 <h2 class="bilty-section__title">Linked Challans</h2>
                                 <p class="bilty-section__desc">Challans included in this main challan</p>
+                            </div>
+                        </div>
+                        <div class="bilty-field bilty-section__head-right">
+                            <div class="bilty-field">
+                                <span class="bilty-id__label">Add Challan</span>
+                                <SearchableSelect ref="fetchChallanSelect" :small="true" v-model="fetch_challan_id"
+                                    :options="challans" labelKey="challan_number" placeholder="Select Challan"
+                                    open-on-enter @change="onFetchChallanChange" />
                             </div>
                         </div>
                     </div>
@@ -239,14 +235,6 @@
                                         <span class="bilty-total__label">TOTAL</span>
                                         <input type="text" class="form-control form-control-sm bilty-total__input" :class="form.total_amount < 0 ? 'text-danger' : ''" :value="form.total_amount" readonly>
                                     </div>
-                                    <div class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">Total Balance Amt.</label>
-                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="form.total_balance_type" readonly>
-                                    </div>
-                                    <div class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">To (Account)</label>
-                                        <input type="text" class="form-control form-control-sm" v-model="form.pay_by">
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -285,7 +273,7 @@ import { useFormConfirm } from '@/composables/useFormConfirm';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const fetch_challan_id = ref('');
@@ -328,8 +316,6 @@ const form = useForm({
     total_amount: 0,
     total_weight: 0,
     total_packages: 0,
-    total_balance_type: 'Cr',
-    pay_by: '',
     remark: '',
 });
 
@@ -425,6 +411,7 @@ const onFetchChallanChange = () => {
                 setTimeout(() => {
                     const triggerInput = getFetchChallanTrigger();
                     if (triggerInput) {
+                        triggerInput.focus();
                         triggerInput.click();
                     }
                 }, 50);
@@ -501,7 +488,6 @@ const calculateTotal = () => {
         - cashReceivedTotal.value;
 
     form.total_amount = total.toFixed(2);
-    form.total_balance_type = total < 0 ? 'Cr' : 'Dr';
 };
 
 const submit = () => {
@@ -519,4 +505,11 @@ const submitMainChallan = (printAfterSave = false) => {
 
 const confirmSave = () => submitMainChallan(false);
 const confirmSaveAndPrint = () => submitMainChallan(true);
+
+const mainChallanNumberInput = ref(null);
+
+onMounted(async () => {
+    await nextTick();
+    mainChallanNumberInput.value?.focus();
+});
 </script>

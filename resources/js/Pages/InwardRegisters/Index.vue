@@ -81,7 +81,7 @@
                                     <th>Total Pkg.</th>
                                     <th>Delivery Freight</th>
                                     <th>Crossing Freight</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end" v-if="can('edit inward_registers') || can('delete inward_registers')" >Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -102,11 +102,11 @@
                                     <td>{{ register.total_packages ?? register.details?.length ?? 0 }}</td>
                                     <td>{{ register.total_delivery_freight ?? '0.00' }}</td>
                                     <td>{{ register.total_crossing_freight ?? '0.00' }}</td>
-                                    <td class="text-end">
-                                        <Link :href="`/inward-registers/${register.id}/edit`" class="btn btn-sm btn-info text-white me-2">
+                                    <td class="text-end" v-if="can('edit inward_registers') || can('delete inward_registers')">
+                                        <Link :href="`/inward-registers/${register.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit inward_registers')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
-                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteRegister(register.id)">
+                                        <button type="button" class="btn btn-sm btn-danger" @click="deleteRegister(register)" v-if="can('delete inward_registers')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -137,6 +137,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const page = usePage();
 const can = (permission) => {
@@ -213,10 +214,25 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteRegister = (id) => {
-    if (confirm('Are you sure you want to delete this register?')) {
-        deleteForm.delete(`/inward-registers/${id}`);
-    }
+const deleteRegister = async (register) => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this inward register?
+
+Register   : ${register.inward_register_no}
+Date       : ${register.date}
+Truck      : ${register.truck?.truck_number}
+
+From       : ${register.from_station?.name}
+To         : ${register.to_station?.name}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/inward-registers/${register.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>
 

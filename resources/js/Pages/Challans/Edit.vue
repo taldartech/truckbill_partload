@@ -30,7 +30,7 @@
                         </div>
                     </div>
                     <div class="bilty-section__body">
-                        <div class="bilty-form-grid bilty-form-grid--5">
+                        <div class="bilty-form-grid bilty-form-grid--4">
                             <div class="bilty-field">
                                 <label class="bilty-field__label">From Station<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect
@@ -55,18 +55,7 @@
                                 />
                                 <div v-if="form.errors.to_station_id" class="text-danger small mt-1">{{ form.errors.to_station_id }}</div>
                             </div>
-                            <div class="bilty-field">
-                                <label class="bilty-field__label">Add For</label>
-                                <SearchableSelect
-                                    ref="fetchStationSelect"
-                                    :small="true"
-                                    v-model="fetch_station_id"
-                                    :options="destinationStationOptions"
-                                    placeholder="Select Station"
-                                    open-on-enter
-                                    @change="onFetchStationChange"
-                                />
-                            </div>
+                            
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Truck No.<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect
@@ -98,6 +87,20 @@
                                 <p class="bilty-section__desc">Bilties and inward entries on this challan</p>
                             </div>
                         </div>
+                        <div class="bilty-section_head-right">
+                            <div class="bilty-field">
+                                <span class="bilty-id__label">Add For</span>
+                                <SearchableSelect
+                                    ref="fetchStationSelect"
+                                    :small="true"
+                                    v-model="fetch_station_id"
+                                    :options="destinationStationOptions"
+                                    placeholder="Select Station"
+                                    open-on-enter
+                                    @change="onFetchStationChange"
+                                />
+                            </div>
+                        </div>
                     </div>
                     <div class="bilty-section__body bilty-section__body--flush">
                         <div class="table-responsive">
@@ -126,32 +129,19 @@
                                     >
                                         <td class="text-center align-middle">{{ index + 1 }}</td>
                                         <td>
-                                            <template v-if="detail.row_type === 'bilty'">
-                                                <SearchableSelect
-                                                    v-if="!detail.bilty_id"
-                                                    :small="true"
-                                                    :open-on-focus="false"
-                                                    @change="fetchBiltyDetails(index)"
-                                                    v-model="detail.bilty_id"
-                                                    :options="bilties"
-                                                    labelKey="bilty_number"
-                                                    placeholder="Select Bilty"
-                                                />
-                                                <span v-else class="align-middle fw-semibold">{{ detail.bilty_number || biltyLabel(detail.bilty_id) }}</span>
-                                            </template>
-                                            <template v-else>
-                                                <SearchableSelect
-                                                    v-if="!detail.inward_register_detail_id"
-                                                    :small="true"
-                                                    :open-on-focus="false"
-                                                    @change="fetchInwardDetails(index)"
-                                                    v-model="detail.inward_register_detail_id"
-                                                    :options="inwardDetailOptions"
-                                                    labelKey="gr_no"
-                                                    placeholder="Select G.R."
-                                                />
-                                                <span v-else class="align-middle fw-semibold">{{ detail.gr_no || inwardLabel(detail.inward_register_detail_id) }}</span>
-                                            </template>
+                                            <SearchableSelect
+                                                v-if="!detail.bilty_id && !detail.inward_register_detail_id"
+                                                :small="true"
+                                                :open-on-focus="false"
+                                                v-model="detail.line_option_id"
+                                                :options="lineOptionsForRow(index)"
+                                                label-key="label"
+                                                placeholder="Select GR/Bilty"
+                                                @change="fetchLineDetails(index)"
+                                            />
+                                            <span v-else class="align-middle fw-semibold">
+                                                {{ detail.bilty_number || detail.gr_no || biltyLabel(detail.bilty_id) || inwardLabel(detail.inward_register_detail_id) }}
+                                            </span>
                                         </td>
                                         <td class="align-middle">{{ detail.to_station_name || '--' }}</td>
                                         <td>
@@ -165,7 +155,9 @@
                                             <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.freight" readonly>
                                         </td>
                                         <td class="align-middle text-center">{{ detail.bob || '--' }}</td>
-                                        <td class="align-middle text-center">{{ detail.row_type === 'bilty' ? 'Booking' : 'Crossing' }}</td>
+                                        <td class="align-middle text-center">
+                                            {{ detail.row_type === 'bilty' ? 'Booking' : detail.row_type === 'inward' ? 'Crossing' : '--' }}
+                                        </td>
                                         <td class="text-center align-middle">
                                             <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)">
                                                 <i class="fas fa-times"></i>
@@ -174,11 +166,15 @@
                                     </tr>
                                     <tr>
                                         <td colspan="10" class="bg-light p-2 text-center">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 me-1" data-dynamic-add data-dynamic-add-for="bilty" data-dynamic-add-message="Do you want to add another bilty?" @click="addBiltyRow">
-                                                <i class="fas fa-plus"></i> Add Bilty
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" data-dynamic-add data-dynamic-add-for="inward" data-dynamic-add-message="Do you want to add another inward entry?" @click="addInwardRow">
-                                                <i class="fas fa-plus"></i> Add Inward
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-secondary py-0"
+                                                data-dynamic-add
+                                                data-dynamic-add-for="line"
+                                                data-dynamic-add-message="Do you want to add another line?"
+                                                @click="addLineRow"
+                                            >
+                                                <i class="fas fa-plus"></i> Add Line
                                             </button>
                                             <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
                                         </td>
@@ -371,6 +367,46 @@ const inwardDetailOptions = computed(() =>
     }))
 );
 
+const pendingLineOptions = computed(() => {
+    const biltyOptions = (props.bilties || []).map((bilty) => ({
+        id: `bilty:${bilty.id}`,
+        label: `${bilty.bilty_number || '—'} · Booking`,
+        row_type: 'bilty',
+        bilty_id: bilty.id,
+        inward_register_detail_id: null,
+    }));
+
+    const inwardOptions = inwardDetailOptions.value.map((detail) => ({
+        id: `inward:${detail.id}`,
+        label: `${detail.gr_no} · Crossing`,
+        row_type: 'inward',
+        bilty_id: null,
+        inward_register_detail_id: detail.id,
+    }));
+
+    return [...biltyOptions, ...inwardOptions];
+});
+
+const lineOptionsForRow = (index) => {
+    const usedIds = new Set();
+
+    form.details.forEach((detail, detailIndex) => {
+        if (detailIndex === index) {
+            return;
+        }
+
+        if (detail.row_type === 'bilty' && detail.bilty_id) {
+            usedIds.add(`bilty:${detail.bilty_id}`);
+        }
+
+        if (detail.row_type === 'inward' && detail.inward_register_detail_id) {
+            usedIds.add(`inward:${detail.inward_register_detail_id}`);
+        }
+    });
+
+    return pendingLineOptions.value.filter((option) => !usedIds.has(option.id));
+};
+
 const resolveAgentId = (agentId, agentName) => {
     if (agentId) {
         return agentId;
@@ -383,24 +419,9 @@ const resolveAgentId = (agentId, agentName) => {
     return agent?.id ?? '';
 };
 
-const emptyBiltyRow = () => ({
-    row_type: 'bilty',
-    bilty_id: '',
-    bilty_number: '',
-    inward_register_detail_id: '',
-    gr_no: '',
-    to_station_name: '',
-    nugs: 0,
-    weight: 0,
-    goods_name: '',
-    freight: 0,
-    cartage: 0,
-    gst_amount: 0,
-    bob: '',
-});
-
-const emptyInwardRow = () => ({
-    row_type: 'inward',
+const emptyRow = () => ({
+    row_type: '',
+    line_option_id: '',
     bilty_id: '',
     bilty_number: '',
     inward_register_detail_id: '',
@@ -474,36 +495,32 @@ onMounted(() => {
     if (props.challan.details && props.challan.details.length > 0) {
         props.challan.details.forEach((detail) => {
             if (detail.bilty_id && detail.bilty) {
-                const row = emptyBiltyRow();
+                const row = emptyRow();
                 populateBiltyRow(row, detail.bilty);
                 form.details.push(row);
             } else if (detail.inward_register_detail_id && detail.inward_register_detail) {
-                const row = emptyInwardRow();
+                const row = emptyRow();
                 populateInwardRow(row, detail.inward_register_detail);
                 form.details.push(row);
             }
         });
     }
     if (form.details.length === 0) {
-        addBiltyRow();
+        addLineRow();
     }
     syncFreightTotals();
 
     skipAddMorePrompt = false;
 });
 
-const addBiltyRow = () => {
-    form.details.push(emptyBiltyRow());
-};
-
-const addInwardRow = () => {
-    form.details.push(emptyInwardRow());
+const addLineRow = () => {
+    form.details.push(emptyRow());
 };
 
 const removeRow = (index) => {
     form.details.splice(index, 1);
     if (form.details.length === 0) {
-        form.details.push(emptyBiltyRow());
+        form.details.push(emptyRow());
     }
     syncFreightTotals();
 };
@@ -528,27 +545,18 @@ const focusDetailRowSelect = (index) => {
     });
 };
 
-const promptAddBiltyThenInward = (focusFrom = null) => {
+const promptAddAnotherLine = (focusFrom = null) => {
     setTimeout(async () => {
         const skipContainer = getDetailGrid();
         const from = focusFrom ?? getFetchStationTrigger() ?? document.activeElement;
 
-        const yesBilty = await askKeyboardConfirm('Do you want to add another bilty?', {
+        const yes = await askKeyboardConfirm('Do you want to add another line?', {
             from,
             skipContainer,
         });
-        if (yesBilty) {
-            addBiltyRow();
-            focusDetailRowSelect(form.details.length - 1);
-        }
 
-        const inwardFrom = getRowFocusAnchor(form.details.length - 1) ?? from;
-        const yesInward = await askKeyboardConfirm('Do you want to add another inward entry?', {
-            from: inwardFrom,
-            skipContainer,
-        });
-        if (yesInward) {
-            addInwardRow();
+        if (yes) {
+            addLineRow();
             focusDetailRowSelect(form.details.length - 1);
         }
     }, 100);
@@ -570,9 +578,11 @@ const populateBiltyRow = (detail, bilty) => {
     const toStation = stationOptions.value.find((s) => s.id === bilty.to_station_id);
 
     detail.row_type = 'bilty';
+    detail.line_option_id = `bilty:${bilty.id}`;
     detail.bilty_id = bilty.id;
     detail.bilty_number = bilty.bilty_number;
     detail.inward_register_detail_id = '';
+    detail.gr_no = '';
     detail.to_station_name = toStation ? toStation.name : '--';
     detail.nugs = totalNugs;
     detail.weight = totalWeight;
@@ -585,7 +595,9 @@ const populateBiltyRow = (detail, bilty) => {
 
 const populateInwardRow = (detail, inward) => {
     detail.row_type = 'inward';
+    detail.line_option_id = `inward:${inward.id}`;
     detail.bilty_id = '';
+    detail.bilty_number = '';
     detail.inward_register_detail_id = inward.id;
     detail.gr_no = inward.gr_no || `GR-${inward.id}`;
     detail.to_station_name = inward.to_station?.name || stationOptions.value.find((s) => s.id === inward.to_station_id)?.name || '--';
@@ -596,37 +608,46 @@ const populateInwardRow = (detail, inward) => {
     detail.bob = inward.basis_of_booking || '--';
 };
 
-const fetchBiltyDetails = (index) => {
+const fetchLineDetails = (index) => {
     const detail = form.details[index];
-    if (detail.bilty_id) {
-        const bilty = props.bilties.find((b) => b.id === detail.bilty_id);
+    const optionId = detail.line_option_id;
+
+    if (!optionId) {
+        Object.assign(detail, emptyRow());
+        syncFreightTotals();
+        return;
+    }
+
+    const option = pendingLineOptions.value.find((line) => line.id === optionId);
+
+    if (!option) {
+        Object.assign(detail, emptyRow());
+        syncFreightTotals();
+        return;
+    }
+
+    if (option.row_type === 'bilty') {
+        const bilty = props.bilties.find((b) => b.id === option.bilty_id);
+
         if (bilty) {
             populateBiltyRow(detail, bilty);
             syncFreightTotals();
             if (!skipAddMorePrompt) {
-                promptAddBiltyThenInward(getRowFocusAnchor(index));
+                promptAddAnotherLine(getRowFocusAnchor(index));
             }
         }
-    } else {
-        Object.assign(detail, emptyBiltyRow());
-        syncFreightTotals();
-    }
-};
 
-const fetchInwardDetails = (index) => {
-    const detail = form.details[index];
-    if (detail.inward_register_detail_id) {
-        const inward = inwardDetailOptions.value.find((d) => d.id === detail.inward_register_detail_id);
-        if (inward) {
-            populateInwardRow(detail, inward);
-            syncFreightTotals();
-            if (!skipAddMorePrompt) {
-                promptAddBiltyThenInward(getRowFocusAnchor(index));
-            }
-        }
-    } else {
-        Object.assign(detail, emptyInwardRow());
+        return;
+    }
+
+    const inward = inwardDetailOptions.value.find((d) => d.id === option.inward_register_detail_id);
+
+    if (inward) {
+        populateInwardRow(detail, inward);
         syncFreightTotals();
+        if (!skipAddMorePrompt) {
+            promptAddAnotherLine(getRowFocusAnchor(index));
+        }
     }
 };
 
@@ -666,7 +687,7 @@ const fetchByStation = () => {
     if (biltiesToAdd.length === 0 && inwardToAdd.length === 0) {
         alert('All pending entries for this selection are already in the grid.');
         fetch_station_id.value = '';
-        if (form.details.length === 0) addBiltyRow();
+        if (form.details.length === 0) addLineRow();
         return false;
     }
 
@@ -677,13 +698,13 @@ const fetchByStation = () => {
     skipAddMorePrompt = true;
 
     biltiesToAdd.forEach((bilty) => {
-        const row = emptyBiltyRow();
+        const row = emptyRow();
         populateBiltyRow(row, bilty);
         form.details.push(row);
     });
 
     inwardToAdd.forEach((inward) => {
-        const row = emptyInwardRow();
+        const row = emptyRow();
         populateInwardRow(row, inward);
         form.details.push(row);
     });
@@ -701,13 +722,14 @@ const onFetchStationChange = () => {
 
     const success = fetchByStation();
     if (success) {
+        const isAll = fetch_station_id.value === 'all';
         fetch_station_id.value = '';
-
+        if (isAll) return;
         nextTick(() => {
             fetchStationSelect.value?.focusTrigger?.();
         });
 
-        promptAddBiltyThenInward(getFetchStationTrigger());
+        promptAddAnotherLine(getFetchStationTrigger());
     }
 };
 

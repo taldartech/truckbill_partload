@@ -79,6 +79,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDateTime } from '@/utils/showFormatters';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     bankAccount: {
@@ -106,11 +107,21 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.bankAccount.updated_at) },
 ]));
 
-const deleteBankAccount = () => {
-    if (!window.confirm('Are you sure you want to delete this bank account?')) {
-        return;
-    }
+const deleteBankAccount = async () => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this bank account?
 
-    router.delete(`/bank-accounts/${props.bankAccount.id}`);
+Bank Account : ${props.bankAccount.name}
+Bank Name    : ${props.bankAccount.bank_name || '—'}
+Account No   : ${props.bankAccount.account_number || '—'}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/bank-accounts/${props.bankAccount.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

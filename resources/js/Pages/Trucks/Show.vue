@@ -106,6 +106,7 @@ import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatDate, formatDateTime } from '@/utils/showFormatters';
+import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
     truck: {
@@ -125,13 +126,15 @@ const overviewFields = computed(() => ([
     { label: 'Current Station', value: props.truck.current_station?.name || props.truck.currentStation?.name },
 ]));
 
+const owner = computed(() => props.truck.truck_owner || props.truck.truckOwner);
+
 const ownerFields = computed(() => ([
-    { label: 'Owner Name', value: props.truck.owner_name },
-    { label: 'Owner Mobile', value: props.truck.owner_mobile },
-    { label: 'Owner Email', value: props.truck.owner_email },
-    { label: 'Owner Address', value: props.truck.owner_address },
-    { label: 'Owner City', value: props.truck.owner_city },
-    { label: 'Owner State', value: props.truck.owner_state },
+    { label: 'Owner Name', value: owner.value?.name },
+    { label: 'Owner Mobile', value: owner.value?.mobile },
+    { label: 'Owner Email', value: owner.value?.email },
+    { label: 'Owner Address', value: owner.value?.address },
+    { label: 'Owner City', value: owner.value?.city?.name },
+    { label: 'Owner State', value: owner.value?.state?.name },
 ]));
 
 const isExpired = (value) => {
@@ -170,11 +173,19 @@ const recordInfoItems = computed(() => ([
     { label: 'Last Updated', value: formatDateTime(props.truck.updated_at) },
 ]));
 
-const deleteTruck = () => {
-    if (!window.confirm('Are you sure you want to delete this truck?')) {
-        return;
-    }
+const deleteTruck = async () => {
+    const remark = await askKeyboardConfirmWithRemark(
+        `Are you sure you want to delete this truck?
 
-    router.delete(`/trucks/${props.truck.id}`);
+Truck : ${props.truck.truck_number}`
+    );
+
+    if (!remark) return;
+
+    router.delete(`/trucks/${props.truck.id}`, {
+        data: {
+            delete_remark: remark,
+        },
+    });
 };
 </script>

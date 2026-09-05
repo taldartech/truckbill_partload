@@ -173,7 +173,7 @@
                                         <label class="bilty-field__label">GST ({{ Number(form.gst_rate || 0) }}%)</label>
                                         <input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.gst" readonly>
                                     </div>
-                                    <div v-if="showGstFields" class="bilty-field">
+                                    <div v-if="showGstFields && showGstLiability" class="bilty-field">
                                         <label class="bilty-field__label">GST Pay By</label>
                                         <select class="form-select form-select-sm" v-model="form.gst_pay_by" @change="calculateTotals">
                                             <option value="Consignor">Consignor</option>
@@ -410,7 +410,9 @@ const gstTaxableBase = computed(() => (
 ));
 
 const showGstFields = computed(() => gstTaxableBase.value > Number(props.gst_exemption_limit || 0));
-
+const showGstLiability = computed(() => {  
+    return Number(form.gst || 0) > 0 || form.gst_pay_by === 'Exempted';
+});
 const formatGstOnAmount = (amount) => Number(amount || 0).toFixed(2);
 
 const calculateTotals = () => {

@@ -25,7 +25,7 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view loading_reports')">
                         <Link href="/loading-reports" class="nav-link" :class="{ active: $page.url.startsWith('/loading-reports') }">
                             <i class="nav-icon fas fa-truck-loading"></i>
                             <p>Loading Reports</p>
@@ -48,28 +48,28 @@
 
                     <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small">TRANSACTIONS</li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view inward_registers')">
                         <Link href="/inward-registers" class="nav-link" :class="{ active: $page.url.startsWith('/inward-registers') }">
                             <i class="nav-icon fas fa-clipboard-list"></i>
                             <p>Inward Registers</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item"  v-if="can('view delivery_receipts')">
                         <Link href="/delivery-receipts" class="nav-link" :class="{ active: $page.url.startsWith('/delivery-receipts') }">
                             <i class="nav-icon fas fa-receipt"></i>
                             <p>Delivery Receipts</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view invoices')">
                         <Link href="/invoices" class="nav-link" :class="{ active: $page.url.startsWith('/invoices') }">
                             <i class="nav-icon fas fa-file-invoice-dollar"></i>
                             <p>Invoices</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item"  v-if="can('view vouchers')">
                         <Link href="/vouchers" class="nav-link" :class="{ active: $page.url.startsWith('/vouchers') }">
                             <i class="nav-icon fas fa-money-check-alt"></i>
                             <p>Vouchers</p>
@@ -99,21 +99,21 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view goods')">
                         <Link href="/goods" class="nav-link" :class="{ active: $page.url.startsWith('/goods') }">
                             <i class="nav-icon fas fa-box"></i>
                             <p>Goods</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view groups')">
                         <Link href="/groups" class="nav-link" :class="{ active: $page.url.startsWith('/groups') }">
                             <i class="nav-icon fas fa-users"></i>
                             <p>Groups</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view package_types')">
                         <Link href="/package-types" class="nav-link" :class="{ active: $page.url.startsWith('/package-types') }">
                             <i class="nav-icon fas fa-boxes"></i>
                             <p>Package Types</p>
@@ -127,14 +127,21 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view truck_types')">
                         <Link href="/truck-types" class="nav-link" :class="{ active: $page.url.startsWith('/truck-types') }">
                             <i class="nav-icon fas fa-truck-moving"></i>
                             <p>Truck Types</p>
                         </Link>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="can('view truck_owners')">
+                        <Link href="/truck-owners" class="nav-link" :class="{ active: $page.url.startsWith('/truck-owners') }">
+                            <i class="nav-icon fas fa-id-card"></i>
+                            <p>Truck Owners</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-item" v-if="can('view agents')">
                         <Link href="/agents" class="nav-link" :class="{ active: $page.url.startsWith('/agents') }">
                             <i class="nav-icon fas fa-user-secret"></i>
                             <p>Agents</p>
@@ -264,7 +271,7 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item" v-if="can('view truck_types')">
+                    <li class="nav-item" >
                         <Link href="/truck-types" class="nav-link" :class="{ active: $page.url.startsWith('/truck-types') }">
                             <i class="nav-icon fas fa-truck-moving"></i>
                             <p>Truck Types</p>

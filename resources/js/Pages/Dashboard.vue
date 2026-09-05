@@ -149,7 +149,7 @@
             <!-- Operational (Admin, Moderator, Accountant, Super Admin in branch) -->
             <template v-else>
                 <div v-if="visibleStatCards.length" class="dash-stat-grid mb-4">
-                    <div
+                    <div 
                         v-for="stat in visibleStatCards"
                         :key="stat.key"
                         class="dash-stat-card"
@@ -357,18 +357,6 @@ const visibleStatCards = computed(() => {
             icon: 'fa-file-invoice',
             tone: 'info',
             href: '/bilties',
-        });
-    }
-
-    if (stats.trucks) {
-        cards.push({
-            key: 'trucks',
-            value: stats.trucks.available,
-            label: 'Available Trucks',
-            meta: `${stats.trucks.total} total registered`,
-            icon: 'fa-truck',
-            tone: 'success',
-            href: '/trucks',
         });
     }
 

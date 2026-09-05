@@ -102,6 +102,7 @@ class BiltyController extends Controller implements HasMiddleware
             'next_bilty_number' => $nextNumber,
             'default_gst_percent' => $this->defaultGstPercent($branch),
             'gst_exemption_limit' => $this->gstExemptionLimit($branch),
+            'branch_station_id' => $branch?->station_id,
         ]);
     }
 
@@ -225,10 +226,14 @@ class BiltyController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(Bilty $bilty, AccountingPoster $poster)
+    public function destroy(Request $request, Bilty $bilty, AccountingPoster $poster)
     {
-        DB::transaction(function () use ($bilty, $poster) {
+        DB::transaction(function () use ($request, $bilty, $poster) {
             $poster->clearReference($bilty);
+            $bilty->update([
+                'delete_remark' => $request->delete_remark,
+                'deleted_by' => Auth::id(),
+            ]);
             $bilty->delete();
         });
 

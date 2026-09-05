@@ -36,14 +36,15 @@
             <section class="lrcm__section">
                 <div class="lrcm__section-head">
                     <i class="fas fa-list"></i>
-                    <span>Loaded bilties ({{ activeRows.length }})</span>
+                    <span>Loaded items ({{ activeRows.length }})</span>
                 </div>
                 <div class="lrcm__table-wrap">
                     <table class="table table-sm mb-0 lrcm__table">
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Bilty No.</th>
+                                <th>GR/Bilty No.</th>
+                                <th>Type</th>
                                 <th>Consignee</th>
                                 <th>Goods</th>
                                 <th class="text-end">Packages</th>
@@ -53,14 +54,15 @@
                         <tbody>
                             <tr v-for="(row, index) in activeRows" :key="index">
                                 <td>{{ index + 1 }}</td>
-                                <td>{{ row.bilty_number || '—' }}</td>
+                                <td>{{ row.bilty_number || row.gr_no || '—' }}</td>
+                                <td>{{ row.row_type === 'bilty' ? 'Booking' : row.row_type === 'inward' ? 'Crossing' : '—' }}</td>
                                 <td>{{ row.consignee_name || '—' }}</td>
                                 <td>{{ row.goods_name || '—' }}</td>
                                 <td class="text-end">{{ displayValue(row.no_of_packages) }}</td>
                                 <td class="text-end">{{ displayValue(row.gross_weight) }}</td>
                             </tr>
                             <tr v-if="activeRows.length === 0">
-                                <td colspan="6" class="text-center text-muted py-1">No bilties</td>
+                                <td colspan="7" class="text-center text-muted py-1">No items</td>
                             </tr>
                         </tbody>
                     </table>
@@ -69,7 +71,7 @@
 
             <section class="lrcm__totals">
                 <div class="lrcm__total">
-                    <span class="lrcm__total-label">Bilties</span>
+                    <span class="lrcm__total-label">Items</span>
                     <strong>{{ activeRows.length || '—' }}</strong>
                 </div>
                 <div class="lrcm__total">
@@ -149,7 +151,7 @@ const detailFields = computed(() => {
 });
 
 const activeRows = computed(() =>
-    (props.form.details || []).filter((row) => row.bilty_id),
+    (props.form.details || []).filter((row) => row.bilty_id || row.inward_register_detail_id),
 );
 
 const formatWeight = (value) => {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\DeliveryReceipt;
 use App\Models\InwardRegisterDetail;
 use App\Models\Party;
@@ -10,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -80,6 +82,7 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'gr_sources' => $this->grSourceOptions(),
             'gst_rate' => $branchGstRate,
             'gst_exemption_limit' => $this->gstExemptionLimit(),
+            'next_delivery_receipt_no' => $this->nextDeliveryReceiptNumber(),
         ]);
     }
 
@@ -172,11 +175,18 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(DeliveryReceipt $deliveryReceipt)
+    public function destroy(Request $request, DeliveryReceipt $deliveryReceipt)
     {
+        $deliveryReceipt->update([
+            'delete_remark' => $request->delete_remark,
+            'deleted_by' => Auth::id(),
+        ]);
+
         $deliveryReceipt->delete();
 
-        return redirect()->route('delivery-receipts.index')->with('success', 'Delivery Receipt deleted successfully.');
+        return redirect()
+            ->route('delivery-receipts.index')
+            ->with('success', 'Delivery Receipt deleted successfully.');
     }
 
     public function print(DeliveryReceipt $delivery_receipt)
@@ -191,7 +201,7 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         ]);
 
         $branch = $delivery_receipt->branch;
-        $company = $branch?->company ?? \App\Models\Company::find($delivery_receipt->company_id);
+        $company = $branch?->company ?? Company::find($delivery_receipt->company_id);
         $grSource = $this->formatGrSourceForPrint(
             $this->resolveGrSource($delivery_receipt->gr_no_bilty_no)
         );
@@ -202,6 +212,13 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'branch' => $branch,
             'grSource' => $grSource,
         ]);
+    }
+    private function nextDeliveryReceiptNumber(): string
+    {
+        return \App\Support\DocumentNumber::next(
+            DeliveryReceipt::query(),
+            'delivery_receipt_no'
+        );
     }
 
     /**

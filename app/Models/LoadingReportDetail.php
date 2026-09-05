@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class LoadingReportDetail extends Model
 {
-    use \App\Traits\BelongsToCompany;
     use \App\Traits\BelongsToBranch;
+    use \App\Traits\BelongsToCompany;
+
     protected $guarded = [];
 
     public function loadingReport()
@@ -18,6 +19,11 @@ class LoadingReportDetail extends Model
     public function bilty()
     {
         return $this->belongsTo(Bilty::class);
+    }
+
+    public function inwardRegisterDetail()
+    {
+        return $this->belongsTo(InwardRegisterDetail::class);
     }
 
     public function good()
