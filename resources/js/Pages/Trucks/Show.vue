@@ -125,13 +125,15 @@ const overviewFields = computed(() => ([
     { label: 'Current Station', value: props.truck.current_station?.name || props.truck.currentStation?.name },
 ]));
 
+const owner = computed(() => props.truck.truck_owner || props.truck.truckOwner);
+
 const ownerFields = computed(() => ([
-    { label: 'Owner Name', value: props.truck.owner_name },
-    { label: 'Owner Mobile', value: props.truck.owner_mobile },
-    { label: 'Owner Email', value: props.truck.owner_email },
-    { label: 'Owner Address', value: props.truck.owner_address },
-    { label: 'Owner City', value: props.truck.owner_city },
-    { label: 'Owner State', value: props.truck.owner_state },
+    { label: 'Owner Name', value: owner.value?.name },
+    { label: 'Owner Mobile', value: owner.value?.mobile },
+    { label: 'Owner Email', value: owner.value?.email },
+    { label: 'Owner Address', value: owner.value?.address },
+    { label: 'Owner City', value: owner.value?.city?.name },
+    { label: 'Owner State', value: owner.value?.state?.name },
 ]));
 
 const isExpired = (value) => {

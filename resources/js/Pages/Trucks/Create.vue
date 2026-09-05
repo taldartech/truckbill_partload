@@ -116,44 +116,30 @@
                     </div>
                 </section>
 
-                <!-- 3. Owner Details -->
+                <!-- 3. Owner -->
                 <section class="bilty-section">
                     <div class="bilty-section__head">
                         <div class="bilty-section__head-left">
                             <div class="bilty-step-num">3</div>
                             <div>
-                                <h2 class="bilty-section__title">Owner Details</h2>
-                                <p class="bilty-section__desc">Owner contact and address</p>
+                                <h2 class="bilty-section__title">Owner</h2>
+                                <p class="bilty-section__desc">Select or add a truck owner</p>
                             </div>
                         </div>
                     </div>
                     <div class="bilty-section__body">
                         <div class="bilty-form-grid bilty-form-grid--3">
                             <div class="bilty-field">
-                                <label class="bilty-field__label">Owner Name</label>
-                                <input type="text" class="form-control form-control-sm" v-model="form.owner_name">
-                            </div>
-                            <div class="bilty-field">
-                                <label class="bilty-field__label">Owner Mobile</label>
-                                <input type="text" class="form-control form-control-sm" v-model="form.owner_mobile" maxlength="10">
-                                <div v-if="form.errors.owner_mobile" class="text-danger small mt-1">{{ form.errors.owner_mobile }}</div>
-                            </div>
-                            <div class="bilty-field">
-                                <label class="bilty-field__label">Owner Email</label>
-                                <input type="email" class="form-control form-control-sm" v-model="form.owner_email">
-                                <div v-if="form.errors.owner_email" class="text-danger small mt-1">{{ form.errors.owner_email }}</div>
-                            </div>
-                            <div class="bilty-field" style="grid-column: span 1;">
-                                <label class="bilty-field__label">Owner Address</label>
-                                <input type="text" class="form-control form-control-sm" v-model="form.owner_address">
-                            </div>
-                            <div class="bilty-field">
-                                <label class="bilty-field__label">Owner City</label>
-                                <input type="text" class="form-control form-control-sm" v-model="form.owner_city">
-                            </div>
-                            <div class="bilty-field">
-                                <label class="bilty-field__label">Owner State</label>
-                                <input type="text" class="form-control form-control-sm" v-model="form.owner_state">
+                                <label class="bilty-field__label">Truck Owner</label>
+                                <SearchableSelect
+                                    :small="true"
+                                    v-model="form.truck_owner_id"
+                                    :options="truckOwnerOptions"
+                                    master="truck_owner"
+                                    placeholder="Select Owner"
+                                    @created="(record) => appendMasterOption(truckOwnerOptions, record)"
+                                />
+                                <div v-if="form.errors.truck_owner_id" class="text-danger small mt-1">{{ form.errors.truck_owner_id }}</div>
                             </div>
                         </div>
                     </div>
@@ -238,16 +224,19 @@ import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 
 const props = defineProps({
     truckTypes: Array,
+    truckOwners: Array,
     states: Array,
     cities: Array,
     stations: Array
 });
 
 const truckTypeOptions = ref([...(props.truckTypes || [])]);
+const truckOwnerOptions = ref([...(props.truckOwners || [])]);
 const stateOptions = ref([...(props.states || [])]);
 const cityOptions = ref([...(props.cities || [])]);
 const stationOptions = ref([...(props.stations || [])]);
 watch(() => props.truckTypes, (v) => { truckTypeOptions.value = [...(v || [])]; });
+watch(() => props.truckOwners, (v) => { truckOwnerOptions.value = [...(v || [])]; });
 watch(() => props.states, (v) => { stateOptions.value = [...(v || [])]; });
 watch(() => props.cities, (v) => { cityOptions.value = [...(v || [])]; });
 watch(() => props.stations, (v) => { stationOptions.value = [...(v || [])]; });
@@ -260,12 +249,7 @@ const form = useForm({
     current_city_id: '',
     current_station_id: '',
     capacity: '',
-    owner_name: '',
-    owner_mobile: '',
-    owner_email: '',
-    owner_address: '',
-    owner_city: '',
-    owner_state: '',
+    truck_owner_id: '',
     rc_no: '',
     rc_expiry_date: '',
     insurance_no: '',

@@ -216,7 +216,7 @@
                             </template>
 
                             <!-- Agent / Vendor -->
-                            <template v-else-if="master === 'agent' || master === 'vendor'">
+                            <template v-else-if="master === 'agent' || master === 'vendor' || master === 'truck_owner'">
                                 <div class="mb-2">
                                     <label class="form-label small mb-1">{{ title }} Name *</label>
                                     <input type="text" class="form-control form-control-sm" v-model="form.name" required>
@@ -308,16 +308,17 @@
                                         @created="(record) => appendMasterOption(lookups.truckTypes, record)"
                                     />
                                 </div>
-                                <div class="row mb-0">
-                                    <div class="col-md-6">
-                                        <label class="form-label small mb-1">Owner Name</label>
-                                        <input type="text" class="form-control form-control-sm" v-model="form.owner_name">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small mb-1">Owner Mobile</label>
-                                        <input type="text" class="form-control form-control-sm" v-model="form.owner_mobile" maxlength="10">
-                                        <div v-if="fieldError('owner_mobile')" class="text-danger small">{{ fieldError('owner_mobile') }}</div>
-                                    </div>
+                                <div class="mb-0">
+                                    <label class="form-label small mb-1">Truck Owner</label>
+                                    <SearchableSelect
+                                        :small="true"
+                                        v-model="form.truck_owner_id"
+                                        :options="lookups.truckOwners"
+                                        master="truck_owner"
+                                        :quick-add-context="{ formField: 'truck_owner_id' }"
+                                        placeholder="Select Owner"
+                                        @created="(record) => appendMasterOption(lookups.truckOwners, record)"
+                                    />
                                 </div>
                             </template>
                         </template>
@@ -378,6 +379,7 @@ const lookups = reactive({
     states: [],
     groups: [],
     truckTypes: [],
+    truckOwners: [],
     agents: [],
     canSetDefaultAgent: false,
 });
@@ -388,13 +390,14 @@ const NAME_ONLY = ['good', 'package_type', 'truck_type', 'group'];
 
 const title = computed(() => MASTER_TITLES[master.value] || 'Record');
 const isNameOnlyMaster = computed(() => NAME_ONLY.includes(master.value));
-const isWideForm = computed(() => ['party', 'agent', 'vendor'].includes(master.value));
+const isWideForm = computed(() => ['party', 'agent', 'vendor', 'truck_owner'].includes(master.value));
 
 const ENDPOINTS = {
     party: { store: '/parties/quick', formData: '/parties/quick/form-data', key: 'party' },
     station: { store: '/stations/quick', formData: '/stations/quick/form-data', key: 'station' },
     agent: { store: '/agents/quick', formData: '/agents/quick/form-data', key: 'agent' },
     vendor: { store: '/vendors/quick', formData: '/vendors/quick/form-data', key: 'vendor' },
+    truck_owner: { store: '/truck-owners/quick', formData: '/truck-owners/quick/form-data', key: 'truck_owner' },
     good: { store: '/goods/quick', key: 'good' },
     package_type: { store: '/package-types/quick', key: 'package_type' },
     truck_type: { store: '/truck-types/quick', key: 'truck_type' },
@@ -411,6 +414,7 @@ const LOOKUP_KEYS_BY_MASTER = {
     group: 'groups',
     agent: 'agents',
     truck_type: 'truckTypes',
+    truck_owner: 'truckOwners',
 };
 
 const emptyFormFor = (type, ctx = {}) => {
@@ -423,8 +427,10 @@ const emptyFormFor = (type, ctx = {}) => {
             return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_no: '' };
         case 'vendor':
             return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_number: '' };
+        case 'truck_owner':
+            return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_number: '' };
         case 'truck':
-            return { truck_number: '', truck_type_id: '', owner_name: '', owner_mobile: '' };
+            return { truck_number: '', truck_type_id: '', truck_owner_id: '' };
         case 'country':
             return { name: '', code: '' };
         case 'state':
@@ -441,6 +447,7 @@ const cloneLookups = () => ({
     states: [...lookups.states],
     groups: [...lookups.groups],
     truckTypes: [...lookups.truckTypes],
+    truckOwners: [...lookups.truckOwners],
     agents: [...lookups.agents],
     canSetDefaultAgent: lookups.canSetDefaultAgent,
 });
@@ -470,10 +477,11 @@ const applySnapshot = async (snapshot) => {
     lookups.states = [...(snapLookups.states || [])];
     lookups.groups = [...(snapLookups.groups || [])];
     lookups.truckTypes = [...(snapLookups.truckTypes || [])];
+    lookups.truckOwners = [...(snapLookups.truckOwners || [])];
     lookups.agents = [...(snapLookups.agents || [])];
     lookups.canSetDefaultAgent = !!snapLookups.canSetDefaultAgent;
 
-    if (['party', 'station', 'agent', 'vendor'].includes(master.value) && form.state_id && cities.value.length === 0) {
+    if (['party', 'station', 'agent', 'vendor', 'truck_owner'].includes(master.value) && form.state_id && cities.value.length === 0) {
         await loadCities(form.state_id);
     }
 };
@@ -575,6 +583,9 @@ const loadFormData = async () => {
         lookups.truckTypes = Array.isArray(data?.truckTypes)
             ? data.truckTypes
             : (Array.isArray(data?.truck_types) ? data.truck_types : []);
+        lookups.truckOwners = Array.isArray(data?.truckOwners)
+            ? data.truckOwners
+            : (Array.isArray(data?.truck_owners) ? data.truck_owners : []);
         lookups.agents = Array.isArray(data?.agents) ? data.agents : [];
         lookups.canSetDefaultAgent = !!data?.can_set_default_agent;
     } catch (error) {
@@ -629,7 +640,7 @@ const submit = async () => {
 };
 
 watch(() => form.state_id, async (stateId, previous) => {
-    if (!['party', 'station', 'agent', 'vendor'].includes(master.value)) {
+    if (!['party', 'station', 'agent', 'vendor', 'truck_owner'].includes(master.value)) {
         return;
     }
     if (String(stateId) === String(previous)) return;

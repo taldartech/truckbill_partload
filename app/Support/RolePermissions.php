@@ -9,7 +9,7 @@ class RolePermissions
         return [
             'companies', 'branches', 'trucks',
             'stations', 'parties', 'vendors', 'agents', 'groups',
-            'goods', 'package_types', 'truck_types',
+            'goods', 'package_types', 'truck_types', 'truck_owners',
             'bilties', 'challans', 'delivery_receipts', 'invoices',
             'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts',
             'subscriptions', 'subscription_plans', 'roles', 'users',
@@ -21,7 +21,7 @@ class RolePermissions
     {
         return [
             'branches', 'trucks', 'stations', 'parties',
-            'vendors', 'agents', 'groups', 'goods', 'package_types', 'truck_types',
+            'vendors', 'agents', 'groups', 'goods', 'package_types', 'truck_types', 'truck_owners',
             'bilties', 'challans', 'delivery_receipts', 'invoices',
             'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts', 'reports',
         ];
@@ -44,7 +44,7 @@ class RolePermissions
      */
     public static function companyMasterDataModules(): array
     {
-        return ['agents', 'vendors', 'parties', 'groups', 'trucks', 'rate_lists', 'bank_accounts'];
+        return ['agents', 'vendors', 'parties', 'groups', 'trucks', 'truck_owners', 'rate_lists', 'bank_accounts'];
     }
 
     public static function permissionNames(array $modules, array $actions): array
@@ -76,7 +76,7 @@ class RolePermissions
     {
         return array_merge(
             self::permissionNames(
-                ['branches', 'trucks', 'stations', 'parties', 'vendors', 'agents', 'bilties', 'challans', 'delivery_receipts', 'invoices', 'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts'],
+                ['branches', 'trucks', 'stations', 'parties', 'vendors', 'agents', 'truck_owners', 'bilties', 'challans', 'delivery_receipts', 'invoices', 'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts'],
                 ['view']
             ),
             ['view reports'],

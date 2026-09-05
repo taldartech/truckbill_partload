@@ -36,4 +36,9 @@ class Truck extends Model
     {
         return $this->belongsTo(Station::class, 'current_station_id');
     }
+
+    public function truckOwner()
+    {
+        return $this->belongsTo(TruckOwner::class);
+    }
 }

@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\State;
 use App\Models\Station;
 use App\Models\Truck;
+use App\Models\TruckOwner;
 use App\Models\TruckType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,12 +35,14 @@ class TruckController extends Controller implements HasMiddleware
         $search = trim((string) ($validated['search'] ?? ''));
 
         $trucks = Truck::query()
-            ->with(['company', 'truckType', 'currentState', 'currentCity', 'currentStation'])
+            ->with(['company', 'truckType', 'currentState', 'currentCity', 'currentStation', 'truckOwner'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
                     $inner->where('truck_number', 'like', '%'.$search.'%')
-                        ->orWhere('owner_name', 'like', '%'.$search.'%')
-                        ->orWhere('status', 'like', '%'.$search.'%');
+                        ->orWhere('status', 'like', '%'.$search.'%')
+                        ->orWhereHas('truckOwner', function ($ownerQuery) use ($search) {
+                            $ownerQuery->where('name', 'like', '%'.$search.'%');
+                        });
                 });
             })
             ->latest()
@@ -59,7 +62,15 @@ class TruckController extends Controller implements HasMiddleware
 
     public function show(Truck $truck)
     {
-        $truck->load(['company', 'truckType', 'currentState', 'currentCity', 'currentStation']);
+        $truck->load([
+            'company',
+            'truckType',
+            'currentState',
+            'currentCity',
+            'currentStation',
+            'truckOwner.state',
+            'truckOwner.city',
+        ]);
 
         return Inertia::render('Trucks/Show', [
             'truck' => $truck,
@@ -70,6 +81,7 @@ class TruckController extends Controller implements HasMiddleware
     {
         return Inertia::render('Trucks/Create', [
             'truckTypes' => TruckType::all(),
+            'truckOwners' => $this->truckOwnerOptions(),
             'states' => State::all(),
             'cities' => City::all(),
             'stations' => Station::all(),
@@ -78,34 +90,7 @@ class TruckController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
-        $validated = $this->stripTenantFields($request->validate([
-            'truck_number' => 'nullable|string|max:20',
-            'truck_type_id' => 'nullable|exists:truck_types,id',
-            'status' => 'nullable|string|max:50',
-            'current_state_id' => 'nullable|exists:states,id',
-            'current_city_id' => 'nullable|exists:cities,id',
-            'current_station_id' => 'nullable|exists:stations,id',
-            'capacity' => 'nullable|string|max:50',
-            'owner_name' => 'nullable|string|max:255',
-            'owner_mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
-            'owner_email' => 'nullable|string|email|max:255',
-            'owner_address' => 'nullable|string|max:500',
-            'owner_city' => 'nullable|string|max:100',
-            'owner_state' => 'nullable|string|max:100',
-            'rc_no' => 'nullable|string|max:50',
-            'rc_expiry_date' => 'nullable|date',
-            'insurance_no' => 'nullable|string|max:50',
-            'insurance_expiry_date' => 'nullable|date',
-            'fitness_no' => 'nullable|string|max:50',
-            'fitness_expiry_date' => 'nullable|date',
-            'pollution_no' => 'nullable|string|max:50',
-            'pollution_expiry_date' => 'nullable|date',
-            'permit_no' => 'nullable|string|max:50',
-            'permit_expiry_date' => 'nullable|date',
-        ], [
-            'owner_mobile.digits' => 'Owner mobile must be exactly 10 digits.',
-            'owner_mobile.regex' => 'Owner mobile must be a valid 10-digit Indian mobile number.',
-        ]));
+        $validated = $this->stripTenantFields($request->validate($this->truckRules()));
 
         if (! empty($validated['truck_number'])) {
             $validated['truck_number'] = strtoupper($validated['truck_number']);
@@ -120,6 +105,7 @@ class TruckController extends Controller implements HasMiddleware
     {
         return response()->json([
             'truckTypes' => TruckType::select('id', 'name')->orderBy('name')->get(),
+            'truckOwners' => $this->truckOwnerOptions(),
         ]);
     }
 
@@ -128,11 +114,7 @@ class TruckController extends Controller implements HasMiddleware
         $validated = $this->stripTenantFields($request->validate([
             'truck_number' => 'required|string|max:20',
             'truck_type_id' => 'nullable|exists:truck_types,id',
-            'owner_name' => 'nullable|string|max:255',
-            'owner_mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
-        ], [
-            'owner_mobile.digits' => 'Owner mobile must be exactly 10 digits.',
-            'owner_mobile.regex' => 'Owner mobile must be a valid 10-digit Indian mobile number.',
+            'truck_owner_id' => 'nullable|exists:truck_owners,id',
         ]));
 
         $validated['truck_number'] = strtoupper($validated['truck_number']);
@@ -152,6 +134,7 @@ class TruckController extends Controller implements HasMiddleware
         return Inertia::render('Trucks/Edit', [
             'truck' => $truck,
             'truckTypes' => TruckType::all(),
+            'truckOwners' => $this->truckOwnerOptions(),
             'states' => State::all(),
             'cities' => City::all(),
             'stations' => Station::all(),
@@ -160,34 +143,7 @@ class TruckController extends Controller implements HasMiddleware
 
     public function update(Request $request, Truck $truck)
     {
-        $validated = $this->stripTenantFields($request->validate([
-            'truck_number' => 'nullable|string|max:20',
-            'truck_type_id' => 'nullable|exists:truck_types,id',
-            'status' => 'nullable|string|max:50',
-            'current_state_id' => 'nullable|exists:states,id',
-            'current_city_id' => 'nullable|exists:cities,id',
-            'current_station_id' => 'nullable|exists:stations,id',
-            'capacity' => 'nullable|string|max:50',
-            'owner_name' => 'nullable|string|max:255',
-            'owner_mobile' => 'nullable|string|digits:10|regex:/^[6-9]\d{9}$/',
-            'owner_email' => 'nullable|string|email|max:255',
-            'owner_address' => 'nullable|string|max:500',
-            'owner_city' => 'nullable|string|max:100',
-            'owner_state' => 'nullable|string|max:100',
-            'rc_no' => 'nullable|string|max:50',
-            'rc_expiry_date' => 'nullable|date',
-            'insurance_no' => 'nullable|string|max:50',
-            'insurance_expiry_date' => 'nullable|date',
-            'fitness_no' => 'nullable|string|max:50',
-            'fitness_expiry_date' => 'nullable|date',
-            'pollution_no' => 'nullable|string|max:50',
-            'pollution_expiry_date' => 'nullable|date',
-            'permit_no' => 'nullable|string|max:50',
-            'permit_expiry_date' => 'nullable|date',
-        ], [
-            'owner_mobile.digits' => 'Owner mobile must be exactly 10 digits.',
-            'owner_mobile.regex' => 'Owner mobile must be a valid 10-digit Indian mobile number.',
-        ]));
+        $validated = $this->stripTenantFields($request->validate($this->truckRules()));
 
         if (! empty($validated['truck_number'])) {
             $validated['truck_number'] = strtoupper($validated['truck_number']);
@@ -222,5 +178,39 @@ class TruckController extends Controller implements HasMiddleware
         ]);
 
         return redirect()->back()->with('success', 'Truck status and location updated successfully.');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function truckRules(): array
+    {
+        return [
+            'truck_number' => 'nullable|string|max:20',
+            'truck_type_id' => 'nullable|exists:truck_types,id',
+            'status' => 'nullable|string|max:50',
+            'current_state_id' => 'nullable|exists:states,id',
+            'current_city_id' => 'nullable|exists:cities,id',
+            'current_station_id' => 'nullable|exists:stations,id',
+            'capacity' => 'nullable|string|max:50',
+            'truck_owner_id' => 'nullable|exists:truck_owners,id',
+            'rc_no' => 'nullable|string|max:50',
+            'rc_expiry_date' => 'nullable|date',
+            'insurance_no' => 'nullable|string|max:50',
+            'insurance_expiry_date' => 'nullable|date',
+            'fitness_no' => 'nullable|string|max:50',
+            'fitness_expiry_date' => 'nullable|date',
+            'pollution_no' => 'nullable|string|max:50',
+            'pollution_expiry_date' => 'nullable|date',
+            'permit_no' => 'nullable|string|max:50',
+            'permit_expiry_date' => 'nullable|date',
+        ];
+    }
+
+    private function truckOwnerOptions()
+    {
+        return TruckOwner::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 }

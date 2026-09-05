@@ -69,7 +69,7 @@
                                         <span v-else class="text-muted">—</span>
                                     </td>
                                     <td>{{ truck.rc_expiry_date || '—' }}</td>
-                                    <td>{{ truck.owner_name || '—' }}</td>
+                                    <td>{{ truck.truck_owner?.name || truck.truckOwner?.name || '—' }}</td>
                                     <td class="text-start" v-if="can('delete trucks') || can('edit trucks')">
                                         <button
                                             v-if="can('edit trucks')"
