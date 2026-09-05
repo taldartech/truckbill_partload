@@ -5,66 +5,39 @@
                 <div class="card-header">
                     <h3 class="card-title mb-0">Bilty Management</h3>
                     <div class="app-index-card-toolbar d-flex flex-wrap gap-2 align-items-center">
-                        <Link
-                            v-if="can('create bilties')"
-                            href="/bilties/create"
-                            class="btn btn-sm app-index-header-btn"
-                        >
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
+                        <Link v-if="can('create bilties')" href="/bilties/create"
+                            class="btn btn-sm app-index-header-btn">
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus"
+                                aria-hidden="true"></span>
                             Create
                         </Link>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters
-                    panel-id="bilties-filters-panel"
-                    :loading="searching"
-                    @search="applyFilters"
-                    @reset="resetFilters"
-                >
+                <AppIndexCollapsibleFilters panel-id="bilties-filters-panel" :loading="searching" @search="applyFilters"
+                    @reset="resetFilters">
                     <div class="filter-search-col">
                         <label class="form-label" for="bilties_search">Search</label>
-                        <AppIndexSearchInput
-                            v-model="filters.search"
-                            input-id="bilties_search"
-                            placeholder="Bilty number"
-                            max-width="100%"
-                            size="md"
-                            :disabled="searching"
-                            @keydown.enter="applyFilters"
-                        />
+                        <AppIndexSearchInput v-model="filters.search" input-id="bilties_search"
+                            placeholder="Bilty number" max-width="100%" size="md" :disabled="searching"
+                            @keydown.enter="applyFilters" />
                     </div>
 
                     <div class="filter-period-col">
-                        <IndexDateRangePicker
-                            v-model:from-date="filters.from_date"
-                            v-model:to-date="filters.to_date"
-                            label="Bilty Date"
-                            panel-align="start"
-                            :disabled="searching"
-                        />
+                        <IndexDateRangePicker v-model:from-date="filters.from_date" v-model:to-date="filters.to_date"
+                            label="Bilty Date" panel-align="start" :disabled="searching" />
                     </div>
 
                     <div class="filter-picker-col">
                         <label class="form-label">Consignor</label>
-                        <SearchableSelect
-                            v-model="filters.consignor_id"
-                            :options="partyOptions"
-                            placeholder="All consignors"
-                            :can-create="false"
-                            :disabled="searching"
-                        />
+                        <SearchableSelect v-model="filters.consignor_id" :options="partyOptions"
+                            placeholder="All consignors" :can-create="false" :disabled="searching" />
                     </div>
 
                     <div class="filter-picker-col">
                         <label class="form-label">Consignee</label>
-                        <SearchableSelect
-                            v-model="filters.consignee_id"
-                            :options="partyOptions"
-                            placeholder="All consignees"
-                            :can-create="false"
-                            :disabled="searching"
-                        />
+                        <SearchableSelect v-model="filters.consignee_id" :options="partyOptions"
+                            placeholder="All consignees" :can-create="false" :disabled="searching" />
                     </div>
                 </AppIndexCollapsibleFilters>
 
@@ -89,8 +62,8 @@
                                             {{ bilty.bilty_number || 'N/A' }}
                                         </Link>
                                     </td>
-                                    <td>{{ bilty.date || 'N/A' }}</td>
-                                    <td>
+                                    <td class="text-nowrap">{{ bilty.date || 'N/A' }}</td>
+                                    <td class="text-nowrap">
                                         <span class="text-bold">{{ bilty.from_station?.name }}</span>
                                         <i class="fas fa-arrow-right mx-2 text-muted small"></i>
                                         <span class="text-bold">{{ bilty.to_station?.name }}</span>
@@ -101,39 +74,30 @@
                                     </td>
                                     <td>{{ bilty.amount || '0.00' }}</td>
                                     <td>
-                                        <span
-                                            class="badge"
-                                            :class="{
-                                                'bg-warning': bilty.status === 'Pending',
-                                                'bg-info': bilty.status === 'In Transit',
-                                                'bg-success': bilty.status === 'Delivered',
-                                                'bg-danger': bilty.status === 'Cancelled',
-                                            }"
-                                        >{{ bilty.status }}</span>
+                                        <span class="badge" :class="{
+                                            'bg-warning': bilty.status === 'Pending',
+                                            'bg-info': bilty.status === 'In Transit',
+                                            'bg-success': bilty.status === 'Delivered',
+                                            'bg-danger': bilty.status === 'Cancelled',
+                                        }">{{ bilty.status }}</span>
                                     </td>
                                     <td class="text-end">
-                                        <BiltyPrintButton
-                                            :bilty-id="bilty.id"
-                                            button-class="btn btn-sm btn-outline-info me-2"
-                                            title="Print Bilty"
-                                        >
-                                            <i class="fas fa-print"></i>
-                                        </BiltyPrintButton>
-                                        <Link
-                                            v-if="can('edit bilties')"
-                                            :href="`/bilties/${bilty.id}/edit`"
-                                            class="btn btn-sm btn-info text-white me-2"
-                                        >
-                                            <i class="fas fa-edit"></i>
-                                        </Link>
-                                        <button
-                                            v-if="can('delete bilties')"
-                                            type="button"
-                                            class="btn btn-sm btn-danger"
-                                            @click="deleteItem(bilty.id)"
-                                        >
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        <div class="bilty-table-actions">
+                                            <BiltyPrintButton :bilty-id="bilty.id"
+                                                button-class="btn btn-sm btn-outline-info" title="Print Bilty">
+                                                <i class="fas fa-print"></i>
+                                            </BiltyPrintButton>
+
+                                            <Link v-if="can('edit bilties')" :href="`/bilties/${bilty.id}/edit`"
+                                                class="btn btn-sm btn-info text-white">
+                                                <i class="fas fa-edit"></i>
+                                            </Link>
+
+                                            <button v-if="can('delete bilties')" type="button"
+                                                class="btn btn-sm btn-danger" @click="deleteItem(bilty.id)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="bilties.data.length === 0">
@@ -284,20 +248,10 @@ const deleteItem = (id) => {
     min-width: 0 !important;
 }
 
-.filter-search-col {
-    flex: 1 1 200px !important;
-    width: auto !important;
-    max-width: 240px !important;
-}
-
-.filter-period-col {
-    flex: 0 1 180px !important;
-    width: 180px !important;
-    max-width: 180px !important;
-}
-
+.filter-search-col,
+.filter-period-col,
 .filter-picker-col {
-    flex: 1 1 170px !important;
+    flex: 1 1 210px !important;
     width: auto !important;
     max-width: 210px !important;
 }
@@ -334,8 +288,8 @@ const deleteItem = (id) => {
     padding-bottom: 0.375rem !important;
 }
 
-.filter-search-col > .form-label,
-.filter-picker-col > .form-label,
+.filter-search-col>.form-label,
+.filter-picker-col>.form-label,
 .filter-period-col :deep(.dashboard-date-range__label) {
     margin-bottom: 0.35rem;
     white-space: nowrap;
@@ -350,7 +304,7 @@ const deleteItem = (id) => {
     .filter-period-col,
     .filter-picker-col {
         flex: 1 1 calc(50% - 10px) !important;
-        width: auto !important;
+        width: calc(50% - 10px) !important;
         max-width: none !important;
     }
 
@@ -358,6 +312,122 @@ const deleteItem = (id) => {
         margin-left: 0 !important;
         width: 100%;
         justify-content: flex-end;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .bilty-charge-row {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+    }
+
+    .bilty-charge-row__label {
+        padding-top: 0;
+    }
+
+    .bilty-addon-row,
+    .bilty-addon-row--head {
+        grid-template-columns: 1fr;
+    }
+
+    .bilty-addon-row--head {
+        display: none;
+    }
+
+    .bilty-addon-row__action {
+        justify-content: flex-start;
+    }
+
+    .bilty-eway-row {
+        grid-template-columns: minmax(0, 1fr) 2.5rem;
+        gap: 0.65rem;
+    }
+
+    .bilty-eway-row__field:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .bilty-eway-row--head {
+        display: none;
+    }
+
+    .bilty-eway-row__action {
+        justify-content: flex-start;
+        padding-top: 0;
+    }
+
+    .bilty-eway-remove {
+        width: 2.5rem;
+        height: 42px;
+    }
+
+    .bilty-table-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        justify-content: flex-end;
+    }
+
+    .bilty-table-actions .btn {
+        padding: 0.25rem 0.4rem;
+        min-width: 2.5rem;
+    }
+}
+
+.bilty-table-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+}
+
+.bilty-table-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 767.98px) {
+    .bilty-charge-row {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+    }
+
+    .bilty-charge-row__label {
+        padding-top: 0;
+    }
+
+    .bilty-addon-row,
+    .bilty-addon-row--head {
+        grid-template-columns: 1fr;
+    }
+
+    .bilty-addon-row--head,
+    .bilty-eway-row--head {
+        display: none;
+    }
+
+    .bilty-addon-row__action,
+    .bilty-eway-row__action {
+        justify-content: flex-start;
+    }
+
+    .bilty-eway-row {
+        grid-template-columns: 1fr 2.2rem;
+    }
+
+    .bilty-eway-row__field:first-child {
+        grid-column: 1 / -1;
+    }
+
+}
+@media (max-width: 500.98px) {
+    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields > div {
+        flex: 0 0 100% !important;
+        width: 100% !important;
     }
 }
 </style>
