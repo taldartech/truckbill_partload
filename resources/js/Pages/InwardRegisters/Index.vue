@@ -91,24 +91,26 @@
                                             {{ register.inward_register_no || '—' }}
                                         </Link>
                                     </td>
-                                    <td>{{ register.date }}</td>
-                                    <td>
+                                    <td class="text-nowrap">{{ register.date }}</td>
+                                    <td class="text-nowrap">
                                         <span class="text-bold">{{ register.from_station?.name }}</span>
                                         <i class="fas fa-arrow-right mx-2 text-muted small"></i>
                                         <span class="text-bold">{{ register.to_station?.name }}</span>
                                     </td>
-                                    <td>{{ register.challan_number || '—' }} ({{ register.challan_date }})</td>
+                                    <td class="text-nowrap">{{ register.challan_number || '—' }} ({{ register.challan_date }})</td>
                                     <td>{{ register.truck?.truck_number }}</td>
                                     <td>{{ register.total_packages ?? register.details?.length ?? 0 }}</td>
                                     <td>{{ register.total_delivery_freight ?? '0.00' }}</td>
                                     <td>{{ register.total_crossing_freight ?? '0.00' }}</td>
                                     <td class="text-end" v-if="can('edit inward_registers') || can('delete inward_registers')">
+                                        <div class="table-actions">
                                         <Link :href="`/inward-registers/${register.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit inward_registers')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button type="button" class="btn btn-sm btn-danger" @click="deleteRegister(register)" v-if="can('delete inward_registers')">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="registers.data.length === 0">
@@ -338,6 +340,15 @@ To         : ${register.to_station?.name}`
         margin-left: 0 !important;
         width: 100%;
         justify-content: flex-end;
+    }
+}
+
+@media (max-width: 500.98px) {
+    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields > div {
+        flex: 0 0 100% !important;
+        width: 100% !important;
     }
 }
 </style>

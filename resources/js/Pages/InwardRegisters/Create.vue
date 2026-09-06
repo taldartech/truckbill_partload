@@ -204,7 +204,7 @@
                     </div>
                     <div class="bilty-section__body bilty-section__body--flush" @click="deselectRow">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-sm m-0 table-grid entries-table">
+                            <table class="table table-bordered table-sm m-0 table-grid entries-table" style="min-width: 1000px;">
                                 <thead class="bg-light">
                                     <tr>
                                         <th class="text-center" style="width: 5%;">Sr.</th>
