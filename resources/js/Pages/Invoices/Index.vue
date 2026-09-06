@@ -92,7 +92,7 @@
                                             {{ invoice.invoice_no }}
                                         </Link>
                                     </td>
-                                    <td>{{ invoice.date }}</td>
+                                    <td class="text-nowrap">{{ invoice.date }}</td>
                                     <td>{{ invoice.party?.name }}</td>
                                     <td class="fw-bold">₹ {{ formatAmount(invoice.net_amount) }}</td>
                                     <td>
@@ -101,10 +101,11 @@
                                         </span>
                                     </td>
                                     <td class="text-end">
+                                        <div class="table-actions">
                                         <a
                                             :href="`/invoices/${invoice.id}/print`"
                                             target="_blank"
-                                            class="btn btn-sm btn-outline-info me-2"
+                                            class="btn btn-sm btn-outline-info"
                                             title="Print Invoice"
                                         >
                                             <i class="fas fa-print"></i>
@@ -112,7 +113,7 @@
                                         <Link
                                             v-if="can('edit invoices') && invoice.can_edit"
                                             :href="`/invoices/${invoice.id}/edit`"
-                                            class="btn btn-sm btn-info text-white me-2"
+                                            class="btn btn-sm btn-info text-white"
                                             title="Edit Invoice"
                                         >
                                             <i class="fas fa-edit"></i>
@@ -126,6 +127,7 @@
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="invoices.data.length === 0">
@@ -369,6 +371,14 @@ const statusBadgeClass = (status) => {
         margin-left: 0 !important;
         width: 100%;
         justify-content: flex-end;
+    }
+}
+@media (max-width: 500.98px) {
+    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields > div {
+        flex: 0 0 100% !important;
+        width: 100% !important;
     }
 }
 </style>

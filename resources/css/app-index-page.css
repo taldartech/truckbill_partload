@@ -362,7 +362,12 @@
     align-self: flex-end !important;
     margin-left: auto !important;
 }
-
+@media (max-width: 550px) {
+    .app-index-collapsible-filters__actions,
+    .app-report-filters-panel__actions {
+    margin-right: 0 !important;
+}
+}
 /* Ensure uniform heights and sizes for all filter controls and buttons globally */
 .app-index-collapsible-filters__inner .form-control,
 .app-index-collapsible-filters__inner .form-select,

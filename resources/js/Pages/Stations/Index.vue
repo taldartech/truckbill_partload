@@ -23,7 +23,7 @@
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="stations_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -60,10 +60,11 @@
                                     <td>{{ station.city?.name || 'N/A' }}</td>
                                     <td>{{ station.state?.name || 'N/A' }}</td>
                                     <td class="text-end" v-if="can('delete stations') || can('edit stations')">
+                                        <div class="table-actions">
                                         <button
                                             v-if="can('edit stations')"
                                             type="button"
-                                            class="btn btn-edit btn-sm me-2"
+                                            class="btn btn-edit btn-sm"
                                             @click="editItem(station)"
                                         >
                                             <i class="fas fa-edit"></i>
@@ -76,6 +77,7 @@
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="stations.data.length === 0">

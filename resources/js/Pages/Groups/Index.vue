@@ -18,7 +18,7 @@
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="groups_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -51,12 +51,14 @@
                                         </Link>
                                     </td>
                                     <td class="text-end" v-if="can('delete groups') || can('edit groups')">
-                                        <button type="button" class="btn btn-edit btn-sm me-2" @click="editItem(item)" v-if="can('edit groups')">
+                                        <div class="table-actions">
+                                        <button type="button" class="btn btn-edit btn-sm" @click="editItem(item)" v-if="can('edit groups')">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button type="button" class="btn btn-danger btn-sm" @click="deleteItem(item)"  v-if="can('delete groups')">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="items.data.length === 0">

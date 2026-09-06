@@ -33,12 +33,14 @@
                                     <td>{{ company.contact_person || 'N/A' }}</td>
                                     <td>{{ company.contact_number || 'N/A' }}</td>
                                     <td class="text-end">
-                                        <Link :href="`/companies/${company.id}/edit`" class="btn btn-edit btn-sm me-2">
+                                        <div class="table-actions">
+                                        <Link :href="`/companies/${company.id}/edit`" class="btn btn-edit btn-sm">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button @click="deleteCompany(company)" class="btn btn-sm btn-danger">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="companies.data.length === 0">

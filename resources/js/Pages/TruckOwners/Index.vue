@@ -23,7 +23,7 @@
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="truck_owners_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -60,10 +60,11 @@
                                     <td>{{ owner.mobile || 'N/A' }}</td>
                                     <td>{{ owner.gst_number || 'N/A' }}</td>
                                     <td class="text-end" v-if="can('delete truck_owners') || can('edit truck_owners')">
+                                        <div class="table-actions">
                                         <button
                                             v-if="can('edit truck_owners')"
                                             type="button"
-                                            class="btn btn-sm btn-info text-white me-2"
+                                            class="btn btn-sm btn-info text-white"
                                             @click="editItem(owner)"
                                         >
                                             <i class="fas fa-edit"></i>
@@ -76,6 +77,7 @@
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="truckOwners.data.length === 0">

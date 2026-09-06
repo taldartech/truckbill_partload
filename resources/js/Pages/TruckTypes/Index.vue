@@ -18,7 +18,7 @@
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="truck_types_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -51,12 +51,14 @@
                                         </Link>
                                     </td>
                                     <td class="text-end" v-if="can('delete truck_types') || can('edit truck_types')">
-                                        <button type="button" class="btn btn-edit btn-sm me-2" @click="editType(type)">
+                                        <div class="table-actions">
+                                        <button type="button" class="btn btn-edit btn-sm" @click="editType(type)">
                                             <i class="fas fa-edit" v-if="can('edit truck_types')"></i>
                                         </button>
                                         <button type="button" class="btn btn-danger btn-sm" @click="deleteType(type)">
                                             <i class="fas fa-trash" v-if="can('delete truck_types')"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="truckTypes.data.length === 0">

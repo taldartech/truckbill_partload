@@ -23,7 +23,7 @@
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="bank_accounts_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -66,6 +66,7 @@
                                         </span>
                                     </td>
                                     <td class="text-end"  v-if="can('edit bank_accounts') || can('edit bank_accounts')">
+                                        <div class="table-actions">
                                         <button
                                             v-if="can('edit bank_accounts')"
                                             type="button"
@@ -82,6 +83,7 @@
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="bankAccounts.data.length === 0">

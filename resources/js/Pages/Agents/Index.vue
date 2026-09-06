@@ -23,7 +23,7 @@
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="agents_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -60,10 +60,11 @@
                                     <td>{{ agent.mobile || 'N/A' }}</td>
                                     <td>{{ agent.city?.name || agent.city || 'N/A' }}</td>
                                     <td class="text-end" v-if="can('delete agents')">
+                                        <div class="table-actions">
                                         <button
                                             v-if="can('edit agents')"
                                             type="button"
-                                            class="btn btn-edit btn-sm me-2"
+                                            class="btn btn-edit btn-sm"
                                             @click="editItem(agent)"
                                         >
                                             <i class="fas fa-edit"></i>
@@ -76,6 +77,7 @@
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="agents.data.length === 0">

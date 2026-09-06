@@ -22,7 +22,7 @@
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="vouchers_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -76,7 +76,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="voucher in vouchers.data" :key="voucher.id">
-                                    <td>{{ voucher.date }}</td>
+                                    <td class="text-nowrap">{{ voucher.date }}</td>
                                     <td>
                                         <Link :href="`/vouchers/${voucher.id}`" class="fw-semibold text-decoration-none">
                                             {{ voucher.voucher_number || '—' }}
@@ -93,14 +93,16 @@
                                     </td>
                                     <td>{{ entityLabel(voucher) }}</td>
                                     <td>{{ modeLabel(voucher) }}</td>
-                                    <td>₹ {{ voucher.amount }}</td>
+                                    <td class="text-nowrap">₹ {{ voucher.amount }}</td>
                                     <td class="text-end"  v-if="can('edit vouchers') || can('delete vouchers')">
-                                        <Link :href="`/vouchers/${voucher.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit vouchers')">
+                                        <div class="table-actions">
+                                        <Link :href="`/vouchers/${voucher.id}/edit`" class="btn btn-sm btn-info text-white" v-if="can('edit vouchers')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button type="button" class="btn btn-sm btn-danger" @click="deleteVoucher(voucher)" v-if="can('delete vouchers')">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="vouchers.data.length === 0">
@@ -327,6 +329,15 @@ const modeLabel = (voucher) => {
         margin-left: 0 !important;
         width: 100%;
         justify-content: flex-end;
+    }
+}
+
+@media (max-width: 500.98px) {
+    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields > div {
+        flex: 0 0 100% !important;
+        width: 100% !important;
     }
 }
 </style>

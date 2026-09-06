@@ -78,12 +78,13 @@
                                             {{ receipt.delivery_receipt_no || '—' }}
                                         </Link>
                                     </td>
-                                    <td>{{ receipt.date }}</td>
+                                    <td class="text-nowrap">{{ receipt.date }}</td>
                                     <td>{{ receipt.gr_no_bilty_no }}</td>
                                     <td>{{ receipt.consignee?.name }}</td>
                                     <td>{{ receipt.mode_of_payment }}</td>
                                     <td class="fw-bold">₹ {{ receipt.final_amount }}</td>
                                     <td class="text-end">
+                                        <div class="table-actions">
                                         <a
                                             :href="`/delivery-receipts/${receipt.id}/print`"
                                             target="_blank"
@@ -98,6 +99,7 @@
                                         <button type="button" class="btn btn-sm btn-danger" @click="deleteReceipt(receipt)" v-if="can('delete delivery_receipts')">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="receipts.data.length === 0">
@@ -319,6 +321,14 @@ Amount     : ₹ ${receipt.final_amount}`
         margin-left: 0 !important;
         width: 100%;
         justify-content: flex-end;
+    }
+}
+@media (max-width: 500.98px) {
+    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields > div {
+        flex: 0 0 100% !important;
+        width: 100% !important;
     }
 }
 </style>

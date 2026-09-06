@@ -82,7 +82,7 @@
                                         }">{{ bilty.status }}</span>
                                     </td>
                                     <td class="text-end">
-                                        <div class="bilty-table-actions">
+                                        <div class="table-actions">
                                             <BiltyPrintButton :bilty-id="bilty.id"
                                                 button-class="btn btn-sm btn-outline-info" title="Print Bilty">
                                                 <i class="fas fa-print"></i>
@@ -369,24 +369,11 @@ const deleteItem = async (id,bilty_number) => {
         height: 42px;
     }
 
-    .bilty-table-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.25rem;
-        justify-content: flex-end;
-    }
 
 }
 
-.bilty-table-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    flex-wrap: nowrap;
-    gap: 0.5rem;
-}
 
-.bilty-table-actions .btn {
+.table-actions .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;

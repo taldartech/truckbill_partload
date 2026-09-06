@@ -18,7 +18,7 @@
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="trucks_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -71,10 +71,11 @@
                                     <td>{{ truck.rc_expiry_date || '—' }}</td>
                                     <td>{{ truck.truck_owner?.name || truck.truckOwner?.name || '—' }}</td>
                                     <td class="text-start" v-if="can('delete trucks') || can('edit trucks')">
+                                        <div class="table-actions">
                                         <button
                                             v-if="can('edit trucks')"
                                             type="button"
-                                            class="btn btn-view btn-sm me-2"
+                                            class="btn btn-view btn-sm"
                                             title="Update Status & Location"
                                             @click="openTourModal(truck)"
                                         >
@@ -83,7 +84,7 @@
                                         <Link
                                             v-if="can('edit trucks')"
                                             :href="`/trucks/${truck.id}/edit`"
-                                            class="btn btn-edit btn-sm me-2 my-1"
+                                            class="btn btn-edit btn-sm "
                                         >
                                             <i class="fas fa-edit"></i>
                                         </Link>
@@ -95,6 +96,7 @@
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="trucks.data.length === 0">

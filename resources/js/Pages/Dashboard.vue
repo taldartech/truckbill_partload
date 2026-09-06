@@ -200,7 +200,7 @@
                                                     </Link>
                                                     <span v-else>{{ bilty.bilty_number || '—' }}</span>
                                                 </td>
-                                                <td>{{ formatDate(bilty.date) }}</td>
+                                                <td class="text-nowrap">{{ formatDate(bilty.date) }}</td>
                                                 <td>{{ bilty.consignee?.name || '—' }}</td>
                                                 <td>
                                                     <span class="badge" :class="statusBadgeClass(bilty.status)">

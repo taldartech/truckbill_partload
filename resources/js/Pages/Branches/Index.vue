@@ -22,7 +22,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="branch in branches.data" :key="branch.id">
-                                    <td>
+                                    <td class="text-nowrap">
                                         <Link :href="`/branches/${branch.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ branch.name || 'N/A' }}
                                         </Link>
@@ -34,20 +34,22 @@
                                         <span v-else class="badge bg-secondary">Branch</span>
                                     </td>
                                     <td class="text-end">
+                                        <div class="table-actions">
                                         <Link
                                             v-if="can('edit branches')"
                                             :href="`/branches/${branch.id}/settings`"
-                                            class="btn btn-outline-secondary btn-sm me-2"
+                                            class="btn btn-outline-secondary btn-sm"
                                             title="Branch Settings"
                                         >
                                             <i class="fas fa-cog"></i>
                                         </Link>
-                                        <Link :href="`/branches/${branch.id}/edit`" class="btn btn-edit btn-sm me-2">
+                                        <Link :href="`/branches/${branch.id}/edit`" class="btn btn-edit btn-sm">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button @click="deleteBranch(branch)" class="btn btn-sm btn-danger">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="branches.data.length === 0">
