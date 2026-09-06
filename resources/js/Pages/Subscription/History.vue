@@ -31,16 +31,16 @@
                     </thead>
                     <tbody>
                         <tr v-for="payment in payments.data" :key="payment.id">
-                            <td>{{ formatDate(payment.created_at) }}</td>
-                            <td>{{ payment.company?.name ?? '—' }}</td>
+                            <td class="text-nowrap">{{ formatDate(payment.created_at) }}</td>
+                            <td class="text-nowrap">{{ payment.company?.name ?? '—' }}</td>
                             <td class="text-capitalize">{{ payment.type.replace(/_/g, ' ') }}</td>
                             <td>
                                 <StatusBadge :status="paymentStatus(payment.status)" />
                             </td>
-                            <td class="text-end fw-semibold">₹{{ formatMoney(payment.total_amount) }}</td>
+                            <td class="text-end text-nowrap fw-semibold">₹{{ formatMoney(payment.total_amount) }}</td>
                         </tr>
                         <tr v-if="payments.data.length === 0">
-                            <td colspan="5" class="text-center py-4 text-muted">No payments recorded yet.</td>
+                            <td colspan="5" class="text-center py-4 text-muted text-nowrap">No payments recorded yet.</td>
                         </tr>
                     </tbody>
                 </table>
