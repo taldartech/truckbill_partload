@@ -376,10 +376,6 @@ const deleteItem = async (id,bilty_number) => {
         justify-content: flex-end;
     }
 
-    .bilty-table-actions .btn {
-        padding: 0.25rem 0.4rem;
-        min-width: 2.5rem;
-    }
 }
 
 .bilty-table-actions {
