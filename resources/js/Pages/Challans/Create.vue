@@ -102,7 +102,7 @@
                     </div>
                     <div class="bilty-section__body bilty-section__body--flush">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-sm m-0 table-grid">
+                            <table class="table table-bordered table-sm m-0 table-grid" style="min-width: 700px;">
                                 <thead class="bg-light">
                                     <tr>
                                         <th width="5%" class="text-center">Sr.No.</th>
@@ -162,23 +162,21 @@
                                             </button>
                                         </td>
                                     </tr>
-                                    <tr>
-                                        <td colspan="10" class="bg-light p-2 text-center">
-                                            <button
-                                                type="button"
-                                                class="btn btn-sm btn-outline-secondary py-0"
-                                                data-dynamic-add
-                                                data-dynamic-add-for="line"
-                                                data-dynamic-add-message="Do you want to add another line?"
-                                                @click="addLineRow"
-                                            >
-                                                <i class="fas fa-plus"></i> Add Line
-                                            </button>
-                                            <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="text-center bg-light p-1">
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary py-0"
+                                data-dynamic-add
+                                data-dynamic-add-for="line"
+                                data-dynamic-add-message="Do you want to add another line?"
+                                @click="addLineRow"
+                            >
+                                <i class="fas fa-plus"></i> Add Line
+                            </button>
+                            <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
                         </div>
                     </div>
                 </section>

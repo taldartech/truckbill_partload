@@ -86,13 +86,13 @@
                                     <td>
                                         <Link :href="`/main-challans/${challan.id}`">{{ challan.main_challan_number || 'N/A' }}</Link>
                                     </td>
-                                    <td>{{ challan.date || 'N/A' }}</td>
-                                    <td>
+                                    <td class="text-nowrap">{{ challan.date || 'N/A' }}</td>
+                                    <td class="text-nowrap">
                                         <span class="text-bold">{{ challan.from_station?.name }}</span>
                                         <i class="fas fa-arrow-right mx-2 text-muted small"></i>
                                         <span class="text-bold">{{ challan.to_station?.name }}</span>
                                     </td>
-                                    <td>
+                                    <td class="text-nowrap">
                                         <div class="text-bold">
                                             <i class="fas fa-truck me-1 text-muted small"></i>
                                             {{ challan.truck?.truck_number }}
@@ -104,20 +104,22 @@
                                     </td>
                                     <td>{{ challan.total_amount || '0.00' }}</td>
                                     <td class="text-end">
+                                        <div class="table-actions">
                                         <a
                                             :href="`/main-challans/${challan.id}/print`"
                                             target="_blank"
-                                            class="btn btn-sm btn-outline-info me-2"
+                                            class="btn btn-sm btn-outline-info"
                                             title="Print Main Challan"
                                         >
                                             <i class="fas fa-print"></i>
                                         </a>
-                                        <Link :href="`/main-challans/${challan.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit challans')">
+                                        <Link :href="`/main-challans/${challan.id}/edit`" class="btn btn-sm btn-info text-white " v-if="can('edit challans')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button type="button" class="btn btn-sm btn-danger" @click="deleteItem(challan)" v-if="can('delete challans')" >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="main_challans.data.length === 0">
@@ -360,6 +362,15 @@ To         : ${challan.to_station?.name}`
         margin-left: 0 !important;
         width: 100%;
         justify-content: flex-end;
+    }
+}
+
+@media (max-width: 500.98px) {
+    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields > div {
+        flex: 0 0 100% !important;
+        width: 100% !important;
     }
 }
 </style>
