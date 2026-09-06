@@ -98,7 +98,7 @@
                     </div>
                     <div class="bilty-section__body bilty-section__body--flush">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-sm m-0 table-grid" data-dynamic-add-message="Do you want to add another line?">
+                            <table class="table table-bordered table-sm m-0 table-grid" style="min-width: 700px;" data-dynamic-add-message="Do you want to add another line?">
                                 <thead class="bg-light">
                                     <tr>
                                         <th width="5%" class="text-center">Sr.No.</th>

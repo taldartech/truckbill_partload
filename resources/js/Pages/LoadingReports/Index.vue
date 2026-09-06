@@ -22,7 +22,7 @@
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-md-3">
                         <label class="form-label" for="loading_reports_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -85,7 +85,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="report in reports.data" :key="report.id">
-                                    <td>
+                                    <td class="text-nowrap">
                                         <Link :href="`/loading-reports/${report.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ report.date }}
                                         </Link>
@@ -97,20 +97,22 @@
                                     <td>{{ report.gross_weight }}</td>
                                     <td>{{ report.no_of_packages }}</td>
                                     <td class="text-end">
+                                        <div class="table-actions">
                                         <a
                                             :href="`/loading-reports/${report.id}/print`"
                                             target="_blank"
-                                            class="btn btn-sm btn-outline-info me-2"
+                                            class="btn btn-sm btn-outline-info "
                                             title="Print Loading Report"
                                         >
                                             <i class="fas fa-print"></i>
                                         </a>
-                                        <Link :href="`/loading-reports/${report.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit loading_reports')" >
+                                        <Link :href="`/loading-reports/${report.id}/edit`" class="btn btn-sm btn-info text-white " v-if="can('edit loading_reports')" >
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button type="button" class="btn btn-sm btn-danger" @click="deleteReport(report.id,report.date,report.truck?.truck_number,report.from_station?.name,report.to_station?.name)" v-if="can('delete loading_reports')"  >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="reports.data.length === 0">
@@ -354,6 +356,14 @@ To         : ${toStation}`
         margin-left: 0 !important;
         width: 100%;
         justify-content: flex-end;
+    }
+}
+@media (max-width: 500.98px) {
+    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields > div {
+        flex: 0 0 100% !important;
+        width: 100% !important;
     }
 }
 </style>
