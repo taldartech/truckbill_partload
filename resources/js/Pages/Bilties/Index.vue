@@ -7,15 +7,19 @@
                     <div class="app-index-card-toolbar d-flex flex-wrap gap-2 align-items-center">
                         <Link v-if="can('create bilties')" href="/bilties/create"
                             class="btn btn-sm app-index-header-btn">
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus"
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus ms-1 ms-sm-0"
                                 aria-hidden="true"></span>
-                            Create
+                            <span class="d-none d-sm-block">Create</span>
                         </Link>
+                        <button type="button" class="btn btn-sm btn-success d-block d-sm-none"
+                            :title="showFilters ? 'Hide Filters' : 'Show Filters'" @click="showFilters = !showFilters">
+                            <i class="fas fa-filter p-1"></i>
+                        </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters panel-id="bilties-filters-panel" :loading="searching" @search="applyFilters"
-                    @reset="resetFilters">
+                <AppIndexCollapsibleFilters v-if="showFilters" panel-id="bilties-filters-panel" :loading="searching"
+                    @search="applyFilters" @reset="resetFilters">
                     <div class="filter-search-col">
                         <label class="form-label" for="bilties_search">Search</label>
                         <AppIndexSearchInput v-model="filters.search" input-id="bilties_search"
@@ -128,7 +132,10 @@ import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
+import { useResponsiveIndexFilters } from '@/composables/useResponsiveIndexFilters';
 const page = usePage();
+const { showFilters } = useResponsiveIndexFilters();
+
 const can = (permission) => {
     return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
 };
@@ -212,7 +219,7 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteItem = async (id,bilty_number) => {
+const deleteItem = async (id, bilty_number) => {
     const remark = await askKeyboardConfirmWithRemark(
         `Are you sure you want to delete Bilty ${bilty_number}?`
     );
@@ -413,10 +420,12 @@ const deleteItem = async (id,bilty_number) => {
     }
 
 }
+
 @media (max-width: 500.98px) {
-    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
-    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
-    .app-index-filters-fields > div {
+
+    .app-index-collapsible-filters__inner>div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner>div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields>div {
         flex: 0 0 100% !important;
         width: 100% !important;
     }

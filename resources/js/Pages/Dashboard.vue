@@ -156,8 +156,9 @@
                         :class="`dash-stat-card--${stat.tone}`"
                     >
                         <div class="dash-stat-card__icon"><i class="fas" :class="stat.icon"></i></div>
+                        <div class="dash-stat-card__value d-block d-sm-none">{{ stat.value }}</div>
                         <div>
-                            <div class="dash-stat-card__value">{{ stat.value }}</div>
+                            <div class="dash-stat-card__value d-sm-block d-none">{{ stat.value }}</div>
                             <div class="dash-stat-card__label">{{ stat.label }}</div>
                             <div v-if="stat.meta" class="dash-stat-card__meta">{{ stat.meta }}</div>
                             <Link v-if="stat.href" :href="stat.href" class="dash-stat-card__link">
