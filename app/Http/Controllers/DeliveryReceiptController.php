@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
 use App\Models\Company;
 use App\Models\DeliveryReceipt;
 use App\Models\InwardRegisterDetail;
 use App\Models\Party;
+use App\Support\DocumentNumber;
 use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -76,13 +78,18 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
     public function create()
     {
         $branchGstRate = $this->branchGstRate();
-
+        $branch = $this->activeBranch();
+        $nextNumber = DocumentNumber::next(
+            DeliveryReceipt::query(),
+            'delivery_receipt_no',
+            $branch?->settings?->delivery_initial
+        );
         return Inertia::render('DeliveryReceipts/Create', [
             'parties' => Party::query()->orderBy('name')->get(['id', 'name']),
             'gr_sources' => $this->grSourceOptions(),
             'gst_rate' => $branchGstRate,
             'gst_exemption_limit' => $this->gstExemptionLimit(),
-            'next_delivery_receipt_no' => $this->nextDeliveryReceiptNumber(),
+            'next_delivery_receipt_no' => $nextNumber,
         ]);
     }
 
@@ -212,13 +219,6 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'branch' => $branch,
             'grSource' => $grSource,
         ]);
-    }
-    private function nextDeliveryReceiptNumber(): string
-    {
-        return \App\Support\DocumentNumber::next(
-            DeliveryReceipt::query(),
-            'delivery_receipt_no'
-        );
     }
 
     /**
@@ -483,5 +483,10 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         }
 
         return (float) ($branch->gst_exemption_limit ?? 0);
+    }
+
+    protected function activeBranch(): ?Branch
+    {
+        return $this->tenant()->activeBranch();
     }
 }

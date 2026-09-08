@@ -209,7 +209,7 @@
                                         <td>
                                             <input
                                                 type="number"
-                                                step="0.01"
+                                                step="any"
                                                 min="0.01"
                                                 class="form-control form-control-sm text-center"
                                                 v-model="row.rate"

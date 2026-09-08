@@ -107,19 +107,19 @@
                                 <div class="bilty-charge-list">
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Freight</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.freight" @input="calculateTotals">
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.freight" @input="calculateTotals">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Handling Charge</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.handling_charge" @input="calculateTotals">
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.handling_charge" @input="calculateTotals">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Delivery Charge</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.delivery_charge" @input="calculateTotals">
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.delivery_charge" @input="calculateTotals">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Stationery Charge</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.stationery_charge" @input="calculateTotals">
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.stationery_charge" @input="calculateTotals">
                                     </div>
                                 </div>
                             </div>
@@ -127,19 +127,19 @@
                                 <div class="bilty-charge-list">
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Demurrage</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.demurrage" @input="calculateTotals">
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.demurrage" @input="calculateTotals">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Other Charge</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.other_charge" @input="calculateTotals">
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.other_charge" @input="calculateTotals">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Carriage Charge</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.carriage_charge" @input="calculateTotals">
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.carriage_charge" @input="calculateTotals">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label fw-bold">Sub Total Amount</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light fw-bold" v-model="form.total_amount" readonly>
+                                        <input type="number" step="any" class="form-control form-control-sm bg-light fw-bold" v-model="form.total_amount" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -171,7 +171,7 @@
                                     </div>
                                     <div v-if="showGstFields" class="bilty-field">
                                         <label class="bilty-field__label">GST ({{ Number(form.gst_rate || 0) }}%)</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light" v-model="form.gst" readonly>
+                                        <input type="number" step="any" class="form-control form-control-sm bg-light" v-model="form.gst" readonly>
                                     </div>
                                     <div v-if="showGstFields && showGstLiability" class="bilty-field">
                                         <label class="bilty-field__label">GST Pay By</label>
@@ -184,7 +184,7 @@
                                     </div>
                                     <div class="bilty-field">
                                         <label class="bilty-field__label">Less</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.less" @input="calculateTotals">
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.less" @input="calculateTotals">
                                     </div>
                                 </div>
                             </div>
@@ -192,7 +192,7 @@
                                 <div class="bilty-total-panel">
                                     <div class="bilty-total">
                                         <span class="bilty-total__label">FINAL AMOUNT</span>
-                                        <input type="number" step="0.01" class="form-control form-control-sm bilty-total__input" v-model="form.final_amount" readonly>
+                                        <input type="number" step="any" class="form-control form-control-sm bilty-total__input" v-model="form.final_amount" readonly>
                                     </div>
                                 </div>
                             </div>
