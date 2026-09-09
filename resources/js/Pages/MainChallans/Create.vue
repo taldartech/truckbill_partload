@@ -121,22 +121,22 @@
                                             <input type="number" class="form-control form-control-sm text-center bg-light" v-model="detail.nugs" readonly>
                                         </td>
                                         <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.weight" readonly>
+                                            <input type="number" step="any" class="form-control form-control-sm text-center bg-light" v-model="detail.weight" readonly>
                                         </td>
                                         <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.to_pay" readonly>
+                                            <input type="number" step="any" class="form-control form-control-sm text-center bg-light" v-model="detail.to_pay" readonly>
                                         </td>
                                         <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.paid_amount" readonly>
+                                            <input type="number" step="any" class="form-control form-control-sm text-center bg-light" v-model="detail.paid_amount" readonly>
                                         </td>
                                         <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.crossing" readonly>
+                                            <input type="number" step="any" class="form-control form-control-sm text-center bg-light" v-model="detail.crossing" readonly>
                                         </td>
                                         <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.cartage" readonly>
+                                            <input type="number" step="any" class="form-control form-control-sm text-center bg-light" v-model="detail.cartage" readonly>
                                         </td>
                                         <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm text-center bg-light" v-model="detail.labour" readonly>
+                                            <input type="number" step="any" class="form-control form-control-sm text-center bg-light" v-model="detail.labour" readonly>
                                         </td>
                                         <td class="text-center align-middle">
                                             <button type="button" class="btn btn-sm btn-link text-danger p-0 bg-transparent" @click="removeRow(index)">

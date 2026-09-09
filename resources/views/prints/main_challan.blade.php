@@ -277,9 +277,7 @@
 
         <div style="margin-top: 10px;">
             <div><strong>Total Amount (Rs.) :-</strong> {{ number_format(abs($main_challan->total_amount ?? 0), 2) }} {{ ($main_challan->total_amount ?? 0) > 0 ? 'Dr' : 'Cr' }}</div>
-            @if($main_challan->remark)
-                <div><strong>Remark :-</strong> {{ $main_challan->remark }}</div>
-            @endif
+            <div><strong>Remark :-</strong> {{ $main_challan->remark ?? '—'}}</div>
         </div>
 
         <div class="footer">

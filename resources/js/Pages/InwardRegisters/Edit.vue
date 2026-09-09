@@ -141,7 +141,7 @@
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Weight (Kg)<span class="bilty-field__req">*</span></label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.weight" @keydown="preventLetters" placeholder="0.00">
+                                <input type="number" step="any" class="form-control form-control-sm" v-model="entry.weight" @keydown="preventLetters" placeholder="0.00">
                                 <div v-if="entryErrors.weight" class="text-danger small mt-1">{{ entryErrors.weight }}</div>
                             </div>
                             <div class="bilty-field">
@@ -159,12 +159,12 @@
                         <div class="bilty-form-grid bilty-form-grid--4 mt-0">
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Freight<span class="bilty-field__req">*</span></label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.freight" @keydown="preventLetters" placeholder="0.00">
+                                <input type="number" step="any" class="form-control form-control-sm" v-model="entry.freight" @keydown="preventLetters" placeholder="0.00">
                                 <div v-if="entryErrors.freight" class="text-danger small mt-1">{{ entryErrors.freight }}</div>
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Home Delivery Charge</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="entry.home_delivery_charge" @keydown="preventLetters" placeholder="0.00">
+                                <input type="number" step="any" class="form-control form-control-sm" v-model="entry.home_delivery_charge" @keydown="preventLetters" placeholder="0.00">
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Private Marka</label>

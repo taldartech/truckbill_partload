@@ -36,6 +36,8 @@ class BranchSettingsController extends Controller implements HasMiddleware
                 'main_challan_initial' => $settings->main_challan_initial ?? '',
                 'invoice_initial' => $settings->invoice_initial ?? '',
                 'inward_register_initial' => $settings->inward_register_initial ?? '',
+                'voucher_initial' => $settings->voucher_initial ?? '',
+                'delivery_initial' => $settings->delivery_initial ?? '',
                 'bilty_print_config' => $settings->resolvedBiltyPrintConfig(),
             ],
         ]);
@@ -51,10 +53,12 @@ class BranchSettingsController extends Controller implements HasMiddleware
             'main_challan_initial' => 'nullable|string|max:20',
             'invoice_initial' => 'nullable|string|max:20',
             'inward_register_initial' => 'nullable|string|max:20',
+            'voucher_initial' => 'nullable|string|max:20',
+            'delivery_initial' => 'nullable|string|max:20',
             ...BranchSetting::biltyPrintConfigValidationRules(),
         ]);
 
-        foreach (['bilty_initial', 'challan_initial', 'main_challan_initial', 'invoice_initial', 'inward_register_initial'] as $field) {
+        foreach (['bilty_initial', 'challan_initial', 'main_challan_initial', 'invoice_initial', 'inward_register_initial', 'voucher_initial', 'delivery_initial'] as $field) {
             $value = trim((string) ($validated[$field] ?? ''));
             $validated[$field] = $value !== '' ? $value : null;
         }

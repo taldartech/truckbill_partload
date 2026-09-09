@@ -88,7 +88,7 @@
             border: 1px solid #000;
             border-top: none;
             padding: 3px 4px;
-            font-size: 13px;
+            font-size: 10px;
             vertical-align: top;
         }
         .bi-grid tbody tr.bi-fill td {
@@ -153,6 +153,7 @@
         .text-right { text-align: right; }
         .w-18 { width: 18%; }
         .w-22 { width: 22%; }
+        .w-20 { width: 20%; }
         .w-28 { width: 28%; }
         .w-30 { width: 30%; }
         .w-34 { width: 34%; }

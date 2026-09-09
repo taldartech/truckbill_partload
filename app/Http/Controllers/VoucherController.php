@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Agent;
 use App\Models\BankAccount;
+use App\Models\Branch;
 use App\Models\Party;
 use App\Models\Vendor;
 use App\Models\Voucher;
 use App\Services\Accounting\AccountingPoster;
 use App\Services\Accounting\EntityBalance;
+use App\Support\DocumentNumber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -74,7 +76,14 @@ class VoucherController extends Controller implements HasMiddleware
 
     public function create()
     {
-         return Inertia::render('Vouchers/Create', array_merge($this->formOptions(), ['next_voucher_number' => $this->nextVoucherNumber(),]));
+        $branch = $this->activeBranch();
+        $nextNumber = DocumentNumber::next(
+            Voucher::query(),
+            'voucher_number',
+            $branch?->settings?->voucher_initial
+        );
+
+        return Inertia::render('Vouchers/Create', array_merge($this->formOptions(),['next_voucher_number' => $nextNumber]));
     }
 
     public function show(Voucher $voucher)
@@ -217,13 +226,7 @@ class VoucherController extends Controller implements HasMiddleware
             'outstanding' => $balances->outstanding($entity),
         ]);
     }
-    private function nextVoucherNumber(): string
-    {
-        return \App\Support\DocumentNumber::next(
-            Voucher::query(),
-            'voucher_number',
-        );
-    }
+
     /**
      * @return array<string, mixed>
      */
@@ -278,5 +281,10 @@ class VoucherController extends Controller implements HasMiddleware
             Party::class => 'party',
             default => null,
         };
+    }
+
+    protected function activeBranch(): ?Branch
+    {
+        return $this->tenant()->activeBranch();
     }
 }

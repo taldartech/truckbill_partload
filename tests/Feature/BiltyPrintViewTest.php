@@ -75,9 +75,11 @@ class BiltyPrintViewTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('TBB', false);
+        $response->assertSee('<div class="bi-stamp">', false);
         $response->assertSee('Driver Copy', false);
         $response->assertDontSee('TO PAY', false);
         $response->assertDontSee('1,500.00', false);
+        $response->assertDontSee('Handling Charge', false);
     }
 
     public function test_tbb_print_with_amounts_hidden_shows_tbb_label(): void
@@ -91,6 +93,7 @@ class BiltyPrintViewTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('TBB', false);
+        $response->assertSee('<div class="bi-stamp">', false);
         $response->assertDontSee('To BE BILLED', false);
         $response->assertDontSee('1,500.00', false);
     }
@@ -107,6 +110,22 @@ class BiltyPrintViewTest extends TestCase
         $response->assertOk();
         $response->assertSee('TO PAY', false);
         $response->assertSee('1,500.00', false);
+        $response->assertDontSee('<div class="bi-stamp">', false);
+    }
+
+    public function test_tbb_print_with_amounts_enabled_shows_amounts_without_badge(): void
+    {
+        $context = $this->createPrintContext([
+            'payment_type' => 'TBB',
+            'show_amount' => true,
+        ]);
+
+        $response = $this->actingAs($context['user'])->get(route('bilties.print', $context['bilty']));
+
+        $response->assertOk();
+        $response->assertSee('TBB', false);
+        $response->assertSee('1,500.00', false);
+        $response->assertDontSee('<div class="bi-stamp">', false);
     }
 
     public function test_print_lists_multiple_eway_bills_with_expiry_dates(): void
@@ -195,6 +214,17 @@ class BiltyPrintViewTest extends TestCase
         ]);
 
         $showAmount = (bool) ($options['show_amount'] ?? true);
+        $paymentType = $options['payment_type'] ?? 'To Pay';
+        $bobKey = match (strtoupper(trim($paymentType))) {
+            'TO PAY' => 'to_pay',
+            'PAID' => 'paid',
+            'TBB' => 'tbb',
+            'FOC' => 'foc',
+            default => 'to_pay',
+        };
+        $showAmountByBob = BranchSetting::defaultShowAmountByBob(false);
+        $showAmountByBob[$bobKey] = $showAmount;
+
         $branch->settings()->update([
             'bilty_print_config' => [
                 'note' => '',
@@ -203,7 +233,7 @@ class BiltyPrintViewTest extends TestCase
                     'consignee' => ['enabled' => false, 'show_amount_by_bob' => BranchSetting::defaultShowAmountByBob(false)],
                     'driver' => [
                         'enabled' => true,
-                        'show_amount_by_bob' => BranchSetting::defaultShowAmountByBob($showAmount),
+                        'show_amount_by_bob' => $showAmountByBob,
                     ],
                     'office' => ['enabled' => false, 'show_amount_by_bob' => BranchSetting::defaultShowAmountByBob(false)],
                 ],
@@ -249,7 +279,7 @@ class BiltyPrintViewTest extends TestCase
             'to_station_id' => $toStation->id,
             'consignor_id' => $consignor->id,
             'consignee_id' => $consignee->id,
-            'payment_type' => $options['payment_type'] ?? 'To Pay',
+            'payment_type' => $paymentType,
             'delivery_at' => 'Door Delivery',
             'private_marka' => 'PM-1',
             'invoice_number' => '245',

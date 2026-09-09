@@ -62,7 +62,7 @@
     $paymentStamp = $showAmount
         ? BiltyPrint::paymentStampLabel($bilty->payment_type)
         : 'TBB';
-    $showPaymentStamp = ! $showAmount || BiltyPrint::isPaymentType($bilty->payment_type, 'TBB');
+    $showPaymentStamp = ! $showAmount;
 
     $termsText = trim((string) ($biltyNote ?? ''));
 @endphp
@@ -104,7 +104,7 @@
 
             <table class="bi-meta border-top border-bottom-none">
                 <tr>
-                    <td class="w-30" style="font-size:13px;">
+                    <td class="w-40" style="font-size:13px;">
                         <div>
                             <span class="lbl">Consignor:</span>
                             <span class="bi-party-name">{{ $bilty->consignor->name ?? '—' }}</span>
@@ -119,7 +119,7 @@
                         <div><span class="lbl">From Station:</span> <span class="val">{{ $bilty->fromStation->name ?? '—' }}</span></div>
 
                     </td>
-                    <td class="w-30" style="font-size:13px;">
+                    <td class="w-40" style="font-size:13px;">
                         <div style="margin-top:3px;">
                             <span class="lbl">Consignee:</span>
                             <span class="bi-party-name">{{ $bilty->consignee->name ?? '—' }}</span>
@@ -133,7 +133,7 @@
                         </div>
                         <div><span class="lbl">To Station:</span> <span class="val">{{ $bilty->toStation->name ?? '—' }}</span></div>
                     </td>
-                    <td class="w-30" style="font-size:13px;">
+                    <td class="w-20" style="font-size:13px;">
                         <div><span class="lbl">Bilty No:</span> <span class="val" style="font-size:16px;font-weight:bold;">{{ $bilty->bilty_number ?? '—' }}</span></div>
                         <div><span class="lbl">Date:</span> <span class="val">{{ $bilty->date ? date('d-M-Y', strtotime($bilty->date)) : '—' }}</span></div>
                     </td>
@@ -174,7 +174,7 @@
                                 <td class="{{ $detail ? '' : 'bi-item-blank' }}">{{ $detail['good'] ?? '' }}</td>
                                 <td class="text-right {{ $detail ? '' : 'bi-item-blank' }}">{{ $detail ? $formatQty($detail['no_of_packages']) : '' }}</td>
                                 <td class="text-right {{ $detail ? '' : 'bi-item-blank' }}">{{ $detail ? $formatQty($detail['gross_weight']) : '' }}</td>
-                                <td>{{ $charge['label'] ?? '' }}</td>
+                                <td>{{ $showAmount ? ($charge['label'] ?? '') : 'Total Freight' }}</td>
                                 <td class="text-right">
                                     @if ($charge && $showAmount)
                                         {{ $formatAmount($charge['amount']) }}

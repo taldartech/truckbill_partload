@@ -280,6 +280,17 @@
                                     >
                                         {{ fieldError(master === 'agent' ? 'gst_no' : 'gst_number') }}
                                     </div>
+                                    <template v-if="master === 'agent'">
+                                        <label class="form-label small mb-1 mt-2">Transporter Id</label>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm"
+                                            v-model="form.transport_id"
+                                        >
+                                        <div v-if="fieldError('transport_id')" class="text-danger small">
+                                            {{ fieldError('transport_id') }}
+                                        </div>
+                                    </template>
                                 </div>
                             </template>
 
@@ -424,7 +435,7 @@ const emptyFormFor = (type, ctx = {}) => {
         case 'station':
             return { name: '', state_id: '', city_id: '', default_agent_id: '' };
         case 'agent':
-            return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_no: '' };
+            return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_no: '', transport_id: '' };
         case 'vendor':
             return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_number: '' };
         case 'truck_owner':

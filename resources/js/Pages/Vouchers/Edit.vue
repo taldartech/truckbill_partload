@@ -51,7 +51,7 @@
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Amount<span class="bilty-field__req">*</span></label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" v-model="form.amount" required>
+                                <input type="number" step="any" class="form-control form-control-sm" v-model="form.amount" required>
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Mode<span class="bilty-field__req">*</span></label>
