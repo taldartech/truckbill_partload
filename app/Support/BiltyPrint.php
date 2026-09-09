@@ -47,7 +47,7 @@ class BiltyPrint
         return match (strtoupper(trim((string) $paymentType))) {
             'TO PAY' => 'To Pay',
             'PAID' => 'Paid',
-            'TBB' => 'To be billed',
+            'TBB' => 'Tbb',
             'FOC' => 'FOC',
             default => $paymentType ?: '—',
         };
@@ -58,7 +58,7 @@ class BiltyPrint
         return match (strtoupper(trim((string) $paymentType))) {
             'TO PAY' => 'TO PAY',
             'PAID' => 'PAID',
-            'TBB' => 'To BE BILLED',
+            'TBB' => 'TBB',
             'FOC' => 'FOC',
             default => strtoupper(trim((string) $paymentType)) ?: '—',
         };
