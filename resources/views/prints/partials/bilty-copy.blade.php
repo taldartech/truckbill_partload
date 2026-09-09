@@ -62,7 +62,7 @@
     $paymentStamp = $showAmount
         ? BiltyPrint::paymentStampLabel($bilty->payment_type)
         : 'TBB';
-    $showPaymentStamp = ! $showAmount && BiltyPrint::isPaymentType($bilty->payment_type, 'TBB');
+    $showPaymentStamp = ! $showAmount;
 
     $termsText = trim((string) ($biltyNote ?? ''));
 @endphp
