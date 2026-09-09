@@ -88,7 +88,7 @@
             border: 1px solid #000;
             border-top: none;
             padding: 3px 4px;
-            font-size: 13px;
+            font-size: 10px;
             vertical-align: top;
         }
         .bi-grid tbody tr.bi-fill td {
