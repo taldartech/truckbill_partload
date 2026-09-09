@@ -153,6 +153,7 @@
         .text-right { text-align: right; }
         .w-18 { width: 18%; }
         .w-22 { width: 22%; }
+        .w-20 { width: 20%; }
         .w-28 { width: 28%; }
         .w-30 { width: 30%; }
         .w-34 { width: 34%; }

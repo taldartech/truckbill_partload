@@ -133,7 +133,7 @@
                         </div>
                         <div><span class="lbl">To Station:</span> <span class="val">{{ $bilty->toStation->name ?? '—' }}</span></div>
                     </td>
-                    <td class="w-18" style="font-size:13px;">
+                    <td class="w-20" style="font-size:13px;">
                         <div><span class="lbl">Bilty No:</span> <span class="val" style="font-size:16px;font-weight:bold;">{{ $bilty->bilty_number ?? '—' }}</span></div>
                         <div><span class="lbl">Date:</span> <span class="val">{{ $bilty->date ? date('d-M-Y', strtotime($bilty->date)) : '—' }}</span></div>
                     </td>
