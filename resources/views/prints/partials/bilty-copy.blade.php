@@ -62,7 +62,7 @@
     $paymentStamp = $showAmount
         ? BiltyPrint::paymentStampLabel($bilty->payment_type)
         : 'TBB';
-    $showPaymentStamp = ! $showAmount || BiltyPrint::isPaymentType($bilty->payment_type, 'TBB');
+    $showPaymentStamp = ! $showAmount;
 
     $termsText = trim((string) ($biltyNote ?? ''));
 @endphp
@@ -174,7 +174,7 @@
                                 <td class="{{ $detail ? '' : 'bi-item-blank' }}">{{ $detail['good'] ?? '' }}</td>
                                 <td class="text-right {{ $detail ? '' : 'bi-item-blank' }}">{{ $detail ? $formatQty($detail['no_of_packages']) : '' }}</td>
                                 <td class="text-right {{ $detail ? '' : 'bi-item-blank' }}">{{ $detail ? $formatQty($detail['gross_weight']) : '' }}</td>
-                                <td>{{ $charge['label'] ?? '' }}</td>
+                                <td>{{ $showAmount ? ($charge['label'] ?? '') : 'Total Freight' }}</td>
                                 <td class="text-right">
                                     @if ($charge && $showAmount)
                                         {{ $formatAmount($charge['amount']) }}

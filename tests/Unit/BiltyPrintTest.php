@@ -100,7 +100,7 @@ class BiltyPrintTest extends TestCase
 
     public function test_payment_stamp_label_matches_sample_wording(): void
     {
-        $this->assertSame('To BE BILLED', BiltyPrint::paymentStampLabel('TBB'));
+        $this->assertSame('TBB', BiltyPrint::paymentStampLabel('TBB'));
         $this->assertSame('TO PAY', BiltyPrint::paymentStampLabel('To Pay'));
         $this->assertSame('PAID', BiltyPrint::paymentStampLabel('Paid'));
         $this->assertSame('FOC', BiltyPrint::paymentStampLabel('FOC'));

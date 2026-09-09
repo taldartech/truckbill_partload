@@ -5,7 +5,7 @@
                 <li class="nav-item">
                     <button
                         type="button"
-                        class="btn btn-link text-muted p-2 app-header-icon-btn"
+                        class="btn btn-link text-muted p-1 p-sm-2 app-header-icon-btn w-sm-auto"
                         aria-label="Toggle sidebar"
                         @click="toggleSidebar"
                     >
@@ -44,14 +44,14 @@
                         as="button"
                         class="btn btn-sm btn-outline-secondary"
                     >
-                        <i class="fas fa-cog me-1"></i> Setup Mode
+                        <i class="fas fa-cog "></i><span class="ms-1 hide-text">Setup Mode</span>
                     </Link>
                     <Link
                         v-else
                         href="/select-branch"
                         class="btn btn-sm btn-primary"
                     >
-                        <i class="fas fa-code-branch me-1"></i> Select Branch
+                        <i class="fas fa-code-branch "></i><span class="ms-1 hide-text">Select Branch</span>
                     </Link>
                 </li>
 
@@ -122,6 +122,19 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.keyboard-btn {
+    display: none;
+}
+@media (pointer: fine) {
+    .keyboard-btn {
+      display: block; 
+    }
+}
+@media (max-width: 360px) {
+    .hide-text {
+        display: none !important;
+    }
+}
 .hover-bg:hover {
     background-color: #f3f4f6;
 }
