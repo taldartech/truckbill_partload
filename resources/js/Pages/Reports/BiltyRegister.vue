@@ -63,7 +63,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="bilty in bilties" :key="bilty.id">
-                                    <td class="text-nowrap">{{ bilty.date }}</td>
+                                    <td class="text-nowrap ">{{ bilty.date }}</td>
                                     <td>
                                         <BiltyPrintButton
                                             :bilty-id="bilty.id"

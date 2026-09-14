@@ -66,8 +66,8 @@
                                             {{ bilty.bilty_number || 'N/A' }}
                                         </Link>
                                     </td>
-                                    <td class="text-nowrap">{{ bilty.date || 'N/A' }}</td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap ">{{ bilty.date || 'N/A' }}</td>
+                                    <td class="text-nowrap ">
                                         <span class="text-bold">{{ bilty.from_station?.name }}</span>
                                         <i class="fas fa-arrow-right mx-2 text-muted small"></i>
                                         <span class="text-bold">{{ bilty.to_station?.name }}</span>

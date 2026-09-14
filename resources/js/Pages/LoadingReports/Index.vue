@@ -89,7 +89,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="report in reports.data" :key="report.id">
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap ">
                                         <Link :href="`/loading-reports/${report.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ report.date }}
                                         </Link>

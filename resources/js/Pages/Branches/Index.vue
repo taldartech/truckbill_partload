@@ -22,7 +22,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="branch in branches.data" :key="branch.id">
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap ">
                                         <Link :href="`/branches/${branch.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ branch.name || 'N/A' }}
                                         </Link>

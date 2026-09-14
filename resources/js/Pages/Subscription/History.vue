@@ -31,8 +31,8 @@
                     </thead>
                     <tbody>
                         <tr v-for="payment in payments.data" :key="payment.id">
-                            <td class="text-nowrap">{{ formatDate(payment.created_at) }}</td>
-                            <td class="text-nowrap">{{ payment.company?.name ?? '—' }}</td>
+                            <td class="text-nowrap ">{{ formatDate(payment.created_at) }}</td>
+                            <td class="text-nowrap ">{{ payment.company?.name ?? '—' }}</td>
                             <td class="text-capitalize">{{ payment.type.replace(/_/g, ' ') }}</td>
                             <td>
                                 <StatusBadge :status="paymentStatus(payment.status)" />

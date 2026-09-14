@@ -201,7 +201,7 @@
                                                     </Link>
                                                     <span v-else>{{ bilty.bilty_number || '—' }}</span>
                                                 </td>
-                                                <td class="text-nowrap">{{ formatDate(bilty.date) }}</td>
+                                                <td class="text-nowrap ">{{ formatDate(bilty.date) }}</td>
                                                 <td>{{ bilty.consignee?.name || '—' }}</td>
                                                 <td>
                                                     <span class="badge" :class="statusBadgeClass(bilty.status)">
@@ -251,7 +251,7 @@
                                                     </Link>
                                                     <span v-else>{{ challan.challan_number || '—' }}</span>
                                                 </td>
-                                                <td>{{ formatDate(challan.date) }}</td>
+                                                <td class="text-nowrap ">{{ formatDate(challan.date) }}</td>
                                                 <td>{{ challan.truck?.truck_number || '—' }}</td>
                                             </tr>
                                             <tr v-if="!dashboard.recent_challans?.length">

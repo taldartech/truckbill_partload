@@ -80,7 +80,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="voucher in vouchers.data" :key="voucher.id">
-                                    <td class="text-nowrap">{{ voucher.date }}</td>
+                                    <td class="text-nowrap ">{{ voucher.date }}</td>
                                     <td>
                                         <Link :href="`/vouchers/${voucher.id}`" class="fw-semibold text-decoration-none">
                                             {{ voucher.voucher_number || '—' }}
@@ -97,7 +97,7 @@
                                     </td>
                                     <td>{{ entityLabel(voucher) }}</td>
                                     <td>{{ modeLabel(voucher) }}</td>
-                                    <td class="text-nowrap">₹ {{ voucher.amount }}</td>
+                                    <td class="text-nowrap ">₹ {{ voucher.amount }}</td>
                                     <td class="text-end"  v-if="can('edit vouchers') || can('delete vouchers')">
                                         <div class="table-actions">
                                         <Link :href="`/vouchers/${voucher.id}/edit`" class="btn btn-sm btn-info text-white" v-if="can('edit vouchers')">

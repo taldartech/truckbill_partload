@@ -96,7 +96,7 @@
                                             {{ invoice.invoice_no }}
                                         </Link>
                                     </td>
-                                    <td class="text-nowrap">{{ invoice.date }}</td>
+                                    <td class="text-nowrap ">{{ invoice.date }}</td>
                                     <td>{{ invoice.party?.name }}</td>
                                     <td class="fw-bold">₹ {{ formatAmount(invoice.net_amount) }}</td>
                                     <td>

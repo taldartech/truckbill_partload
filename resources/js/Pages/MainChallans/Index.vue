@@ -90,13 +90,13 @@
                                     <td>
                                         <Link :href="`/main-challans/${challan.id}`">{{ challan.main_challan_number || 'N/A' }}</Link>
                                     </td>
-                                    <td class="text-nowrap">{{ challan.date || 'N/A' }}</td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap ">{{ challan.date || 'N/A' }}</td>
+                                    <td class="text-nowrap ">
                                         <span class="text-bold">{{ challan.from_station?.name }}</span>
                                         <i class="fas fa-arrow-right mx-2 text-muted small"></i>
                                         <span class="text-bold">{{ challan.to_station?.name }}</span>
                                     </td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap ">
                                         <div class="text-bold">
                                             <i class="fas fa-truck me-1 text-muted small"></i>
                                             {{ challan.truck?.truck_number }}

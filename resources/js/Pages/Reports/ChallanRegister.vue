@@ -45,7 +45,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="challan in challans" :key="challan.id">
-                                    <td class="text-nowrap">{{ challan.date }}</td>
+                                    <td class="text-nowrap ">{{ challan.date }}</td>
                                     <td>
                                         <a :href="`/challans/${challan.id}/print`" target="_blank" class="fw-bold">{{ challan.challan_no }}</a>
                                     </td>

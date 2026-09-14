@@ -95,13 +95,13 @@
                                             {{ register.inward_register_no || '—' }}
                                         </Link>
                                     </td>
-                                    <td class="text-nowrap">{{ register.date }}</td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap ">{{ register.date }}</td>
+                                    <td class="text-nowrap ">
                                         <span class="text-bold">{{ register.from_station?.name }}</span>
                                         <i class="fas fa-arrow-right mx-2 text-muted small"></i>
                                         <span class="text-bold">{{ register.to_station?.name }}</span>
                                     </td>
-                                    <td class="text-nowrap">{{ register.challan_number || '—' }} ({{ register.challan_date }})</td>
+                                    <td class="text-nowrap ">{{ register.challan_number || '—' }} ({{ register.challan_date }})</td>
                                     <td>{{ register.truck?.truck_number }}</td>
                                     <td>{{ register.total_packages ?? register.details?.length ?? 0 }}</td>
                                     <td>{{ register.total_delivery_freight ?? '0.00' }}</td>

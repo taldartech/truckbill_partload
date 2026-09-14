@@ -66,10 +66,10 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(entry, index) in ledger" :key="index">
-                                    <td class="text-nowrap">{{ entry.date }}</td>
+                                    <td class="text-nowrap ">{{ entry.date }}</td>
                                     <td><span class="badge bg-secondary">{{ entry.type }}</span></td>
                                     <td>{{ entry.ref_no || '—' }}</td>
-                                    <td class="text-nowrap">{{ entry.description || '—' }}</td>
+                                    <td class="text-nowrap ">{{ entry.description || '—' }}</td>
                                     <td class="text-end text-danger">{{ entry.debit > 0 ? Number(entry.debit).toFixed(2) : '-' }}</td>
                                     <td class="text-end text-success">{{ entry.credit > 0 ? Number(entry.credit).toFixed(2) : '-' }}</td>
                                     <td class="text-end fw-bold text-nowrap">{{ Number(entry.balance).toFixed(2) }} {{ entry.balance >= 0 ? 'Dr' : 'Cr' }}</td>

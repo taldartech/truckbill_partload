@@ -82,7 +82,7 @@
                                             {{ receipt.delivery_receipt_no || '—' }}
                                         </Link>
                                     </td>
-                                    <td class="text-nowrap">{{ receipt.date }}</td>
+                                    <td class="text-nowrap ">{{ receipt.date }}</td>
                                     <td>{{ receipt.gr_no_bilty_no }}</td>
                                     <td>{{ receipt.consignee?.name }}</td>
                                     <td>{{ receipt.mode_of_payment }}</td>

@@ -75,7 +75,7 @@
                                     <tr v-for="(row, index) in challanRows" :key="row.id || index">
                                         <td>{{ index + 1 }}</td>
                                         <td>{{ row.challan_number }}</td>
-                                        <td class="text-nowrap">{{ row.date }}</td>
+                                        <td class="text-nowrap ">{{ row.date }}</td>
                                         <td>{{ row.from_station }}</td>
                                         <td>{{ row.to_station }}</td>
                                         <td class="text-end">{{ formatQty(row.packages) }}</td>
