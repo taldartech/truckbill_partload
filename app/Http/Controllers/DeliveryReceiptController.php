@@ -84,6 +84,7 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'delivery_receipt_no',
             $branch?->settings?->delivery_initial
         );
+
         return Inertia::render('DeliveryReceipts/Create', [
             'parties' => Party::query()->orderBy('name')->get(['id', 'name']),
             'gr_sources' => $this->grSourceOptions(),

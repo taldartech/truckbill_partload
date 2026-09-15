@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\CompanyStationAgent;
 use App\Models\State;
 use App\Models\Station;
+use App\Services\BulkUploadService;
 use App\Services\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StationController extends Controller implements HasMiddleware
 {
@@ -23,7 +25,7 @@ class StationController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:view stations', only: ['index', 'show', 'quickShow']),
-            new Middleware('permission:create stations', only: ['create', 'store', 'quickStore', 'quickFormData']),
+            new Middleware('permission:create stations', only: ['create', 'store', 'quickStore', 'quickFormData', 'bulkUpload', 'bulkUploadTemplate']),
             new Middleware('permission:edit stations', only: ['edit', 'update']),
             new Middleware('permission:delete stations', only: ['destroy']),
         ];
@@ -239,6 +241,225 @@ class StationController extends Controller implements HasMiddleware
         $station->delete();
 
         return redirect()->route('stations.index')->with('success', 'Station deleted successfully.');
+    }
+
+    public function bulkUploadTemplate(BulkUploadService $bulkUploadService): StreamedResponse
+    {
+        return $bulkUploadService->downloadTemplate(
+            headers: ['Station Name', 'State', 'City', 'Default Agent'],
+            sampleRows: [],
+            fileName: 'stations_bulk_upload_template.csv'
+        );
+    }
+
+    public function bulkUpload(Request $request, BulkUploadService $bulkUploadService): JsonResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls', 'extensions:csv,xlsx,xls', 'max:5120'],
+        ], [
+            'file.mimes' => 'The uploaded file must be a CSV or Excel file (.csv, .xlsx, .xls).',
+            'file.extensions' => 'The uploaded file must be a CSV or Excel file (.csv, .xlsx, .xls).',
+        ]);
+
+        $companyId = app(TenantContext::class)->activeCompanyId();
+
+        // Preload states for fast lookup
+        $states = State::all();
+        $statesByName = [];
+        $statesByCode = [];
+        $statesById = [];
+        foreach ($states as $s) {
+            $statesByName[mb_strtolower(trim($s->name))] = $s;
+            if (! empty($s->code)) {
+                $statesByCode[mb_strtolower(trim($s->code))] = $s;
+            }
+            $statesById[$s->id] = $s;
+        }
+
+        // Preload company agents
+        $agentsByName = [];
+        $agentsById = [];
+        if ($companyId) {
+            $companyAgents = Agent::query()
+                ->where('company_id', $companyId)
+                ->get(['id', 'name']);
+
+            foreach ($companyAgents as $ag) {
+                $agentsByName[mb_strtolower(trim($ag->name))] = $ag;
+                $agentsById[$ag->id] = $ag;
+            }
+        }
+
+        // Cache resolved cities
+        $citiesCache = [];
+
+        $rowValidator = function (array &$rowData, int $rowNumber) use (
+            &$statesByName,
+            &$statesByCode,
+            &$statesById,
+            &$agentsByName,
+            &$agentsById,
+            &$citiesCache,
+            $companyId
+        ): array {
+            $errors = [];
+
+            // 1. Resolve State
+            $stateRaw = trim((string) ($rowData['state'] ?? ''));
+            $stateLower = mb_strtolower($stateRaw);
+            $resolvedState = $statesByName[$stateLower]
+                ?? $statesByCode[$stateLower]
+                ?? ($statesById[(int) $stateRaw] ?? null);
+
+            if (! $resolvedState) {
+                $errors[] = [
+                    'row' => $rowNumber,
+                    'field' => 'State',
+                    'value' => $stateRaw,
+                    'message' => sprintf('State "%s" was not found in state records.', $stateRaw),
+                ];
+
+                return $errors;
+            }
+
+            $rowData['state_id'] = $resolvedState->id;
+            $rowData['country_id'] = $resolvedState->country_id;
+
+            // 2. Validate City
+            $cityRaw = trim((string) ($rowData['city'] ?? ''));
+            if ($cityRaw === '') {
+                $errors[] = [
+                    'row' => $rowNumber,
+                    'field' => 'City',
+                    'value' => '',
+                    'message' => 'City is required.',
+                ];
+
+                return $errors;
+            }
+
+            $cityLower = mb_strtolower($cityRaw);
+
+            if (! isset($citiesCache[$resolvedState->id])) {
+                $citiesCache[$resolvedState->id] = [];
+            }
+
+            if (isset($citiesCache[$resolvedState->id][$cityLower])) {
+                $existingCity = $citiesCache[$resolvedState->id][$cityLower];
+            } else {
+                $existingCity = City::query()
+                    ->where('state_id', $resolvedState->id)
+                    ->where(function ($q) use ($cityLower, $cityRaw) {
+                        $q->whereRaw('LOWER(name) = ?', [$cityLower]);
+                        if (is_numeric($cityRaw)) {
+                            $q->orWhere('id', (int) $cityRaw);
+                        }
+                    })
+                    ->first();
+
+                if ($existingCity) {
+                    $citiesCache[$resolvedState->id][$cityLower] = $existingCity;
+                }
+            }
+
+            if (! $existingCity) {
+                $errors[] = [
+                    'row' => $rowNumber,
+                    'field' => 'City',
+                    'value' => $cityRaw,
+                    'message' => sprintf('City "%s" was not found in city records for state "%s".', $cityRaw, $resolvedState->name),
+                ];
+
+                return $errors;
+            }
+
+            $rowData['city_id'] = $existingCity->id;
+
+            // 3. Resolve Default Agent
+            $agentRaw = trim((string) ($rowData['default_agent'] ?? ''));
+            if ($agentRaw !== '') {
+                if (! $companyId) {
+                    $errors[] = [
+                        'row' => $rowNumber,
+                        'field' => 'Default Agent',
+                        'value' => $agentRaw,
+                        'message' => 'Cannot assign default agent without an active company context.',
+                    ];
+                } else {
+                    $agentLower = mb_strtolower($agentRaw);
+                    $resolvedAgent = $agentsByName[$agentLower]
+                        ?? ($agentsById[(int) $agentRaw] ?? null);
+
+                    if (! $resolvedAgent) {
+                        $errors[] = [
+                            'row' => $rowNumber,
+                            'field' => 'Default Agent',
+                            'value' => $agentRaw,
+                            'message' => sprintf('Agent "%s" not found for the active company.', $agentRaw),
+                        ];
+                    } else {
+                        $rowData['default_agent_id'] = $resolvedAgent->id;
+                    }
+                }
+            } else {
+                $rowData['default_agent_id'] = null;
+            }
+
+            return $errors;
+        };
+
+        $saveHandler = function (array $data, int $rowNumber) use ($companyId) {
+            $station = Station::create([
+                'name' => $data['name'],
+                'state_id' => $data['state_id'],
+                'city_id' => $data['city_id'],
+                'country_id' => $data['country_id'] ?? null,
+            ]);
+
+            $defaultAgentId = $data['default_agent_id'] ?? null;
+            if ($companyId && $defaultAgentId) {
+                $this->syncDefaultAgent($station, (int) $defaultAgentId);
+            }
+
+            return $station;
+        };
+
+        $result = $bulkUploadService->process(
+            file: $request->file('file'),
+            modelClass: Station::class,
+            columnSpecs: [
+                'name' => [
+                    'label' => 'Station Name',
+                    'required' => true,
+                    'aliases' => ['name', 'station_name', 'station'],
+                    'rules' => ['required', 'string', 'max:255'],
+                    'unique' => true,
+                ],
+                'state' => [
+                    'label' => 'State',
+                    'required' => true,
+                    'aliases' => ['state', 'state_name', 'state_code'],
+                    'rules' => ['required', 'string', 'max:255'],
+                ],
+                'city' => [
+                    'label' => 'City',
+                    'required' => true,
+                    'aliases' => ['city', 'city_name'],
+                    'rules' => ['required', 'string', 'max:255'],
+                ],
+                'default_agent' => [
+                    'label' => 'Default Agent',
+                    'required' => false,
+                    'aliases' => ['default_agent', 'agent', 'agency', 'default_agency', 'agent_name'],
+                    'rules' => ['nullable', 'string', 'max:255'],
+                ],
+            ],
+            beforeSave: null,
+            rowValidator: $rowValidator,
+            saveHandler: $saveHandler,
+        );
+
+        return response()->json($result);
     }
 
     private function syncDefaultAgent(Station $station, ?int $agentId): void

@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\PackageType;
+use App\Services\BulkUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PackageTypeController extends Controller implements HasMiddleware
 {
@@ -16,7 +18,7 @@ class PackageTypeController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:view package_types', only: ['index', 'show']),
-            new Middleware('permission:create package_types', only: ['create', 'store', 'quickStore']),
+            new Middleware('permission:create package_types', only: ['create', 'store', 'quickStore', 'bulkUpload', 'bulkUploadTemplate']),
             new Middleware('permission:edit package_types', only: ['edit', 'update']),
             new Middleware('permission:delete package_types', only: ['destroy']),
         ];
@@ -98,5 +100,40 @@ class PackageTypeController extends Controller implements HasMiddleware
         $package_type->delete();
 
         return redirect()->route('package-types.index')->with('success', 'Package Types deleted successfully.');
+    }
+
+    public function bulkUploadTemplate(BulkUploadService $bulkUploadService): StreamedResponse
+    {
+        return $bulkUploadService->downloadTemplate(
+            headers: ['Name'],
+            sampleRows:[],
+            fileName: 'package_types_bulk_upload_template.csv'
+        );
+    }
+
+    public function bulkUpload(Request $request, BulkUploadService $bulkUploadService): JsonResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls', 'extensions:csv,xlsx,xls', 'max:5120'],
+        ], [
+            'file.mimes' => 'The uploaded file must be a CSV or Excel file (.csv, .xlsx, .xls).',
+            'file.extensions' => 'The uploaded file must be a CSV or Excel file (.csv, .xlsx, .xls).',
+        ]);
+
+        $result = $bulkUploadService->process(
+            file: $request->file('file'),
+            modelClass: PackageType::class,
+            columnSpecs: [
+                'name' => [
+                    'label' => 'Name',
+                    'required' => true,
+                    'aliases' => ['name', 'package_type', 'package_type_name', 'package_name'],
+                    'rules' => ['required', 'string', 'max:255'],
+                    'unique' => true,
+                ],
+            ]
+        );
+
+        return response()->json($result);
     }
 }

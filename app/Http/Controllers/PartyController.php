@@ -6,12 +6,15 @@ use App\Models\City;
 use App\Models\Group;
 use App\Models\Party;
 use App\Models\State;
+use App\Services\BulkUploadService;
+use App\Services\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PartyController extends Controller implements HasMiddleware
 {
@@ -19,7 +22,7 @@ class PartyController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:view parties', only: ['index', 'show', 'quickShow']),
-            new Middleware('permission:create parties', only: ['create', 'store', 'quickStore', 'quickFormData']),
+            new Middleware('permission:create parties', only: ['create', 'store', 'quickStore', 'quickFormData', 'bulkUpload', 'bulkUploadTemplate']),
             new Middleware('permission:edit parties', only: ['edit', 'update']),
             new Middleware('permission:delete parties', only: ['destroy']),
         ];
@@ -161,6 +164,277 @@ class PartyController extends Controller implements HasMiddleware
         $party->delete();
 
         return redirect()->route('parties.index')->with('success', 'Party deleted successfully.');
+    }
+
+    public function bulkUploadTemplate(BulkUploadService $bulkUploadService): StreamedResponse
+    {
+        return $bulkUploadService->downloadTemplate(
+            headers: [
+                'Party Name',
+                'Address',
+                'State',
+                'City',
+                'Mobile',
+                'Email',
+                'GST Number',
+                'Group',
+                'Bilty Charge',
+            ],
+            sampleRows: [],
+            fileName: 'parties_bulk_upload_template.csv'
+        );
+    }
+
+    public function bulkUpload(Request $request, BulkUploadService $bulkUploadService): JsonResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls', 'extensions:csv,xlsx,xls', 'max:5120'],
+        ], [
+            'file.mimes' => 'The uploaded file must be a CSV or Excel file (.csv, .xlsx, .xls).',
+            'file.extensions' => 'The uploaded file must be a CSV or Excel file (.csv, .xlsx, .xls).',
+        ]);
+
+        $companyId = app(TenantContext::class)->activeCompanyId();
+
+        // Preload states for fast lookup
+        $states = State::all();
+        $statesByName = [];
+        $statesByCode = [];
+        $statesById = [];
+        foreach ($states as $s) {
+            $statesByName[mb_strtolower(trim($s->name))] = $s;
+            if (! empty($s->code)) {
+                $statesByCode[mb_strtolower(trim($s->code))] = $s;
+            }
+            $statesById[$s->id] = $s;
+        }
+
+        // Preload company groups
+        $groupsByName = [];
+        $groupsById = [];
+        if ($companyId) {
+            $companyGroups = Group::query()
+                ->where('company_id', $companyId)
+                ->get(['id', 'name']);
+
+            foreach ($companyGroups as $grp) {
+                $groupsByName[mb_strtolower(trim($grp->name))] = $grp;
+                $groupsById[$grp->id] = $grp;
+            }
+        }
+
+        // Cache resolved cities: [state_id => [lowercase_city_name => City]]
+        $citiesCache = [];
+
+        $rowValidator = function (array &$rowData, int $rowNumber) use (
+            &$statesByName,
+            &$statesByCode,
+            &$statesById,
+            &$groupsByName,
+            &$groupsById,
+            &$citiesCache
+        ): array {
+            $errors = [];
+
+            // 1. Resolve State
+            $stateRaw = trim((string) ($rowData['state'] ?? ''));
+            if ($stateRaw === '') {
+                $errors[] = [
+                    'row' => $rowNumber,
+                    'field' => 'State',
+                    'value' => '',
+                    'message' => 'State is required.',
+                ];
+
+                return $errors;
+            }
+
+            $stateLower = mb_strtolower($stateRaw);
+            $resolvedState = $statesByName[$stateLower]
+                ?? $statesByCode[$stateLower]
+                ?? ($statesById[(int) $stateRaw] ?? null);
+
+            if (! $resolvedState) {
+                $errors[] = [
+                    'row' => $rowNumber,
+                    'field' => 'State',
+                    'value' => $stateRaw,
+                    'message' => sprintf('State "%s" was not found in state records.', $stateRaw),
+                ];
+
+                return $errors;
+            }
+
+            $rowData['state_id'] = $resolvedState->id;
+
+            // 2. Validate City
+            $cityRaw = trim((string) ($rowData['city'] ?? ''));
+            if ($cityRaw === '') {
+                $errors[] = [
+                    'row' => $rowNumber,
+                    'field' => 'City',
+                    'value' => '',
+                    'message' => 'City is required.',
+                ];
+
+                return $errors;
+            }
+
+            $cityLower = mb_strtolower($cityRaw);
+
+            if (! isset($citiesCache[$resolvedState->id])) {
+                $citiesCache[$resolvedState->id] = [];
+            }
+
+            if (isset($citiesCache[$resolvedState->id][$cityLower])) {
+                $existingCity = $citiesCache[$resolvedState->id][$cityLower];
+            } else {
+                $existingCity = City::query()
+                    ->where('state_id', $resolvedState->id)
+                    ->where(function ($q) use ($cityLower, $cityRaw) {
+                        $q->whereRaw('LOWER(name) = ?', [$cityLower]);
+                        if (is_numeric($cityRaw)) {
+                            $q->orWhere('id', (int) $cityRaw);
+                        }
+                    })
+                    ->first();
+
+                if ($existingCity) {
+                    $citiesCache[$resolvedState->id][$cityLower] = $existingCity;
+                }
+            }
+
+            if (! $existingCity) {
+                $errors[] = [
+                    'row' => $rowNumber,
+                    'field' => 'City',
+                    'value' => $cityRaw,
+                    'message' => sprintf('City "%s" was not found in city records for state "%s".', $cityRaw, $resolvedState->name),
+                ];
+
+                return $errors;
+            }
+
+            $rowData['city_id'] = $existingCity->id;
+
+            // 3. Resolve Group
+            $groupRaw = trim((string) ($rowData['group'] ?? ''));
+            if ($groupRaw !== '') {
+                $groupLower = mb_strtolower($groupRaw);
+                $resolvedGroup = $groupsByName[$groupLower]
+                    ?? ($groupsById[(int) $groupRaw] ?? null);
+
+                if (! $resolvedGroup) {
+                    $errors[] = [
+                        'row' => $rowNumber,
+                        'field' => 'Group',
+                        'value' => $groupRaw,
+                        'message' => sprintf('Group "%s" was not found in group records.', $groupRaw),
+                    ];
+                } else {
+                    $rowData['group_id'] = $resolvedGroup->id;
+                }
+            } else {
+                $rowData['group_id'] = null;
+            }
+
+            if (isset($rowData['email']) && trim((string) $rowData['email']) === '') {
+                $rowData['email'] = null;
+            }
+            if (isset($rowData['gst_number']) && trim((string) $rowData['gst_number']) === '') {
+                $rowData['gst_number'] = null;
+            }
+            if (isset($rowData['bilty_charge'])) {
+                $biltyChargeRaw = trim((string) $rowData['bilty_charge']);
+                $rowData['bilty_charge'] = $biltyChargeRaw === '' ? null : (float) $biltyChargeRaw;
+            } else {
+                $rowData['bilty_charge'] = null;
+            }
+
+            return $errors;
+        };
+
+        $saveHandler = function (array $data, int $rowNumber) use ($companyId) {
+            return Party::create([
+                'company_id' => $companyId,
+                'group_id' => $data['group_id'] ?? null,
+                'name' => $data['name'],
+                'address' => $data['address'],
+                'state_id' => $data['state_id'],
+                'city_id' => $data['city_id'],
+                'mobile' => $data['mobile'],
+                'email' => $data['email'] ?? null,
+                'gst_number' => $data['gst_number'] ?? null,
+                'bilty_charge' => $data['bilty_charge'] ?? null,
+            ]);
+        };
+
+        $result = $bulkUploadService->process(
+            file: $request->file('file'),
+            modelClass: Party::class,
+            columnSpecs: [
+                'name' => [
+                    'label' => 'Party Name',
+                    'required' => true,
+                    'aliases' => ['name', 'party_name', 'party'],
+                    'rules' => ['required', 'string', 'max:255'],
+                    'unique' => true,
+                ],
+                'address' => [
+                    'label' => 'Address',
+                    'required' => true,
+                    'aliases' => ['address', 'party_address'],
+                    'rules' => ['required', 'string', 'max:500'],
+                ],
+                'state' => [
+                    'label' => 'State',
+                    'required' => true,
+                    'aliases' => ['state', 'state_name', 'state_code'],
+                    'rules' => ['required', 'string', 'max:255'],
+                ],
+                'city' => [
+                    'label' => 'City',
+                    'required' => true,
+                    'aliases' => ['city', 'city_name'],
+                    'rules' => ['required', 'string', 'max:255'],
+                ],
+                'mobile' => [
+                    'label' => 'Mobile',
+                    'required' => true,
+                    'aliases' => ['mobile', 'mobile_no', 'phone', 'contact_no'],
+                    'rules' => ['required', 'string', 'digits:10', 'regex:/^[6-9]\d{9}$/'],
+                ],
+                'email' => [
+                    'label' => 'Email',
+                    'required' => false,
+                    'aliases' => ['email', 'email_address'],
+                    'rules' => ['nullable', 'string', 'email', 'max:255'],
+                ],
+                'gst_number' => [
+                    'label' => 'GST Number',
+                    'required' => false,
+                    'aliases' => ['gst_number', 'gst_no', 'gst', 'gstin'],
+                    'rules' => ['nullable', 'string', 'size:15', 'regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i'],
+                ],
+                'group' => [
+                    'label' => 'Group',
+                    'required' => false,
+                    'aliases' => ['group', 'group_name', 'party_group'],
+                    'rules' => ['nullable', 'string', 'max:255'],
+                ],
+                'bilty_charge' => [
+                    'label' => 'Bilty Charge',
+                    'required' => false,
+                    'aliases' => ['bilty_charge', 'bilty_charges', 'fixed_bilty_charge'],
+                    'rules' => ['nullable', 'numeric', 'min:0'],
+                ],
+            ],
+            beforeSave: null,
+            rowValidator: $rowValidator,
+            saveHandler: $saveHandler,
+        );
+
+        return response()->json($result);
     }
 
     /**
