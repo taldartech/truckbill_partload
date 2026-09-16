@@ -42,7 +42,7 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Sr No.</th>
                                     <th>Name</th>
                                     <th>GST Number</th>
                                     <th>Mobile</th>
@@ -50,8 +50,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="party in parties.data" :key="party.id">
-                                    <td>{{ party.id }}</td>
+                                <tr v-for="(party, index) in parties.data" :key="party.id">
+                                    <td>{{ (parties.total ?? 0) - (parties.from ?? 1) + 1 - index }}</td>
                                     <td>
                                         <Link :href="`/parties/${party.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ party.name }}

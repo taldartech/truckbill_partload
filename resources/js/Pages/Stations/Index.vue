@@ -42,7 +42,7 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Sr No.</th>
                                     <th>Name</th>
                                     <th>City</th>
                                     <th>State</th>
@@ -50,8 +50,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="station in stations.data" :key="station.id">
-                                    <td>{{ station.id }}</td>
+                                <tr v-for="(station, index) in stations.data" :key="station.id">
+                                    <td>{{ (stations.total ?? 0) - (stations.from ?? 1) + 1 - index }}</td>
                                     <td>
                                         <Link :href="`/stations/${station.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ station.name || 'N/A' }}
