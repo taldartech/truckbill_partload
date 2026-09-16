@@ -48,6 +48,8 @@ class BranchController extends Controller implements HasMiddleware
 
         return Inertia::render('Branches/Index', [
             'branches' => $query->paginate(10),
+            'active_branch_id' => $context->sessionBranchId(),
+            'can_select_branch' => $context->isSuperAdmin(),
         ]);
     }
 

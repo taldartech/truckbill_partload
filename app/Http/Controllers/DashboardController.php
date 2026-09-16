@@ -53,6 +53,12 @@ class DashboardController extends Controller
                         'branches' => Branch::whereIn('company_id', $companyIds)->count(),
                         'users' => User::whereIn('company_id', $companyIds)->count(),
                     ],
+                    'selectable_branches' => Branch::query()
+                        ->with('company:id,name')
+                        ->whereIn('company_id', $companyIds)
+                        ->orderBy('company_id')
+                        ->orderBy('name')
+                        ->get(['id', 'name', 'company_id']),
                 ],
             ]);
         }
@@ -112,8 +118,6 @@ class DashboardController extends Controller
                 'pending' => Bilty::where('status', 'Pending')->count(),
             ];
         }
-
-        
 
         if ($context->can('view challans')) {
             $stats['challans'] = [

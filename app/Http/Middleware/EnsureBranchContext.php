@@ -34,7 +34,7 @@ class EnsureBranchContext
             }
 
             return redirect()
-                ->route('branch-context.select')
+                ->route('branches.index')
                 ->with('error', 'Please select a branch to continue.');
         }
 

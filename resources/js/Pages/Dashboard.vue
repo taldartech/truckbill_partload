@@ -17,13 +17,6 @@
                             <span><i class="fas fa-calendar-alt me-1"></i>{{ dashboard.welcome.date }}</span>
                         </div>
                     </div>
-                    <Link
-                        v-if="dashboard.mode === 'super_admin_setup'"
-                        href="/select-branch"
-                        class="btn btn-light fw-semibold"
-                    >
-                        <i class="fas fa-code-branch me-1"></i> Select Branch
-                    </Link>
                 </div>
             </div>
 
@@ -133,14 +126,31 @@
                         </div>
                     </div>
                     <div class="col-lg-4">
-                        <div class="dash-cta-card h-100 d-flex flex-column justify-content-center">
+                        <div class="dash-cta-card h-100 d-flex flex-column">
                             <h5 class="fw-semibold mb-2">Ready for daily work?</h5>
                             <p class="text-muted small mb-3">
-                                Select a branch to operate as Admin. You will get access to bilties, challans, and all branch operations.
+                                Click a branch below to operate as Admin. You will get access to bilties, challans, and all branch operations.
                             </p>
-                            <Link href="/select-branch" class="btn btn-brand-primary">
-                                <i class="fas fa-code-branch me-1"></i> Select Branch to Operate
-                            </Link>
+
+                            <div v-if="selectableBranches.length" class="d-flex flex-column gap-2">
+                                <button
+                                    v-for="branch in selectableBranches"
+                                    :key="branch.id"
+                                    type="button"
+                                    class="btn btn-brand-primary text-start d-flex justify-content-between align-items-center"
+                                    @click="selectBranch(branch.id)"
+                                >
+                                    <span>
+                                        <span class="d-block fw-semibold">{{ branch.name || 'Unnamed Branch' }}</span>
+                                        <small class="opacity-75">{{ branch.company?.name }}</small>
+                                    </span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                            <div v-else class="alert alert-warning mb-0">
+                                No branches yet.
+                                <Link href="/branches/create" class="alert-link ms-1">Create a branch</Link>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -299,7 +309,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { usePermissions } from '@/composables/usePermissions';
 
@@ -311,6 +321,12 @@ const props = defineProps({
 });
 
 const { can } = usePermissions();
+
+const selectableBranches = computed(() => props.dashboard.selectable_branches || []);
+
+const selectBranch = (branchId) => {
+    router.post('/session/branch', { branch_id: branchId });
+};
 
 const portalActions = [
     { label: 'Manage Super Admins', desc: 'Create and manage platform super admins', href: '/users', icon: 'fa-users-cog', tone: 'primary' },

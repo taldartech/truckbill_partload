@@ -48,7 +48,7 @@
                     </Link>
                     <Link
                         v-else
-                        href="/select-branch"
+                        href="/branches"
                         class="btn btn-sm btn-primary"
                     >
                         <i class="fas fa-code-branch "></i><span class="ms-1 hide-text">Select Branch</span>

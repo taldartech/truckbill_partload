@@ -2,37 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserRole;
 use App\Models\Branch;
-use App\Models\Company;
-use App\Services\TenantContext;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class BranchContextController extends Controller
 {
     public function select()
     {
-        $context = app(TenantContext::class);
         $user = auth()->user();
 
         if (! $user?->isSuperAdmin()) {
             return redirect()->route('dashboard');
         }
 
-        $companyIds = $context->ownedCompanyIds();
-
-        $branches = Branch::query()
-            ->with('company:id,name')
-            ->whereIn('company_id', $companyIds)
-            ->orderBy('company_id')
-            ->orderBy('name')
-            ->get();
-
-        return Inertia::render('BranchContext/SelectBranch', [
-            'branches' => $branches,
-            'active_branch_id' => $context->sessionBranchId(),
-        ]);
+        return redirect()->route('branches.index');
     }
 
     public function store(Request $request)
@@ -71,6 +54,6 @@ class BranchContextController extends Controller
 
         session()->forget(['active_branch_id', 'active_company_id']);
 
-        return redirect()->route('branch-context.select')->with('success', 'Branch context cleared.');
+        return redirect()->route('branches.index')->with('success', 'Branch context cleared.');
     }
 }
