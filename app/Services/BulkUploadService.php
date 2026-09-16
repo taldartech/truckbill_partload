@@ -12,6 +12,16 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class BulkUploadService
 {
     /**
+     * Chunk size for batch processing.
+     */
+    private const CHUNK_SIZE = 250;
+
+    /**
+     * Maximum detailed errors to retain in memory and return in the response.
+     */
+    private const MAX_ERRORS = 1000;
+
+    /**
      * Process an uploaded CSV file against a model and column specification.
      *
      * @param  class-string  $modelClass
@@ -134,9 +144,9 @@ class BulkUploadService
         $failed = 0;
         $skipped = 0;
         $errors = [];
-        $validRecords = [];
+        $errorCount = 0;
 
-        // Track seen unique values within this file batch
+        // Track seen unique values across the entire uploaded file batch
         $seenInBatch = [];
         foreach ($columnSpecs as $field => $spec) {
             if (! empty($spec['unique'])) {
@@ -144,6 +154,7 @@ class BulkUploadService
             }
         }
 
+        $currentChunk = [];
         $rowNumber = 1; // 1 is header row
 
         foreach ($rows as $row) {
@@ -159,6 +170,7 @@ class BulkUploadService
             $total++;
             $rowErrors = [];
             $rowData = [];
+            $rawValues = [];
 
             // Extract mapped fields
             foreach ($columnSpecs as $field => $spec) {
@@ -172,6 +184,7 @@ class BulkUploadService
                 }
 
                 $rowData[$field] = $val;
+                $rawValues[$field] = $rawVal;
 
                 // Validation rules
                 if (! empty($spec['rules'])) {
@@ -194,9 +207,9 @@ class BulkUploadService
                     }
                 }
 
-                // Check uniqueness in file batch
-                if (! empty($spec['unique']) && $val !== '') {
-                    $normalizedVal = mb_strtolower($val, 'UTF-8');
+                // Check uniqueness across the entire uploaded file
+                if (! empty($spec['unique']) && $val !== '' && $val !== null) {
+                    $normalizedVal = mb_strtolower((string) $val, 'UTF-8');
                     if (isset($seenInBatch[$field][$normalizedVal])) {
                         $prevRow = $seenInBatch[$field][$normalizedVal];
                         $rowErrors[] = [
@@ -206,29 +219,12 @@ class BulkUploadService
                             'message' => sprintf(
                                 'Duplicate %s "%s" in uploaded file (first seen on row %d).',
                                 $spec['label'] ?? $field,
-                                $val,
+                                (string) $val,
                                 $prevRow
                             ),
                         ];
                     } else {
                         $seenInBatch[$field][$normalizedVal] = $rowNumber;
-                    }
-
-                    // Check uniqueness in database (scoped to active tenant owner by model traits)
-                    if (empty($rowErrors)) {
-                        $exists = $modelClass::query()->where($field, $val)->exists();
-                        if ($exists) {
-                            $rowErrors[] = [
-                                'row' => $rowNumber,
-                                'field' => $spec['label'] ?? $field,
-                                'value' => $rawVal,
-                                'message' => sprintf(
-                                    '%s "%s" already exists in records.',
-                                    $spec['label'] ?? $field,
-                                    $val
-                                ),
-                            ];
-                        }
                     }
                 }
             }
@@ -255,42 +251,51 @@ class BulkUploadService
             if (! empty($rowErrors)) {
                 $failed++;
                 foreach ($rowErrors as $err) {
-                    $errors[] = $err;
+                    $this->addError($errors, $errorCount, $err);
                 }
             } else {
-                $validRecords[] = [
+                $currentChunk[] = [
                     'row' => $rowNumber,
                     'data' => $rowData,
+                    'rawValues' => $rawValues,
                 ];
+
+                if (count($currentChunk) >= self::CHUNK_SIZE) {
+                    $this->processChunk(
+                        $currentChunk,
+                        $modelClass,
+                        $columnSpecs,
+                        $beforeSave,
+                        $saveHandler,
+                        $successful,
+                        $failed,
+                        $errors,
+                        $errorCount
+                    );
+                    $currentChunk = [];
+                }
             }
         }
 
-        // Persist valid records in database
-        if (! empty($validRecords)) {
-            DB::transaction(function () use ($validRecords, $modelClass, $beforeSave, $saveHandler, &$successful, &$failed, &$errors) {
-                foreach ($validRecords as $item) {
-                    try {
-                        $data = $item['data'];
-                        if ($beforeSave) {
-                            $data = $beforeSave($data);
-                        }
-                        if ($saveHandler) {
-                            $saveHandler($data, $item['row']);
-                        } else {
-                            $modelClass::create($data);
-                        }
-                        $successful++;
-                    } catch (\Throwable $e) {
-                        $failed++;
-                        $errors[] = [
-                            'row' => $item['row'],
-                            'field' => 'Database',
-                            'value' => json_encode($item['data']),
-                            'message' => 'Database save error: '.$e->getMessage(),
-                        ];
-                    }
-                }
-            });
+        // Process final partial chunk if any
+        if (! empty($currentChunk)) {
+            $this->processChunk(
+                $currentChunk,
+                $modelClass,
+                $columnSpecs,
+                $beforeSave,
+                $saveHandler,
+                $successful,
+                $failed,
+                $errors,
+                $errorCount
+            );
+            $currentChunk = [];
+        }
+
+        // Sort errors by row number for consistent presentation
+        if (! empty($errors)) {
+            usort($errors, fn (array $a, array $b): int => ($a['row'] ?? 0) <=> ($b['row'] ?? 0));
         }
 
         $message = sprintf(
@@ -302,6 +307,16 @@ class BulkUploadService
             $skipped,
             $skipped === 1 ? '' : 's'
         );
+
+        if ($errorCount > count($errors)) {
+            $omitted = $errorCount - count($errors);
+            $message .= sprintf(
+                ' Note: Only the first %d errors are listed (%d additional error%s omitted).',
+                count($errors),
+                $omitted,
+                $omitted === 1 ? '' : 's'
+            );
+        }
 
         return [
             'success' => $failed === 0,
@@ -317,12 +332,186 @@ class BulkUploadService
     }
 
     /**
-     * Generate a downloadable CSV template response.
+     * Process a single chunk of candidate rows:
+     * 1. Batch database uniqueness checks using whereIn().
+     * 2. Persist valid records in a chunk-level database transaction.
      *
-     * @param  list<string>  $headers
-     * @param  list<list<string>>  $sampleRows
+     * @param  list<array{row: int, data: array<string, mixed>, rawValues: array<string, string>}>  $chunk
+     * @param  class-string  $modelClass
+     * @param  array<string, array<string, mixed>>  $columnSpecs
+     * @param  list<array{row: int, field: string, value: string, message: string}>  $errors
      */
-    public function downloadTemplate(array $headers, array $sampleRows, string $fileName): StreamedResponse
+    private function processChunk(
+        array $chunk,
+        string $modelClass,
+        array $columnSpecs,
+        ?callable $beforeSave,
+        ?callable $saveHandler,
+        int &$successful,
+        int &$failed,
+        array &$errors,
+        int &$errorCount
+    ): void {
+        if (empty($chunk)) {
+            return;
+        }
+
+        // 1. Batch database uniqueness checks per unique column
+        $dbExistingLookup = [];
+
+        foreach ($columnSpecs as $field => $spec) {
+            if (empty($spec['unique'])) {
+                continue;
+            }
+
+            $valuesToQuery = [];
+            foreach ($chunk as $item) {
+                $val = $item['data'][$field] ?? '';
+                if ($val !== '' && $val !== null) {
+                    $valuesToQuery[] = (string) $val;
+                }
+            }
+
+            if (empty($valuesToQuery)) {
+                continue;
+            }
+
+            $uniqueValues = array_values(array_unique($valuesToQuery));
+
+            // Query DB once for this chunk using whereIn, preserving model global scopes (e.g. tenant/owner)
+            $existingValues = $modelClass::query()
+                ->whereIn($field, $uniqueValues)
+                ->pluck($field)
+                ->all();
+
+            $lookup = [];
+            foreach ($existingValues as $ev) {
+                $evStr = (string) $ev;
+                $lookup[$evStr] = true;
+                $lookup[mb_strtolower($evStr, 'UTF-8')] = true;
+            }
+
+            $dbExistingLookup[$field] = $lookup;
+        }
+
+        // Separate rows into valid to-save and DB-uniqueness-failed
+        $toSave = [];
+
+        foreach ($chunk as $item) {
+            $rowNumber = $item['row'];
+            $rowData = $item['data'];
+            $rawValues = $item['rawValues'];
+            $rowErrors = [];
+
+            foreach ($columnSpecs as $field => $spec) {
+                if (empty($spec['unique'])) {
+                    continue;
+                }
+
+                $val = $rowData[$field] ?? '';
+                if ($val === '' || $val === null) {
+                    continue;
+                }
+
+                $valStr = (string) $val;
+                $normalizedVal = mb_strtolower($valStr, 'UTF-8');
+
+                $lookup = $dbExistingLookup[$field] ?? [];
+                if (isset($lookup[$valStr]) || isset($lookup[$normalizedVal])) {
+                    $rawVal = (string) ($rawValues[$field] ?? $valStr);
+                    $rowErrors[] = [
+                        'row' => $rowNumber,
+                        'field' => $spec['label'] ?? $field,
+                        'value' => $rawVal,
+                        'message' => sprintf(
+                            '%s "%s" already exists in records.',
+                            $spec['label'] ?? $field,
+                            $valStr
+                        ),
+                    ];
+                }
+            }
+
+            if (! empty($rowErrors)) {
+                $failed++;
+                foreach ($rowErrors as $err) {
+                    $this->addError($errors, $errorCount, $err);
+                }
+            } else {
+                $toSave[] = $item;
+            }
+        }
+
+        if (empty($toSave)) {
+            return;
+        }
+
+        // 2. Persist valid records in a chunk-level database transaction
+        $chunkSuccessfulBefore = $successful;
+
+        try {
+            DB::transaction(function () use (
+                $toSave,
+                $modelClass,
+                $beforeSave,
+                $saveHandler,
+                &$successful,
+                &$failed,
+                &$errors,
+                &$errorCount
+            ) {
+                foreach ($toSave as $item) {
+                    try {
+                        $data = $item['data'];
+                        if ($beforeSave) {
+                            $data = $beforeSave($data);
+                        }
+                        if ($saveHandler) {
+                            $saveHandler($data, $item['row']);
+                        } else {
+                            $modelClass::create($data);
+                        }
+                        $successful++;
+                    } catch (\Throwable $e) {
+                        $failed++;
+                        $this->addError($errors, $errorCount, [
+                            'row' => $item['row'],
+                            'field' => 'Database',
+                            'value' => json_encode($item['data']),
+                            'message' => 'Database save error: '.$e->getMessage(),
+                        ]);
+                    }
+                }
+            });
+        } catch (\Throwable $e) {
+            $rolledBackCount = $successful - $chunkSuccessfulBefore;
+            $successful = $chunkSuccessfulBefore;
+            $failed += $rolledBackCount;
+            $this->addError($errors, $errorCount, [
+                'row' => $toSave[0]['row'] ?? 0,
+                'field' => 'Transaction',
+                'value' => '',
+                'message' => 'Database transaction error: '.$e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Record an error while respecting memory limits.
+     *
+     * @param  list<array{row: int, field: string, value: string, message: string}>  $errors
+     * @param  array{row: int, field: string, value: string, message: string}  $error
+     */
+    private function addError(array &$errors, int &$errorCount, array $error): void
+    {
+        $errorCount++;
+
+        if (count($errors) < self::MAX_ERRORS) {
+            $errors[] = $error;
+        }
+    }
+
+    public function downloadTemplate(array $headers, string $fileName): StreamedResponse
     {
         $responseHeaders = [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -332,25 +521,17 @@ class BulkUploadService
             'Expires' => '0',
         ];
 
-        return response()->stream(function () use ($headers, $sampleRows) {
+        return response()->stream(function () use ($headers) {
             $handle = fopen('php://output', 'w');
 
-            // UTF-8 BOM for Microsoft Excel compatibility
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
 
             fputcsv($handle, $headers);
-
-            foreach ($sampleRows as $row) {
-                fputcsv($handle, $row);
-            }
 
             fclose($handle);
         }, 200, $responseHeaders);
     }
 
-    /**
-     * Detect CSV delimiter from comma, semicolon, or tab.
-     */
     private function detectDelimiter(string $path): string
     {
         $handle = fopen($path, 'r');
@@ -378,13 +559,6 @@ class BulkUploadService
         return $counts[$best] > 0 ? $best : ',';
     }
 
-    /**
-     * Map raw header columns to specified column keys using aliases and fuzzy matching.
-     *
-     * @param  list<string>  $rawHeaders
-     * @param  array<string, array{label: string, aliases?: list<string>}>  $specs
-     * @return array<string, int>
-     */
     private function mapHeaders(array $rawHeaders, array $specs): array
     {
         $map = [];
@@ -418,9 +592,6 @@ class BulkUploadService
         return $map;
     }
 
-    /**
-     * Normalize a column name for comparison (lowercase, trimmed, strip asterisks and symbols).
-     */
     private function normalizeColumnName(string $name): string
     {
         $name = preg_replace('/[^\p{L}\p{N}]+/u', '_', $name);
@@ -428,11 +599,6 @@ class BulkUploadService
         return trim(mb_strtolower((string) $name, 'UTF-8'), '_');
     }
 
-    /**
-     * Determine if a CSV row is completely empty.
-     *
-     * @param  list<string|null>  $row
-     */
     private function isRowEmpty(array $row): bool
     {
         foreach ($row as $cell) {
@@ -444,11 +610,6 @@ class BulkUploadService
         return true;
     }
 
-    /**
-     * Read headers and rows from CSV or Excel file.
-     *
-     * @return array{headers: list<string>, rows: iterable<int, array<int, mixed>>}|null
-     */
     private function readSheet(string $path, string $extension): ?array
     {
         if ($extension === 'xlsx' || $extension === 'xls') {
@@ -460,26 +621,58 @@ class BulkUploadService
                 $reader->setReadDataOnly(true);
                 $spreadsheet = $reader->load($path);
                 $worksheet = $spreadsheet->getActiveSheet();
-                $allRows = $worksheet->toArray(null, true, false, false);
 
-                if (empty($allRows)) {
+                $maxCol = $worksheet->getHighestColumn();
+                $maxRow = $worksheet->getHighestRow();
+
+                if ($maxRow < 1) {
+                    $spreadsheet->disconnectWorksheets();
+                    unset($spreadsheet);
+
                     return null;
                 }
 
-                $rawHeaders = array_shift($allRows);
+                $range = "A1:{$maxCol}{$maxRow}";
+                $rowGenerator = $worksheet->rangeToArrayYieldRows($range, null, true, false, false);
+
+                if (! $rowGenerator->valid()) {
+                    $spreadsheet->disconnectWorksheets();
+                    unset($spreadsheet);
+
+                    return null;
+                }
+
+                $rawHeaders = $rowGenerator->current();
+                $rowGenerator->next();
+
                 while (! empty($rawHeaders) && (end($rawHeaders) === null || trim((string) end($rawHeaders)) === '')) {
                     array_pop($rawHeaders);
                 }
 
                 if (empty($rawHeaders)) {
+                    $spreadsheet->disconnectWorksheets();
+                    unset($spreadsheet);
+
                     return null;
                 }
 
                 $headers = array_map(fn ($h) => trim((string) $h), $rawHeaders);
 
+                $dataGenerator = function () use ($rowGenerator, $spreadsheet) {
+                    try {
+                        while ($rowGenerator->valid()) {
+                            yield $rowGenerator->current();
+                            $rowGenerator->next();
+                        }
+                    } finally {
+                        $spreadsheet->disconnectWorksheets();
+                        unset($spreadsheet);
+                    }
+                };
+
                 return [
                     'headers' => $headers,
-                    'rows' => $allRows,
+                    'rows' => $dataGenerator(),
                 ];
             } catch (\Throwable) {
                 return null;

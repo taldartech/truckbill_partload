@@ -33,7 +33,7 @@ class GoodController extends Controller implements HasMiddleware
         $search = trim((string) ($validated['search'] ?? ''));
 
         $items = Good::query()
-            ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
+            ->when($search !== '', fn($query) => $query->where('name', 'like', '%' . $search . '%'))
             ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
@@ -106,7 +106,6 @@ class GoodController extends Controller implements HasMiddleware
     {
         return $bulkUploadService->downloadTemplate(
             headers: ['Name'],
-            sampleRows: [],
             fileName: 'goods_bulk_upload_template.csv'
         );
     }

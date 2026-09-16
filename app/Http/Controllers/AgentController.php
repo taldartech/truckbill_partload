@@ -39,9 +39,9 @@ class AgentController extends Controller implements HasMiddleware
             ->with(['company', 'city'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
-                    $inner->where('name', 'like', '%'.$search.'%')
-                        ->orWhere('mobile', 'like', '%'.$search.'%')
-                        ->orWhere('gst_no', 'like', '%'.$search.'%');
+                    $inner->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('mobile', 'like', '%' . $search . '%')
+                        ->orWhere('gst_no', 'like', '%' . $search . '%');
                 });
             })
             ->latest()
@@ -149,7 +149,6 @@ class AgentController extends Controller implements HasMiddleware
                 'GST Number',
                 'Transporter ID',
             ],
-            sampleRows: [],
             fileName: 'agents_bulk_upload_template.csv'
         );
     }

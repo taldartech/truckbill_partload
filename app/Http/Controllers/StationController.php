@@ -54,9 +54,9 @@ class StationController extends Controller implements HasMiddleware
             })
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
-                    $inner->where('name', 'like', '%'.$search.'%')
-                        ->orWhereHas('city', fn ($cityQuery) => $cityQuery->where('name', 'like', '%'.$search.'%'))
-                        ->orWhereHas('state', fn ($stateQuery) => $stateQuery->where('name', 'like', '%'.$search.'%'));
+                    $inner->where('name', 'like', '%' . $search . '%')
+                        ->orWhereHas('city', fn($cityQuery) => $cityQuery->where('name', 'like', '%' . $search . '%'))
+                        ->orWhereHas('state', fn($stateQuery) => $stateQuery->where('name', 'like', '%' . $search . '%'));
                 });
             })
             ->latest()
@@ -85,10 +85,10 @@ class StationController extends Controller implements HasMiddleware
 
         $defaultAgent = $companyId
             ? CompanyStationAgent::query()
-                ->with('agent:id,name')
-                ->where('company_id', $companyId)
-                ->where('station_id', $station->id)
-                ->first()?->agent
+            ->with('agent:id,name')
+            ->where('company_id', $companyId)
+            ->where('station_id', $station->id)
+            ->first()?->agent
             : null;
 
         return Inertia::render('Stations/Show', [
@@ -247,7 +247,6 @@ class StationController extends Controller implements HasMiddleware
     {
         return $bulkUploadService->downloadTemplate(
             headers: ['Station Name', 'State', 'City', 'Default Agent'],
-            sampleRows: [],
             fileName: 'stations_bulk_upload_template.csv'
         );
     }

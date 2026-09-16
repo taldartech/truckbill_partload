@@ -106,7 +106,6 @@ class PackageTypeController extends Controller implements HasMiddleware
     {
         return $bulkUploadService->downloadTemplate(
             headers: ['Name'],
-            sampleRows:[],
             fileName: 'package_types_bulk_upload_template.csv'
         );
     }

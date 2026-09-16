@@ -33,7 +33,7 @@ class TruckTypeController extends Controller implements HasMiddleware
         $search = trim((string) ($validated['search'] ?? ''));
 
         $truckTypes = TruckType::query()
-            ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
+            ->when($search !== '', fn($query) => $query->where('name', 'like', '%' . $search . '%'))
             ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
@@ -106,7 +106,6 @@ class TruckTypeController extends Controller implements HasMiddleware
     {
         return $bulkUploadService->downloadTemplate(
             headers: ['Name'],
-            sampleRows: [],
             fileName: 'truck_types_bulk_upload_template.csv'
         );
     }

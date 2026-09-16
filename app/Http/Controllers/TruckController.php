@@ -42,10 +42,10 @@ class TruckController extends Controller implements HasMiddleware
             ->with(['company', 'truckType', 'currentState', 'currentCity', 'currentStation', 'truckOwner'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
-                    $inner->where('truck_number', 'like', '%'.$search.'%')
-                        ->orWhere('status', 'like', '%'.$search.'%')
+                    $inner->where('truck_number', 'like', '%' . $search . '%')
+                        ->orWhere('status', 'like', '%' . $search . '%')
                         ->orWhereHas('truckOwner', function ($ownerQuery) use ($search) {
-                            $ownerQuery->where('name', 'like', '%'.$search.'%');
+                            $ownerQuery->where('name', 'like', '%' . $search . '%');
                         });
                 });
             })
@@ -246,7 +246,6 @@ class TruckController extends Controller implements HasMiddleware
                 'Permit No',
                 'Permit Expiry Date',
             ],
-            sampleRows: [],
             fileName: 'trucks_bulk_upload_template.csv'
         );
     }
