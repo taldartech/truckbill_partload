@@ -123,7 +123,7 @@
                             <div class="bilty-step-num">3</div>
                             <div>
                                 <h2 class="bilty-section__title">Owner</h2>
-                                <p class="bilty-section__desc">Select or add a truck owner</p>
+                                <p class="bilty-section__desc">Select or add an agent as truck owner</p>
                             </div>
                         </div>
                     </div>
@@ -133,13 +133,13 @@
                                 <label class="bilty-field__label">Truck Owner</label>
                                 <SearchableSelect
                                     :small="true"
-                                    v-model="form.truck_owner_id"
-                                    :options="truckOwnerOptions"
-                                    master="truck_owner"
+                                    v-model="form.agent_id"
+                                    :options="agentOptions"
+                                    master="agent"
                                     placeholder="Select Owner"
-                                    @created="(record) => appendMasterOption(truckOwnerOptions, record)"
+                                    @created="(record) => appendMasterOption(agentOptions, record)"
                                 />
-                                <div v-if="form.errors.truck_owner_id" class="text-danger small mt-1">{{ form.errors.truck_owner_id }}</div>
+                                <div v-if="form.errors.agent_id" class="text-danger small mt-1">{{ form.errors.agent_id }}</div>
                             </div>
                         </div>
                     </div>
@@ -224,19 +224,19 @@ import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 
 const props = defineProps({
     truckTypes: Array,
-    truckOwners: Array,
+    agents: Array,
     states: Array,
     cities: Array,
     stations: Array
 });
 
 const truckTypeOptions = ref([...(props.truckTypes || [])]);
-const truckOwnerOptions = ref([...(props.truckOwners || [])]);
+const agentOptions = ref([...(props.agents || [])]);
 const stateOptions = ref([...(props.states || [])]);
 const cityOptions = ref([...(props.cities || [])]);
 const stationOptions = ref([...(props.stations || [])]);
 watch(() => props.truckTypes, (v) => { truckTypeOptions.value = [...(v || [])]; });
-watch(() => props.truckOwners, (v) => { truckOwnerOptions.value = [...(v || [])]; });
+watch(() => props.agents, (v) => { agentOptions.value = [...(v || [])]; });
 watch(() => props.states, (v) => { stateOptions.value = [...(v || [])]; });
 watch(() => props.cities, (v) => { cityOptions.value = [...(v || [])]; });
 watch(() => props.stations, (v) => { stationOptions.value = [...(v || [])]; });
@@ -249,7 +249,7 @@ const form = useForm({
     current_city_id: '',
     current_station_id: '',
     capacity: '',
-    truck_owner_id: '',
+    agent_id: '',
     rc_no: '',
     rc_expiry_date: '',
     insurance_no: '',

@@ -27,7 +27,6 @@ use App\Http\Controllers\StateController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TruckController;
-use App\Http\Controllers\TruckOwnerController;
 use App\Http\Controllers\TruckTypeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorController;
@@ -125,9 +124,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('vendors/quick/form-data', [VendorController::class, 'quickFormData'])->name('vendors.quick-form-data');
         Route::post('vendors/quick', [VendorController::class, 'quickStore'])->name('vendors.quick-store');
         Route::resource('vendors', VendorController::class);
-        Route::get('truck-owners/quick/form-data', [TruckOwnerController::class, 'quickFormData'])->name('truck-owners.quick-form-data');
-        Route::post('truck-owners/quick', [TruckOwnerController::class, 'quickStore'])->name('truck-owners.quick-store');
-        Route::resource('truck-owners', TruckOwnerController::class);
         Route::resource('bank-accounts', BankAccountController::class);
 
         // Administration

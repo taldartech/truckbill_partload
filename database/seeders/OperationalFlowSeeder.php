@@ -27,7 +27,6 @@ use App\Models\PackageType;
 use App\Models\Party;
 use App\Models\Station;
 use App\Models\Truck;
-use App\Models\TruckOwner;
 use App\Models\TruckType;
 use App\Models\User;
 use App\Models\UserOnboarding;
@@ -330,32 +329,15 @@ class OperationalFlowSeeder extends Seeder
             'TN07ST3344', 'DL01UV5566', 'MH14WX7788', 'MH31YZ9900',
         ];
 
-        $ownerNames = [
-            'Ramesh Patil', 'Suresh Jadhav', 'Mahesh Yadav', 'Vikram Singh',
-            'Anil Deshmukh', 'Sunil Kulkarni', 'Prakash More', 'Dinesh Pawar',
-            'Ganesh Shinde', 'Harish Chavan', 'Nitin Bhosale', 'Kiran Naik',
-        ];
-
-        $truckOwners = $this->seedCollection($ownerNames, function (string $name, int $i) use ($companyId, $geo) {
-            return TruckOwner::create([
-                'company_id' => $companyId,
-                'name' => $name,
-                'address' => 'Owner Residence, Transport Nagar',
-                'mobile' => '98'.str_pad((string) (40000000 + $i), 8, '0', STR_PAD_LEFT),
-                'state_id' => $geo['state_id'],
-                'city_id' => $geo['city_id'],
-            ]);
-        });
-
         $trucks = $this->seedCollection($truckNumbers, function (string $number, int $i) use (
-            $companyId, $truckTypes, $stations, $geo, $truckOwners
+            $companyId, $truckTypes, $stations, $geo, $agents
         ) {
             return Truck::create([
                 'company_id' => $companyId,
                 'truck_number' => $number,
                 'truck_type_id' => $truckTypes[$i % count($truckTypes)]->id,
                 'capacity' => ($i % 2 === 0) ? '15 Ton' : '9 Ton',
-                'truck_owner_id' => $truckOwners[$i]->id,
+                'agent_id' => $agents[$i % count($agents)]->id,
                 'status' => $i < 8 ? 'Available' : 'Booked',
                 'current_state_id' => $geo['state_id'],
                 'current_city_id' => $geo['city_id'],
@@ -376,14 +358,13 @@ class OperationalFlowSeeder extends Seeder
         $this->counts['goods'] = count($goods);
         $this->counts['package_types'] = count($packageTypes);
         $this->counts['truck_types'] = count($truckTypes);
-        $this->counts['truck_owners'] = count($truckOwners);
         $this->counts['groups'] = count($groups);
         $this->counts['parties'] = count($parties);
         $this->counts['agents'] = count($agents);
         $this->counts['trucks'] = count($trucks);
         $this->counts['vendors'] = count($vendors);
 
-        return compact('stations', 'goods', 'packageTypes', 'truckTypes', 'truckOwners', 'groups', 'parties', 'agents', 'trucks', 'vendors');
+        return compact('stations', 'goods', 'packageTypes', 'truckTypes', 'groups', 'parties', 'agents', 'trucks', 'vendors');
     }
 
     /**
@@ -896,7 +877,7 @@ class OperationalFlowSeeder extends Seeder
         $this->command?->line('  Branch Admin: '.self::DEMO_OPS_EMAIL.' (Priya Sharma, Mumbai Head Office)');
         $this->command?->newLine();
         $this->command?->line('Master data created:');
-        foreach (['stations', 'goods', 'package_types', 'truck_types', 'truck_owners', 'groups', 'parties', 'agents', 'trucks', 'vendors'] as $key) {
+        foreach (['stations', 'goods', 'package_types', 'truck_types', 'groups', 'parties', 'agents', 'trucks', 'vendors'] as $key) {
             $this->command?->line(sprintf('  %-16s %d', ucwords(str_replace('_', ' ', $key)).':', $this->counts[$key] ?? 0));
         }
         $this->command?->newLine();

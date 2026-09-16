@@ -126,7 +126,7 @@ const overviewFields = computed(() => ([
     { label: 'Current Station', value: props.truck.current_station?.name || props.truck.currentStation?.name },
 ]));
 
-const owner = computed(() => props.truck.truck_owner || props.truck.truckOwner);
+const owner = computed(() => props.truck.agent);
 
 const ownerFields = computed(() => ([
     { label: 'Owner Name', value: owner.value?.name },

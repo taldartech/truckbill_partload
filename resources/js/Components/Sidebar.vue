@@ -134,13 +134,6 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item" v-if="can('view truck_owners')">
-                        <Link href="/truck-owners" class="nav-link" :class="{ active: $page.url.startsWith('/truck-owners') }">
-                            <i class="nav-icon fas fa-id-card"></i>
-                            <p>Truck Owners</p>
-                        </Link>
-                    </li>
-
                     <li class="nav-item" v-if="can('view agents')">
                         <Link href="/agents" class="nav-link" :class="{ active: $page.url.startsWith('/agents') }">
                             <i class="nav-icon fas fa-user-secret"></i>

@@ -37,8 +37,8 @@ class Truck extends Model
         return $this->belongsTo(Station::class, 'current_station_id');
     }
 
-    public function truckOwner()
+    public function agent()
     {
-        return $this->belongsTo(TruckOwner::class);
+        return $this->belongsTo(Agent::class);
     }
 }

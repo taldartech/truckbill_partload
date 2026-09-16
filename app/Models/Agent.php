@@ -27,4 +27,9 @@ class Agent extends Model
     {
         return $this->belongsTo(State::class);
     }
+
+    public function trucks()
+    {
+        return $this->hasMany(Truck::class);
+    }
 }

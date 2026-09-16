@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agent;
 use App\Models\City;
 use App\Models\State;
 use App\Models\Station;
 use App\Models\Truck;
-use App\Models\TruckOwner;
 use App\Models\TruckType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -36,13 +36,13 @@ class TruckController extends Controller implements HasMiddleware
         $search = trim((string) ($validated['search'] ?? ''));
 
         $trucks = Truck::query()
-            ->with(['company', 'truckType', 'currentState', 'currentCity', 'currentStation', 'truckOwner'])
+            ->with(['company', 'truckType', 'currentState', 'currentCity', 'currentStation', 'agent'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
                     $inner->where('truck_number', 'like', '%'.$search.'%')
                         ->orWhere('status', 'like', '%'.$search.'%')
-                        ->orWhereHas('truckOwner', function ($ownerQuery) use ($search) {
-                            $ownerQuery->where('name', 'like', '%'.$search.'%');
+                        ->orWhereHas('agent', function ($agentQuery) use ($search) {
+                            $agentQuery->where('name', 'like', '%'.$search.'%');
                         });
                 });
             })
@@ -69,8 +69,8 @@ class TruckController extends Controller implements HasMiddleware
             'currentState',
             'currentCity',
             'currentStation',
-            'truckOwner.state',
-            'truckOwner.city',
+            'agent.state',
+            'agent.city',
         ]);
 
         return Inertia::render('Trucks/Show', [
@@ -82,7 +82,7 @@ class TruckController extends Controller implements HasMiddleware
     {
         return Inertia::render('Trucks/Create', [
             'truckTypes' => TruckType::all(),
-            'truckOwners' => $this->truckOwnerOptions(),
+            'agents' => $this->agentOptions(),
             'states' => State::all(),
             'cities' => City::all(),
             'stations' => Station::all(),
@@ -106,7 +106,7 @@ class TruckController extends Controller implements HasMiddleware
     {
         return response()->json([
             'truckTypes' => TruckType::select('id', 'name')->orderBy('name')->get(),
-            'truckOwners' => $this->truckOwnerOptions(),
+            'agents' => $this->agentOptions(),
         ]);
     }
 
@@ -115,7 +115,7 @@ class TruckController extends Controller implements HasMiddleware
         $validated = $this->stripTenantFields($request->validate([
             'truck_number' => 'required|string|max:20',
             'truck_type_id' => 'nullable|exists:truck_types,id',
-            'truck_owner_id' => 'nullable|exists:truck_owners,id',
+            'agent_id' => 'nullable|exists:agents,id',
         ]));
 
         $validated['truck_number'] = strtoupper($validated['truck_number']);
@@ -135,7 +135,7 @@ class TruckController extends Controller implements HasMiddleware
         return Inertia::render('Trucks/Edit', [
             'truck' => $truck,
             'truckTypes' => TruckType::all(),
-            'truckOwners' => $this->truckOwnerOptions(),
+            'agents' => $this->agentOptions(),
             'states' => State::all(),
             'cities' => City::all(),
             'stations' => Station::all(),
@@ -198,7 +198,7 @@ class TruckController extends Controller implements HasMiddleware
             'current_city_id' => 'nullable|exists:cities,id',
             'current_station_id' => 'nullable|exists:stations,id',
             'capacity' => 'nullable|string|max:50',
-            'truck_owner_id' => 'nullable|exists:truck_owners,id',
+            'agent_id' => 'nullable|exists:agents,id',
             'rc_no' => 'nullable|string|max:50',
             'rc_expiry_date' => 'nullable|date',
             'insurance_no' => 'nullable|string|max:50',
@@ -212,9 +212,9 @@ class TruckController extends Controller implements HasMiddleware
         ];
     }
 
-    private function truckOwnerOptions()
+    private function agentOptions()
     {
-        return TruckOwner::query()
+        return Agent::query()
             ->orderBy('name')
             ->get(['id', 'name']);
     }
