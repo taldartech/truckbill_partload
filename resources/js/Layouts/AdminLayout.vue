@@ -2,6 +2,7 @@
     <div
         class="app-wrapper app-shell layout-fixed sidebar-expand-lg bg-body-tertiary"
     >
+        <AppResponseLoader track-inertia />    
         <Navbar @quick-action="quickAction" />
         <Sidebar />
         <main class="app-main main-content pt-2 px-0">
@@ -205,6 +206,7 @@ import {
     getVisibleRowInputs,
     resolveAddMoreMessage,
 } from "@/utils/dynamicGrid";
+import AppResponseLoader from '@/Components/Loading/AppResponseLoader.vue';
 
 defineProps({
     title: {
