@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Agent;
 use App\Models\City;
 use App\Models\State;
+use App\Services\Accounting\EntityAccountLinker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -69,14 +70,22 @@ class AgentController extends Controller implements HasMiddleware
         return redirect()->route('agents.index');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, EntityAccountLinker $linker)
     {
         $validated = $this->stripTenantFields($request->validate(
             $this->agentRules(),
             $this->agentMessages(),
         ));
 
-        Agent::create($validated);
+        $accountGroupId = $validated['account_group_id'] ?? null;
+        unset($validated['account_group_id']);
+        $validated['consider_for_accounting'] = (bool) ($validated['consider_for_accounting'] ?? false);
+
+        $agent = Agent::create($validated);
+
+        if ($agent->consider_for_accounting) {
+            $linker->enable($agent, $accountGroupId ? (int) $accountGroupId : null);
+        }
 
         return redirect()->back()->with('success', 'Agent created successfully.');
     }
@@ -110,14 +119,25 @@ class AgentController extends Controller implements HasMiddleware
         return redirect()->route('agents.index');
     }
 
-    public function update(Request $request, Agent $agent)
+    public function update(Request $request, Agent $agent, EntityAccountLinker $linker)
     {
         $validated = $this->stripTenantFields($request->validate(
             $this->agentRules(),
             $this->agentMessages(),
         ));
 
+        $accountGroupId = $validated['account_group_id'] ?? null;
+        unset($validated['account_group_id']);
+        $validated['consider_for_accounting'] = (bool) ($validated['consider_for_accounting'] ?? false);
+
         $agent->update($validated);
+        $linker->syncName($agent);
+
+        if ($agent->consider_for_accounting) {
+            $linker->enable($agent, $accountGroupId ? (int) $accountGroupId : null);
+        } else {
+            $linker->disable($agent);
+        }
 
         return redirect()->back()->with('success', 'Agent updated successfully.');
     }
@@ -147,6 +167,8 @@ class AgentController extends Controller implements HasMiddleware
             'email' => 'nullable|string|email|max:255',
             'gst_no' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
             'transport_id' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+            'consider_for_accounting' => 'sometimes|boolean',
+            'account_group_id' => 'nullable|exists:account_groups,id',
         ];
     }
 

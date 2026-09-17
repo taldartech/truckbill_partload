@@ -8,10 +8,11 @@ class RolePermissions
     {
         return [
             'companies', 'branches', 'trucks',
-            'stations', 'parties', 'vendors', 'agents', 'groups',
+            'stations', 'parties', 'agents', 'groups',
             'goods', 'package_types', 'truck_types',
             'bilties', 'challans', 'delivery_receipts', 'invoices',
             'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts',
+            'account_groups', 'accounts', 'accounting_vouchers', 'accounting_reports', 'accounting_settings',
             'subscriptions', 'subscription_plans', 'roles', 'users',
             'reports',
         ];
@@ -21,9 +22,11 @@ class RolePermissions
     {
         return [
             'branches', 'trucks', 'stations', 'parties',
-            'vendors', 'agents', 'groups', 'goods', 'package_types', 'truck_types',
+            'agents', 'groups', 'goods', 'package_types', 'truck_types',
             'bilties', 'challans', 'delivery_receipts', 'invoices',
-            'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts', 'reports',
+            'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts',
+            'account_groups', 'accounts', 'accounting_vouchers', 'accounting_reports', 'accounting_settings',
+            'reports',
         ];
     }
 
@@ -44,7 +47,7 @@ class RolePermissions
      */
     public static function companyMasterDataModules(): array
     {
-        return ['agents', 'vendors', 'parties', 'groups', 'trucks', 'rate_lists', 'bank_accounts'];
+        return ['agents', 'parties', 'groups', 'trucks', 'rate_lists', 'bank_accounts', 'account_groups', 'accounts'];
     }
 
     public static function permissionNames(array $modules, array $actions): array
@@ -76,9 +79,10 @@ class RolePermissions
     {
         return array_merge(
             self::permissionNames(
-                ['branches', 'trucks', 'stations', 'parties', 'vendors', 'agents', 'bilties', 'challans', 'delivery_receipts', 'invoices', 'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts'],
+                ['branches', 'trucks', 'stations', 'parties', 'agents', 'bilties', 'challans', 'delivery_receipts', 'invoices', 'inward_registers', 'loading_reports', 'vouchers', 'bank_accounts', 'account_groups', 'accounts'],
                 ['view']
             ),
+            self::permissionNames(['accounting_vouchers', 'accounting_reports', 'accounting_settings'], ['view', 'create', 'edit']),
             ['view reports'],
         );
     }

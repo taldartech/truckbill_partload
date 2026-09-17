@@ -314,17 +314,14 @@
                                         </div>
                                     </div>
                                     <div v-if="showCartageOptions && form.cartage_type === 'Due'" class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">Vendor</label>
+                                        <label class="bilty-charge-row__label">Account</label>
                                         <div>
-                                            <SearchableSelect
-                                                :small="true"
-                                                v-model="form.vendor_id"
-                                                :options="vendorOptions"
-                                                master="vendor"
-                                                placeholder="Select Vendor"
-                                                @created="(record) => appendMasterOption(vendorOptions, record)"
+                                            <AccountSelect
+                                                v-model="form.cartage_account_id"
+                                                :accounts="cartageAccountOptions"
+                                                placeholder="Select Account"
                                             />
-                                            <div v-if="form.errors.vendor_id" class="text-danger small">{{ form.errors.vendor_id }}</div>
+                                            <div v-if="form.errors.cartage_account_id" class="text-danger small">{{ form.errors.cartage_account_id }}</div>
                                         </div>
                                     </div>
                                     <div class="bilty-charge-row">
@@ -563,7 +560,7 @@
             :stations="stationOptions"
             :goods="goodOptions"
             :package-types="packageTypeOptions"
-            :vendors="vendorOptions"
+            :cartage-accounts="cartageAccountOptions"
             :gst-exemption-limit="gst_exemption_limit"
             @cancel="closeConfirm"
             @confirm="confirmSave"
@@ -574,6 +571,7 @@
 
 
 <script setup>
+import AccountSelect from '@/Components/Accounting/AccountSelect.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import BiltyConfirmModal from '@/Components/FormConfirm/BiltyConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
@@ -590,7 +588,7 @@ const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm
 const props = defineProps({
     branch_station_id:Number,
     parties: Array,
-    vendors: Array,
+    cartageAccounts: Array,
     stations: Array,
     goods: Array,
     package_types: Array,
@@ -604,14 +602,14 @@ const partyOptions = ref([...(props.parties || [])]);
 const stationOptions = ref([...(props.stations || [])]);
 const goodOptions = ref([...(props.goods || [])]);
 const packageTypeOptions = ref([...(props.package_types || [])]);
-const vendorOptions = ref([...(props.vendors || [])]);
+const cartageAccountOptions = ref([...(props.cartageAccounts || [])]);
 const agentOptions = ref([...(props.agents || [])]);
 
 watch(() => props.parties, (v) => { partyOptions.value = [...(v || [])]; });
 watch(() => props.stations, (v) => { stationOptions.value = [...(v || [])]; });
 watch(() => props.goods, (v) => { goodOptions.value = [...(v || [])]; });
 watch(() => props.package_types, (v) => { packageTypeOptions.value = [...(v || [])]; });
-watch(() => props.vendors, (v) => { vendorOptions.value = [...(v || [])]; });
+watch(() => props.cartageAccounts, (v) => { cartageAccountOptions.value = [...(v || [])]; });
 watch(() => props.agents, (v) => { agentOptions.value = [...(v || [])]; });
 
 const form = useForm({
@@ -646,7 +644,7 @@ const form = useForm({
     risk_dd_charge: 0,
     cartage: 0,
     cartage_type: '',
-    vendor_id: '',
+    cartage_account_id: '',
     addon_charges: [],
     less_advance_received: 0,
     advance_payment_mode: '',
@@ -752,7 +750,7 @@ const showGstLiability = computed(() => {
 const onCartageChange = () => {
     if (!showCartageOptions.value) {
         form.cartage_type = '';
-        form.vendor_id = '';
+        form.cartage_account_id = '';
     }
     calculateFinalTotal();
 };
@@ -766,7 +764,7 @@ const onAdvanceReceivedChange = () => {
 
 const onCartageTypeChange = () => {
     if (form.cartage_type !== 'Due') {
-        form.vendor_id = '';
+        form.cartage_account_id = '';
     }
 };
 

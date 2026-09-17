@@ -8,7 +8,7 @@ use App\Models\InwardRegister;
 use App\Models\Party;
 use App\Models\Station;
 use App\Models\Truck;
-use App\Services\Accounting\AccountingPoster;
+use App\Services\Accounting\OperationalAccountingBridge;
 use App\Support\DocumentNumber;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -48,16 +48,16 @@ class InwardRegisterController extends Controller implements HasMiddleware
             ->with(['fromStation', 'toStation', 'truck', 'details'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
-                    $inner->where('inward_register_no', 'like', '%' . $search . '%')
-                        ->orWhere('challan_number', 'like', '%' . $search . '%')
-                        ->orWhere('driver_name', 'like', '%' . $search . '%')
+                    $inner->where('inward_register_no', 'like', '%'.$search.'%')
+                        ->orWhere('challan_number', 'like', '%'.$search.'%')
+                        ->orWhere('driver_name', 'like', '%'.$search.'%')
                         ->orWhereHas('truck', function ($truckQuery) use ($search) {
-                            $truckQuery->where('truck_number', 'like', '%' . $search . '%');
+                            $truckQuery->where('truck_number', 'like', '%'.$search.'%');
                         });
                 });
             })
-            ->when($fromDate, fn($query) => $query->whereDate('date', '>=', $fromDate))
-            ->when($toDate, fn($query) => $query->whereDate('date', '<=', $toDate))
+            ->when($fromDate, fn ($query) => $query->whereDate('date', '>=', $fromDate))
+            ->when($toDate, fn ($query) => $query->whereDate('date', '<=', $toDate))
             ->when(! empty($validated['from_station_id']), function ($query) use ($validated) {
                 $query->where('from_station_id', $validated['from_station_id']);
             })
@@ -75,7 +75,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
             'trucks' => Truck::query()
                 ->orderBy('truck_number')
                 ->get(['id', 'truck_number'])
-                ->map(fn(Truck $truck) => [
+                ->map(fn (Truck $truck) => [
                     'id' => $truck->id,
                     'name' => $truck->truck_number,
                 ]),
@@ -101,12 +101,12 @@ class InwardRegisterController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function store(Request $request, AccountingPoster $poster)
+    public function store(Request $request, OperationalAccountingBridge $bridge)
     {
         $this->branchStationId();
         $validated = $this->validateInwardRegister($request);
 
-        DB::transaction(function () use ($validated, $poster) {
+        DB::transaction(function () use ($validated, $bridge) {
             $details = $validated['details'];
             unset($validated['details']);
 
@@ -114,7 +114,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
             $register = InwardRegister::create($validated);
             $this->syncDetails($register, $details);
-            $poster->syncInwardRegister($register->fresh());
+            $bridge->sync($register->fresh());
         });
 
         return redirect()->route('inward-registers.index')->with('success', 'Inward Register created successfully.');
@@ -160,12 +160,12 @@ class InwardRegisterController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function update(Request $request, InwardRegister $inwardRegister, AccountingPoster $poster)
+    public function update(Request $request, InwardRegister $inwardRegister, OperationalAccountingBridge $bridge)
     {
         $this->branchStationId();
         $validated = $this->validateInwardRegister($request, $inwardRegister->id);
 
-        DB::transaction(function () use ($validated, $inwardRegister, $poster) {
+        DB::transaction(function () use ($validated, $inwardRegister, $bridge) {
             $details = $validated['details'];
             unset($validated['details']);
 
@@ -173,16 +173,16 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
             $inwardRegister->update($validated);
             $this->syncDetails($inwardRegister, $details);
-            $poster->syncInwardRegister($inwardRegister->fresh());
+            $bridge->sync($inwardRegister->fresh());
         });
 
         return redirect()->route('inward-registers.index')->with('success', 'Inward Register updated successfully.');
     }
 
-    public function destroy(Request $request, InwardRegister $inwardRegister, AccountingPoster $poster)
+    public function destroy(Request $request, InwardRegister $inwardRegister, OperationalAccountingBridge $bridge)
     {
-        DB::transaction(function () use ($request, $inwardRegister, $poster) {
-            $poster->clearReference($inwardRegister);
+        DB::transaction(function () use ($request, $inwardRegister, $bridge) {
+            $bridge->clear($inwardRegister);
 
             $inwardRegister->update([
                 'delete_remark' => $request->delete_remark,
@@ -232,7 +232,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
                     'nullable',
                     'integer',
                     Rule::exists('inward_register_details', 'id')->where(
-                        fn($query) => $query->where('inward_register_id', $inwardRegisterId)
+                        fn ($query) => $query->where('inward_register_id', $inwardRegisterId)
                     ),
                 ],
             ]
@@ -302,15 +302,15 @@ class InwardRegisterController extends Controller implements HasMiddleware
     {
         $rows = collect($details);
 
-        $validated['total_packages'] = $rows->sum(fn($row) => (int) ($row['no_of_packages'] ?? 0));
+        $validated['total_packages'] = $rows->sum(fn ($row) => (int) ($row['no_of_packages'] ?? 0));
 
         $validated['total_delivery_freight'] = $rows
-            ->filter(fn($row) => $this->resolveDisposition((int) ($row['to_station_id'] ?? 0)) === 'delivery')
-            ->sum(fn($row) => (float) ($row['freight'] ?? 0));
+            ->filter(fn ($row) => $this->resolveDisposition((int) ($row['to_station_id'] ?? 0)) === 'delivery')
+            ->sum(fn ($row) => (float) ($row['freight'] ?? 0));
 
         $validated['total_crossing_freight'] = $rows
-            ->filter(fn($row) => $this->resolveDisposition((int) ($row['to_station_id'] ?? 0)) === 'forward')
-            ->sum(fn($row) => (float) ($row['freight'] ?? 0));
+            ->filter(fn ($row) => $this->resolveDisposition((int) ($row['to_station_id'] ?? 0)) === 'forward')
+            ->sum(fn ($row) => (float) ($row['freight'] ?? 0));
     }
 
     private function syncDetails(InwardRegister $register, array $details): void

@@ -154,7 +154,7 @@ const props = defineProps({
     stations: { type: Array, default: () => [] },
     goods: { type: Array, default: () => [] },
     packageTypes: { type: Array, default: () => [] },
-    vendors: { type: Array, default: () => [] },
+    cartageAccounts: { type: Array, default: () => [] },
     gstExemptionLimit: { type: Number, default: 0 },
     showPrintButton: { type: Boolean, default: true },
 });
@@ -252,7 +252,7 @@ const detailFields = computed(() => {
     pushField(fields, 'Private Marka', props.form.private_marka);
     pushField(fields, 'Delivery At', props.form.delivery_at);
     pushField(fields, 'Cartage Type', props.form.cartage_type);
-    pushField(fields, 'Vendor', lookupLabel(props.vendors, props.form.vendor_id));
+    pushField(fields, 'Cartage Account', lookupLabel(props.cartageAccounts, props.form.cartage_account_id));
     pushField(fields, 'Advance Payment Mode', props.form.advance_payment_mode);
 
     return fields;

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\BiltyRequest;
+use App\Models\Account;
 use App\Models\Agent;
 use App\Models\Bilty;
 use App\Models\Branch;
@@ -12,8 +13,7 @@ use App\Models\Good;
 use App\Models\PackageType;
 use App\Models\Party;
 use App\Models\Station;
-use App\Models\Vendor;
-use App\Services\Accounting\AccountingPoster;
+use App\Services\Accounting\OperationalAccountingBridge;
 use App\Support\BiltyPrint;
 use App\Support\DocumentNumber;
 use App\Support\RedirectsWithOptionalPrint;
@@ -94,7 +94,7 @@ class BiltyController extends Controller implements HasMiddleware
 
         return Inertia::render('Bilties/Create', [
             'parties' => $this->partyOptions(),
-            'vendors' => Vendor::all(),
+            'cartageAccounts' => Account::query()->selectable()->with('accountGroup:id,name')->orderBy('name')->get()->map->toSelectOption(),
             'stations' => $this->stationOptions(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
@@ -106,13 +106,13 @@ class BiltyController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function store(BiltyRequest $request, AccountingPoster $poster)
+    public function store(BiltyRequest $request, OperationalAccountingBridge $bridge)
     {
         $validated = $request->validated();
         $validated['status'] = $validated['status'] ?? 'Pending';
         $validated['created_by'] = Auth::id();
 
-        $bilty = DB::transaction(function () use ($validated, $poster) {
+        $bilty = DB::transaction(function () use ($validated, $bridge) {
             $details = $validated['details'] ?? [];
             $ewayBills = $validated['eway_bills'] ?? [];
             unset($validated['details'], $validated['eway_bills']);
@@ -134,7 +134,7 @@ class BiltyController extends Controller implements HasMiddleware
             }
 
             $this->syncEwayBills($bilty, $ewayBills);
-            $poster->syncBilty($bilty);
+            $bridge->sync($bilty);
 
             return $bilty;
         });
@@ -157,7 +157,7 @@ class BiltyController extends Controller implements HasMiddleware
             'consignee.city',
             'fromStation',
             'toStation',
-            'vendor',
+            'cartageAccount',
             'creator',
             'biltyDetails.good',
             'biltyDetails.packageType',
@@ -177,7 +177,7 @@ class BiltyController extends Controller implements HasMiddleware
         return Inertia::render('Bilties/Edit', [
             'bilty' => $bilty,
             'parties' => $this->partyOptions(),
-            'vendors' => Vendor::all(),
+            'cartageAccounts' => Account::query()->selectable()->with('accountGroup:id,name')->orderBy('name')->get()->map->toSelectOption(),
             'stations' => $this->stationOptions(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
@@ -187,11 +187,11 @@ class BiltyController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function update(BiltyRequest $request, Bilty $bilty, AccountingPoster $poster)
+    public function update(BiltyRequest $request, Bilty $bilty, OperationalAccountingBridge $bridge)
     {
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated, $bilty, $poster) {
+        DB::transaction(function () use ($validated, $bilty, $bridge) {
             $details = $validated['details'] ?? [];
             $ewayBills = $validated['eway_bills'] ?? [];
             unset($validated['details'], $validated['eway_bills']);
@@ -214,7 +214,7 @@ class BiltyController extends Controller implements HasMiddleware
             }
 
             $this->syncEwayBills($bilty, $ewayBills);
-            $poster->syncBilty($bilty->fresh());
+            $bridge->sync($bilty->fresh());
         });
 
         return $this->indexRedirectWithOptionalPrint(
@@ -226,10 +226,10 @@ class BiltyController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(Request $request, Bilty $bilty, AccountingPoster $poster)
+    public function destroy(Request $request, Bilty $bilty, OperationalAccountingBridge $bridge)
     {
-        DB::transaction(function () use ($request, $bilty, $poster) {
-            $poster->clearReference($bilty);
+        DB::transaction(function () use ($request, $bilty, $bridge) {
+            $bridge->clear($bilty);
             $bilty->update([
                 'delete_remark' => $request->delete_remark,
                 'deleted_by' => Auth::id(),
@@ -248,7 +248,7 @@ class BiltyController extends Controller implements HasMiddleware
             'toStation.state',
             'consignor',
             'consignee',
-            'vendor',
+            'cartageAccount',
             'creator',
             'biltyDetails.good',
             'biltyDetails.packageType',

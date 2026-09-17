@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\Group;
 use App\Models\Party;
 use App\Models\State;
+use App\Services\Accounting\EntityAccountLinker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -71,14 +72,22 @@ class PartyController extends Controller implements HasMiddleware
         return redirect()->route('parties.index');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, EntityAccountLinker $linker)
     {
         $validated = $this->stripTenantFields($request->validate(
             $this->partyRules(),
             $this->partyMessages(),
         ));
 
-        Party::create($validated);
+        $accountGroupId = $validated['account_group_id'] ?? null;
+        unset($validated['account_group_id']);
+        $validated['consider_for_accounting'] = (bool) ($validated['consider_for_accounting'] ?? false);
+
+        $party = Party::create($validated);
+
+        if ($party->consider_for_accounting) {
+            $linker->enable($party, $accountGroupId ? (int) $accountGroupId : null);
+        }
 
         return redirect()->back()->with('success', 'Party created successfully.');
     }
@@ -140,14 +149,25 @@ class PartyController extends Controller implements HasMiddleware
         return redirect()->route('parties.index');
     }
 
-    public function update(Request $request, Party $party)
+    public function update(Request $request, Party $party, EntityAccountLinker $linker)
     {
         $validated = $this->stripTenantFields($request->validate(
             $this->partyRules(),
             $this->partyMessages(),
         ));
 
+        $accountGroupId = $validated['account_group_id'] ?? null;
+        unset($validated['account_group_id']);
+        $validated['consider_for_accounting'] = (bool) ($validated['consider_for_accounting'] ?? false);
+
         $party->update($validated);
+        $linker->syncName($party);
+
+        if ($party->consider_for_accounting) {
+            $linker->enable($party, $accountGroupId ? (int) $accountGroupId : null);
+        } else {
+            $linker->disable($party);
+        }
 
         return redirect()->back()->with('success', 'Party updated successfully.');
     }
@@ -178,6 +198,8 @@ class PartyController extends Controller implements HasMiddleware
             'email' => 'nullable|string|email|max:255',
             'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
             'bilty_charge' => 'nullable|numeric|min:0',
+            'consider_for_accounting' => 'sometimes|boolean',
+            'account_group_id' => 'nullable|exists:account_groups,id',
         ];
     }
 

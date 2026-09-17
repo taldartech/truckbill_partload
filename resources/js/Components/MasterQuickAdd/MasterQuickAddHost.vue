@@ -216,7 +216,7 @@
                             </template>
 
                             <!-- Agent / Vendor -->
-                            <template v-else-if="master === 'agent' || master === 'vendor'">
+                            <template v-else-if="master === 'agent'">
                                 <div class="mb-2">
                                     <label class="form-label small mb-1">{{ title }} Name *</label>
                                     <input type="text" class="form-control form-control-sm" v-model="form.name" required>
@@ -400,13 +400,12 @@ const NAME_ONLY = ['good', 'package_type', 'truck_type', 'group'];
 
 const title = computed(() => MASTER_TITLES[master.value] || 'Record');
 const isNameOnlyMaster = computed(() => NAME_ONLY.includes(master.value));
-const isWideForm = computed(() => ['party', 'agent', 'vendor'].includes(master.value));
+const isWideForm = computed(() => ['party', 'agent'].includes(master.value));
 
 const ENDPOINTS = {
     party: { store: '/parties/quick', formData: '/parties/quick/form-data', key: 'party' },
     station: { store: '/stations/quick', formData: '/stations/quick/form-data', key: 'station' },
     agent: { store: '/agents/quick', formData: '/agents/quick/form-data', key: 'agent' },
-    vendor: { store: '/vendors/quick', formData: '/vendors/quick/form-data', key: 'vendor' },
     good: { store: '/goods/quick', key: 'good' },
     package_type: { store: '/package-types/quick', key: 'package_type' },
     truck_type: { store: '/truck-types/quick', key: 'truck_type' },
@@ -433,7 +432,6 @@ const emptyFormFor = (type, ctx = {}) => {
             return { name: '', state_id: '', city_id: '', default_agent_id: '' };
         case 'agent':
             return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_no: '', transport_id: '' };
-        case 'vendor':
             return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_number: '' };
         case 'truck':
             return { truck_number: '', truck_type_id: '', agent_id: '' };
@@ -485,7 +483,7 @@ const applySnapshot = async (snapshot) => {
     lookups.agents = [...(snapLookups.agents || [])];
     lookups.canSetDefaultAgent = !!snapLookups.canSetDefaultAgent;
 
-    if (['party', 'station', 'agent', 'vendor'].includes(master.value) && form.state_id && cities.value.length === 0) {
+    if (['party', 'station', 'agent'].includes(master.value) && form.state_id && cities.value.length === 0) {
         await loadCities(form.state_id);
     }
 };
@@ -518,7 +516,7 @@ const applyCreatedToParentSnapshot = (record) => {
         snapshot.form[formField] = record.id;
     }
 
-    // Changing state clears city on party/station/agent/vendor forms
+    // Changing state clears city on party/station/agent forms
     if (formField === 'state_id' && Object.prototype.hasOwnProperty.call(snapshot.form, 'city_id')) {
         snapshot.form.city_id = '';
         snapshot.cities = [];
@@ -641,7 +639,7 @@ const submit = async () => {
 };
 
 watch(() => form.state_id, async (stateId, previous) => {
-    if (!['party', 'station', 'agent', 'vendor'].includes(master.value)) {
+    if (!['party', 'station', 'agent'].includes(master.value)) {
         return;
     }
     if (String(stateId) === String(previous)) return;

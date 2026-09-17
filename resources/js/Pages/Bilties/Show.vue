@@ -331,7 +331,7 @@ const chargeRows = computed(() => {
         { label: 'Surcharge', amount: props.bilty.surcharge },
         {
             label: props.bilty.cartage_type
-                ? `Cartage (${props.bilty.cartage_type}${props.bilty.vendor?.name ? ` · ${props.bilty.vendor.name}` : ''})`
+                ? `Cartage (${props.bilty.cartage_type}${props.bilty.cartage_account?.name ? ` · ${props.bilty.cartage_account.name}` : ''})`
                 : 'Cartage',
             amount: props.bilty.cartage,
         },

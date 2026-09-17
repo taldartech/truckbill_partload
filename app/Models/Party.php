@@ -8,10 +8,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Party extends Model
 {
     use \App\Traits\BelongsToCompany;
-
     use SoftDeletes;
 
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'consider_for_accounting' => 'boolean',
+            'bilty_charge' => 'decimal:2',
+        ];
+    }
 
     public function company()
     {

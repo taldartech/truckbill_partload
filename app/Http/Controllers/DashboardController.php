@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Models\AccountingVoucher;
 use App\Models\Bilty;
 use App\Models\Branch;
 use App\Models\Challan;
@@ -11,7 +12,6 @@ use App\Models\CompanySubscription;
 use App\Models\InwardRegister;
 use App\Models\MainChallan;
 use App\Models\User;
-use App\Models\Voucher;
 use App\Services\TenantContext;
 use Carbon\Carbon;
 use Inertia\Inertia;
@@ -137,10 +137,10 @@ class DashboardController extends Controller
             ];
         }
 
-        if ($context->can('view vouchers')) {
+        if ($context->can('view accounting_vouchers')) {
             $stats['vouchers'] = [
-                'total' => Voucher::count(),
-                'today' => Voucher::whereDate('date', $today)->count(),
+                'total' => AccountingVoucher::count(),
+                'today' => AccountingVoucher::whereDate('date', $today)->count(),
             ];
         }
 

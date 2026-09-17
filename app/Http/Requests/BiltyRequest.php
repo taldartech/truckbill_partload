@@ -48,13 +48,13 @@ class BiltyRequest extends FormRequest
         }
 
         $cartage = (float) ($this->input('cartage') ?? 0);
-        $vendorId = $this->input('vendor_id');
+        $cartageAccountId = $this->input('cartage_account_id');
 
         if ($cartage <= 0) {
             $cartageType = null;
-            $vendorId = null;
+            $cartageAccountId = null;
         } elseif ($cartageType === 'Cash') {
-            $vendorId = null;
+            $cartageAccountId = null;
         }
 
         $advancePaymentMode = $this->input('advance_payment_mode');
@@ -73,7 +73,7 @@ class BiltyRequest extends FormRequest
             'company_id' => $context->requireCompanyId(),
             'branch_id' => $context->requireBranchId(),
             'cartage_type' => $cartageType,
-            'vendor_id' => $vendorId,
+            'cartage_account_id' => $cartageAccountId,
             'advance_payment_mode' => $advancePaymentMode,
             'addon_charges' => empty($addonCharges) ? null : $addonCharges,
             'eway_bills' => empty($ewayBills) ? null : $ewayBills,
@@ -119,7 +119,7 @@ class BiltyRequest extends FormRequest
             'risk_dd_charge' => 'nullable|numeric|min:0',
             'cartage' => 'nullable|numeric|min:0',
             'cartage_type' => 'nullable|string|in:Cash,Due,cash,due',
-            'vendor_id' => 'nullable|exists:vendors,id',
+            'cartage_account_id' => 'nullable|exists:accounts,id',
             'addon_charges' => 'nullable|array',
             'addon_charges.*.particulars' => 'nullable|string|max:255|required_with:addon_charges.*.amount',
             'addon_charges.*.amount' => 'nullable|numeric|min:0',
@@ -182,8 +182,8 @@ class BiltyRequest extends FormRequest
                 $validator->errors()->add('cartage_type', 'Please select whether cartage is Cash or Due.');
             }
 
-            if ($cartage > 0 && $cartageType === 'Due' && empty($this->input('vendor_id'))) {
-                $validator->errors()->add('vendor_id', 'Please select vendor for due cartage.');
+            if ($cartage > 0 && $cartageType === 'Due' && empty($this->input('cartage_account_id'))) {
+                $validator->errors()->add('cartage_account_id', 'Please select an account for due cartage.');
             }
 
             $lessAdvanceReceived = (float) ($this->input('less_advance_received') ?? 0);
@@ -224,7 +224,7 @@ class BiltyRequest extends FormRequest
             'eway_bills.*.eway_bill_no.required_with' => 'Please enter E-Way Bill number.',
             'eway_bills.*.eway_bill_valid_till.required_with' => 'Please select E-Way Bill valid till date.',
             'cartage_type.in' => 'Cartage type must be Cash or Due.',
-            'vendor_id.exists' => 'Selected vendor is invalid.',
+            'cartage_account_id.exists' => 'Selected cartage account is invalid.',
 
             'details.required' => 'Please add at least one detail row.',
             'details.array' => 'Details must be a valid row list.',

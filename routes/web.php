@@ -1,5 +1,12 @@
 <?php
 
+use App\Http\Controllers\Accounting\AccountController;
+use App\Http\Controllers\Accounting\AccountGroupController;
+use App\Http\Controllers\Accounting\AccountingReportController;
+use App\Http\Controllers\Accounting\AccountingVoucherController;
+use App\Http\Controllers\Accounting\AccountOptionsController;
+use App\Http\Controllers\Accounting\FinancialYearController;
+use App\Http\Controllers\Accounting\OpeningBalanceController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\Api\OnboardingController as ApiOnboardingController;
 use App\Http\Controllers\AuthController;
@@ -29,7 +36,6 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TruckController;
 use App\Http\Controllers\TruckTypeController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VoucherController;
 use Illuminate\Support\Facades\Route;
 
@@ -121,10 +127,31 @@ Route::middleware(['auth'])->group(function () {
         Route::get('agents/quick/form-data', [AgentController::class, 'quickFormData'])->name('agents.quick-form-data');
         Route::post('agents/quick', [AgentController::class, 'quickStore'])->name('agents.quick-store');
         Route::resource('agents', AgentController::class);
-        Route::get('vendors/quick/form-data', [VendorController::class, 'quickFormData'])->name('vendors.quick-form-data');
-        Route::post('vendors/quick', [VendorController::class, 'quickStore'])->name('vendors.quick-store');
-        Route::resource('vendors', VendorController::class);
         Route::resource('bank-accounts', BankAccountController::class);
+
+        // Accounting (new Tally-style stack)
+        Route::get('accounting/account-options', AccountOptionsController::class)->name('accounting.account-options');
+        Route::resource('accounting/account-groups', AccountGroupController::class)->only(['index', 'store', 'update', 'destroy'])->names('accounting.account-groups');
+        Route::resource('accounting/accounts', AccountController::class)->only(['index', 'show', 'store', 'update', 'destroy'])->names('accounting.accounts');
+        Route::resource('accounting/financial-years', FinancialYearController::class)->only(['index', 'store', 'update'])->names('accounting.financial-years');
+        Route::post('accounting/financial-years/{financial_year}/set-current', [FinancialYearController::class, 'setCurrent'])->name('accounting.financial-years.set-current');
+        Route::get('accounting/opening-balances/create', [OpeningBalanceController::class, 'create'])->name('accounting.opening-balances.create');
+        Route::post('accounting/opening-balances', [OpeningBalanceController::class, 'store'])->name('accounting.opening-balances.store');
+        Route::get('accounting/vouchers', [AccountingVoucherController::class, 'index'])->name('accounting.vouchers.index');
+        Route::get('accounting/vouchers/create', [AccountingVoucherController::class, 'create'])->name('accounting.vouchers.create');
+        Route::post('accounting/vouchers', [AccountingVoucherController::class, 'store'])->name('accounting.vouchers.store');
+        Route::get('accounting/vouchers/{voucher}', [AccountingVoucherController::class, 'show'])->name('accounting.vouchers.show');
+        Route::post('accounting/vouchers/{voucher}/cancel', [AccountingVoucherController::class, 'cancel'])->name('accounting.vouchers.cancel');
+        Route::post('accounting/vouchers/{voucher}/reverse', [AccountingVoucherController::class, 'reverse'])->name('accounting.vouchers.reverse');
+        Route::get('accounting/reports/ledger', [AccountingReportController::class, 'ledger'])->name('accounting.reports.ledger');
+        Route::get('accounting/reports/day-book', [AccountingReportController::class, 'dayBook'])->name('accounting.reports.day-book');
+        Route::get('accounting/reports/cash-book', [AccountingReportController::class, 'cashBook'])->name('accounting.reports.cash-book');
+        Route::get('accounting/reports/bank-book', [AccountingReportController::class, 'bankBook'])->name('accounting.reports.bank-book');
+        Route::get('accounting/reports/trial-balance', [AccountingReportController::class, 'trialBalance'])->name('accounting.reports.trial-balance');
+        Route::get('accounting/reports/profit-and-loss', [AccountingReportController::class, 'profitAndLoss'])->name('accounting.reports.profit-and-loss');
+        Route::get('accounting/reports/balance-sheet', [AccountingReportController::class, 'balanceSheet'])->name('accounting.reports.balance-sheet');
+        Route::get('accounting/reports/receivables', [AccountingReportController::class, 'receivables'])->name('accounting.reports.receivables');
+        Route::get('accounting/reports/payables', [AccountingReportController::class, 'payables'])->name('accounting.reports.payables');
 
         // Administration
         Route::resource('users', UserController::class);
@@ -146,7 +173,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('reports/bilty-register', [\App\Http\Controllers\ReportController::class, 'biltyRegister'])->name('reports.bilty-register');
         Route::get('reports/challan-register', [\App\Http\Controllers\ReportController::class, 'challanRegister'])->name('reports.challan-register');
         Route::get('reports/party-ledger', [\App\Http\Controllers\LedgerReportController::class, 'partyLedger'])->name('reports.party-ledger');
-        Route::get('reports/vendor-ledger', [\App\Http\Controllers\LedgerReportController::class, 'vendorLedger'])->name('reports.vendor-ledger');
         Route::get('reports/agent-ledger', [\App\Http\Controllers\LedgerReportController::class, 'agentLedger'])->name('reports.agent-ledger');
         Route::get('reports/cash-bank-book', [\App\Http\Controllers\LedgerReportController::class, 'cashBankBook'])->name('reports.cash-bank-book');
 

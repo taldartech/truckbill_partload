@@ -8,7 +8,7 @@ use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\InvoiceDetail;
 use App\Models\Party;
-use App\Services\Accounting\AccountingPoster;
+use App\Services\Accounting\OperationalAccountingBridge;
 use App\Support\DocumentNumber;
 use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\JsonResponse;
@@ -303,7 +303,7 @@ class InvoiceController extends Controller implements HasMiddleware
                 ]);
             }
 
-            app(AccountingPoster::class)->syncInvoice($invoice);
+            app(OperationalAccountingBridge::class)->sync($invoice);
 
             return $invoice;
         });
@@ -515,7 +515,7 @@ class InvoiceController extends Controller implements HasMiddleware
                 'net_amount' => $netAmount,
             ]);
 
-            app(AccountingPoster::class)->syncInvoice($invoice->fresh());
+            app(OperationalAccountingBridge::class)->sync($invoice->fresh());
         });
 
         return $this->indexRedirectWithOptionalPrint(
@@ -530,7 +530,7 @@ class InvoiceController extends Controller implements HasMiddleware
     public function destroy(
         Request $request,
         Invoice $invoice,
-        AccountingPoster $poster
+        OperationalAccountingBridge $bridge
     ) {
         $latestInvoiceId = Invoice::query()->max('id');
 
@@ -550,12 +550,12 @@ class InvoiceController extends Controller implements HasMiddleware
 
         $biltyIds = $invoice->details->pluck('bilty_id');
 
-        DB::transaction(function () use ($request, $invoice, $biltyIds, $poster) {
+        DB::transaction(function () use ($request, $invoice, $biltyIds, $bridge) {
             if ($biltyIds->isNotEmpty()) {
                 Bilty::whereIn('id', $biltyIds)->update(['invoice_number' => null]);
             }
 
-            $poster->clearReference($invoice);
+            $bridge->clear($invoice);
 
             $invoice->update([
                 'delete_remark' => $request->delete_remark,

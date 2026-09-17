@@ -69,10 +69,10 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item"  v-if="can('view vouchers')">
-                        <Link href="/vouchers" class="nav-link" :class="{ active: $page.url.startsWith('/vouchers') }">
-                            <i class="nav-icon fas fa-money-check-alt"></i>
-                            <p>Vouchers</p>
+                    <li class="nav-item" v-if="can('view accounting_vouchers')">
+                        <Link href="/accounting/vouchers" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/vouchers') }">
+                            <i class="nav-icon fas fa-book"></i>
+                            <p>Accounting Vouchers</p>
                         </Link>
                     </li>
 
@@ -80,6 +80,33 @@
                         <Link href="/bank-accounts" class="nav-link" :class="{ active: $page.url.startsWith('/bank-accounts') }">
                             <i class="nav-icon fas fa-university"></i>
                             <p>Bank Accounts</p>
+                        </Link>
+                    </li>
+
+                    <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small" v-if="can('view accounts') || can('view account_groups') || can('view accounting_settings')">ACCOUNTING</li>
+
+                    <li class="nav-item" v-if="can('view accounts')">
+                        <Link href="/accounting/accounts" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/accounts') }">
+                            <i class="nav-icon fas fa-sitemap"></i>
+                            <p>Chart of Accounts</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view account_groups')">
+                        <Link href="/accounting/account-groups" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/account-groups') }">
+                            <i class="nav-icon fas fa-layer-group"></i>
+                            <p>Account Groups</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_settings')">
+                        <Link href="/accounting/financial-years" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/financial-years') }">
+                            <i class="nav-icon fas fa-calendar-alt"></i>
+                            <p>Financial Years</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('create accounting_settings')">
+                        <Link href="/accounting/opening-balances/create" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/opening-balances') }">
+                            <i class="nav-icon fas fa-balance-scale"></i>
+                            <p>Opening Balances</p>
                         </Link>
                     </li>
 
@@ -141,54 +168,60 @@
                         </Link>
                     </li>
 
-                    <li class="nav-item" v-if="can('view vendors')">
-                        <Link href="/vendors" class="nav-link" :class="{ active: $page.url.startsWith('/vendors') }">
-                            <i class="nav-icon fas fa-store"></i>
-                            <p>Vendors</p>
-                        </Link>
-                    </li>
-
                     <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small">REPORTS</li>
 
-                    <!-- <li class="nav-item">
-                        <Link href="/reports/bilty-register" class="nav-link" :class="{ active: $page.url.startsWith('/reports/bilty-register') }">
-                            <i class="nav-icon fas fa-list-alt"></i>
-                            <p>Bilty Register</p>
-                        </Link>
-                    </li> -->
-
-                    <!-- <li class="nav-item">
-                        <Link href="/reports/challan-register" class="nav-link" :class="{ active: $page.url.startsWith('/reports/challan-register') }">
-                            <i class="nav-icon fas fa-list"></i>
-                            <p>Challan Register</p>
-                        </Link>
-                    </li> -->
-
-                    <li class="nav-item">
-                        <Link href="/reports/party-ledger" class="nav-link" :class="{ active: $page.url.startsWith('/reports/party-ledger') }">
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/ledger" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/ledger') }">
                             <i class="nav-icon fas fa-book"></i>
-                            <p>Party Ledger</p>
+                            <p>Account Ledger</p>
                         </Link>
                     </li>
-
-                    <li class="nav-item">
-                        <Link href="/reports/vendor-ledger" class="nav-link" :class="{ active: $page.url.startsWith('/reports/vendor-ledger') }">
-                            <i class="nav-icon fas fa-book-open"></i>
-                            <p>Vendor Ledger</p>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/day-book" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/day-book') }">
+                            <i class="nav-icon fas fa-calendar-day"></i>
+                            <p>Day Book</p>
                         </Link>
                     </li>
-
-                    <li class="nav-item">
-                        <Link href="/reports/agent-ledger" class="nav-link" :class="{ active: $page.url.startsWith('/reports/agent-ledger') }">
-                            <i class="nav-icon fas fa-journal-whills"></i>
-                            <p>Agent Ledger</p>
-                        </Link>
-                    </li>
-
-                    <li class="nav-item">
-                        <Link href="/reports/cash-bank-book" class="nav-link" :class="{ active: $page.url.startsWith('/reports/cash-bank-book') }">
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/cash-book" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/cash-book') }">
                             <i class="nav-icon fas fa-wallet"></i>
-                            <p>Cash / Bank Book</p>
+                            <p>Cash Book</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/bank-book" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/bank-book') }">
+                            <i class="nav-icon fas fa-university"></i>
+                            <p>Bank Book</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/trial-balance" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/trial-balance') }">
+                            <i class="nav-icon fas fa-list-ol"></i>
+                            <p>Trial Balance</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/profit-and-loss" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/profit-and-loss') }">
+                            <i class="nav-icon fas fa-chart-line"></i>
+                            <p>Profit &amp; Loss</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/balance-sheet" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/balance-sheet') }">
+                            <i class="nav-icon fas fa-file-invoice"></i>
+                            <p>Balance Sheet</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/receivables" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/receivables') }">
+                            <i class="nav-icon fas fa-hand-holding-usd"></i>
+                            <p>Receivables</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/payables" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/payables') }">
+                            <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                            <p>Payables</p>
                         </Link>
                     </li>
                     </template>

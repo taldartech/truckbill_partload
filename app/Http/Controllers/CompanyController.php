@@ -6,7 +6,7 @@ use App\Models\City;
 use App\Models\Company;
 use App\Models\Country;
 use App\Models\State;
-use App\Services\Accounting\EnsureCompanyLedgerAccounts;
+use App\Services\Accounting\EnsureCompanyAccounting;
 use App\Services\SubscriptionPricingService;
 use App\Services\TenantContext;
 use Illuminate\Http\Request;
@@ -99,7 +99,7 @@ class CompanyController extends Controller implements HasMiddleware
 
         $company = Company::create($validated);
         $this->pricingService->createTrialSubscription($company);
-        app(EnsureCompanyLedgerAccounts::class)->handle($company);
+        app(EnsureCompanyAccounting::class)->handle($company);
 
         return redirect()->route('companies.index')->with('success', 'Company created successfully.');
     }

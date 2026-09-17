@@ -174,6 +174,13 @@
                                     <input type="number" step="0.01" class="form-control" v-model="form.bilty_charge">
                                     <div v-if="form.errors.bilty_charge" class="text-danger mt-1 small">{{ form.errors.bilty_charge }}</div>
                                 </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Consider for Accounting?</label>
+                                    <select class="form-select" v-model="form.consider_for_accounting">
+                                        <option :value="false">No</option>
+                                        <option :value="true">Yes</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -246,6 +253,7 @@ const form = useForm({
     email: '',
     gst_number: '',
     bilty_charge: '',
+    consider_for_accounting: false,
 });
 
 const editMode = ref(false);
@@ -294,6 +302,7 @@ const editItem = (party) => {
     form.email = party.email || '';
     form.gst_number = party.gst_number || '';
     form.bilty_charge = party.bilty_charge ?? '';
+    form.consider_for_accounting = !!party.consider_for_accounting;
     modal.show();
 };
 

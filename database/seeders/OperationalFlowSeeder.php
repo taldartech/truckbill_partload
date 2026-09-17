@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AccountingVoucherType;
 use App\Enums\UserRole;
+use App\Models\Account;
 use App\Models\Agent;
+use App\Models\BankAccount;
 use App\Models\Bilty;
 use App\Models\BiltyDetail;
 use App\Models\Branch;
@@ -30,13 +33,17 @@ use App\Models\Truck;
 use App\Models\TruckType;
 use App\Models\User;
 use App\Models\UserOnboarding;
-use App\Models\Vendor;
+use App\Services\Accounting\ChartOfAccountsService;
+use App\Services\Accounting\EnsureCompanyAccounting;
+use App\Services\Accounting\EntityAccountLinker;
+use App\Services\Accounting\FinancialYearService;
+use App\Services\Accounting\OperationalAccountingBridge;
+use App\Services\Accounting\VoucherService;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class OperationalFlowSeeder extends Seeder
 {
@@ -66,7 +73,9 @@ class OperationalFlowSeeder extends Seeder
             $masters = $this->createMasterData($superAdmin, $company, $geo);
             $branch->update(['station_id' => $masters['stations'][0]->id]);
 
-            $this->seedOperationalRecords($company, $branch, $masters);
+            $accounting = $this->seedAccountingFoundation($company, $branch, $masters);
+            $seeded = $this->seedOperationalRecords($company, $branch, $masters, $accounting);
+            $this->seedAccountingPostings($company, $branch, $masters, $accounting, $seeded);
         });
 
         $this->printSummary();
@@ -91,12 +100,14 @@ class OperationalFlowSeeder extends Seeder
             ->pluck('id');
 
         $companyIds = Company::withTrashed()
-            ->when(
-                $demoUserIds->isNotEmpty(),
-                fn ($query) => $query->whereIn('user_id', $demoUserIds),
-            )
-            ->orWhere('name', self::DEMO_COMPANY_NAME)
-            ->orWhere('email', 'accounts@shreeganeshtransport.in')
+            ->where(function ($query) use ($demoUserIds) {
+                if ($demoUserIds->isNotEmpty()) {
+                    $query->whereIn('user_id', $demoUserIds);
+                }
+
+                $query->orWhere('name', self::DEMO_COMPANY_NAME)
+                    ->orWhere('email', 'accounts@shreeganeshtransport.in');
+            })
             ->pluck('id');
 
         if ($demoUserIds->isNotEmpty()) {
@@ -107,11 +118,53 @@ class OperationalFlowSeeder extends Seeder
             TruckType::query()->whereIn('owner_id', $demoUserIds)->delete();
         }
 
+        if ($companyIds->isNotEmpty()) {
+            $this->purgeAccountingForCompanies($companyIds->all());
+        }
+
         foreach ($companyIds as $companyId) {
             Company::withTrashed()->whereKey($companyId)->forceDelete();
         }
 
-        User::query()->whereIn('email', $demoEmails)->delete();
+        User::withTrashed()->whereIn('email', $demoEmails)->forceDelete();
+    }
+
+    /**
+     * @param  list<int>  $companyIds
+     */
+    private function purgeAccountingForCompanies(array $companyIds): void
+    {
+        $voucherIds = DB::table('accounting_vouchers')
+            ->whereIn('company_id', $companyIds)
+            ->pluck('id');
+
+        if ($voucherIds->isNotEmpty()) {
+            DB::table('accounting_vouchers')
+                ->whereIn('id', $voucherIds)
+                ->update(['reversed_voucher_id' => null]);
+
+            DB::table('accounting_voucher_entries')
+                ->whereIn('voucher_id', $voucherIds)
+                ->delete();
+
+            DB::table('accounting_vouchers')
+                ->whereIn('id', $voucherIds)
+                ->delete();
+        }
+
+        DB::table('voucher_sequences')->whereIn('company_id', $companyIds)->delete();
+        DB::table('accounting_mappings')->whereIn('company_id', $companyIds)->delete();
+
+        $accountIds = DB::table('accounts')->whereIn('company_id', $companyIds)->pluck('id');
+        if ($accountIds->isNotEmpty()) {
+            DB::table('bilties')
+                ->whereIn('cartage_account_id', $accountIds)
+                ->update(['cartage_account_id' => null]);
+        }
+
+        DB::table('accounts')->whereIn('company_id', $companyIds)->delete();
+        DB::table('account_groups')->whereIn('company_id', $companyIds)->delete();
+        DB::table('financial_years')->whereIn('company_id', $companyIds)->delete();
     }
 
     /**
@@ -272,6 +325,7 @@ class OperationalFlowSeeder extends Seeder
             'state_id' => $geo['state_id'],
             'city_id' => $geo['city_id'],
             'gst_no' => '27AABCA'.str_pad((string) $i, 4, '0', STR_PAD_LEFT).'Z'.($i % 9 + 1),
+            'consider_for_accounting' => true,
         ]));
 
         $stations = $this->seedCollection($stationNames, fn (string $name, int $i) => Station::create([
@@ -320,6 +374,7 @@ class OperationalFlowSeeder extends Seeder
                 'address' => $party['address'] ?? 'Demo address',
                 'state_id' => $geo['state_id'],
                 'city_id' => $geo['city_id'],
+                'consider_for_accounting' => true,
             ]);
         });
 
@@ -345,15 +400,6 @@ class OperationalFlowSeeder extends Seeder
             ]);
         });
 
-        $vendors = $this->seedCollection($this->vendorNames(), fn (string $name, int $i) => Vendor::create([
-            'company_id' => $companyId,
-            'name' => $name,
-            'mobile' => '98'.str_pad((string) (50000000 + $i), 8, '0', STR_PAD_LEFT),
-            'email' => Str::slug($name).'@vendor.in',
-            'state_id' => $geo['state_id'],
-            'city_id' => $geo['city_id'],
-        ]));
-
         $this->counts['stations'] = count($stations);
         $this->counts['goods'] = count($goods);
         $this->counts['package_types'] = count($packageTypes);
@@ -362,15 +408,89 @@ class OperationalFlowSeeder extends Seeder
         $this->counts['parties'] = count($parties);
         $this->counts['agents'] = count($agents);
         $this->counts['trucks'] = count($trucks);
-        $this->counts['vendors'] = count($vendors);
 
-        return compact('stations', 'goods', 'packageTypes', 'truckTypes', 'groups', 'parties', 'agents', 'trucks', 'vendors');
+        return compact('stations', 'goods', 'packageTypes', 'truckTypes', 'groups', 'parties', 'agents', 'trucks');
     }
 
     /**
      * @param  array<string, mixed>  $masters
+     * @return array{bank_accounts: list<BankAccount>, cash_account: Account, capital_account: Account, party_accounts: array<int, Account>, agent_accounts: array<int, Account>}
      */
-    private function seedOperationalRecords(Company $company, Branch $branch, array $masters): void
+    private function seedAccountingFoundation(Company $company, Branch $branch, array $masters): array
+    {
+        app(EnsureCompanyAccounting::class)->handle($company);
+
+        $linker = app(EntityAccountLinker::class);
+        $chart = app(ChartOfAccountsService::class);
+        $years = app(FinancialYearService::class);
+        $vouchers = app(VoucherService::class);
+
+        $partyAccounts = [];
+        foreach ($masters['parties'] as $party) {
+            $partyAccounts[$party->id] = $linker->enable($party);
+        }
+
+        $agentAccounts = [];
+        foreach ($masters['agents'] as $agent) {
+            $agentAccounts[$agent->id] = $linker->enable($agent);
+        }
+
+        $bankDefs = [
+            ['name' => 'HDFC Current A/c', 'bank_name' => 'HDFC Bank', 'account_number' => '50200012345678', 'ifsc_code' => 'HDFC0001234'],
+            ['name' => 'ICICI Operating A/c', 'bank_name' => 'ICICI Bank', 'account_number' => '000401234567', 'ifsc_code' => 'ICIC0000004'],
+        ];
+
+        $bankAccounts = [];
+        foreach ($bankDefs as $def) {
+            $bank = BankAccount::create([
+                'company_id' => $company->id,
+                ...$def,
+                'is_active' => true,
+            ]);
+            $linker->syncBankAccount($bank);
+            $bankAccounts[] = $bank->fresh('account');
+        }
+
+        $cash = $chart->systemAccount($company->id, 'cash');
+        $capital = $chart->systemAccount($company->id, 'owners_capital');
+        $hdfcAccount = $bankAccounts[0]->account;
+        $fy = $years->ensureCurrent($company->id);
+
+        $vouchers->post([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'financial_year_id' => $fy->id,
+            'voucher_type' => AccountingVoucherType::Opening,
+            'date' => $fy->starts_on->toDateString(),
+            'narration' => 'Opening balances — demo seed',
+            'created_by' => null,
+            'updated_by' => null,
+        ], [
+            ['account_id' => $cash->id, 'debit' => 250000, 'credit' => 0, 'narration' => 'Cash opening'],
+            ['account_id' => $hdfcAccount->id, 'debit' => 750000, 'credit' => 0, 'narration' => 'Bank opening'],
+            ['account_id' => $capital->id, 'debit' => 0, 'credit' => 1000000, 'narration' => "Owner's capital"],
+        ]);
+
+        $this->counts['bank_accounts'] = count($bankAccounts);
+        $this->counts['linked_party_accounts'] = count($partyAccounts);
+        $this->counts['linked_agent_accounts'] = count($agentAccounts);
+        $this->counts['opening_vouchers'] = 1;
+
+        return [
+            'bank_accounts' => $bankAccounts,
+            'cash_account' => $cash,
+            'capital_account' => $capital,
+            'party_accounts' => $partyAccounts,
+            'agent_accounts' => $agentAccounts,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $masters
+     * @param  array{bank_accounts: list<BankAccount>, cash_account: Account, capital_account: Account, party_accounts: array<int, Account>, agent_accounts: array<int, Account>}  $accounting
+     * @return array{bilties: Collection, challans: Collection, inward_registers: Collection, invoices: Collection}
+     */
+    private function seedOperationalRecords(Company $company, Branch $branch, array $masters, array $accounting): array
     {
         $companyId = $company->id;
         $branchId = $branch->id;
@@ -409,6 +529,9 @@ class OperationalFlowSeeder extends Seeder
         $statuses = ['Pending', 'Pending', 'Pending', 'In Transit', 'Pending'];
 
         $bilties = collect();
+        $agents = collect($masters['agents']);
+        $agentAccounts = $accounting['agent_accounts'];
+
         for ($i = 1; $i <= 24; $i++) {
             $route = $routes[($i - 1) % count($routes)];
             $fromStation = $stations->firstWhere('name', $route['from']);
@@ -417,6 +540,16 @@ class OperationalFlowSeeder extends Seeder
             $freight = 1800 + ($i * 175);
             $packages = 4 + ($i % 12);
             $weight = 350 + ($i * 45);
+
+            $cartageAttrs = [];
+            if ($i % 4 === 0) {
+                $agent = $agents[($i / 4) % $agents->count()];
+                $cartageAttrs = [
+                    'cartage' => 250 + ($i * 15),
+                    'cartage_type' => 'Due',
+                    'cartage_account_id' => $agentAccounts[$agent->id]->id,
+                ];
+            }
 
             $bilties->push($this->createBilty([
                 'company_id' => $companyId,
@@ -428,9 +561,10 @@ class OperationalFlowSeeder extends Seeder
                 'to_station_id' => $toStation->id,
                 'date' => $today->copy()->subDays(30 - $i),
                 'freight' => $freight,
-                'amount' => $freight,
+                'amount' => $freight + (float) ($cartageAttrs['cartage'] ?? 0),
                 'payment_type' => $paymentType,
                 'status' => $statuses[$i % count($statuses)],
+                ...$cartageAttrs,
             ], $goods[$i % $goods->count()], $packageTypes[$i % $packageTypes->count()], $packages, (float) $weight));
         }
 
@@ -503,6 +637,7 @@ class OperationalFlowSeeder extends Seeder
                 'booking_freight' => $bilty->freight,
                 'crossing_freight' => 0,
                 'total_amount' => $bilty->freight,
+                'pay_by_agent_id' => $agents[$index % $agents->count()]->id,
                 'status' => $index === 0 ? 'In Progress' : 'Created',
             ]);
 
@@ -570,6 +705,7 @@ class OperationalFlowSeeder extends Seeder
                     'basis_of_booking' => $paymentTypes[$seq % count($paymentTypes)],
                     'freight' => $freight,
                     'home_delivery_charge' => $homeDelivery,
+                    'agent_id' => $agents[$seq % $agents->count()]->id,
                     'disposition' => $isDelivery ? 'delivery' : 'forward',
                     'status' => 'pending',
                 ]);
@@ -619,6 +755,7 @@ class OperationalFlowSeeder extends Seeder
                 'booking_freight' => 0,
                 'crossing_freight' => $detail->freight,
                 'total_amount' => $detail->freight,
+                'pay_by_agent_id' => $detail->agent_id,
                 'status' => 'Created',
             ]);
 
@@ -738,6 +875,112 @@ class OperationalFlowSeeder extends Seeder
             $invoices->push($invoice);
         }
         $this->counts['invoices'] = $invoices->count();
+
+        return [
+            'bilties' => $bilties,
+            'challans' => $challans,
+            'inward_registers' => $inwardRegisters,
+            'invoices' => $invoices,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $masters
+     * @param  array{bank_accounts: list<BankAccount>, cash_account: Account, capital_account: Account, party_accounts: array<int, Account>, agent_accounts: array<int, Account>}  $accounting
+     * @param  array{bilties: Collection, challans: Collection, inward_registers: Collection, invoices: Collection}  $seeded
+     */
+    private function seedAccountingPostings(
+        Company $company,
+        Branch $branch,
+        array $masters,
+        array $accounting,
+        array $seeded,
+    ): void {
+        $bridge = app(OperationalAccountingBridge::class);
+        $vouchers = app(VoucherService::class);
+        $posted = 0;
+
+        foreach ($seeded['invoices'] as $invoice) {
+            if ($bridge->sync($invoice)) {
+                $posted++;
+            }
+        }
+
+        foreach ($seeded['bilties'] as $bilty) {
+            if ($bridge->sync($bilty)) {
+                $posted++;
+            }
+        }
+
+        foreach ($seeded['inward_registers'] as $register) {
+            if ($bridge->sync($register->fresh('details.agent'))) {
+                $posted++;
+            }
+        }
+
+        foreach ($seeded['challans'] as $challan) {
+            if ($bridge->sync($challan)) {
+                $posted++;
+            }
+        }
+
+        $cash = $accounting['cash_account'];
+        $bank = $accounting['bank_accounts'][0]->account;
+        $partyAccounts = $accounting['party_accounts'];
+        $receiptCount = 0;
+
+        foreach ($seeded['invoices']->take(3)->values() as $index => $invoice) {
+            $partyAccount = $partyAccounts[$invoice->party_id] ?? null;
+            if (! $partyAccount) {
+                continue;
+            }
+
+            $amount = round(((float) $invoice->net_amount) * 0.4, 2);
+            if ($amount <= 0) {
+                continue;
+            }
+
+            $cashAccount = $index % 2 === 0 ? $cash : $bank;
+
+            $vouchers->post([
+                'company_id' => $company->id,
+                'branch_id' => $branch->id,
+                'voucher_type' => AccountingVoucherType::Receipt,
+                'date' => Carbon::parse($invoice->date)->addDays(2)->toDateString(),
+                'narration' => 'Receipt against '.$invoice->invoice_no,
+                'created_by' => null,
+                'updated_by' => null,
+            ], [
+                ['account_id' => $cashAccount->id, 'debit' => $amount, 'credit' => 0, 'narration' => 'Received'],
+                ['account_id' => $partyAccount->id, 'debit' => 0, 'credit' => $amount, 'narration' => 'Party receipt'],
+            ]);
+            $receiptCount++;
+        }
+
+        $firstAgent = collect($masters['agents'])->first();
+        $agentAccount = $accounting['agent_accounts'][$firstAgent->id] ?? null;
+        if ($agentAccount) {
+            $vouchers->post([
+                'company_id' => $company->id,
+                'branch_id' => $branch->id,
+                'voucher_type' => AccountingVoucherType::Payment,
+                'date' => Carbon::today()->subDay()->toDateString(),
+                'narration' => 'Agent settlement — '.$firstAgent->name,
+                'created_by' => null,
+                'updated_by' => null,
+            ], [
+                ['account_id' => $agentAccount->id, 'debit' => 5000, 'credit' => 0, 'narration' => 'Paid to agent'],
+                ['account_id' => $bank->id, 'debit' => 0, 'credit' => 5000, 'narration' => 'Bank payment'],
+            ]);
+            $posted++;
+        }
+
+        $this->counts['accounting_source_vouchers'] = $posted;
+        $this->counts['receipt_vouchers'] = $receiptCount;
+        $this->counts['payment_vouchers'] = $agentAccount ? 1 : 0;
+        $this->counts['accounting_vouchers_total'] = \App\Models\AccountingVoucher::query()
+            ->where('company_id', $company->id)
+            ->count();
     }
 
     private function createBilty(array $attributes, Good $good, PackageType $packageType, int $packages, float $weight): Bilty
@@ -848,14 +1091,6 @@ class OperationalFlowSeeder extends Seeder
     }
 
     /** @return array<int, string> */
-    private function vendorNames(): array
-    {
-        return [
-            'Amit Tyre & Battery', 'Rahul Diesel Pump', 'Laxmi Workshop', 'Ganesh Spare Parts',
-            'Shivam Lubricants', 'Balaji Weighbridge', 'Krishna Garage', 'Sai FasTag Services',
-            'Navkar Insurance Agency', 'Prem Toll Plaza Services',
-        ];
-    }
 
     /** @return array<int, string> */
     private function driverNames(): array
@@ -877,7 +1112,7 @@ class OperationalFlowSeeder extends Seeder
         $this->command?->line('  Branch Admin: '.self::DEMO_OPS_EMAIL.' (Priya Sharma, Mumbai Head Office)');
         $this->command?->newLine();
         $this->command?->line('Master data created:');
-        foreach (['stations', 'goods', 'package_types', 'truck_types', 'groups', 'parties', 'agents', 'trucks', 'vendors'] as $key) {
+        foreach (['stations', 'goods', 'package_types', 'truck_types', 'groups', 'parties', 'agents', 'trucks'] as $key) {
             $this->command?->line(sprintf('  %-16s %d', ucwords(str_replace('_', ' ', $key)).':', $this->counts[$key] ?? 0));
         }
         $this->command?->newLine();
@@ -886,11 +1121,26 @@ class OperationalFlowSeeder extends Seeder
             $this->command?->line(sprintf('  %-16s %d', ucwords(str_replace('_', ' ', $key)).':', $this->counts[$key] ?? 0));
         }
         $this->command?->newLine();
+        $this->command?->line('Accounting seeded:');
+        foreach ([
+            'bank_accounts',
+            'linked_party_accounts',
+            'linked_agent_accounts',
+            'opening_vouchers',
+            'accounting_source_vouchers',
+            'receipt_vouchers',
+            'payment_vouchers',
+            'accounting_vouchers_total',
+        ] as $key) {
+            $this->command?->line(sprintf('  %-28s %d', ucwords(str_replace('_', ' ', $key)).':', $this->counts[$key] ?? 0));
+        }
+        $this->command?->newLine();
         $this->command?->line('Sample open items for testing:');
         $this->command?->line('  Pending bilties available for new loading reports & challans');
         $this->command?->line('  Inward forward GRs pending challan (not yet challaned)');
         $this->command?->line('  Inward delivery GRs pending delivery receipt');
         $this->command?->line('  TBB bilties without invoice still available for billing');
+        $this->command?->line('  Chart of Accounts, Day Book, Trial Balance, Receivables/Payables ready');
         $this->command?->newLine();
     }
 }

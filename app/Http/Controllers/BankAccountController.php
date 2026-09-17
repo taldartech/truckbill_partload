@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BankAccount;
-use App\Services\Accounting\LedgerAccountResolver;
+use App\Services\Accounting\EntityAccountLinker;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -59,20 +59,20 @@ class BankAccountController extends Controller implements HasMiddleware
 
     public function show(BankAccount $bankAccount)
     {
-        $bankAccount->load(['company', 'ledgerAccount']);
+        $bankAccount->load(['company', 'account']);
 
         return Inertia::render('BankAccounts/Show', [
             'bankAccount' => $bankAccount,
         ]);
     }
 
-    public function store(Request $request, LedgerAccountResolver $resolver)
+    public function store(Request $request, EntityAccountLinker $linker)
     {
         $validated = $this->validatedPayload($request);
 
-        DB::transaction(function () use ($validated, $resolver) {
+        DB::transaction(function () use ($validated, $linker) {
             $bankAccount = BankAccount::create($validated);
-            $resolver->forBankAccount($bankAccount);
+            $linker->syncBankAccount($bankAccount);
         });
 
         return redirect()->back()->with('success', 'Bank account created successfully.');
@@ -83,14 +83,13 @@ class BankAccountController extends Controller implements HasMiddleware
         return redirect()->route('bank-accounts.index');
     }
 
-    public function update(Request $request, BankAccount $bankAccount, LedgerAccountResolver $resolver)
+    public function update(Request $request, BankAccount $bankAccount, EntityAccountLinker $linker)
     {
         $validated = $this->validatedPayload($request);
 
-        DB::transaction(function () use ($validated, $bankAccount, $resolver) {
+        DB::transaction(function () use ($validated, $bankAccount, $linker) {
             $bankAccount->update($validated);
-            $ledger = $resolver->forBankAccount($bankAccount->fresh());
-            $ledger->update(['name' => $bankAccount->name]);
+            $linker->syncBankAccount($bankAccount->fresh());
         });
 
         return redirect()->back()->with('success', 'Bank account updated successfully.');

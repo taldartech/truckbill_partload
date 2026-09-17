@@ -13,6 +13,13 @@ class Agent extends Model
 
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return [
+            'consider_for_accounting' => 'boolean',
+        ];
+    }
+
     public function company()
     {
         return $this->belongsTo(Company::class);

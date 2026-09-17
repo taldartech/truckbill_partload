@@ -7,13 +7,10 @@ use App\Models\City;
 use App\Models\Company;
 use App\Models\CompanySubscription;
 use App\Models\Country;
-use App\Models\Party;
 use App\Models\State;
 use App\Models\Station;
 use App\Models\User;
-use App\Models\Voucher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
@@ -21,57 +18,27 @@ class VoucherIndexFilterTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_vouchers_index_filters_by_search_and_type(): void
+    public function test_vouchers_index_redirects_to_accounting_module(): void
     {
-        $context = $this->createVoucherListContext();
-        $user = $context['user'];
-        $match = $context['match'];
+        $context = $this->createContext(['view vouchers']);
 
-        $response = $this->actingAs($user)->get(route('vouchers.index', [
-            'search' => 'Office Rent',
-            'from_date' => now()->startOfMonth()->toDateString(),
-            'to_date' => now()->endOfMonth()->toDateString(),
-            'voucher_type' => 'Payment',
-        ]));
-
-        $response->assertOk();
-        $response->assertInertia(fn (AssertableInertia $page) => $page
-            ->component('Vouchers/Index')
-            ->where('filters.search', 'Office Rent')
-            ->where('filters.voucher_type', 'Payment')
-            ->has('vouchers.data', 1)
-            ->where('vouchers.data.0.id', $match->id)
-            ->etc()
-        );
-    }
-
-    public function test_vouchers_index_defaults_to_current_month_range(): void
-    {
-        $context = $this->createVoucherListContext();
-
-        $response = $this->actingAs($context['user'])->get(route('vouchers.index'));
-
-        $response->assertOk();
-        $response->assertInertia(fn (AssertableInertia $page) => $page
-            ->component('Vouchers/Index')
-            ->where('filters.from_date', now()->startOfMonth()->toDateString())
-            ->where('filters.to_date', now()->endOfMonth()->toDateString())
-            ->has('vouchers.data', 1)
-            ->where('vouchers.data.0.id', $context['match']->id)
-            ->etc()
-        );
+        $this->actingAs($context['user'])
+            ->get(route('vouchers.index'))
+            ->assertRedirect(route('accounting.vouchers.index'));
     }
 
     /**
-     * @return array{user: User, match: Voucher, other: Voucher}
+     * @param  list<string>  $permissions
+     * @return array{user: User}
      */
-    private function createVoucherListContext(): array
+    private function createContext(array $permissions): array
     {
-        Permission::findOrCreate('view vouchers');
+        foreach ($permissions as $permission) {
+            Permission::findOrCreate($permission);
+        }
 
         $owner = User::factory()->create();
-        $company = Company::create(['name' => 'Voucher Filter Co', 'user_id' => $owner->id]);
-
+        $company = Company::create(['name' => 'Voucher List Co', 'user_id' => $owner->id]);
         CompanySubscription::create([
             'company_id' => $company->id,
             'status' => 'active',
@@ -88,62 +55,26 @@ class VoucherIndexFilterTest extends TestCase
         $state = State::create(['country_id' => $country->id, 'name' => 'RJ', 'code' => 'RJ']);
         $city = City::create(['country_id' => $country->id, 'state_id' => $state->id, 'name' => 'Udaipur']);
         $station = Station::create(['name' => 'UDR', 'owner_id' => $owner->id]);
-
         $branch = Branch::create([
             'company_id' => $company->id,
-            'name' => 'Voucher Branch',
-            'address' => '1 Voucher Street',
+            'name' => 'Main',
+            'address' => '1 St',
             'country_id' => $country->id,
             'state_id' => $state->id,
             'city_id' => $city->id,
             'pin_code' => '313001',
             'station_id' => $station->id,
-            'contact_person' => 'Cashier',
-            'contact_number' => '9555555555',
-            'email' => 'voucher@example.com',
+            'contact_person' => 'A',
+            'contact_number' => '9000000000',
+            'email' => 'a@example.com',
         ]);
 
         $user = User::factory()->create([
             'company_id' => $company->id,
             'branch_id' => $branch->id,
         ]);
-        $user->givePermissionTo('view vouchers');
+        $user->givePermissionTo($permissions);
 
-        $party = Party::create([
-            'company_id' => $company->id,
-            'name' => 'Filter Party',
-        ]);
-
-        $match = Voucher::create([
-            'company_id' => $company->id,
-            'branch_id' => $branch->id,
-            'date' => now()->toDateString(),
-            'voucher_number' => 'VCH-1001',
-            'voucher_type' => 'Payment',
-            'accountable_type' => Party::class,
-            'accountable_id' => $party->id,
-            'amount' => 1500,
-            'mode' => 'cash',
-            'remark' => 'Office Rent',
-        ]);
-
-        $other = Voucher::create([
-            'company_id' => $company->id,
-            'branch_id' => $branch->id,
-            'date' => now()->subMonths(2)->toDateString(),
-            'voucher_number' => 'VCH-2002',
-            'voucher_type' => 'Receipt',
-            'accountable_type' => Party::class,
-            'accountable_id' => $party->id,
-            'amount' => 2500,
-            'mode' => 'cash',
-            'remark' => 'Freight Income',
-        ]);
-
-        return [
-            'user' => $user,
-            'match' => $match,
-            'other' => $other,
-        ];
+        return compact('user');
     }
 }

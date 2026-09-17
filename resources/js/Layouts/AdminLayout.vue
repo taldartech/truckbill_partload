@@ -134,7 +134,7 @@
                             <button
                                 v-if="canCreateVoucher"
                                 class="shortcut-item"
-                                @click="navigateTo('/vouchers/create')"
+                                @click="navigateTo('/accounting/vouchers/create')"
                             >
                                 <span class="shortcut-item-info">
                                     <i
@@ -247,7 +247,7 @@ const canCreateVoucher = computed(
         !!(
             auth.value.is_admin ||
             (auth.value.permissions &&
-                auth.value.permissions.includes("create vouchers"))
+                auth.value.permissions.includes("create accounting_vouchers"))
         ),
 );
 const canCreateInward = computed(
@@ -524,7 +524,7 @@ const handleKeyDown = (event) => {
     if (event.key === "F10") {
         event.preventDefault();
         if (canCreateVoucher.value) {
-            navigateTo("/vouchers/create");
+            navigateTo("/accounting/vouchers/create");
         }
         return;
     }

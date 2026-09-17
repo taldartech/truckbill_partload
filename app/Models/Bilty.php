@@ -7,9 +7,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Bilty extends Model
 {
-    use \App\Traits\BelongsToCompany;
     use \App\Traits\BelongsToBranch;
-
+    use \App\Traits\BelongsToCompany;
     use SoftDeletes;
 
     protected $guarded = [];
@@ -28,9 +27,9 @@ class Bilty extends Model
         return $this->belongsTo(Party::class, 'consignor_id');
     }
 
-    public function vendor()
+    public function cartageAccount()
     {
-        return $this->belongsTo(Vendor::class);
+        return $this->belongsTo(Account::class, 'cartage_account_id');
     }
 
     public function consignee()

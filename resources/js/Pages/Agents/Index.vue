@@ -162,7 +162,14 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="modal-footer">
+                        <div class="mb-3 px-3">
+                                    <label class="form-label">Consider for Accounting?</label>
+                                    <select class="form-select" v-model="form.consider_for_accounting">
+                                        <option :value="false">No</option>
+                                        <option :value="true">Yes</option>
+                                    </select>
+                                </div>
+                <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" @click="closeModal">Close</button>
                             <button type="submit" class="btn btn-primary" :disabled="form.processing">
                                 {{ form.processing ? 'Saving…' : (editMode ? 'Update' : 'Save') }}
@@ -223,6 +230,7 @@ const form = useForm({
     email: '',
     gst_no: '',
     transport_id: '',
+    consider_for_accounting: false,
 });
 
 const editMode = ref(false);
@@ -270,6 +278,7 @@ const editItem = (agent) => {
     form.email = agent.email || '';
     form.gst_no = agent.gst_no || '';
     form.transport_id = agent.transport_id || '';
+    form.consider_for_accounting = !!agent.consider_for_accounting;
     modal.show();
 };
 

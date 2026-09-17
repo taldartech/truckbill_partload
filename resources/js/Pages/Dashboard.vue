@@ -420,7 +420,7 @@ const visibleStatCards = computed(() => {
             meta: `${stats.vouchers.today} today`,
             icon: 'fa-file-invoice-dollar',
             tone: 'success',
-            href: '/vouchers',
+            href: '/accounting/vouchers',
         });
     }
 
