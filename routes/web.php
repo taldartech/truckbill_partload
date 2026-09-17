@@ -5,7 +5,6 @@ use App\Http\Controllers\Accounting\AccountGroupController;
 use App\Http\Controllers\Accounting\AccountingReportController;
 use App\Http\Controllers\Accounting\AccountingVoucherController;
 use App\Http\Controllers\Accounting\AccountOptionsController;
-use App\Http\Controllers\Accounting\FinancialYearController;
 use App\Http\Controllers\Accounting\OpeningBalanceController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\Api\OnboardingController as ApiOnboardingController;
@@ -133,8 +132,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('accounting/account-options', AccountOptionsController::class)->name('accounting.account-options');
         Route::resource('accounting/account-groups', AccountGroupController::class)->only(['index', 'store', 'update', 'destroy'])->names('accounting.account-groups');
         Route::resource('accounting/accounts', AccountController::class)->only(['index', 'show', 'store', 'update', 'destroy'])->names('accounting.accounts');
-        Route::resource('accounting/financial-years', FinancialYearController::class)->only(['index', 'store', 'update'])->names('accounting.financial-years');
-        Route::post('accounting/financial-years/{financial_year}/set-current', [FinancialYearController::class, 'setCurrent'])->name('accounting.financial-years.set-current');
         Route::get('accounting/opening-balances/create', [OpeningBalanceController::class, 'create'])->name('accounting.opening-balances.create');
         Route::post('accounting/opening-balances', [OpeningBalanceController::class, 'store'])->name('accounting.opening-balances.store');
         Route::get('accounting/vouchers', [AccountingVoucherController::class, 'index'])->name('accounting.vouchers.index');

@@ -126,7 +126,7 @@
                 </section>
 
                 <div class="bilty-form-actions">
-                    <Link href="/accounting/financial-years" class="btn btn-outline-secondary btn-sm px-3">
+                    <Link href="/accounting/accounts" class="btn btn-outline-secondary btn-sm px-3">
                         <i class="fas fa-times me-1"></i> Cancel
                     </Link>
                     <button type="submit" class="btn btn-success btn-sm px-4" :disabled="!balanced || form.processing">

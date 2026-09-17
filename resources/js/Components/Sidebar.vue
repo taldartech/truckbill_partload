@@ -83,7 +83,7 @@
                         </Link>
                     </li>
 
-                    <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small" v-if="can('view accounts') || can('view account_groups') || can('view accounting_settings')">ACCOUNTING</li>
+                    <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small" v-if="can('view accounts') || can('view account_groups') || can('create accounting_settings') || can('view accounting_settings')">ACCOUNTING</li>
 
                     <li class="nav-item" v-if="can('view accounts')">
                         <Link href="/accounting/accounts" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/accounts') }">
@@ -95,12 +95,6 @@
                         <Link href="/accounting/account-groups" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/account-groups') }">
                             <i class="nav-icon fas fa-layer-group"></i>
                             <p>Account Groups</p>
-                        </Link>
-                    </li>
-                    <li class="nav-item" v-if="can('view accounting_settings')">
-                        <Link href="/accounting/financial-years" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/financial-years') }">
-                            <i class="nav-icon fas fa-calendar-alt"></i>
-                            <p>Financial Years</p>
                         </Link>
                     </li>
                     <li class="nav-item" v-if="can('create accounting_settings')">
