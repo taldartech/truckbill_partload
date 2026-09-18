@@ -1,6 +1,6 @@
 <template>
-    <footer class="app-footer bg-white border-top py-3 mt-2">
-        <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+    <footer class="app-footer bg-white border-top py-2 py-md-3 mt-2">
+        <div class="container-fluid px-0 px-md-4 d-flex justify-content-between align-items-center">
             <div class="text-muted small">
                 <strong>Copyright All Rights Reserved &copy; 2026</strong>
             </div>
