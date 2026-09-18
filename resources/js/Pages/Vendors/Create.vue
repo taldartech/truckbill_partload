@@ -67,7 +67,7 @@
                         <div class="card-footer d-flex justify-content-between">
                             <Link href="/vendors" class="btn btn-default">Cancel</Link>
                             <button type="submit" class="btn btn-primary" :disabled="form.processing">
-                                <i class="fas fa-save me-1"></i> Save Vendor
+                                <i class="fas fa-save m-0 me-md-1"></i><span class="d-none d-sm-inline"> Save Vendor</span>
                             </button>
                         </div>
                     </form>

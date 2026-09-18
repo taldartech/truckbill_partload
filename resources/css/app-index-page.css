@@ -439,4 +439,11 @@
     .app-index-list-card > .card-body {
         overflow-x: hidden !important;
     }
+    .app-index-card-toolbar .btn-sm{
+    padding: 0px 5px !important;
+    min-height: 1.5rem !important;
+    }
+    .bilty-form-actions .btn {
+    min-width: 0 !important;
+    }
 }

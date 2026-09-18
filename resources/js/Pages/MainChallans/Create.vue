@@ -243,10 +243,10 @@
 
                 <div class="bilty-form-actions">
                     <Link href="/main-challans" class="btn btn-outline-secondary btn-sm px-3">
-                        <i class="fas fa-times me-1"></i> Cancel
+                        <i class="fas fa-times m-0 me-md-1"></i><span class="d-none d-sm-inline"> Cancel</span>
                     </Link>
                     <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
-                        <i class="fas fa-save me-1"></i> Save
+                        <i class="fas fa-save m-0 me-md-1"></i><span class="d-none d-sm-inline"> Save</span>
                     </button>
                 </div>
             </form>
