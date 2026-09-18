@@ -273,7 +273,7 @@
                                 <h3 class="card-title mb-0">Quick Actions</h3>
                             </div>
                             <div class="card-body">
-                                <div v-if="visibleQuickActions.length" class="dash-quick-grid" style="grid-template-columns: 1fr;">
+                                <div v-if="visibleQuickActions.length" class="dash-quick-grid">
                                     <Link
                                         v-for="action in visibleQuickActions"
                                         :key="action.href"
