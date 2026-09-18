@@ -42,7 +42,51 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div v-for="(owner, index) in truckOwners.data" :key="owner.id" class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="text-truncate d-flex align-items-center">
+                                    <span class="  me-2 flex-shrink-0">{{ (truckOwners.total ??
+                                        truckOwners.data.length) - ((truckOwners.from ?? 1) - 1) - index }}</span>
+                                    <Link :href="`/truck-owners/${owner.id}`"
+                                        class="fw-bold text-decoration-none text-truncate">
+                                        {{ owner.name }}
+                                    </Link>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2"
+                                    v-if="can('delete truck_owners') || can('edit truck_owners')">
+                                    <button v-if="can('edit truck_owners')" type="button"
+                                        class="btn btn-sm btn-edit py-0 px-2" title="Edit Truck Owner"
+                                        @click="editItem(owner)">
+                                        <i class="fas fa-edit small"></i>
+                                    </button>
+                                    <button v-if="can('delete truck_owners')" type="button"
+                                        class="btn btn-sm btn-danger py-0 px-2" title="Delete Truck Owner"
+                                        @click="deleteItem(owner.id)">
+                                        <i class="fas fa-trash small"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div
+                                class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <span v-if="owner.mobile">
+                                    <i class="fas fa-phone me-1 small"></i>{{ owner.mobile }}
+                                </span>
+                                <span v-else class="text-muted"><i class="fas fa-phone me-1 small"></i>N/A</span>
+                                <span v-if="owner.gst_number"
+                                    class="badge bg-light text-secondary border ms-2 text-nowrap">
+                                    GST: {{ owner.gst_number }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-if="truckOwners.data.length === 0" class="text-center text-muted py-4 small">
+                            No truck owners found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>

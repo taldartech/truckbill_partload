@@ -65,7 +65,57 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div
+                            v-for="voucher in vouchers.data"
+                            :key="voucher.id"
+                            class="px-3 py-2 border-bottom"
+                        >
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <Link
+                                        :href="`/vouchers/${voucher.id}`"
+                                        class="fw-bold text-decoration-none"
+                                    >
+                                        {{ voucher.voucher_number || '—' }}
+                                    </Link>
+                                    <span class="text-muted small text-nowrap">
+                                        {{ voucher.date }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                                    <span class="fw-bold small text-dark ms-1">
+                                        ₹ {{ voucher.amount }}
+                                    </span>
+                                    <span
+                                        class="badge"
+                                        :class="{
+                                            'bg-success': voucher.voucher_type === 'Receipt',
+                                            'bg-danger': voucher.voucher_type === 'Payment',
+                                        }"
+                                    >
+                                        {{ voucher.voucher_type }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <span class="text-dark fw-medium text-truncate">{{ entityLabel(voucher) }}</span>
+                                <span class="badge bg-light text-secondary border ms-2 text-nowrap">
+                                    {{ modeLabel(voucher) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="vouchers.data.length === 0"
+                            class="text-center text-muted py-4 small"
+                        >
+                            No vouchers found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>

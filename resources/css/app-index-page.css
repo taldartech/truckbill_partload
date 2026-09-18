@@ -434,6 +434,9 @@
     color: #dc3545 !important;
 }
 
-
-
-
+@media (max-width: 575.98px) {
+    .app-index-list-card,
+    .app-index-list-card > .card-body {
+        overflow-x: hidden !important;
+    }
+}

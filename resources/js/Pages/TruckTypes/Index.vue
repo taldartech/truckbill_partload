@@ -37,7 +37,39 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div v-for="(type, index) in truckTypes.data" :key="type.id" class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="text-truncate d-flex align-items-center">
+                                    <span class="  me-2 flex-shrink-0">{{ (truckTypes.total ??
+                                        truckTypes.data.length) - ((truckTypes.from ?? 1) - 1) - index }}</span>
+                                    <Link :href="`/truck-types/${type.id}`"
+                                        class="fw-bold text-decoration-none text-truncate">
+                                        {{ type.name }}
+                                    </Link>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2"
+                                    v-if="can('delete truck_types') || can('edit truck_types')">
+                                    <button v-if="can('edit truck_types')" type="button"
+                                        class="btn btn-sm btn-edit py-0 px-2" title="Edit Truck Type"
+                                        @click="editType(type)">
+                                        <i class="fas fa-edit small"></i>
+                                    </button>
+                                    <button v-if="can('delete truck_types')" type="button"
+                                        class="btn btn-sm btn-danger py-0 px-2" title="Delete Truck Type"
+                                        @click="deleteType(type)">
+                                        <i class="fas fa-trash small"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="truckTypes.data.length === 0" class="text-center text-muted py-4 small">
+                            No truck types found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>

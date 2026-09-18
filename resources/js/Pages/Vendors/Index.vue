@@ -42,7 +42,51 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div v-for="(vendor, index) in vendors.data" :key="vendor.id" class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="text-truncate d-flex align-items-center">
+                                    <span class="me-2 flex-shrink-0">{{ (vendors.total ??
+                                        vendors.data.length) - ((vendors.from ?? 1) - 1) - index }}</span>
+                                    <Link :href="`/vendors/${vendor.id}`"
+                                        class="fw-bold text-decoration-none text-truncate">
+                                        {{ vendor.name }}
+                                    </Link>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2"
+                                    v-if="can('delete vendors') || can('edit vendors')">
+                                    <button v-if="can('edit vendors')" type="button"
+                                        class="btn btn-sm btn-edit py-0 px-2" title="Edit Vendor"
+                                        @click="editItem(vendor)">
+                                        <i class="fas fa-edit small"></i>
+                                    </button>
+                                    <button v-if="can('delete vendors')" type="button"
+                                        class="btn btn-sm btn-danger py-0 px-2" title="Delete Vendor"
+                                        @click="deleteItem(vendor)">
+                                        <i class="fas fa-trash small"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div
+                                class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <span v-if="vendor.mobile">
+                                    <i class="fas fa-phone me-1 small"></i>{{ vendor.mobile }}
+                                </span>
+                                <span v-else class="text-muted">—</span>
+                                <span v-if="vendor.gst_number"
+                                    class="badge bg-light text-secondary border ms-2 text-nowrap">
+                                    GST: {{ vendor.gst_number }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-if="vendors.data.length === 0" class="text-center text-muted py-4 small">
+                            No vendors found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>

@@ -11,8 +11,38 @@
                             </button>
                         </div>
                     </div>
-                    <div class="card-body table-responsive p-0">
-                        <table class="table table-hover">
+                    <div class="card-body p-0">
+                    <div class="d-sm-none">
+                            <div v-for="role in roles" :key="role.id" class="px-3 py-2 border-bottom">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2 text-truncate">
+                                        <Link :href="`/roles/${role.id}`" class="fw-bold text-decoration-none">
+                                            {{ role.name }}
+                                        </Link>
+                                        <span class="badge bg-secondary">
+                                            {{ role.permissions?.length || 0 }} perms
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                                        <button v-if="can('edit roles')" class="btn btn-sm btn-outline-info py-0 px-2"
+                                            title="Edit Role" @click="editRole(role)">
+                                            <i class="fas fa-edit small"></i>
+                                        </button>
+                                        <button v-if="role.name !== 'Admin'" class="btn btn-sm btn-danger py-0 px-2"
+                                            title="Delete Role" @click="deleteRole(role.id)">
+                                            <i class="fas fa-trash small"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="roles.length === 0" class="text-center text-muted py-4 small">
+                                No roles found.
+                            </div>
+                        </div>
+
+                        <div class="table-responsive d-none d-sm-block">
+                            <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>Role Name</th>
@@ -45,6 +75,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </div>

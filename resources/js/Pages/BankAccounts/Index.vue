@@ -42,7 +42,53 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div v-for="(account, index) in bankAccounts.data" :key="account.id"
+                            class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <span class=" small flex-shrink-0">{{ (bankAccounts.total ??
+                                        bankAccounts.data.length) - ((bankAccounts.from ?? 1) - 1) - index }}</span>
+                                    <Link :href="`/bank-accounts/${account.id}`"
+                                        class="fw-bold text-decoration-none text-truncate">
+                                        {{ account.name }}
+                                    </Link>
+                                    <span class="badge" :class="account.is_active ? 'bg-success' : 'bg-secondary'">
+                                        {{ account.is_active ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2"
+                                    v-if="can('edit bank_accounts') || can('delete bank_accounts')">
+                                    <button v-if="can('edit bank_accounts')" type="button"
+                                        class="btn btn-sm btn-edit py-0 px-2" title="Edit Account"
+                                        @click="editItem(account)">
+                                        <i class="fas fa-edit small"></i>
+                                    </button>
+                                    <button v-if="can('delete bank_accounts')" type="button"
+                                        class="btn btn-sm btn-danger py-0 px-2" title="Delete Account"
+                                        @click="deleteItem(account.id)">
+                                        <i class="fas fa-trash small"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div
+                                class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <span class="text-truncate">
+                                    {{ account.bank_name || '—' }} ({{ account.account_number || '—' }})
+                                </span>
+                                <span v-if="account.ifsc_code" class="text-muted ms-2 text-nowrap">
+                                    IFSC: {{ account.ifsc_code }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-if="bankAccounts.data.length === 0" class="text-center text-muted py-4 small">
+                            No bank accounts found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>

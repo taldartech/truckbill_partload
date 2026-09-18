@@ -37,7 +37,38 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div v-for="(item, index) in items.data" :key="item.id" class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="text-truncate d-flex align-items-center">
+                                    <span class="  me-2 flex-shrink-0">{{ (items.total ??
+                                        items.data.length) - ((items.from ?? 1) - 1) - index }}</span>
+                                    <Link :href="`/goods/${item.id}`"
+                                        class="fw-bold text-decoration-none text-truncate">
+                                        {{ item.name }}
+                                    </Link>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2"
+                                    v-if="can('edit goods') || can('delete goods')">
+                                    <button v-if="can('edit goods')" type="button" class="btn btn-sm btn-edit py-0 px-2"
+                                        title="Edit Good" @click="editItem(item)">
+                                        <i class="fas fa-edit small"></i>
+                                    </button>
+                                    <button v-if="can('delete goods')" type="button"
+                                        class="btn btn-sm btn-danger py-0 px-2" title="Delete Good"
+                                        @click="deleteItem(item)">
+                                        <i class="fas fa-trash small"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="items.data.length === 0" class="text-center text-muted py-4 small">
+                            No goods found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>

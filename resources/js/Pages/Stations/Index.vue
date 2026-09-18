@@ -42,7 +42,47 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div v-for="(station, index) in stations.data" :key="station.id"
+                            class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="text-truncate d-flex align-items-center">
+                                    <span class="  me-2 flex-shrink-0">{{ (stations.total ??
+                                        stations.data.length) - ((stations.from ?? 1) - 1) - index }}</span>
+                                    <Link :href="`/stations/${station.id}`"
+                                        class="fw-bold text-decoration-none text-truncate">
+                                        {{ station.name || 'N/A' }}
+                                    </Link>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2"
+                                    v-if="can('delete stations') || can('edit stations')">
+                                    <button v-if="can('edit stations')" type="button"
+                                        class="btn btn-sm btn-edit py-0 px-2" title="Edit Station"
+                                        @click="editItem(station)">
+                                        <i class="fas fa-edit small"></i>
+                                    </button>
+                                    <button v-if="can('delete stations')" type="button"
+                                        class="btn btn-sm btn-danger py-0 px-2" title="Delete Station"
+                                        @click="deleteItem(station)">
+                                        <i class="fas fa-trash small"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="small text-muted mt-1 d-flex align-items-center text-truncate">
+                                <span class="text-dark fw-medium text-truncate">{{ station.city?.name || '—' }}</span>
+                                <span v-if="station.state?.name" class="text-muted ms-1 text-truncate">
+                                    ({{ station.state?.name }})
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-if="stations.data.length === 0" class="text-center text-muted py-4 small">
+                            No stations found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>

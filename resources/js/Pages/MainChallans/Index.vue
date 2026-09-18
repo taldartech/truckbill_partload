@@ -73,7 +73,60 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div
+                            v-for="challan in main_challans.data"
+                            :key="challan.id"
+                            class="px-3 py-2 border-bottom"
+                        >
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <Link
+                                        :href="`/main-challans/${challan.id}`"
+                                        class="fw-bold text-decoration-none"
+                                    >
+                                        {{ challan.main_challan_number || 'N/A' }}
+                                    </Link>
+                                    <span class="text-muted small text-nowrap">
+                                        {{ challan.date || 'N/A' }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                                    <span class="fw-bold small text-dark">
+                                        ₹{{ challan.total_amount || '0.00' }}
+                                    </span>
+                                    <a
+                                        :href="`/main-challans/${challan.id}/print`"
+                                        target="_blank"
+                                        class="btn btn-sm btn-outline-info py-0 px-2"
+                                        title="Print Main Challan"
+                                    >
+                                        <i class="fas fa-print small"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <div class="text-truncate">
+                                    <span class="text-dark fw-medium">{{ challan.from_station?.name || 'N/A' }}</span>
+                                    <i class="fas fa-arrow-right mx-1 text-muted" style="font-size: 0.75rem;"></i>
+                                    <span class="text-dark fw-medium">{{ challan.to_station?.name || 'N/A' }}</span>
+                                </div>
+                                <span v-if="challan.truck?.truck_number" class="badge bg-light text-secondary border ms-2 text-nowrap">
+                                    {{ challan.truck?.truck_number }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="main_challans.data.length === 0"
+                            class="text-center text-muted py-4 small"
+                        >
+                            No main challans found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
