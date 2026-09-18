@@ -21,6 +21,10 @@ class OwnerScope implements Scope
 
         if ($ownerId) {
             $builder->where($model->getTable().'.owner_id', $ownerId);
+
+            return;
         }
+
+        $builder->whereRaw('0 = 1');
     }
 }

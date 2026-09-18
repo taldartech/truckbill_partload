@@ -29,6 +29,10 @@ class CompanyScope implements Scope
 
         if (! empty($ownedCompanyIds)) {
             $builder->whereIn($model->getTable().'.company_id', $ownedCompanyIds);
+
+            return;
         }
+
+        $builder->whereRaw('0 = 1');
     }
 }

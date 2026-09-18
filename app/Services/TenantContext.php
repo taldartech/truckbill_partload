@@ -127,8 +127,9 @@ class TenantContext
             return false;
         }
 
+        // Always isolate shared master data by owner, even with no companies yet.
         if ($this->isSuperAdmin()) {
-            return $this->isActingAsAdmin() || ! empty($this->ownedCompanyIds());
+            return true;
         }
 
         return $this->user()->company_id !== null;
@@ -144,8 +145,9 @@ class TenantContext
             return false;
         }
 
+        // Always isolate company data, even with no companies yet.
         if ($this->isSuperAdmin()) {
-            return $this->isActingAsAdmin() || ! empty($this->ownedCompanyIds());
+            return true;
         }
 
         return $this->user()->company_id !== null;
