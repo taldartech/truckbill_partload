@@ -27,7 +27,7 @@
             </ul>
 
             <ul class="navbar-nav app-header-end ms-auto align-items-center">
-                <li class="keyboard-btn">
+                <li class="keyboard-btn d-none d-md-block">
                     <button type="button" class=" btn btn-primary btn-sm d-flex align-items-center gap-2 me-2"
                           @click="$emit('quick-action')">
                         <span><i class="fa-solid fa-bolt-lightning text-warning"></i> &nbsp; Shortcut</span>
