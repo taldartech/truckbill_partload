@@ -141,7 +141,7 @@
                                                 {{ detail.bilty_number || detail.gr_no || biltyLabel(detail.bilty_id) || inwardLabel(detail.inward_register_detail_id) }}
                                             </span>
                                         </td>
-                                        <td class="align-middle">{{ detail.to_station_name || '--' }}</td>
+                                        <td class="align-middle text-nowrap overflow-x-auto" style="max-width: 200px; scrollbar-width: thin;">{{ detail.goods_name || '--' }}</td>
                                         <td>
                                             <input type="number" class="form-control form-control-sm text-center bg-light" v-model="detail.nugs" readonly>
                                         </td>
@@ -534,7 +534,10 @@ const populateBiltyRow = (detail, bilty) => {
             totalNugs += parseFloat(bd.no_of_packages || 0);
             totalWeight += parseFloat(bd.gross_weight || 0);
         });
-        goodName = bilty.bilty_details[0].good ? bilty.bilty_details[0].good.name : '--';
+        goodName = bilty.bilty_details
+            .map((d) => d.good?.name)
+            .filter(Boolean)
+            .join(', ') || '--';
     }
 
     const toStation = stationOptions.value.find((s) => s.id === bilty.to_station_id);

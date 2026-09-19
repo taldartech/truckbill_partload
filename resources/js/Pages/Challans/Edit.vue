@@ -150,7 +150,7 @@
                                         <td>
                                             <input type="number" step="any" class="form-control form-control-sm text-center bg-light" v-model="detail.weight" readonly>
                                         </td>
-                                        <td class="align-middle">{{ detail.goods_name || '--' }}</td>
+                                        <td class="align-middle text-nowrap overflow-x-auto" style="max-width: 200px; scrollbar-width: thin;">{{ detail.goods_name || '--' }}</td>
                                         <td>
                                             <input type="number" step="any" class="form-control form-control-sm text-center bg-light" v-model="detail.freight" readonly>
                                         </td>
@@ -568,11 +568,15 @@ const populateBiltyRow = (detail, bilty) => {
     let goodName = '--';
 
     if (bilty.bilty_details && bilty.bilty_details.length > 0) {
+        goodName = bilty.bilty_details
+            .map((d) => d.good?.name)
+            .filter(Boolean)
+            .join(', ') || '--';
+
         bilty.bilty_details.forEach((bd) => {
             totalNugs += parseFloat(bd.no_of_packages || 0);
             totalWeight += parseFloat(bd.gross_weight || 0);
         });
-        goodName = bilty.bilty_details[0].good ? bilty.bilty_details[0].good.name : '--';
     }
 
     const toStation = stationOptions.value.find((s) => s.id === bilty.to_station_id);
