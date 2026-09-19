@@ -36,8 +36,8 @@
                 </div>
                 <div class="form-confirm-footer" :class="{ 'form-confirm-footer--review': isReview }">
                     <button type="button" class="btn btn-sm btn-outline-secondary px-3" @click="onCancel">
-                        Cancel
-                        <span class="form-confirm-kbd-group">
+                        <i class="fas fa-times me-1"></i>Cancel
+                        <span class="form-confirm-kbd-group d-none d-sm-block">
                             <kbd>N</kbd>
                             <kbd>Esc</kbd>
                         </span>
@@ -49,8 +49,8 @@
                         :disabled="confirmDisabled"
                         @click="onConfirmPrint"
                     >
-                        <i class="fas fa-print me-1"></i> Save &amp; Print
-                        <span class="form-confirm-kbd-group">
+                        <i class="fas fa-print me-1"></i><span class="d-none d-sm-block">Save &amp; </span>Print
+                        <span class="form-confirm-kbd-group d-none d-sm-block">
                             <kbd>P</kbd>
                         </span>
                     </button>
@@ -61,8 +61,8 @@
                         :disabled="confirmDisabled"
                         @click="onConfirm"
                     >
-                        <i class="fas fa-check me-1"></i> {{ confirmLabel }}
-                        <span class="form-confirm-kbd-group">
+                        <i class="fas fa-check me-1"></i><span class="d-none d-sm-block">{{ confirmLabel }}</span><span class="d-block d-sm-none">Save</span>
+                        <span class="form-confirm-kbd-group d-none d-sm-block">
                             <kbd>Y</kbd>
                             <kbd>Enter</kbd>
                         </span>
@@ -366,5 +366,11 @@ onUnmounted(() => {
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+}
+@media (max-width: 576px) {
+    .form-confirm-card {
+        max-height: 80vh;
+        overflow: scroll;
+    }
 }
 </style>
