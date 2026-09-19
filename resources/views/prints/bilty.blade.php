@@ -16,7 +16,7 @@
             height: 100%;
             border: 1.5px solid #000;
             position: relative;
-            padding: 3px 4px 18px;
+            padding: 3px 4px 3px;
             overflow: hidden;
             background: #fff;
             display: flex;

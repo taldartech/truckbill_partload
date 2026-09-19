@@ -20,14 +20,20 @@
         .text-center { text-align: center; }
         .footer { margin-top: 40px; display: flex; justify-content: space-between; padding-top: 50px; }
         .signature { text-align: center; width: 30%; border-top: 1px solid #000; padding-top: 5px; }
+        .outer-layout {
+        padding: 3px 4px 3px;
+        border: 1px solid black;
+        max-width: 800px;
+        margin: 0 auto;
+        }
 
         @media print {
             body { padding: 0; }
-            .print-container { border: none; }
         }
     </style>
 </head>
 <body onload="window.print()">
+    <div class="outer-layout">
     <div class="print-container">
         <div class="header">
             <h1>{{ $company->name ?? 'TRANSPORT COMPANY' }}</h1>
@@ -110,7 +116,8 @@
             <div class="signature">For {{ $company->name ?? 'Company' }}<br><br><br>Auth. Signatory</div>
         </div>
 
-        @include('partials.print-brand-footer')
+    </div>
+    @include('partials.print-brand-footer')
     </div>
 </body>
 </html>

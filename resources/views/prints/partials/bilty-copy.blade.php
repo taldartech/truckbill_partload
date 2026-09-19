@@ -247,10 +247,10 @@
                             {{ $bilty->creator->name }}
                         @endif
                         <span style="margin-top: 30px; display: block;">For : {{ $company->name ?? 'Company' }}</span>
-                        <span class="bi-footer-meta">Digitally managed by TruckBill (<a href="https://www.truckbill.in" target="_blank">www.truckbill.in</a>)</span>
                     </td>
                 </tr>
             </table>
         </div>
+        <span class="bi-footer-meta text-right" style="font-size:10px">Digitally managed by TruckBill (<a href="https://www.truckbill.in" target="_blank">www.truckbill.in</a>)</span>
     </div>
 </div>
