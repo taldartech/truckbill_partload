@@ -111,14 +111,19 @@
         .col-station { width: 12%; }
         .col-consignee { width: 24%; }
         .col-weight { width: 10%; }
-
+        .outer-layout {
+        padding: 3px 4px 3px;
+        border: 1px solid black;
+        max-width: 820px;
+        margin: 0 auto;
+        }
         @media print {
             body { padding: 0; }
-            .print-container { padding: 10px; }
         }
     </style>
 </head>
 <body onload="window.print()">
+    <div class="outer-layout">
     <div class="print-container">
         <h1 class="company-name">{{ $company->name ?? 'TRANSPORT COMPANY' }}</h1>
         <h2 class="report-title">Loading Report</h2>
@@ -187,7 +192,8 @@
         <p style="margin-top: 14px;"><strong>Remark:</strong> {{ $loading_report->remark }}</p>
         @endif
 
-        @include('partials.print-brand-footer')
     </div>
+    @include('partials.print-brand-footer')
+</div>
 </body>
 </html>
