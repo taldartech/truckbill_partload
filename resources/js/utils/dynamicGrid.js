@@ -63,7 +63,7 @@ export const findAddRowButton = (container, contextRow = null) => {
         }
     }
 
-    const explicit = container.querySelector('[data-dynamic-add]');
+    const explicit = container.querySelector('[data-dynamic-add]') || container.closest('section').querySelector('[data-dynamic-add]');
     if (explicit) return explicit;
 
     return Array.from(container.querySelectorAll('button, a')).find((btn) => {

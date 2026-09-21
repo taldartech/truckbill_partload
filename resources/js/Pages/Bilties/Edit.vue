@@ -252,8 +252,8 @@
                                 </tbody>
                             </table>
                         </div>
-                                                <div class="text-center bg-light p-1">
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" @click="addRow">
+                            <div class="text-center bg-light p-1">
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" data-dynamic-add @click="addRow">
                                 <i class="fas fa-plus"></i> Add Row
                             </button>
                             <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}
