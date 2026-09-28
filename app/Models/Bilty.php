@@ -63,9 +63,33 @@ class Bilty extends Model
         return $this->hasMany(ChallanDetail::class);
     }
 
+    public function challans()
+    {
+        return $this->hasManyThrough(
+            Challan::class,
+            ChallanDetail::class,
+            'bilty_id',
+            'id',
+            'id',
+            'challan_id'
+        );
+    }
+
     public function invoiceDetails()
     {
         return $this->hasMany(InvoiceDetail::class);
+    }
+
+    public function invoices()
+    {
+        return $this->hasManyThrough(
+            Invoice::class,
+            InvoiceDetail::class,
+            'bilty_id',
+            'id',
+            'id',
+            'invoice_id'
+        );
     }
 
     public function creator()
