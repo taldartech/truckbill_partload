@@ -97,14 +97,21 @@ class AgentController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function quickStore(Request $request): JsonResponse
+    public function quickStore(Request $request, EntityAccountLinker $linker): JsonResponse
     {
         $validated = $this->stripTenantFields($request->validate(
             $this->agentRules(),
             $this->agentMessages(),
         ));
 
+        unset($validated['account_group_id']);
+        $validated['consider_for_accounting'] = (bool) ($validated['consider_for_accounting'] ?? false);
+
         $agent = Agent::create($validated);
+
+        if ($agent->consider_for_accounting) {
+            $linker->enable($agent);
+        }
 
         return response()->json([
             'agent' => [

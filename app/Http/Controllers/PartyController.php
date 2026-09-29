@@ -119,14 +119,21 @@ class PartyController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function quickStore(Request $request): JsonResponse
+    public function quickStore(Request $request, EntityAccountLinker $linker): JsonResponse
     {
         $validated = $this->stripTenantFields($request->validate(
             $this->quickPartyRules(),
             $this->partyMessages(),
         ));
 
+        $validated['consider_for_accounting'] = (bool) ($validated['consider_for_accounting'] ?? false);
+
         $party = Party::create($validated);
+
+        if ($party->consider_for_accounting) {
+            $linker->enable($party);
+        }
+
         $party->load(['state:id,name', 'city:id,name']);
 
         return response()->json([
@@ -217,6 +224,7 @@ class PartyController extends Controller implements HasMiddleware
             'mobile' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
             'email' => 'nullable|string|email|max:255',
             'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+            'consider_for_accounting' => 'sometimes|boolean',
         ];
     }
 

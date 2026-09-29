@@ -157,10 +157,20 @@
                                         <div v-if="fieldError('gst_number')" class="text-danger small">{{ fieldError('gst_number') }}</div>
                                     </div>
                                 </div>
-                                <div class="mb-0">
-                                    <label class="form-label small mb-1">Email</label>
-                                    <input type="email" class="form-control form-control-sm" v-model="form.email">
-                                    <div v-if="fieldError('email')" class="text-danger small">{{ fieldError('email') }}</div>
+                                <div class="row mb-0">
+                                    <div class="col-md-6">
+                                        <label class="form-label small mb-1">Email</label>
+                                        <input type="email" class="form-control form-control-sm" v-model="form.email">
+                                        <div v-if="fieldError('email')" class="text-danger small">{{ fieldError('email') }}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small mb-1">Consider for Accounting?</label>
+                                        <select class="form-select form-select-sm" v-model="form.consider_for_accounting">
+                                            <option :value="false">No</option>
+                                            <option :value="true">Yes</option>
+                                        </select>
+                                        <div v-if="fieldError('consider_for_accounting')" class="text-danger small">{{ fieldError('consider_for_accounting') }}</div>
+                                    </div>
                                 </div>
                             </template>
 
@@ -289,6 +299,14 @@
                                         >
                                         <div v-if="fieldError('transport_id')" class="text-danger small">
                                             {{ fieldError('transport_id') }}
+                                        </div>
+                                        <label class="form-label small mb-1 mt-2">Consider for Accounting?</label>
+                                        <select class="form-select form-select-sm" v-model="form.consider_for_accounting">
+                                            <option :value="false">No</option>
+                                            <option :value="true">Yes</option>
+                                        </select>
+                                        <div v-if="fieldError('consider_for_accounting')" class="text-danger small">
+                                            {{ fieldError('consider_for_accounting') }}
                                         </div>
                                     </template>
                                 </div>
@@ -427,11 +445,11 @@ const LOOKUP_KEYS_BY_MASTER = {
 const emptyFormFor = (type, ctx = {}) => {
     switch (type) {
         case 'party':
-            return { group_id: '', name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_number: '' };
+            return { group_id: '', name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_number: '', consider_for_accounting: false };
         case 'station':
             return { name: '', state_id: '', city_id: '', default_agent_id: '' };
         case 'agent':
-            return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_no: '', transport_id: '' };
+            return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_no: '', transport_id: '', consider_for_accounting: false };
             return { name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_number: '' };
         case 'truck':
             return { truck_number: '', truck_type_id: '', agent_id: '' };
