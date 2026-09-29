@@ -42,6 +42,10 @@ class QuickStoreAccountingTest extends TestCase
         $this->assertNotNull($account);
         $this->assertTrue($account->is_selectable);
         $this->assertSame('sundry_debtors', $account->accountGroup->system_key);
+
+        $response->assertJsonPath('party.account.id', $account->id)
+            ->assertJsonPath('party.account.name', 'Quick Party')
+            ->assertJsonPath('party.account.reference_type', 'Party');
     }
 
     public function test_party_quick_store_skips_ledger_account_by_default(): void
@@ -54,7 +58,7 @@ class QuickStoreAccountingTest extends TestCase
             'name' => 'Plain Party',
         ]);
 
-        $response->assertCreated();
+        $response->assertCreated()->assertJsonPath('party.account', null);
 
         $party = Party::query()->withoutGlobalScopes()->where('name', 'Plain Party')->firstOrFail();
         $this->assertFalse($party->consider_for_accounting);
@@ -80,6 +84,9 @@ class QuickStoreAccountingTest extends TestCase
         $account = app(EntityAccountLinker::class)->linkedAccount($agent);
         $this->assertNotNull($account);
         $this->assertTrue($account->is_selectable);
+
+        $response->assertJsonPath('agent.account.id', $account->id)
+            ->assertJsonPath('agent.account.reference_type', 'Agent');
     }
 
     public function test_agent_quick_store_skips_ledger_account_by_default(): void
@@ -91,7 +98,7 @@ class QuickStoreAccountingTest extends TestCase
             'name' => 'Plain Agent',
         ]);
 
-        $response->assertCreated();
+        $response->assertCreated()->assertJsonPath('agent.account', null);
 
         $agent = Agent::query()->withoutGlobalScopes()->where('name', 'Plain Agent')->firstOrFail();
         $this->assertFalse($agent->consider_for_accounting);

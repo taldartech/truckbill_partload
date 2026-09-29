@@ -95,7 +95,7 @@
                                     :options="partyOptions"
                                     master="party"
                                     placeholder="Select Consignor"
-                                    @created="(record) => appendMasterOption(partyOptions, record)"
+                                    @created="onPartyCreated"
                                 />
                                 <div v-if="form.errors.consignor_id" class="text-danger small mt-1">{{ form.errors.consignor_id }}</div>
                                 <div v-if="form.consignor_id" class="bilty-party-details">
@@ -125,7 +125,7 @@
                                     :options="partyOptions"
                                     master="party"
                                     placeholder="Select Consignee"
-                                    @created="(record) => appendMasterOption(partyOptions, record)"
+                                    @created="onPartyCreated"
                                 />
                                 <div v-if="form.errors.consignee_id" class="text-danger small mt-1">{{ form.errors.consignee_id }}</div>
                                 <div v-if="form.consignee_id" class="bilty-party-details">
@@ -463,7 +463,7 @@
                                     labelKey="name"
                                     master="agent"
                                     placeholder="Select Delivery Agent"
-                                    @created="(record) => appendMasterOption(agentOptions, record, 'name')"
+                                    @created="onAgentCreated"
                                 />
                             </div>
                             <div class="bilty-field">
@@ -612,6 +612,16 @@ watch(() => props.goods, (v) => { goodOptions.value = [...(v || [])]; });
 watch(() => props.package_types, (v) => { packageTypeOptions.value = [...(v || [])]; });
 watch(() => props.cartageAccounts, (v) => { cartageAccountOptions.value = [...(v || [])]; });
 watch(() => props.agents, (v) => { agentOptions.value = [...(v || [])]; });
+
+const onPartyCreated = (record) => {
+    appendMasterOption(partyOptions, record);
+    appendMasterOption(cartageAccountOptions, record?.account);
+};
+
+const onAgentCreated = (record) => {
+    appendMasterOption(agentOptions, record, 'name');
+    appendMasterOption(cartageAccountOptions, record?.account);
+};
 
 const rowAmountFromDetail = (d) => {
     const weight = parseFloat(d.gross_weight) || 0;

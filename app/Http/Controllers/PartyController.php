@@ -130,9 +130,7 @@ class PartyController extends Controller implements HasMiddleware
 
         $party = Party::create($validated);
 
-        if ($party->consider_for_accounting) {
-            $linker->enable($party);
-        }
+        $account = $party->consider_for_accounting ? $linker->enable($party) : null;
 
         $party->load(['state:id,name', 'city:id,name']);
 
@@ -147,6 +145,7 @@ class PartyController extends Controller implements HasMiddleware
                 'state' => $party->state,
                 'city' => $party->city,
                 'bilty_charge' => $party->bilty_charge,
+                'account' => $account?->toSelectOption(),
             ],
         ], 201);
     }

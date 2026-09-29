@@ -109,14 +109,13 @@ class AgentController extends Controller implements HasMiddleware
 
         $agent = Agent::create($validated);
 
-        if ($agent->consider_for_accounting) {
-            $linker->enable($agent);
-        }
+        $account = $agent->consider_for_accounting ? $linker->enable($agent) : null;
 
         return response()->json([
             'agent' => [
                 'id' => $agent->id,
                 'name' => $agent->name,
+                'account' => $account?->toSelectOption(),
             ],
         ], 201);
     }
