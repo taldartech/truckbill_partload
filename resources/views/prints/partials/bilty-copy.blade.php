@@ -212,7 +212,7 @@
                 <tr>
                     <td>
                         <span class="lbl">Private Marka:</span>
-                        <span class="val">{{ $bilty->private_marka ?: '' }}</span>
+                        <span class="val" style="font-size:13px;">{{ $bilty->private_marka ?: '' }}</span>
                     </td>
                     <td style="width: 22.5%;">
                         <span class="lbl">Invoice No:</span>
@@ -228,7 +228,7 @@
                 <tr>
                     <td style="width: 40%;">
                         <span class="lbl">Delivery At:</span>
-                        <span class="val" style="font-weight: 600; font-size:15px">{{ $bilty->delivery_at ?: '—' }}</span>
+                        <span class="val" style="font-weight: 600; font-size:13px">{{ $bilty->delivery_at ?: '—' }}</span>
                     </td>
                     <td colspan="2">
                         <span class="lbl">E-Way Bill:</span>
