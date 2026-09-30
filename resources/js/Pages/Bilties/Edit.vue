@@ -412,6 +412,10 @@
                                         </select>
                                     </div>
                                     <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Sub Total</label>
+                                        <input type="number" step="any" class="form-control form-control-sm bg-light" :value="subTotalAmount" readonly tabindex="-1">
+                                    </div>
+                                    <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Less Advance Received</label>
                                         <input type="number" step="any" min="0" class="form-control form-control-sm" v-model="form.less_advance_received" @input="onAdvanceReceivedChange">
                                     </div>
@@ -585,6 +589,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { watch, ref, onMounted, computed, nextTick } from 'vue';
 
 const gstAmount = ref('0.00');
+const subTotalAmount = ref('0.00');
 const biltyNumberInput = ref(null);
 const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
 
@@ -1030,6 +1035,7 @@ const calculateFinalTotal = () => {
 
     const lessAdvanceReceived = parseFloat(form.less_advance_received || 0);
     const gstInTotal = form.gst_liability_by === 'Transporter' ? gstValue : 0;
+    subTotalAmount.value = (subtotal + gstInTotal).toFixed(2);
     form.amount = (subtotal + gstInTotal - lessAdvanceReceived).toFixed(2);
 };
 
