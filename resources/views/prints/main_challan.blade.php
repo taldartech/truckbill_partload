@@ -144,8 +144,8 @@
 
         <div class="row">
             <div class="col-5">
-                <strong>Main Challan No:</strong> {{ $main_challan->main_challan_number ?? '—' }}<br>
-                <strong>Date:</strong> {{ $main_challan->date ? date('d-M-Y', strtotime($main_challan->date)) : '—' }}
+                <strong>Main Challan No:</strong> <span style="font-weight: bold; font-size: 13px;">{{ $main_challan->main_challan_number ?? '—' }}</span><br>
+                <strong>Date:</strong> <span style="font-weight: bold; font-size: 13px;">{{ $main_challan->date ? date('d-M-Y', strtotime($main_challan->date)) : '—' }}</span>
             </div>
             <div class="col-4">
                 <strong>Truck No:</strong> {{ $main_challan->truck->truck_number ?? '—' }}<br>
