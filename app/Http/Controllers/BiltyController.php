@@ -537,6 +537,11 @@ class BiltyController extends Controller implements HasMiddleware
                 'state_id',
                 'city_id',
                 'bilty_charge',
+                'bilty_charge_type',
+                'surcharge',
+                'surcharge_type',
+                'handling_charge',
+                'handling_charge_type',
             ]);
     }
 

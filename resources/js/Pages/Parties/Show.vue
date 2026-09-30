@@ -80,7 +80,8 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
-import { formatDateTime, formatMoney } from '@/utils/showFormatters';
+import { formatDateTime } from '@/utils/showFormatters';
+import { PARTY_CHARGE_FIELDS, formatPartyCharge } from '@/utils/partyCharges';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
     party: {
@@ -94,7 +95,10 @@ const can = (permission) => page.props.auth.is_admin || page.props.auth.permissi
 
 const overviewFields = computed(() => ([
     { label: 'Group', value: props.party.group?.name },
-    { label: 'Bilty Charge', value: props.party.bilty_charge ? `₹${formatMoney(props.party.bilty_charge)}` : '' },
+    ...PARTY_CHARGE_FIELDS.map((field) => ({
+        label: field.label,
+        value: formatPartyCharge(props.party[field.amount], props.party[field.type]),
+    })),
 ]));
 
 const contactFields = computed(() => ([

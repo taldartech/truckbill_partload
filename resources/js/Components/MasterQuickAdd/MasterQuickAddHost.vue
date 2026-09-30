@@ -172,6 +172,13 @@
                                         <div v-if="fieldError('consider_for_accounting')" class="text-danger small">{{ fieldError('consider_for_accounting') }}</div>
                                     </div>
                                 </div>
+                                <PartyChargeFields
+                                    v-if="canManagePartyCharges"
+                                    class="mt-2"
+                                    :form="form"
+                                    :error-for="fieldError"
+                                    :small="true"
+                                />
                             </template>
 
                             <!-- Station -->
@@ -368,7 +375,10 @@
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import PartyChargeFields from '@/Components/Forms/PartyChargeFields.vue';
+import { emptyPartyCharges } from '@/utils/partyCharges';
 import {
     MASTER_TITLES,
     appendMasterOption,
@@ -416,6 +426,9 @@ const form = reactive({});
 
 const NAME_ONLY = ['good', 'package_type', 'truck_type', 'group'];
 
+const page = usePage();
+const canManagePartyCharges = computed(() => !!page.props.auth?.can_manage_party_charges);
+
 const title = computed(() => MASTER_TITLES[master.value] || 'Record');
 const isNameOnlyMaster = computed(() => NAME_ONLY.includes(master.value));
 const isWideForm = computed(() => ['party', 'agent'].includes(master.value));
@@ -445,7 +458,11 @@ const LOOKUP_KEYS_BY_MASTER = {
 const emptyFormFor = (type, ctx = {}) => {
     switch (type) {
         case 'party':
-            return { group_id: '', name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_number: '', consider_for_accounting: false };
+            return {
+                group_id: '', name: '', address: '', state_id: '', city_id: '', mobile: '', email: '', gst_number: '',
+                consider_for_accounting: false,
+                ...(canManagePartyCharges.value ? emptyPartyCharges() : {}),
+            };
         case 'station':
             return { name: '', state_id: '', city_id: '', default_agent_id: '' };
         case 'agent':

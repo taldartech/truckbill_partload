@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ChargeType;
 use App\Models\City;
 use App\Models\Group;
 use App\Models\Party;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class PartyController extends Controller implements HasMiddleware
@@ -74,10 +76,10 @@ class PartyController extends Controller implements HasMiddleware
 
     public function store(Request $request, EntityAccountLinker $linker)
     {
-        $validated = $this->stripTenantFields($request->validate(
-            $this->partyRules(),
+        $validated = $this->applyChargeFields($this->stripTenantFields($request->validate(
+            $this->partyRules($request),
             $this->partyMessages(),
-        ));
+        )));
 
         $accountGroupId = $validated['account_group_id'] ?? null;
         unset($validated['account_group_id']);
@@ -121,10 +123,10 @@ class PartyController extends Controller implements HasMiddleware
 
     public function quickStore(Request $request, EntityAccountLinker $linker): JsonResponse
     {
-        $validated = $this->stripTenantFields($request->validate(
-            $this->quickPartyRules(),
+        $validated = $this->applyChargeFields($this->stripTenantFields($request->validate(
+            $this->quickPartyRules($request),
             $this->partyMessages(),
-        ));
+        )));
 
         $validated['consider_for_accounting'] = (bool) ($validated['consider_for_accounting'] ?? false);
 
@@ -145,6 +147,11 @@ class PartyController extends Controller implements HasMiddleware
                 'state' => $party->state,
                 'city' => $party->city,
                 'bilty_charge' => $party->bilty_charge,
+                'bilty_charge_type' => $party->bilty_charge_type,
+                'surcharge' => $party->surcharge,
+                'surcharge_type' => $party->surcharge_type,
+                'handling_charge' => $party->handling_charge,
+                'handling_charge_type' => $party->handling_charge_type,
                 'account' => $account?->toSelectOption(),
             ],
         ], 201);
@@ -157,10 +164,10 @@ class PartyController extends Controller implements HasMiddleware
 
     public function update(Request $request, Party $party, EntityAccountLinker $linker)
     {
-        $validated = $this->stripTenantFields($request->validate(
-            $this->partyRules(),
+        $validated = $this->applyChargeFields($this->stripTenantFields($request->validate(
+            $this->partyRules($request),
             $this->partyMessages(),
-        ));
+        )));
 
         $accountGroupId = $validated['account_group_id'] ?? null;
         unset($validated['account_group_id']);
@@ -190,9 +197,9 @@ class PartyController extends Controller implements HasMiddleware
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
-    private function partyRules(): array
+    private function partyRules(Request $request): array
     {
         return [
             'group_id' => 'nullable|exists:groups,id',
@@ -203,16 +210,16 @@ class PartyController extends Controller implements HasMiddleware
             'mobile' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
             'email' => 'nullable|string|email|max:255',
             'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
-            'bilty_charge' => 'nullable|numeric|min:0',
+            ...$this->chargeRules($request),
             'consider_for_accounting' => 'sometimes|boolean',
             'account_group_id' => 'nullable|exists:account_groups,id',
         ];
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
-    private function quickPartyRules(): array
+    private function quickPartyRules(Request $request): array
     {
         return [
             'group_id' => 'nullable|exists:groups,id',
@@ -223,8 +230,51 @@ class PartyController extends Controller implements HasMiddleware
             'mobile' => 'required|string|digits:10|regex:/^[6-9]\d{9}$/',
             'email' => 'nullable|string|email|max:255',
             'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
+            ...$this->chargeRules($request),
             'consider_for_accounting' => 'sometimes|boolean',
         ];
+    }
+
+    /**
+     * @return array<string, list<mixed>>
+     */
+    private function chargeRules(Request $request): array
+    {
+        $rules = [];
+
+        foreach (Party::chargeFields() as $amountField => $typeField) {
+            $isPercentage = $request->input($typeField) === ChargeType::Percentage->value;
+
+            $rules[$amountField] = ['nullable', 'numeric', 'min:0', Rule::when($isPercentage, ['max:100'])];
+            $rules[$typeField] = ['nullable', Rule::enum(ChargeType::class)];
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Charge defaults may only be set by Admin / Super Admin; others keep the stored values.
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function applyChargeFields(array $validated): array
+    {
+        $canManageCharges = $this->tenant()->canManagePartyCharges();
+
+        foreach (Party::chargeFields() as $amountField => $typeField) {
+            if (! $canManageCharges) {
+                unset($validated[$amountField], $validated[$typeField]);
+
+                continue;
+            }
+
+            if (array_key_exists($amountField, $validated) || array_key_exists($typeField, $validated)) {
+                $validated[$typeField] = $validated[$typeField] ?? ChargeType::Fixed->value;
+            }
+        }
+
+        return $validated;
     }
 
     /**
@@ -237,6 +287,9 @@ class PartyController extends Controller implements HasMiddleware
             'mobile.regex' => 'Mobile number must be a valid 10-digit Indian mobile number.',
             'gst_number.size' => 'GST number must be exactly 15 characters.',
             'gst_number.regex' => 'GST number format is invalid.',
+            'bilty_charge.max' => 'Bilty charge percentage cannot exceed 100.',
+            'surcharge.max' => 'Surcharge percentage cannot exceed 100.',
+            'handling_charge.max' => 'Handling charge percentage cannot exceed 100.',
         ];
     }
 }

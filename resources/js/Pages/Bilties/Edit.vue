@@ -578,6 +578,7 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 import BiltyConfirmModal from '@/Components/FormConfirm/BiltyConfirmModal.vue';
 import { useFormConfirm } from '@/composables/useFormConfirm';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
+import { usePartyChargeDefaults } from '@/composables/usePartyChargeDefaults';
 import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
@@ -785,23 +786,10 @@ const partyState = (partyId) => findParty(partyId)?.state?.name || '';
 const partyCity = (partyId) => findParty(partyId)?.city?.name || '';
 const partyMobile = (partyId) => findParty(partyId)?.mobile || '';
 
-const applyDefaultBiltyCharge = () => {
-    if (!form.consignor_id) {
-        calculateFinalTotal();
-        return;
-    }
-
-    const party = partyOptions.value.find((p) => p.id === form.consignor_id);
-    const charge = parseFloat(party?.bilty_charge);
-    if (Number.isFinite(charge) && charge >= 0) {
-        form.bilty_charge = charge;
-    }
-
-    calculateFinalTotal();
-};
-
-watch(() => form.consignor_id, () => {
-    applyDefaultBiltyCharge();
+usePartyChargeDefaults({
+    form,
+    findParty,
+    onChange: () => calculateFinalTotal(),
 });
 
 const showCartageOptions = computed(() => parseFloat(form.cartage || 0) > 0);

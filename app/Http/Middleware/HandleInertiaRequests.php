@@ -37,6 +37,7 @@ class HandleInertiaRequests extends Middleware
                 'is_admin' => $context->isPlatformAdmin(),
                 'is_acting_as_admin' => $context->isActingAsAdmin(),
                 'is_portal_user' => $context->isPortalUser(),
+                'can_manage_party_charges' => $context->canManagePartyCharges(),
                 'company_name' => $activeCompany?->name
                     ?? ($user && $user->company ? $user->company->name : 'Demo Company'),
                 'branch_name' => $activeBranch?->name ?? ($user?->branch?->name),

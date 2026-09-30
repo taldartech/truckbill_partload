@@ -33,6 +33,12 @@ class TenantContext
         return $this->isMasterAdmin() || $this->isSuperAdmin();
     }
 
+    public function canManagePartyCharges(): bool
+    {
+        return $this->isSuperAdmin()
+            || (bool) $this->user()?->hasRole(UserRole::Admin->value);
+    }
+
     public function sessionBranchId(): ?int
     {
         $branchId = session('active_branch_id');

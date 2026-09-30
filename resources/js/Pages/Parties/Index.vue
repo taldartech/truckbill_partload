@@ -170,18 +170,19 @@
                                     <div v-if="form.errors.gst_number" class="text-danger mt-1 small">{{ form.errors.gst_number }}</div>
                                 </div>
                                 <div class="col-md-6 form-group mb-3">
-                                    <label>Bilty Charge (Fixed)</label>
-                                    <input type="number" step="0.01" class="form-control" v-model="form.bilty_charge">
-                                    <div v-if="form.errors.bilty_charge" class="text-danger mt-1 small">{{ form.errors.bilty_charge }}</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Consider for Accounting?</label>
+                                    <label>Consider for Accounting?</label>
                                     <select class="form-select" v-model="form.consider_for_accounting">
                                         <option :value="false">No</option>
                                         <option :value="true">Yes</option>
                                     </select>
                                 </div>
                             </div>
+
+                            <PartyChargeFields
+                                v-if="canManagePartyCharges"
+                                :form="form"
+                                :error-for="(field) => form.errors[field]"
+                            />
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" @click="closeModal">Close</button>
@@ -202,6 +203,8 @@ import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import PartyChargeFields from '@/Components/Forms/PartyChargeFields.vue';
+import { emptyPartyCharges, partyChargesFrom } from '@/utils/partyCharges';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
@@ -234,6 +237,7 @@ const page = usePage();
 const can = (permission) => {
     return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
 };
+const canManagePartyCharges = computed(() => !!page.props.auth.can_manage_party_charges);
 
 const groupOptions = ref([...(props.groups || [])]);
 const stateOptions = ref([...(props.states || [])]);
@@ -252,7 +256,7 @@ const form = useForm({
     mobile: '',
     email: '',
     gst_number: '',
-    bilty_charge: '',
+    ...emptyPartyCharges(),
     consider_for_accounting: false,
 });
 
@@ -301,7 +305,7 @@ const editItem = (party) => {
     form.mobile = party.mobile || '';
     form.email = party.email || '';
     form.gst_number = party.gst_number || '';
-    form.bilty_charge = party.bilty_charge ?? '';
+    Object.assign(form, partyChargesFrom(party));
     form.consider_for_accounting = !!party.consider_for_accounting;
     modal.show();
 };
