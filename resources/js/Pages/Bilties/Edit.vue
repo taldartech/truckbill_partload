@@ -336,7 +336,7 @@
                                     </div>
                                     <div class="bilty-charge-row bilty-charge-row--stack">
                                         <label class="bilty-charge-row__label">Addon Charges</label>
-                                        <div class="bilty-addon-panel dynamic-grid" data-dynamic-grid="addon" data-dynamic-add-message="Do you want to add another addon charge?">
+                                        <div class="bilty-addon-panel dynamic-grid" data-dynamic-grid="addon" data-dynamic-require-complete data-dynamic-add-message="Do you want to add another addon charge?">
                                             <div class="bilty-addon-panel__head">
                                                 <p class="bilty-addon-panel__desc mb-0">Optional — add particulars and amount</p>
                                                 <button type="button" class="btn btn-sm btn-outline-secondary" data-dynamic-add @click="addAddonCharge">
@@ -357,7 +357,7 @@
                                                 <div
                                                     v-for="(charge, index) in form.addon_charges"
                                                     :key="index"
-                                                    class="row g-2 align-items-center"
+                                                    class="row g-2 align-items-center dynamic-row"
                                                 >
                                                     <div class="col-12 col-md-6">
                                                         <input
@@ -480,7 +480,7 @@
                             </div>
                         </div>
 
-                        <div class="bilty-eway-block dynamic-grid" data-dynamic-grid="eway" data-dynamic-add-message="Do you want to add another e-way bill?">
+                        <div class="bilty-eway-block dynamic-grid" data-dynamic-grid="eway" data-dynamic-require-complete data-dynamic-add-message="Do you want to add another e-way bill?">
                             <div class="bilty-eway-block__head">
                                 <div>
                                     <h3 class="bilty-eway-block__title">E-Way Bills</h3>

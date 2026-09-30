@@ -131,7 +131,7 @@
                             <span class="lbl">Mob:</span>
                             <span class="val">{{ $bilty->consignee->mobile ?? '' }}</span>
                         </div>
-                        <div><span class="lbl">To Station:</span> <span class="val">{{ $bilty->toStation->name ?? '—' }}</span></div>
+                        <div><span class="lbl">To Station:</span> <span style="font-weight: bold;" class="val">{{ $bilty->toStation->name ?? '—' }}</span></div>
                     </td>
                     <td class="w-20" style="font-size:13px;">
                         <div><span class="lbl">Bilty No:</span> <span class="val" style="font-size:16px;font-weight:bold;">{{ $bilty->bilty_number ?? '—' }}</span></div>
@@ -172,8 +172,8 @@
                             @if ($showAmount || $rowIndex === 0)
                             <tr>
                                 <td class="{{ $detail ? '' : 'bi-item-blank' }}">{{ $detail['good'] ?? '' }}</td>
-                                <td class="text-right {{ $detail ? '' : 'bi-item-blank' }}">{{ $detail ? $formatQty($detail['no_of_packages']) : '' }}</td>
-                                <td class="text-right {{ $detail ? '' : 'bi-item-blank' }}">{{ $detail ? $formatQty($detail['gross_weight']) : '' }}</td>
+                                <td class="text-center {{ $detail ? '' : 'bi-item-blank' }}">{{ $detail ? $formatQty($detail['no_of_packages']) : '' }}</td>
+                                <td class="text-center {{ $detail ? '' : 'bi-item-blank' }}">{{ $detail ? $formatQty($detail['gross_weight']) : '' }}</td>
                                 <td>{{ $showAmount ? ($charge['label'] ?? '') : 'Total Freight' }}</td>
                                 <td class="text-right">
                                     @if ($charge && $showAmount)
@@ -194,8 +194,8 @@
                     <tfoot>
                         <tr>
                             <td class="text-right">Total</td>
-                            <td class="text-right">{{ $formatQty($totals['no_of_packages']) }}</td>
-                            <td class="text-right">{{ $formatQty($totals['gross_weight']) }}</td>
+                            <td class="text-center">{{ $formatQty($totals['no_of_packages']) }}</td>
+                            <td class="text-center">{{ $formatQty($totals['gross_weight']) }}</td>
                             <td class="text-right">Net Amount</td>
                             <td class="text-right">
                                 @if ($showAmount)

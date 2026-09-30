@@ -50,6 +50,14 @@ export const getVisibleRowInputs = (row) => {
     });
 };
 
+export const requiresCompleteRow = (container) => {
+    return !!container?.hasAttribute('data-dynamic-require-complete');
+};
+
+export const findFirstEmptyRowInput = (row) => {
+    return getVisibleRowInputs(row).find((el) => String(el.value ?? '').trim() === '') || null;
+};
+
 export const getRowsWithInputs = (container) => {
     return Array.from(container.querySelectorAll('tr, .dynamic-row')).filter((row) => getVisibleRowInputs(row).length > 0);
 };

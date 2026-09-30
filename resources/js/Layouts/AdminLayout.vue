@@ -201,8 +201,10 @@ import {
 } from "@/composables/useMasterQuickAdd";
 import {
     findAddRowButton,
+    findFirstEmptyRowInput,
     getRowsWithInputs,
     getVisibleRowInputs,
+    requiresCompleteRow,
     resolveAddMoreMessage,
 } from "@/utils/dynamicGrid";
 
@@ -387,7 +389,10 @@ const handleEnterAsTab = async (event) => {
             const isLastRow =
                 allRowsWithInputs.indexOf(tr) === allRowsWithInputs.length - 1;
 
-            if (isLastRow) {
+            const canPromptAddMore =
+                !requiresCompleteRow(table) || !findFirstEmptyRowInput(tr);
+
+            if (isLastRow && canPromptAddMore) {
                 const addRowBtn = findAddRowButton(table, tr);
                 if (addRowBtn) {
                     await promptAddDynamicRow(table, addRowBtn, activeEl);
