@@ -301,6 +301,10 @@
                                         <input type="number" step="any" min="0" class="form-control form-control-sm" v-model="form.surcharge" @input="calculateFinalTotal">
                                     </div>
                                     <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">Handling Charge</label>
+                                        <input type="number" step="any" min="0" class="form-control form-control-sm" v-model="form.handling_charge" @input="calculateFinalTotal">
+                                    </div>
+                                    <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Cartage</label>
                                         <input type="number" step="any" min="0" class="form-control form-control-sm" v-model="form.cartage" @input="onCartageChange">
                                     </div>
@@ -325,10 +329,6 @@
                                             />
                                             <div v-if="form.errors.cartage_account_id" class="text-danger small">{{ form.errors.cartage_account_id }}</div>
                                         </div>
-                                    </div>
-                                    <div class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">Handling Charge</label>
-                                        <input type="number" step="any" min="0" class="form-control form-control-sm" v-model="form.handling_charge" @input="calculateFinalTotal">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Risk/Door Delivery</label>
