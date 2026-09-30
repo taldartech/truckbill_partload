@@ -226,10 +226,6 @@
                                         <label class="bilty-charge-row__label">GST Tax</label>
                                         <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="gstDisplay" readonly>
                                     </div>
-                                    <div class="bilty-charge-row">
-                                        <label class="bilty-charge-row__label">Remark</label>
-                                        <input type="text" class="form-control form-control-sm" v-model="form.remark">
-                                    </div>
                                 </div>
                             </div>
                             <div class="col-lg-5">
@@ -291,6 +287,22 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </section>
+
+                <!-- 4. Remark -->
+                <section class="bilty-section">
+                    <div class="bilty-section__head">
+                        <div class="bilty-section__head-left">
+                            <div class="bilty-step-num">4</div>
+                            <div>
+                                <h2 class="bilty-section__title">Remark</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bilty-section__body">
+                        <input type="text" class="form-control form-control-sm" v-model="form.remark" placeholder="Enter remark">
+                        <div v-if="form.errors.remark" class="text-danger small mt-1">{{ form.errors.remark }}</div>
                     </div>
                 </section>
 
