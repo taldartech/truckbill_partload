@@ -16,7 +16,7 @@
             height: 100%;
             border: 1.5px solid #000;
             position: relative;
-            padding: 3px 4px 18px;
+            padding: 3px 4px 3px;
             overflow: hidden;
             background: #fff;
             display: flex;
@@ -50,7 +50,7 @@
             min-width: 120px;
             margin-top: 2px;
         }
-        .bi-copy-label { font-size: 12px; font-weight: bold; text-align: right; margin-top: 2px; }
+        .bi-copy-label { font-size: 12px; font-weight: bold; margin-top: 2px; }
 
         .bi-meta td { font-size: 11px; line-height: 1.4; }
         .lbl { font-weight: bold; }
@@ -144,7 +144,6 @@
         .bi-sign-row td { border-top: none; }
         .bi-sign-for { font-size: 12px; font-weight: bold; text-align: right; }
         .bi-footer-meta {
-            display: block;
             font-size: 8px;
             margin-top: 5px;
         }
@@ -168,6 +167,12 @@
             body { padding: 0; }
             .print-page { max-width: none; }
             .print-copy { height: calc(50vh - 3mm); min-height: 0; margin-bottom: 2mm; }
+        }
+
+        .bi-footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
     </style>
 </head>

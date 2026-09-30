@@ -97,7 +97,6 @@
                     <td class="w-22" style="text-align:right;">
                         <div class="bi-doc-title">Bilty / Tax Invoice</div>
                         <div class="bi-payment-box">{{ $paymentStamp }}</div>
-                        <div class="bi-copy-label">{{ $copyLabel }}</div>
                     </td>
                 </tr>
             </table>
@@ -227,7 +226,7 @@
             </table>
             <table class="border-top-none" style="font-size:12px;">
                 <tr>
-                    <td style="width: 30%;">
+                    <td style="width: 40%;">
                         <span class="lbl">Delivery At:</span>
                         <span class="val" style="font-weight: 600; font-size:15px">{{ $bilty->delivery_at ?: '—' }}</span>
                     </td>
@@ -247,10 +246,13 @@
                             {{ $bilty->creator->name }}
                         @endif
                         <span style="margin-top: 30px; display: block;">For : {{ $company->name ?? 'Company' }}</span>
-                        <span class="bi-footer-meta">Digitally managed by TruckBill (<a href="https://www.truckbill.in" target="_blank">www.truckbill.in</a>)</span>
                     </td>
                 </tr>
             </table>
+            <div class="bi-footer-row">
+                <div class="bi-copy-label text-left">{{ $copyLabel }}</div>
+                <div class="bi-footer-meta text-right">Digitally managed by TruckBill (<a href="https://www.truckbill.in" target="_blank">www.truckbill.in</a>)</div>
+            </div>
         </div>
     </div>
 </div>
