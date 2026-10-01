@@ -31,6 +31,11 @@ class MainChallan extends Model
         return $this->belongsTo(Truck::class);
     }
 
+    public function payByAgent()
+    {
+        return $this->belongsTo(Agent::class, 'pay_by_agent_id');
+    }
+
     public function details()
     {
         return $this->hasMany(MainChallanDetail::class);

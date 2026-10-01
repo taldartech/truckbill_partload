@@ -186,7 +186,6 @@ class MainChallanPrintTest extends TestCase
             'cash_received' => 0,
             'cash_paid' => 0,
             'total_amount' => 5000,
-            'pay_by' => 'Driver',
         ]);
 
         MainChallanDetail::create([

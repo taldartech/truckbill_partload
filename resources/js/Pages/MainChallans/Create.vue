@@ -205,31 +205,43 @@
                                 <div class="bilty-total-panel">
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Labour Commission</label>
-                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="labourDisplay" readonly>
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.labour_charge" @input="calculateTotal">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Kat</label>
-                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="katDisplay" readonly>
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.kat" @input="calculateTotal">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Home Delivery</label>
-                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="homeDeliveryDisplay" readonly>
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.home_delivery_charge" @input="calculateTotal">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Truck Freight</label>
-                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="truckFreightDisplay" readonly>
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.truck_freight" @input="calculateTotal">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Cash Receive</label>
-                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="cashReceivedDisplay" readonly>
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.cash_received" @input="calculateTotal">
                                     </div>
                                     <div class="bilty-charge-row">
                                         <label class="bilty-charge-row__label">Cash Paid</label>
-                                        <input type="text" class="form-control form-control-sm bg-light fw-semibold" :value="cashPaidDisplay" readonly>
+                                        <input type="number" step="any" class="form-control form-control-sm" v-model="form.cash_paid" @input="calculateTotal">
                                     </div>
                                     <div class="bilty-total">
                                         <span class="bilty-total__label">TOTAL</span>
                                         <input type="text" class="form-control form-control-sm bilty-total__input" :class="form.total_amount < 0 ? 'text-danger' : ''" :value="form.total_amount" readonly>
+                                    </div>
+                                    <div class="bilty-charge-row">
+                                        <label class="bilty-charge-row__label">To (Account)</label>
+                                        <SearchableSelect
+                                            :small="true"
+                                            v-model="form.pay_by_agent_id"
+                                            :options="agentOptions"
+                                            master="agent"
+                                            placeholder="Select Agent"
+                                            @created="(record) => appendMasterOption(agentOptions, record)"
+                                        />
+                                        <div v-if="form.errors.pay_by_agent_id" class="text-danger small mt-1">{{ form.errors.pay_by_agent_id }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -269,6 +281,7 @@
             :form="form"
             :stations="stationOptions"
             :trucks="truckOptions"
+            :agents="agentOptions"
             :totals="confirmTotals"
             @cancel="closeConfirm"
             @confirm="confirmSave"
@@ -296,6 +309,7 @@ const props = defineProps({
     stations: Array,
     trucks: Array,
     challans: Array,
+    agents: Array,
     next_main_challan_number: String
 });
 
@@ -328,8 +342,31 @@ const form = useForm({
     total_amount: 0,
     total_weight: 0,
     total_packages: 0,
+    pay_by_agent_id: '',
     remark: '',
 });
+
+const agentOptions = ref([...(props.agents || [])]);
+watch(() => props.agents, (v) => { agentOptions.value = [...(v || [])]; });
+
+const EDITABLE_CHARGES = {
+    labour_charge: 'labour',
+    kat: 'kat',
+    home_delivery_charge: 'home_delivery',
+    truck_freight: 'truck_freight',
+    cash_received: 'cash_received',
+    cash_paid: 'cash_paid',
+};
+
+// Adds (or subtracts) one challan's amounts so manual edits to the charges survive adding/removing challans.
+const applyChallanCharges = (row, direction) => {
+    if (!row) return;
+
+    Object.entries(EDITABLE_CHARGES).forEach(([field, rowKey]) => {
+        const next = parseFloat(form[field] || 0) + direction * (parseFloat(row[rowKey]) || 0);
+        form[field] = Number(next.toFixed(2));
+    });
+};
 
 const challanToDetailRow = (challan) => {
     const toStation = props.stations.find((s) => s.id === challan.to_station_id);
@@ -383,7 +420,8 @@ const challanToDetailRow = (challan) => {
 };
 
 const removeRow = (index) => {
-    form.details.splice(index, 1);
+    const [removed] = form.details.splice(index, 1);
+    applyChallanCharges(removed, -1);
     syncTotals();
 };
 
@@ -399,7 +437,9 @@ const addChallan = () => {
 
     const challan = props.challans.find((c) => c.id === fetch_challan_id.value);
     if (challan) {
-        form.details.push(challanToDetailRow(challan));
+        const row = challanToDetailRow(challan);
+        form.details.push(row);
+        applyChallanCharges(row, 1);
         syncTotals();
         return true;
     }
@@ -443,13 +483,7 @@ const toPayAmount = computed(() => sumDetailField('to_pay'));
 const paidAmount = computed(() => sumDetailField('paid_amount'));
 const crossingFreight = computed(() => sumDetailField('crossing'));
 const cartageAmount = computed(() => sumDetailField('cartage'));
-const labourTotal = computed(() => sumDetailField('labour'));
-const katTotal = computed(() => sumDetailField('kat'));
-const homeDeliveryTotal = computed(() => sumDetailField('home_delivery'));
-const truckFreightTotal = computed(() => sumDetailField('truck_freight'));
 const gstTotal = computed(() => sumDetailField('gst'));
-const cashReceivedTotal = computed(() => sumDetailField('cash_received'));
-const cashPaidTotal = computed(() => sumDetailField('cash_paid'));
 
 const confirmTotals = computed(() => ({
     totalPackages: totalPackages.value,
@@ -458,13 +492,7 @@ const confirmTotals = computed(() => ({
     crossingFreight: crossingFreight.value,
 }));
 
-const labourDisplay = computed(() => labourTotal.value.toFixed(2));
-const katDisplay = computed(() => katTotal.value.toFixed(2));
-const homeDeliveryDisplay = computed(() => homeDeliveryTotal.value.toFixed(2));
-const truckFreightDisplay = computed(() => truckFreightTotal.value.toFixed(2));
 const gstDisplay = computed(() => gstTotal.value.toFixed(2));
-const cashReceivedDisplay = computed(() => cashReceivedTotal.value.toFixed(2));
-const cashPaidDisplay = computed(() => cashPaidTotal.value.toFixed(2));
 
 const syncTotals = () => {
     form.total_packages = totalPackages.value;
@@ -473,18 +501,12 @@ const syncTotals = () => {
     form.paid_amount = paidAmount.value;
     form.crossing_freight = crossingFreight.value;
     form.cartage_dalali_pf = cartageAmount.value;
-    form.labour_charge = labourTotal.value;
-    form.kat = katTotal.value;
-    form.home_delivery_charge = homeDeliveryTotal.value;
-    form.truck_freight = truckFreightTotal.value;
     form.gst = gstTotal.value;
-    form.cash_received = cashReceivedTotal.value;
-    form.cash_paid = cashPaidTotal.value;
     calculateTotal();
 };
 
 watch(
-    [totalPackages, totalWeight, toPayAmount, paidAmount, crossingFreight, cartageAmount, labourTotal, katTotal, homeDeliveryTotal, truckFreightTotal, gstTotal, cashReceivedTotal, cashPaidTotal],
+    [totalPackages, totalWeight, toPayAmount, paidAmount, crossingFreight, cartageAmount, gstTotal],
     syncTotals
 );
 
@@ -492,12 +514,12 @@ const calculateTotal = () => {
     const total =
         toPayAmount.value
         + crossingFreight.value
-        - labourTotal.value
-        - katTotal.value
-        - homeDeliveryTotal.value
-        - truckFreightTotal.value
-        + cashPaidTotal.value
-        - cashReceivedTotal.value;
+        - parseFloat(form.labour_charge || 0)
+        - parseFloat(form.kat || 0)
+        - parseFloat(form.home_delivery_charge || 0)
+        - parseFloat(form.truck_freight || 0)
+        + parseFloat(form.cash_paid || 0)
+        - parseFloat(form.cash_received || 0);
 
     form.total_amount = total.toFixed(2);
 };

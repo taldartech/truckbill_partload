@@ -276,7 +276,7 @@
         </div>
 
         <div style="margin-top: 10px;">
-            <div><strong>Total Amount (Rs.) :-</strong> {{ number_format(abs($main_challan->total_amount ?? 0), 2) }} {{ ($main_challan->total_amount ?? 0) > 0 ? 'Dr' : 'Cr' }}</div>
+            <div><strong>Total Amount (Rs.) :-</strong> {{ number_format(abs($main_challan->total_amount ?? 0), 2) }} {{ ($main_challan->total_amount ?? 0) > 0 ? 'Dr' : 'Cr' }} To {{ $main_challan->payByAgent->name ?? '—' }}</div>
             <div><strong>Remark :-</strong> {{ $main_challan->remark ?? '—'}}</div>
         </div>
 

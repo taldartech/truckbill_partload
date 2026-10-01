@@ -10,6 +10,7 @@ use App\Models\Bilty;
 use App\Models\Challan;
 use App\Models\Invoice;
 use App\Models\InwardRegister;
+use App\Models\MainChallan;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
@@ -33,6 +34,7 @@ class AccountingMapper
             'bilty.cartage_due' => $this->mapBiltyCartageDue($document),
             'inward.agent_crossing' => $this->mapInwardAgentCrossing($document),
             'challan.agent_settlement' => $this->mapChallanAgentSettlement($document),
+            'main_challan.agent_settlement' => $this->mapMainChallanAgentSettlement($document),
             default => $this->mapFromStoredRules($eventKey, $document),
         };
     }
@@ -179,6 +181,23 @@ class AccountingMapper
             return null;
         }
 
+        return $this->mapAgentSettlement($document, 'Challan '.$document->challan_number);
+    }
+
+    private function mapMainChallanAgentSettlement(Model $document): ?array
+    {
+        if (! $document instanceof MainChallan) {
+            return null;
+        }
+
+        return $this->mapAgentSettlement($document, 'Main Challan '.$document->main_challan_number);
+    }
+
+    /**
+     * Positive total is payable to the agent (expense); negative is receivable (income).
+     */
+    private function mapAgentSettlement(Challan|MainChallan $document, string $label): ?array
+    {
         $amount = round((float) ($document->total_amount ?? 0), 2);
         if ($amount == 0.0 || ! $document->pay_by_agent_id) {
             return null;
@@ -202,7 +221,7 @@ class AccountingMapper
 
             return [
                 'voucher_type' => AccountingVoucherType::Journal,
-                'narration' => 'Challan '.$document->challan_number.' agent settlement',
+                'narration' => $label.' agent settlement',
                 'lines' => [
                     ['account_id' => $expense->id, 'debit' => $abs, 'credit' => 0],
                     ['account_id' => $agentAccount->id, 'debit' => 0, 'credit' => $abs],
@@ -214,7 +233,7 @@ class AccountingMapper
 
         return [
             'voucher_type' => AccountingVoucherType::Journal,
-            'narration' => 'Challan '.$document->challan_number.' agent settlement',
+            'narration' => $label.' agent settlement',
             'lines' => [
                 ['account_id' => $agentAccount->id, 'debit' => $abs, 'credit' => 0],
                 ['account_id' => $income->id, 'debit' => 0, 'credit' => $abs],

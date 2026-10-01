@@ -108,6 +108,7 @@ const props = defineProps({
     form: { type: Object, required: true },
     stations: { type: Array, default: () => [] },
     trucks: { type: Array, default: () => [] },
+    agents: { type: Array, default: () => [] },
     totals: {
         type: Object,
         default: () => ({
@@ -158,6 +159,7 @@ const detailFields = computed(() => {
     pushField(fields, 'To', lookupLabel(props.stations, props.form.to_station_id), { always: true });
     pushField(fields, 'Truck', lookupLabel(props.trucks, props.form.truck_id), { always: true, accent: true });
     pushField(fields, 'Driver', props.form.driver_name || '—', { always: true });
+    pushField(fields, 'To (Account)', props.form.pay_by_agent_id ? lookupLabel(props.agents, props.form.pay_by_agent_id) : '');
     pushField(fields, 'Balance', props.form.total_balance_type);
     pushField(fields, 'Remark', props.form.remark);
 

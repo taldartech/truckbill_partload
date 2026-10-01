@@ -142,7 +142,6 @@ class MainChallanShowTest extends TestCase
             'driver_name' => 'Show Driver',
             'truck_freight' => 5000,
             'total_amount' => 5000,
-            'pay_by' => 'Driver',
             'created_by' => $user->id,
         ]);
 

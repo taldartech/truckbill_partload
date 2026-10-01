@@ -164,6 +164,7 @@ const mainChallanFields = computed(() => ([
     { label: 'To Station', value: props.main_challan.to_station?.name },
     { label: 'Truck Number', value: props.main_challan.truck?.truck_number },
     { label: 'Driver', value: props.main_challan.driver_name },
+    { label: 'To (Account)', value: props.main_challan.pay_by_agent?.name },
     { label: 'Remark', value: props.main_challan.remark },
 ]));
 

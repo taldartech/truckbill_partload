@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agent;
 use App\Models\Challan;
 use App\Models\Company;
 use App\Models\MainChallan;
 use App\Models\Station;
 use App\Models\Truck;
+use App\Services\Accounting\OperationalAccountingBridge;
 use App\Support\DocumentNumber;
 use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\Request;
@@ -97,6 +99,7 @@ class MainChallanController extends Controller implements HasMiddleware
             'fromStation',
             'toStation',
             'truck',
+            'payByAgent',
             'creator',
             'details.challan.fromStation',
             'details.challan.toStation',
@@ -120,6 +123,7 @@ class MainChallanController extends Controller implements HasMiddleware
             'stations' => Station::all(),
             'trucks' => Truck::all(),
             'challans' => $this->pendingChallans(),
+            'agents' => Agent::orderBy('name')->get(['id', 'name']),
             'next_main_challan_number' => $nextNumber,
         ]);
     }
@@ -140,6 +144,7 @@ class MainChallanController extends Controller implements HasMiddleware
             'truck_freight' => 'nullable|numeric',
             'cash_received' => 'nullable|numeric',
             'cash_paid' => 'nullable|numeric',
+            'pay_by_agent_id' => 'nullable|exists:agents,id',
             'total_amount' => 'nullable|numeric',
             'total_weight' => 'nullable|numeric',
             'total_packages' => 'nullable|numeric',
@@ -165,6 +170,8 @@ class MainChallanController extends Controller implements HasMiddleware
             return $mainChallan;
         });
 
+        app(OperationalAccountingBridge::class)->sync($mainChallan->fresh());
+
         return $this->indexRedirectWithOptionalPrint(
             $request,
             'main-challans.index',
@@ -187,6 +194,7 @@ class MainChallanController extends Controller implements HasMiddleware
             'stations' => Station::all(),
             'trucks' => Truck::all(),
             'challans' => $this->pendingChallans(),
+            'agents' => Agent::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -206,6 +214,7 @@ class MainChallanController extends Controller implements HasMiddleware
             'truck_freight' => 'nullable|numeric',
             'cash_received' => 'nullable|numeric',
             'cash_paid' => 'nullable|numeric',
+            'pay_by_agent_id' => 'nullable|exists:agents,id',
             'total_amount' => 'nullable|numeric',
             'total_weight' => 'nullable|numeric',
             'total_packages' => 'nullable|numeric',
@@ -228,6 +237,8 @@ class MainChallanController extends Controller implements HasMiddleware
             $this->syncMainChallanDetails($main_challan, $details);
         });
 
+        app(OperationalAccountingBridge::class)->sync($main_challan->fresh());
+
         return $this->indexRedirectWithOptionalPrint(
             $request,
             'main-challans.index',
@@ -237,12 +248,13 @@ class MainChallanController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(MainChallan $main_challan)
+    public function destroy(MainChallan $main_challan, OperationalAccountingBridge $bridge)
     {
-        DB::transaction(function () use ($main_challan) {
+        DB::transaction(function () use ($main_challan, $bridge) {
             $challanIds = $main_challan->details()->pluck('challan_id');
 
             Challan::whereIn('id', $challanIds)->update(['status' => 'Created']);
+            $bridge->clear($main_challan);
             $main_challan->delete();
         });
 
@@ -255,6 +267,7 @@ class MainChallanController extends Controller implements HasMiddleware
             'fromStation',
             'toStation',
             'truck',
+            'payByAgent',
             'creator',
             'branch.company',
             'branch.city',

@@ -7,6 +7,7 @@ use App\Models\Bilty;
 use App\Models\Challan;
 use App\Models\Invoice;
 use App\Models\InwardRegister;
+use App\Models\MainChallan;
 use Illuminate\Database\Eloquent\Model;
 
 class OperationalAccountingBridge
@@ -23,6 +24,7 @@ class OperationalAccountingBridge
             Bilty::class => 'bilty.cartage_due',
             InwardRegister::class => 'inward.agent_crossing',
             Challan::class => 'challan.agent_settlement',
+            MainChallan::class => 'main_challan.agent_settlement',
             default => null,
         };
 
