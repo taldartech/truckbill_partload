@@ -1,5 +1,5 @@
 <template>
-    <AdminLayout title="Add Loading Report">
+    <AdminLayout title="Loading Report">
         <div class="bilty-form-page">
             <form @submit.prevent="submit" class="bilty-form">
                 <!-- 1. Route & Vehicle -->
@@ -76,7 +76,7 @@
                             <div class="bilty-step-num bilty-step-num--green">2</div>
                             <div>
                                 <h2 class="bilty-section__title">Loaded Items</h2>
-                                <p class="bilty-section__desc">Bilties and inward GRs on this loading report</p>
+                                <p class="bilty-section__desc">Pending bilties and inward GRs, station wise</p>
                             </div>
                         </div>
                         <div class="bilty-section__head-right">
@@ -112,14 +112,24 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <template v-for="group in stationGroups" :key="group.key">
+                                    <tr v-if="group.stationName" class="table-light">
+                                        <td colspan="5" class="fw-bold text-uppercase">
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ group.stationName }}
+                                            <span class="text-muted fw-normal small ms-1">({{ group.rows.length }})</span>
+                                        </td>
+                                        <td class="text-center fw-semibold">{{ group.packages }}</td>
+                                        <td class="text-center fw-semibold">{{ group.weight }}</td>
+                                        <td></td>
+                                    </tr>
                                     <tr
-                                        v-for="(detail, index) in form.details"
-                                        :key="index"
+                                        v-for="({ detail, index }, serial) in group.rows"
+                                        :key="detail.uid"
                                         :data-detail-index="index"
                                         :data-detail-row-type="detail.row_type"
                                         class="bg-white"
                                     >
-                                        <td class="text-center align-middle">{{ index + 1 }}</td>
+                                        <td class="text-center align-middle">{{ serial + 1 }}</td>
                                         <td>
                                             <SearchableSelect
                                                 v-if="!detail.bilty_id && !detail.inward_register_detail_id"
@@ -153,6 +163,7 @@
                                             </button>
                                         </td>
                                     </tr>
+                                    </template>
                                     <tr>
                                         <td colspan="8" class="bg-light p-2 text-center">
                                             <button
@@ -203,35 +214,21 @@
                 </section>
 
                 <div class="bilty-form-actions">
-                    <Link href="/loading-reports" class="btn btn-outline-secondary btn-sm px-3">
+                    <Link href="/" class="btn btn-outline-secondary btn-sm px-3">
                         <i class="fas fa-times me-1"></i> Cancel
                     </Link>
-                    <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
-                        <i class="fas fa-save me-1"></i> Save
+                    <button type="submit" class="btn btn-success btn-sm px-4">
+                        <i class="fas fa-print me-1"></i> Print
                     </button>
                 </div>
             </form>
         </div>
-
-        <LoadingReportConfirmModal
-            :show="showConfirm"
-            :form="form"
-            :stations="stationOptions"
-            :trucks="truckOptions"
-            :totals="confirmTotals"
-            @cancel="closeConfirm"
-            @confirm="confirmSave"
-            @confirm-print="confirmSaveAndPrint"
-        />
     </AdminLayout>
 </template>
 
 <script setup>
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
-import LoadingReportConfirmModal from '@/Components/FormConfirm/LoadingReportConfirmModal.vue';
-import { useFormConfirm } from '@/composables/useFormConfirm';
-import { withPrintAfterSave, withPrintFlag } from '@/utils/formSubmit';
 import { useForm, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { computed, ref, watch, nextTick } from 'vue';
@@ -239,8 +236,6 @@ import { askKeyboardConfirm } from '@/composables/useKeyboardConfirm';
 
 const fetch_station_id = ref('');
 const fetchStationSelect = ref(null);
-const { showConfirm, openConfirm, closeConfirm, confirmAndRun } = useFormConfirm();
-
 const ALL_STATIONS_VALUE = 'all';
 let skipAddMorePrompt = false;
 
@@ -308,7 +303,10 @@ const lineOptionsForRow = (index) => {
     return pendingLineOptions.value.filter((option) => !usedIds.has(option.id));
 };
 
+let nextRowUid = 0;
+
 const emptyRow = () => ({
+    uid: ++nextRowUid,
     row_type: '',
     line_option_id: '',
     bilty_id: '',
@@ -320,6 +318,8 @@ const emptyRow = () => ({
     consignee_id: '',
     consignee_name: '',
     goods_name: '',
+    to_station_id: '',
+    to_station_name: '',
     no_of_packages: '',
     gross_weight: '',
 });
@@ -401,6 +401,8 @@ const populateBiltyRow = (detail, bilty) => {
     detail.consignee_id = bilty.consignee_id || '';
     detail.consignee_name = bilty.consignee?.name || 'Unknown';
     detail.goods_name = goodsName;
+    detail.to_station_id = bilty.to_station_id || '';
+    detail.to_station_name = bilty.to_station?.name || '';
     detail.no_of_packages = sumPkg;
     detail.gross_weight = sumWt.toFixed(2);
 };
@@ -417,6 +419,8 @@ const populateInwardRow = (detail, inward) => {
     detail.consignee_id = inward.consignee_id || '';
     detail.consignee_name = inward.consignee?.name || 'Unknown';
     detail.goods_name = inward.good?.name || '--';
+    detail.to_station_id = inward.to_station_id || '';
+    detail.to_station_name = inward.to_station?.name || '';
     detail.no_of_packages = inward.no_of_packages || 0;
     detail.gross_weight = parseFloat(inward.weight || 0).toFixed(2);
 };
@@ -574,38 +578,107 @@ const totalWeight = computed(() => {
     return form.details.reduce((sum, row) => sum + parseFloat(row.gross_weight || 0), 0).toFixed(2);
 });
 
-const confirmTotals = computed(() => ({
-    totalPackages: totalPackages.value,
-    totalWeight: totalWeight.value,
-}));
+const isFilledRow = (row) => Boolean(row.bilty_id || row.inward_register_detail_id);
+
+// Unselected rows must render last: the layout's Enter handler treats the last DOM row as the "add more" row.
+const stationGroups = computed(() => {
+    const groups = new Map();
+    const pendingRows = [];
+
+    form.details.forEach((detail, index) => {
+        if (!isFilledRow(detail)) {
+            pendingRows.push({ detail, index });
+            return;
+        }
+
+        const key = `station:${detail.to_station_id || 0}`;
+        if (!groups.has(key)) {
+            groups.set(key, { key, stationName: detail.to_station_name || 'No Station', rows: [] });
+        }
+        groups.get(key).rows.push({ detail, index });
+    });
+
+    const stationList = [...groups.values()]
+        .sort((a, b) => a.stationName.localeCompare(b.stationName))
+        .map((group) => ({
+            ...group,
+            packages: group.rows.reduce((sum, { detail }) => sum + parseFloat(detail.no_of_packages || 0), 0),
+            weight: group.rows.reduce((sum, { detail }) => sum + parseFloat(detail.gross_weight || 0), 0).toFixed(2),
+        }));
+
+    if (pendingRows.length > 0) {
+        stationList.push({ key: 'pending', stationName: '', rows: pendingRows });
+    }
+
+    return stationList;
+});
+
+const requiredHeaderFields = {
+    date: 'The date field is required.',
+    from_station_id: 'The from station field is required.',
+    to_station_id: 'The to station field is required.',
+    truck_id: 'The truck field is required.',
+    driver_name: 'The driver field is required.',
+};
+
+const validateForPrint = () => {
+    form.clearErrors();
+
+    Object.entries(requiredHeaderFields).forEach(([field, message]) => {
+        if (!String(form[field] ?? '').trim()) {
+            form.setError(field, message);
+        }
+    });
+
+    if (!form.details.some(isFilledRow)) {
+        form.setError('details', 'Add at least one bilty or inward GR.');
+    }
+
+    return !form.hasErrors;
+};
 
 const submit = () => {
-    openConfirm();
+    if (validateForPrint()) {
+        openLoadingReportPrint();
+    }
 };
 
-const loadingReportPayload = (printAfterSave) => (data) => withPrintFlag({
-    ...data,
-    details: data.details
-        .filter((row) => row.bilty_id || row.inward_register_detail_id)
-        .map((row) => ({
-            row_type: row.row_type,
-            bilty_id: row.row_type === 'bilty' ? row.bilty_id : null,
-            inward_register_detail_id: row.row_type === 'inward' ? row.inward_register_detail_id : null,
-            good_id: row.good_id || null,
-            package_type_id: row.package_type_id || null,
-            consignee_id: row.consignee_id || null,
-            no_of_packages: row.no_of_packages,
-            gross_weight: row.gross_weight,
-        })),
-}, printAfterSave);
+const printFields = () => {
+    const fields = {
+        _token: document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        date: form.date,
+        from_station_id: form.from_station_id,
+        to_station_id: form.to_station_id,
+        truck_id: form.truck_id,
+        driver_name: form.driver_name,
+        remark: form.remark ?? '',
+    };
 
-const submitLoadingReport = (printAfterSave = false) => {
-    confirmAndRun(() => {
-        form.transform(loadingReportPayload(printAfterSave))
-            .post('/loading-reports', withPrintAfterSave(printAfterSave));
+    form.details.filter(isFilledRow).forEach((row, index) => {
+        fields[`details[${index}][bilty_id]`] = row.row_type === 'bilty' ? row.bilty_id : '';
+        fields[`details[${index}][inward_register_detail_id]`] = row.row_type === 'inward' ? row.inward_register_detail_id : '';
     });
+
+    return fields;
 };
 
-const confirmSave = () => submitLoadingReport(false);
-const confirmSaveAndPrint = () => submitLoadingReport(true);
+const openLoadingReportPrint = () => {
+    const printForm = document.createElement('form');
+    printForm.method = 'POST';
+    printForm.action = '/loading-reports/print';
+    printForm.target = '_blank';
+    printForm.style.display = 'none';
+
+    Object.entries(printFields()).forEach(([name, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value ?? '';
+        printForm.appendChild(input);
+    });
+
+    document.body.appendChild(printForm);
+    printForm.submit();
+    printForm.remove();
+};
 </script>

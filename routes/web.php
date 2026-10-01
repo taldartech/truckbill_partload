@@ -152,8 +152,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Administration
         Route::resource('users', UserController::class);
-        Route::get('loading-reports/{loading_report}/print', [LoadingReportController::class, 'print'])->name('loading-reports.print');
-        Route::resource('loading-reports', LoadingReportController::class);
+        Route::get('loading-reports', [LoadingReportController::class, 'create'])->name('loading-reports.create');
+        Route::post('loading-reports/print', [LoadingReportController::class, 'print'])->name('loading-reports.print');
         Route::get('vouchers/entity-balance', [VoucherController::class, 'entityBalance'])->name('vouchers.entity-balance');
         Route::resource('vouchers', VoucherController::class);
         Route::resource('inward-registers', InwardRegisterController::class);

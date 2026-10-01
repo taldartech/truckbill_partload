@@ -12,8 +12,6 @@ use App\Models\Country;
 use App\Models\Good;
 use App\Models\InwardRegister;
 use App\Models\InwardRegisterDetail;
-use App\Models\LoadingReport;
-use App\Models\LoadingReportDetail;
 use App\Models\PackageType;
 use App\Models\Party;
 use App\Models\State;
@@ -21,6 +19,7 @@ use App\Models\Station;
 use App\Models\Truck;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -29,9 +28,15 @@ class LoadingReportFormTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_loading_report_tables_are_removed(): void
+    {
+        $this->assertFalse(Schema::hasTable('loading_reports'));
+        $this->assertFalse(Schema::hasTable('loading_report_details'));
+    }
+
     public function test_create_page_includes_pending_bilties_and_inward_details(): void
     {
-        $context = $this->createFormContext(['create loading_reports']);
+        $context = $this->createFormContext(['view loading_reports']);
 
         $response = $this->actingAs($context['user'])
             ->get(route('loading-reports.create'));
@@ -41,130 +46,124 @@ class LoadingReportFormTest extends TestCase
             ->component('LoadingReports/Create')
             ->has('bilties', 1)
             ->where('bilties.0.id', $context['bilty']->id)
+            ->where('bilties.0.to_station.name', 'To Form')
             ->has('inward_details', 1)
             ->where('inward_details.0.id', $context['inward']->id)
+            ->where('inward_details.0.to_station.name', 'To Form')
             ->etc()
         );
     }
 
-    public function test_can_store_loading_report_with_bilty_and_inward_lines(): void
+    public function test_create_page_requires_view_permission(): void
     {
-        $context = $this->createFormContext(['create loading_reports']);
+        $context = $this->createFormContext([]);
+
+        $this->actingAs($context['user'])
+            ->get(route('loading-reports.create'))
+            ->assertForbidden();
+    }
+
+    public function test_print_renders_bilty_and_inward_lines_station_wise_without_saving(): void
+    {
+        $context = $this->createFormContext(['view loading_reports']);
+
+        $otherStation = Station::create(['name' => 'Another Stop', 'owner_id' => $context['company']->user_id]);
+        $otherBilty = Bilty::create([
+            'company_id' => $context['company']->id,
+            'branch_id' => $context['branch']->id,
+            'bilty_number' => 'FORM-LR-101',
+            'date' => now()->toDateString(),
+            'from_station_id' => $context['fromStation']->id,
+            'to_station_id' => $otherStation->id,
+            'consignor_id' => $context['consignee']->id,
+            'consignee_id' => $context['consignee']->id,
+            'payment_type' => 'To Pay',
+            'freight' => 200,
+            'amount' => 200,
+            'status' => 'Pending',
+        ]);
+        BiltyDetail::create([
+            'company_id' => $context['company']->id,
+            'branch_id' => $context['branch']->id,
+            'bilty_id' => $otherBilty->id,
+            'good_id' => $context['good']->id,
+            'package_type_id' => $context['packageType']->id,
+            'no_of_packages' => 2,
+            'gross_weight' => 20,
+        ]);
 
         $response = $this->actingAs($context['user'])
-            ->post(route('loading-reports.store'), [
-                'from_station_id' => $context['fromStation']->id,
-                'to_station_id' => $context['toStation']->id,
-                'truck_id' => $context['truck']->id,
-                'driver_name' => 'Form Driver',
-                'date' => now()->toDateString(),
-                'remark' => 'Mixed lines',
+            ->post(route('loading-reports.print'), [
+                ...$this->headerPayload($context),
                 'details' => [
-                    [
-                        'row_type' => 'bilty',
-                        'bilty_id' => $context['bilty']->id,
-                        'inward_register_detail_id' => null,
-                    ],
-                    [
-                        'row_type' => 'inward',
-                        'bilty_id' => null,
-                        'inward_register_detail_id' => $context['inward']->id,
-                    ],
+                    ['bilty_id' => $context['bilty']->id, 'inward_register_detail_id' => null],
+                    ['bilty_id' => null, 'inward_register_detail_id' => $context['inward']->id],
+                    ['bilty_id' => $otherBilty->id, 'inward_register_detail_id' => null],
                 ],
             ]);
 
-        $response->assertRedirect(route('loading-reports.index'));
+        $response->assertOk();
+        $response->assertViewIs('prints.loading_report');
+        $response->assertSeeInOrder(['Another Stop', 'FORM-LR-101', 'To Form', 'FORM-LR-100', 'GR-LR-200'], false);
+        $response->assertSee('MH-FORM-1');
+        $response->assertSee('Form Driver');
+        $response->assertSee('Mixed lines');
 
-        $report = LoadingReport::query()->latest('id')->first();
-        $this->assertNotNull($report);
-        $this->assertSame(8, (int) $report->no_of_packages);
-        $this->assertEquals(90.0, (float) $report->gross_weight);
+        $printData = $response->viewData('printData');
+        $this->assertCount(2, $printData['groups']);
+        $this->assertEquals(8, $printData['groups'][1]['subtotal']['nugs']);
+        $this->assertEquals(10, $printData['grand_total']['nugs']);
+        $this->assertEquals(110, $printData['grand_total']['weight']);
 
-        $this->assertDatabaseHas('loading_report_details', [
-            'loading_report_id' => $report->id,
-            'bilty_id' => $context['bilty']->id,
-            'inward_register_detail_id' => null,
-            'good_id' => $context['good']->id,
-            'consignee_id' => $context['consignee']->id,
-            'no_of_packages' => 5,
-        ]);
-
-        $this->assertDatabaseHas('loading_report_details', [
-            'loading_report_id' => $report->id,
-            'bilty_id' => null,
-            'inward_register_detail_id' => $context['inward']->id,
-            'good_id' => $context['good']->id,
-            'consignee_id' => $context['consignee']->id,
-            'no_of_packages' => 3,
-        ]);
+        $this->assertSame('Pending', $context['bilty']->fresh()->status);
     }
 
-    public function test_rejects_detail_row_without_bilty_or_inward(): void
+    public function test_print_rejects_when_no_line_references_a_bilty_or_inward(): void
     {
-        $context = $this->createFormContext(['create loading_reports']);
+        $context = $this->createFormContext(['view loading_reports']);
 
         $response = $this->actingAs($context['user'])
             ->from(route('loading-reports.create'))
-            ->post(route('loading-reports.store'), [
-                'from_station_id' => $context['fromStation']->id,
-                'to_station_id' => $context['toStation']->id,
-                'truck_id' => $context['truck']->id,
-                'driver_name' => 'Form Driver',
-                'date' => now()->toDateString(),
+            ->post(route('loading-reports.print'), [
+                ...$this->headerPayload($context),
                 'details' => [
-                    [
-                        'row_type' => 'bilty',
-                        'bilty_id' => null,
-                        'inward_register_detail_id' => null,
-                    ],
+                    ['bilty_id' => null, 'inward_register_detail_id' => null],
                 ],
             ]);
 
         $response->assertRedirect(route('loading-reports.create'));
-        $response->assertSessionHasErrors('details.0.bilty_id');
-        $this->assertDatabaseCount('loading_reports', 0);
+        $response->assertSessionHasErrors('details');
     }
 
-    public function test_show_includes_inward_line_details(): void
+    public function test_print_requires_header_fields(): void
     {
-        $context = $this->createFormContext(['view loading_reports', 'create loading_reports']);
+        $context = $this->createFormContext(['view loading_reports']);
 
-        $report = LoadingReport::create([
-            'company_id' => $context['company']->id,
-            'branch_id' => $context['branch']->id,
+        $response = $this->actingAs($context['user'])
+            ->from(route('loading-reports.create'))
+            ->post(route('loading-reports.print'), [
+                'details' => [
+                    ['bilty_id' => $context['bilty']->id],
+                ],
+            ]);
+
+        $response->assertSessionHasErrors(['from_station_id', 'to_station_id', 'truck_id', 'driver_name', 'date']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    private function headerPayload(array $context): array
+    {
+        return [
             'from_station_id' => $context['fromStation']->id,
             'to_station_id' => $context['toStation']->id,
             'truck_id' => $context['truck']->id,
-            'driver_name' => 'Show Driver',
+            'driver_name' => 'Form Driver',
             'date' => now()->toDateString(),
-            'no_of_packages' => 3,
-            'gross_weight' => 40,
-        ]);
-
-        LoadingReportDetail::create([
-            'company_id' => $context['company']->id,
-            'branch_id' => $context['branch']->id,
-            'loading_report_id' => $report->id,
-            'bilty_id' => null,
-            'inward_register_detail_id' => $context['inward']->id,
-            'good_id' => $context['good']->id,
-            'package_type_id' => null,
-            'consignee_id' => $context['consignee']->id,
-            'no_of_packages' => 3,
-            'gross_weight' => 40,
-        ]);
-
-        $response = $this->actingAs($context['user'])
-            ->get(route('loading-reports.show', $report));
-
-        $response->assertOk();
-        $response->assertInertia(fn (AssertableInertia $page) => $page
-            ->component('LoadingReports/Show')
-            ->has('report.details', 1)
-            ->where('report.details.0.inward_register_detail.gr_no', 'GR-LR-200')
-            ->where('report.details.0.good.name', 'Form Goods')
-            ->etc()
-        );
+            'remark' => 'Mixed lines',
+        ];
     }
 
     /**
@@ -179,6 +178,7 @@ class LoadingReportFormTest extends TestCase
      *     bilty: Bilty,
      *     inward: InwardRegisterDetail,
      *     good: Good,
+     *     packageType: PackageType,
      *     consignee: Party
      * }
      */
@@ -317,6 +317,7 @@ class LoadingReportFormTest extends TestCase
             'bilty' => $bilty,
             'inward' => $inward,
             'good' => $good,
+            'packageType' => $packageType,
             'consignee' => $consignee,
         ];
     }

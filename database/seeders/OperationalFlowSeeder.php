@@ -22,8 +22,6 @@ use App\Models\Invoice;
 use App\Models\InvoiceDetail;
 use App\Models\InwardRegister;
 use App\Models\InwardRegisterDetail;
-use App\Models\LoadingReport;
-use App\Models\LoadingReportDetail;
 use App\Models\MainChallan;
 use App\Models\MainChallanDetail;
 use App\Models\PackageType;
@@ -571,43 +569,6 @@ class OperationalFlowSeeder extends Seeder
         $this->counts['bilties'] = $bilties->count();
 
         $pendingBilties = $bilties->filter(fn (Bilty $b) => $b->status === 'Pending')->values();
-        $loadingReports = collect();
-        for ($lr = 1; $lr <= 5; $lr++) {
-            $bilty = $pendingBilties[$lr - 1] ?? $bilties[$lr];
-            $fromStation = $stations->firstWhere('id', $bilty->from_station_id);
-            $toStation = $stations->firstWhere('id', $bilty->to_station_id);
-            $detail = $bilty->biltyDetails->first();
-            $packages = (int) ($detail?->no_of_packages ?? 8);
-            $weight = (float) ($detail?->gross_weight ?? 800);
-
-            $loadingReport = LoadingReport::create([
-                'company_id' => $companyId,
-                'branch_id' => $branchId,
-                'from_station_id' => $fromStation->id,
-                'to_station_id' => $toStation->id,
-                'truck_id' => $trucks[($lr - 1) % $trucks->count()]->id,
-                'driver_name' => $drivers[($lr - 1) % count($drivers)],
-                'date' => $today->copy()->subDays(6 - $lr),
-                'remark' => 'Loaded at '.$fromStation->name.' godown',
-                'no_of_packages' => $packages,
-                'gross_weight' => $weight,
-            ]);
-
-            LoadingReportDetail::create([
-                'company_id' => $companyId,
-                'branch_id' => $branchId,
-                'loading_report_id' => $loadingReport->id,
-                'bilty_id' => $bilty->id,
-                'good_id' => $detail?->good_id ?? $goods->first()->id,
-                'package_type_id' => $detail?->package_type_id ?? $packageTypes->first()->id,
-                'consignee_id' => $bilty->consignee_id,
-                'no_of_packages' => $packages,
-                'gross_weight' => $weight,
-            ]);
-
-            $loadingReports->push($loadingReport);
-        }
-        $this->counts['loading_reports'] = $loadingReports->count();
 
         $inTransitBilties = $bilties->filter(fn (Bilty $b) => $b->status === 'In Transit')->values();
         $challanBilties = $inTransitBilties->take(3);
@@ -1117,7 +1078,7 @@ class OperationalFlowSeeder extends Seeder
         }
         $this->command?->newLine();
         $this->command?->line('Operational records:');
-        foreach (['bilties', 'loading_reports', 'challans', 'main_challans', 'inward_registers', 'inward_details', 'delivery_receipts', 'invoices'] as $key) {
+        foreach (['bilties', 'challans', 'main_challans', 'inward_registers', 'inward_details', 'delivery_receipts', 'invoices'] as $key) {
             $this->command?->line(sprintf('  %-16s %d', ucwords(str_replace('_', ' ', $key)).':', $this->counts[$key] ?? 0));
         }
         $this->command?->newLine();

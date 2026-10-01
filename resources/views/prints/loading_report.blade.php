@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     @include('partials.favicon')
-    <title>Loading Report - {{ $loading_report->date ? date('d-m-Y', strtotime($loading_report->date)) : '' }}</title>
+    <title>Loading Report - {{ $report['date'] ? date('d-m-Y', strtotime($report['date'])) : '' }}</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -112,30 +112,75 @@
         .col-consignee { width: 24%; }
         .col-weight { width: 10%; }
 
+        thead { display: table-header-group; }
+        thead th.report-header {
+            border: none;
+            padding: 0;
+            font-weight: normal;
+            font-size: 12px;
+            text-transform: none;
+            text-align: left;
+        }
+        tbody tr { page-break-inside: avoid; break-inside: avoid; }
+        tbody.station-group { page-break-inside: avoid; break-inside: avoid; }
+        tr.station-header { page-break-after: avoid; break-after: avoid; }
+        .page-frame,
+        .page-brand { display: none; }
+        tfoot { display: table-footer-group; }
+        tr.page-bottom-spacer td { height: 8px; padding: 0; }
+
+        @page { margin: 8mm; }
+
         @media print {
             body { padding: 0; }
-            .print-container { padding: 10px; }
+            .print-container {
+                max-width: none;
+                border: none;
+                padding: 0 10px;
+            }
+            thead th.report-header { padding-top: 10px; }
+            .page-frame {
+                display: block;
+                position: fixed;
+                inset: 0;
+                border: 1px solid #000;
+                pointer-events: none;
+            }
+            tr.page-bottom-spacer td { height: 24px; }
+            .screen-brand { display: none; }
+            .page-brand {
+                display: block;
+                position: fixed;
+                right: 10px;
+                bottom: 4px;
+            }
+            .page-brand .print-brand-footer { margin-top: 0 !important; }
         }
     </style>
 </head>
 <body onload="window.print()">
+    <div class="page-frame"></div>
+    <div class="page-brand">@include('partials.print-brand-footer')</div>
     <div class="print-container">
-        <h1 class="company-name">{{ $company->name ?? 'TRANSPORT COMPANY' }}</h1>
-        <h2 class="report-title">Loading Report</h2>
-
-        <div class="meta">
-            <div class="meta-col">
-                <div class="meta-line"><strong>Date:-</strong> {{ $loading_report->date ? date('d/m/Y', strtotime($loading_report->date)) : '—' }}</div>
-                <div class="meta-line"><strong>Station To:-</strong> {{ $loading_report->toStation->name ?? '—' }}</div>
-            </div>
-            <div class="meta-col" style="text-align: right;">
-                <div class="meta-line"><strong>Truck No :-</strong> {{ $loading_report->truck->truck_number ?? '—' }}</div>
-                <div class="meta-line"><strong>Driver Name :-</strong> {{ $loading_report->driver_name ?? '—' }}</div>
-            </div>
-        </div>
-
         <table>
             <thead>
+                <tr>
+                    <th colspan="8" class="report-header">
+                        <h1 class="company-name">{{ $company->name ?? 'TRANSPORT COMPANY' }}</h1>
+                        <h2 class="report-title">Loading Report</h2>
+
+                        <div class="meta">
+                            <div class="meta-col">
+                                <div class="meta-line"><strong>Date:-</strong> {{ $report['date'] ? date('d/m/Y', strtotime($report['date'])) : '—' }}</div>
+                                <div class="meta-line"><strong>Station To:-</strong> {{ $report['to_station'] ?? '—' }}</div>
+                            </div>
+                            <div class="meta-col" style="text-align: right;">
+                                <div class="meta-line"><strong>Truck No :-</strong> {{ $report['truck_number'] ?? '—' }}</div>
+                                <div class="meta-line"><strong>Driver Name :-</strong> {{ $report['driver_name'] ?? '—' }}</div>
+                            </div>
+                        </div>
+                    </th>
+                </tr>
                 <tr>
                     <th class="col-sn">S.N.</th>
                     <th class="col-bilty">GR/Bilty No.</th>
@@ -147,8 +192,11 @@
                     <th class="col-weight">Weight</th>
                 </tr>
             </thead>
-            <tbody>
-                @foreach($printData['groups'] as $group)
+            <tfoot>
+                <tr class="page-bottom-spacer"><td colspan="8"></td></tr>
+            </tfoot>
+            @foreach($printData['groups'] as $group)
+                <tbody class="station-group">
                     <tr class="station-header">
                         <td colspan="8">{{ $group['station_name'] }}</td>
                     </tr>
@@ -170,24 +218,30 @@
                         <td colspan="3"></td>
                         <td class="text-right">{{ number_format($group['subtotal']['weight'], 0) }}</td>
                     </tr>
-                @endforeach
+                </tbody>
+            @endforeach
 
-                @if($printData['groups']->isNotEmpty())
+            @if($printData['groups']->isNotEmpty())
+            <tbody>
                 <tr class="grand-total-row">
                     <td colspan="3"></td>
                     <td class="text-center">{{ number_format($printData['grand_total']['nugs'], 0) }}</td>
                     <td colspan="3"></td>
                     <td class="text-right">{{ number_format($printData['grand_total']['weight'], 0) }}</td>
                 </tr>
-                @endif
             </tbody>
+            @endif
+
+            @if($report['remark'])
+            <tbody>
+                <tr>
+                    <td colspan="8" style="padding-top: 14px;"><strong>Remark:</strong> {{ $report['remark'] }}</td>
+                </tr>
+            </tbody>
+            @endif
         </table>
 
-        @if($loading_report->remark)
-        <p style="margin-top: 14px;"><strong>Remark:</strong> {{ $loading_report->remark }}</p>
-        @endif
-
-        @include('partials.print-brand-footer')
+        <div class="screen-brand">@include('partials.print-brand-footer')</div>
     </div>
 </body>
 </html>

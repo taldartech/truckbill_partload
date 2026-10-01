@@ -348,7 +348,7 @@ const quickActions = [
     { label: 'Create Bilty', desc: 'Lorry receipt', href: '/bilties/create', icon: 'fa-file-invoice', permission: 'create bilties', tone: 'primary' },
     { label: 'New Challan', desc: 'Trip sheet', href: '/challans/create', icon: 'fa-file-contract', permission: 'create challans', tone: 'warning' },
     { label: 'Main Challan', desc: 'Consolidated challan', href: '/main-challans/create', icon: 'fa-file-alt', permission: 'create challans', tone: 'info' },
-    { label: 'Loading Report', desc: 'Truck loading record', href: '/loading-reports/create', icon: 'fa-truck-loading', permission: 'create loading_reports', tone: 'info' },
+    { label: 'Loading Report', desc: 'Print pending bilties', href: '/loading-reports', icon: 'fa-truck-loading', permission: 'view loading_reports', tone: 'info' },
     { label: 'Inward Register', desc: 'Goods inward entry', href: '/inward-registers/create', icon: 'fa-clipboard-list', permission: 'create inward_registers', tone: 'secondary' },
     // { label: 'Accounting Voucher', desc: 'Ledger entry', href: '/vouchers/create', icon: 'fa-file-invoice-dollar', permission: 'create vouchers', tone: 'success' },
     // { label: 'Bilty Register', desc: 'View report', href: '/reports/bilty-register', icon: 'fa-chart-bar', permission: 'view reports', tone: 'secondary' },
