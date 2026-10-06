@@ -2,24 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\SharesAccountingPanel;
+use App\Models\BankAccount;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\DeliveryReceipt;
 use App\Models\InwardRegisterDetail;
 use App\Models\Party;
+use App\Services\Accounting\OperationalAccountingBridge;
 use App\Support\DocumentNumber;
+use App\Support\GstCalculator;
 use App\Support\RedirectsWithOptionalPrint;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class DeliveryReceiptController extends Controller implements HasMiddleware
 {
     use RedirectsWithOptionalPrint;
+    use SharesAccountingPanel;
 
     public static function middleware(): array
     {
@@ -84,8 +90,10 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'delivery_receipt_no',
             $branch?->settings?->delivery_initial
         );
+
         return Inertia::render('DeliveryReceipts/Create', [
             'parties' => Party::query()->orderBy('name')->get(['id', 'name']),
+            'bankAccounts' => BankAccount::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'gr_sources' => $this->grSourceOptions(),
             'gst_rate' => $branchGstRate,
             'gst_exemption_limit' => $this->gstExemptionLimit(),
@@ -114,16 +122,17 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         return response()->json($this->mapInwardForReceipt($inward));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, OperationalAccountingBridge $bridge)
     {
-        $validated = $request->validate($this->rules());
+        $validated = $this->normalizePayment($request->validate($this->rules()));
         $validated['gst_rate'] = $this->branchGstRate();
 
-        if (($validated['mode_of_payment'] ?? null) !== 'Due') {
-            $validated['payment_due_from_id'] = null;
-        }
+        $receipt = DB::transaction(function () use ($validated, $bridge) {
+            $receipt = DeliveryReceipt::create($validated);
+            $bridge->sync($receipt);
 
-        $receipt = DeliveryReceipt::create($validated);
+            return $receipt;
+        });
 
         return $this->indexRedirectWithOptionalPrint(
             $request,
@@ -146,6 +155,7 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         return Inertia::render('DeliveryReceipts/Show', [
             'receipt' => $deliveryReceipt,
             'gr_source' => $this->resolveGrSource($deliveryReceipt->gr_no_bilty_no),
+            'accounting' => $this->accountingPanel($deliveryReceipt),
         ]);
     }
 
@@ -156,22 +166,22 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         return Inertia::render('DeliveryReceipts/Edit', [
             'receipt' => $deliveryReceipt->load(['consignee:id,name', 'paymentDueFrom:id,name']),
             'parties' => Party::query()->orderBy('name')->get(['id', 'name']),
+            'bankAccounts' => BankAccount::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'gr_sources' => $this->grSourceOptions($deliveryReceipt->id),
             'gst_rate' => $branchGstRate,
             'gst_exemption_limit' => $this->gstExemptionLimit(),
         ]);
     }
 
-    public function update(Request $request, DeliveryReceipt $deliveryReceipt)
+    public function update(Request $request, DeliveryReceipt $deliveryReceipt, OperationalAccountingBridge $bridge)
     {
-        $validated = $request->validate($this->rules());
+        $validated = $this->normalizePayment($request->validate($this->rules()));
         $validated['gst_rate'] = $this->branchGstRate();
 
-        if (($validated['mode_of_payment'] ?? null) !== 'Due') {
-            $validated['payment_due_from_id'] = null;
-        }
-
-        $deliveryReceipt->update($validated);
+        DB::transaction(function () use ($validated, $deliveryReceipt, $bridge) {
+            $deliveryReceipt->update($validated);
+            $bridge->sync($deliveryReceipt);
+        });
 
         return $this->indexRedirectWithOptionalPrint(
             $request,
@@ -182,14 +192,17 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(Request $request, DeliveryReceipt $deliveryReceipt)
+    public function destroy(Request $request, DeliveryReceipt $deliveryReceipt, OperationalAccountingBridge $bridge)
     {
-        $deliveryReceipt->update([
-            'delete_remark' => $request->delete_remark,
-            'deleted_by' => Auth::id(),
-        ]);
+        DB::transaction(function () use ($request, $deliveryReceipt, $bridge) {
+            $bridge->clear($deliveryReceipt);
+            $deliveryReceipt->update([
+                'delete_remark' => $request->delete_remark,
+                'deleted_by' => Auth::id(),
+            ]);
 
-        $deliveryReceipt->delete();
+            $deliveryReceipt->delete();
+        });
 
         return redirect()
             ->route('delivery-receipts.index')
@@ -361,6 +374,11 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'date' => 'required|date',
             'gr_no_bilty_no' => 'required|string|max:255',
             'mode_of_payment' => ['required', 'string', Rule::in(['Cash', 'Bank', 'Due'])],
+            'bank_account_id' => [
+                'nullable',
+                Rule::requiredIf(fn () => request('mode_of_payment') === 'Bank'),
+                $this->existsInCompany('bank_accounts')->whereNull('deleted_at'),
+            ],
             'consignee_id' => 'required|exists:parties,id',
             'haste' => 'nullable|string|max:255',
             'payment_due_from_id' => [
@@ -382,6 +400,30 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
             'less' => 'nullable|numeric|min:0',
             'final_amount' => 'required|numeric|min:0',
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function normalizePayment(array $validated): array
+    {
+        $mode = $validated['mode_of_payment'] ?? null;
+
+        if ($mode !== 'Due') {
+            $validated['payment_due_from_id'] = null;
+        }
+
+        if ($mode !== 'Bank') {
+            $validated['bank_account_id'] = null;
+        }
+
+        $totals = GstCalculator::forDeliveryReceipt($validated, $this->branchGstRate(), $this->gstExemptionLimit());
+        $validated['total_amount'] = $totals['total_amount'];
+        $validated['gst'] = $totals['gst'];
+        $validated['final_amount'] = $totals['final_amount'];
+
+        return $validated;
     }
 
     private function grSourceOptions(?int $exceptReceiptId = null): array

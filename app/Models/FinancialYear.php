@@ -19,12 +19,18 @@ class FinancialYear extends Model
             'ends_on' => 'date:Y-m-d',
             'is_current' => 'boolean',
             'is_closed' => 'boolean',
+            'closed_at' => 'datetime',
         ];
     }
 
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function closedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'closed_by');
     }
 
     public function vouchers(): HasMany

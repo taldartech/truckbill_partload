@@ -18,7 +18,7 @@
                                 <span class="visually-hidden">Back</span>
                             </Link>
                             <button
-                                v-if="can('edit accounting_vouchers') && voucher.status === 'posted'"
+                                v-if="can('edit accounting_vouchers') && !isSystemGenerated && voucher.status === 'posted'"
                                 type="button"
                                 class="app-show-action-btn app-show-action-btn--danger"
                                 title="Cancel Voucher"
@@ -28,7 +28,7 @@
                                 <span class="visually-hidden">Cancel</span>
                             </button>
                             <button
-                                v-if="can('edit accounting_vouchers') && voucher.status === 'posted'"
+                                v-if="can('edit accounting_vouchers') && !isSystemGenerated && canReverse"
                                 type="button"
                                 class="app-show-action-btn app-show-action-btn--edit"
                                 title="Reverse Voucher"
@@ -40,6 +40,19 @@
                         </template>
 
                         <ShowFieldGrid :fields="overviewFields" :columns="3" />
+                        <div v-if="source" class="alert alert-light border small py-2 px-3 mt-2 mb-0">
+                            <i class="fas fa-link me-1" aria-hidden="true"></i>
+                            Posted automatically from
+                            <strong>{{ source.module }}</strong>
+                            <Link v-if="source.url" :href="source.url" class="fw-semibold text-brand-primary text-decoration-none">
+                                {{ source.number }}
+                            </Link>
+                            <span v-else class="fw-semibold">{{ source.number }}</span>
+                            <span v-if="source.deleted" class="badge bg-secondary ms-1">Deleted</span>
+                            <span v-else-if="source.inactive" class="badge bg-secondary ms-1">Cancelled</span>
+                            <span v-if="eventLabel"> · {{ eventLabel }}</span>.
+                            Edit or delete the document to change this entry.
+                        </div>
                         <div class="app-show-status-row">
                             <span class="app-show-status-row__label">Status:</span>
                             <span
@@ -101,6 +114,31 @@
                                 <span class="app-show-meta-list__label">{{ item.label }}</span>
                                 <span class="app-show-meta-list__value">{{ item.value }}</span>
                             </div>
+                            <div class="app-show-meta-list__item">
+                                <span class="app-show-meta-list__label">Reverses</span>
+                                <span class="app-show-meta-list__value">
+                                    <Link
+                                        v-if="voucher.reversed_voucher"
+                                        :href="`/accounting/vouchers/${voucher.reversed_voucher.id}`"
+                                        class="text-brand-primary text-decoration-none"
+                                    >{{ voucher.reversed_voucher.voucher_number }}</Link>
+                                    <template v-else>—</template>
+                                </span>
+                            </div>
+                            <div class="app-show-meta-list__item">
+                                <span class="app-show-meta-list__label">Reversed in</span>
+                                <span class="app-show-meta-list__value">
+                                    <template v-if="voucher.reversals?.length">
+                                        <Link
+                                            v-for="reversal in voucher.reversals"
+                                            :key="reversal.id"
+                                            :href="`/accounting/vouchers/${reversal.id}`"
+                                            class="text-brand-primary text-decoration-none me-1"
+                                        >{{ reversal.voucher_number }}</Link>
+                                    </template>
+                                    <template v-else>—</template>
+                                </span>
+                            </div>
                         </div>
                     </ShowSection>
                 </ShowSidebar>
@@ -124,6 +162,10 @@ const can = (permission) => page.props.auth.is_admin || page.props.auth.permissi
 
 const props = defineProps({
     voucher: { type: Object, required: true },
+    source: { type: Object, default: null },
+    eventLabel: { type: String, default: null },
+    isSystemGenerated: { type: Boolean, default: false },
+    canReverse: { type: Boolean, default: false },
 });
 
 const totalDebit = computed(() =>
@@ -137,15 +179,17 @@ const overviewFields = computed(() => [
     { label: 'Date', value: props.voucher.date || '—' },
     { label: 'Type', value: props.voucher.voucher_type || '—' },
     { label: 'Narration', value: props.voucher.narration || '—' },
+    { label: 'Origin', value: props.source ? `${props.source.module} ${props.source.number}` : (props.eventLabel || 'Manual entry') },
 ]);
 
 const recordInfoItems = computed(() => [
-    { label: 'Created by', value: props.voucher.created_by?.name || '—' },
-    { label: 'Created at', value: formatDateTime(props.voucher.created_at) },
-    {
-        label: 'Reversed voucher',
-        value: props.voucher.reversed_voucher?.voucher_number || '—',
-    },
+    { label: 'Posted by', value: props.voucher.created_by?.name || '—' },
+    { label: 'Posted at', value: formatDateTime(props.voucher.created_at) },
+    { label: 'Updated by', value: props.voucher.updated_by?.name || '—' },
+    { label: 'Reversed by', value: props.voucher.reversed_by?.name || '—' },
+    { label: 'Reversed at', value: props.voucher.reversed_at ? formatDateTime(props.voucher.reversed_at) : '—' },
+    { label: 'Cancelled by', value: props.voucher.cancelled_by?.name || '—' },
+    { label: 'Cancel reason', value: props.voucher.cancel_reason || '—' },
 ]);
 
 const cancelVoucher = async () => {
@@ -153,7 +197,7 @@ const cancelVoucher = async () => {
         `Cancel this voucher?\n\nVoucher No : ${props.voucher.voucher_number}`
     );
     if (!remark) return;
-    router.post(`/accounting/vouchers/${props.voucher.id}/cancel`);
+    router.post(`/accounting/vouchers/${props.voucher.id}/cancel`, { reason: remark });
 };
 
 const reverseVoucher = async () => {

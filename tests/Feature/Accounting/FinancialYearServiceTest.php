@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Accounting\FinancialYearService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class FinancialYearServiceTest extends TestCase
@@ -60,10 +61,10 @@ class FinancialYearServiceTest extends TestCase
         $this->assertTrue($fy->fresh()->is_current);
         $this->assertFalse($fy->fresh()->is_closed);
         $this->assertFalse($stale->fresh()->is_current);
-        $this->assertTrue($stale->fresh()->is_closed);
+        $this->assertFalse($stale->fresh()->is_closed);
     }
 
-    public function test_past_financial_year_is_closed_by_date(): void
+    public function test_past_financial_year_stays_open_until_closed_manually(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-09-17'));
 
@@ -73,9 +74,36 @@ class FinancialYearServiceTest extends TestCase
         $past = $service->forDate($company, '2025-06-15');
         $service->ensureCurrent($company);
 
-        $this->assertTrue($past->fresh()->is_closed);
-        $this->expectException(\InvalidArgumentException::class);
+        $this->assertFalse($past->fresh()->is_closed);
         $service->assertOpen($past->fresh());
+    }
+
+    public function test_closed_year_rejects_postings_and_can_be_reopened(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-09-17'));
+
+        $company = $this->makeCompany();
+        $user = User::factory()->create();
+        $service = app(FinancialYearService::class);
+
+        $past = $service->close($service->forDate($company, '2025-06-15'), $user->id);
+
+        $this->assertTrue($past->is_closed);
+        $this->assertSame($user->id, $past->closed_by);
+        $this->assertNotNull($past->closed_at);
+
+        try {
+            $service->assertOpen($past);
+            $this->fail('Expected a closed year to reject postings.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('financial_year_id', $e->errors());
+        }
+
+        $reopened = $service->reopen($past);
+
+        $this->assertFalse($reopened->is_closed);
+        $this->assertNull($reopened->closed_by);
+        $service->assertOpen($reopened);
     }
 
     public function test_for_date_auto_creates_year_for_voucher_date(): void

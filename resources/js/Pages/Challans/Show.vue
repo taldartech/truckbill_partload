@@ -89,6 +89,8 @@
                             </table>
                         </div>
                     </ShowSection>
+
+                    <AccountingPanel v-if="accounting" :vouchers="accounting" />
                 </div>
 
                 <ShowSidebar>
@@ -128,12 +130,14 @@
 import { computed } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import AccountingPanel from '@/Components/Accounting/AccountingPanel.vue';
 import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { formatMoney, formatQty, formatDate, formatDateTime } from '@/utils/showFormatters';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
+    accounting: { type: Array, default: null },
     challan: {
         type: Object,
         required: true,

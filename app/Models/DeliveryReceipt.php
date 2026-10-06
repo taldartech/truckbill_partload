@@ -25,6 +25,11 @@ class DeliveryReceipt extends Model
         return $this->belongsTo(Party::class, 'consignee_id');
     }
 
+    public function bankAccount()
+    {
+        return $this->belongsTo(BankAccount::class, 'bank_account_id');
+    }
+
     public function paymentDueFrom()
     {
         return $this->belongsTo(Party::class, 'payment_due_from_id');

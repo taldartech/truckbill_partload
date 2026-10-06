@@ -56,7 +56,7 @@ class AccountGroupController extends Controller implements HasMiddleware
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'nature' => ['required', Rule::enum(AccountNature::class)],
-            'parent_id' => ['nullable', 'exists:account_groups,id'],
+            'parent_id' => ['nullable', $this->existsInCompany('account_groups')],
             'is_active' => ['boolean'],
         ]);
 
@@ -74,7 +74,7 @@ class AccountGroupController extends Controller implements HasMiddleware
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'nature' => ['required', Rule::enum(AccountNature::class)],
-            'parent_id' => ['nullable', 'exists:account_groups,id', Rule::notIn([$accountGroup->id])],
+            'parent_id' => ['nullable', $this->existsInCompany('account_groups'), Rule::notIn([$accountGroup->id])],
             'is_active' => ['boolean'],
         ]);
 

@@ -2,67 +2,51 @@
 
 namespace App\Services\Accounting\Reports;
 
-use App\Models\Account;
-use App\Models\AccountGroup;
 use Illuminate\Support\Carbon;
 
 class OutstandingReport
 {
-    public function __construct(private AccountLedgerReport $ledger) {}
+    public function __construct(private AccountTotals $totals) {}
 
     /**
      * @return list<array<string, mixed>>
      */
-    public function build(int $companyId, string $groupSystemKey, Carbon|string $from, Carbon|string $to): array
+    public function build(int $companyId, string $groupSystemKey, Carbon|string $from, Carbon|string $to, ?int $branchId = null): array
     {
-        $group = AccountGroup::query()
-            ->where('company_id', $companyId)
-            ->where('system_key', $groupSystemKey)
-            ->first();
-
-        if (! $group) {
+        $groupIds = $this->totals->groupTreeIds($companyId, $groupSystemKey);
+        if ($groupIds === []) {
             return [];
         }
 
-        $groupIds = $this->descendantGroupIds($group);
+        $accounts = $this->totals->accounts($companyId)->whereIn('account_group_id', $groupIds);
+        if ($accounts->isEmpty()) {
+            return [];
+        }
 
-        $accounts = Account::query()
-            ->where('company_id', $companyId)
-            ->whereIn('account_group_id', $groupIds)
-            ->orderBy('name')
-            ->get();
+        $sums = $this->totals->forPeriod($companyId, $from, $to, $branchId, $accounts->keys()->all());
 
         $rows = [];
         foreach ($accounts as $account) {
-            $ledger = $this->ledger->build($account, $from, $to);
-            if ($ledger['opening'] == 0.0 && $ledger['totals']['debit'] == 0.0 && $ledger['totals']['credit'] == 0.0) {
+            $sum = $sums->get($account->id);
+            if ($sum === null) {
+                continue;
+            }
+
+            $opening = round($sum['opening_debit'] - $sum['opening_credit'], 2);
+            if ($opening == 0.0 && $sum['debit'] == 0.0 && $sum['credit'] == 0.0) {
                 continue;
             }
 
             $rows[] = [
                 'account_id' => $account->id,
                 'account_name' => $account->name,
-                'opening' => $ledger['opening'],
-                'debit' => $ledger['totals']['debit'],
-                'credit' => $ledger['totals']['credit'],
-                'outstanding' => $ledger['closing'],
+                'opening' => $opening,
+                'debit' => $sum['debit'],
+                'credit' => $sum['credit'],
+                'outstanding' => round($opening + $sum['debit'] - $sum['credit'], 2),
             ];
         }
 
         return $rows;
-    }
-
-    /**
-     * @return list<int>
-     */
-    private function descendantGroupIds(AccountGroup $group): array
-    {
-        $ids = [$group->id];
-        $children = AccountGroup::query()->where('parent_id', $group->id)->get();
-        foreach ($children as $child) {
-            $ids = array_merge($ids, $this->descendantGroupIds($child));
-        }
-
-        return $ids;
     }
 }

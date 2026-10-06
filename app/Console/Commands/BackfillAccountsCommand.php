@@ -4,15 +4,11 @@ namespace App\Console\Commands;
 
 use App\Models\Agent;
 use App\Models\BankAccount;
-use App\Models\Bilty;
-use App\Models\Challan;
 use App\Models\Company;
-use App\Models\Invoice;
-use App\Models\InwardRegister;
 use App\Models\Party;
+use App\Services\Accounting\AccountingReconciler;
 use App\Services\Accounting\EnsureCompanyAccounting;
 use App\Services\Accounting\EntityAccountLinker;
-use App\Services\Accounting\OperationalAccountingBridge;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -22,7 +18,7 @@ class BackfillAccountsCommand extends Command
     protected $signature = 'accounting:backfill-accounts
                             {--company= : Limit to a single company ID}
                             {--enable-all : Turn on consider_for_accounting for all parties and agents before linking}
-                            {--with-vouchers : Also re-sync operational documents into accounting vouchers}
+                            {--with-vouchers : Also reconcile operational documents into accounting vouchers (see accounting:reconcile)}
                             {--dry-run : Show what would change without writing}';
 
     protected $description = 'Backfill chart of accounts, bank/party/agent ledgers (and optionally operational vouchers) for companies';
@@ -30,7 +26,7 @@ class BackfillAccountsCommand extends Command
     public function handle(
         EnsureCompanyAccounting $ensureAccounting,
         EntityAccountLinker $linker,
-        OperationalAccountingBridge $bridge,
+        AccountingReconciler $reconciler,
     ): int {
         $dryRun = (bool) $this->option('dry-run');
         $enableAll = (bool) $this->option('enable-all');
@@ -71,7 +67,7 @@ class BackfillAccountsCommand extends Command
             try {
                 $result = $dryRun
                     ? $this->previewCompany($company, $enableAll, $withVouchers)
-                    : $this->backfillCompany($company, $enableAll, $withVouchers, $ensureAccounting, $linker, $bridge);
+                    : $this->backfillCompany($company, $enableAll, $withVouchers, $ensureAccounting, $linker, $reconciler);
 
                 foreach ($result as $key => $value) {
                     $totals[$key] = ($totals[$key] ?? 0) + $value;
@@ -127,11 +123,9 @@ class BackfillAccountsCommand extends Command
 
         $vouchers = 0;
         if ($withVouchers) {
-            $vouchers = Invoice::query()->where('company_id', $company->id)->count()
-                + Bilty::query()->where('company_id', $company->id)->where('cartage_type', 'Due')->whereNotNull('cartage_account_id')->count()
-                + InwardRegister::query()->where('company_id', $company->id)->count()
-                + Challan::query()->where('company_id', $company->id)->whereNotNull('pay_by_agent_id')->count();
-            $this->line("  Operational docs to sync: {$vouchers}");
+            $summary = app(AccountingReconciler::class)->run($company->id);
+            $vouchers = $summary['post'] + $summary['repost'] + $summary['reverse'] + $summary['links'] + $summary['orphans'];
+            $this->line("  Operational events to post/repost/reverse/link: {$vouchers}");
         }
 
         return [
@@ -154,9 +148,9 @@ class BackfillAccountsCommand extends Command
         bool $withVouchers,
         EnsureCompanyAccounting $ensureAccounting,
         EntityAccountLinker $linker,
-        OperationalAccountingBridge $bridge,
+        AccountingReconciler $reconciler,
     ): array {
-        return DB::transaction(function () use ($company, $enableAll, $withVouchers, $ensureAccounting, $linker, $bridge) {
+        return DB::transaction(function () use ($company, $enableAll, $withVouchers, $ensureAccounting, $linker, $reconciler) {
             $ensureAccounting->handle($company);
             $this->line('  Ensured chart of accounts + financial year');
 
@@ -210,7 +204,7 @@ class BackfillAccountsCommand extends Command
 
             $vouchers = 0;
             if ($withVouchers) {
-                $vouchers = $this->syncOperationalVouchers($company, $bridge);
+                $vouchers = $this->syncOperationalVouchers($company, $reconciler);
                 $this->line("  Operational vouchers synced: {$vouchers}");
             }
 
@@ -226,50 +220,8 @@ class BackfillAccountsCommand extends Command
         });
     }
 
-    private function syncOperationalVouchers(Company $company, OperationalAccountingBridge $bridge): int
+    private function syncOperationalVouchers(Company $company, AccountingReconciler $reconciler): int
     {
-        $synced = 0;
-
-        Invoice::query()
-            ->where('company_id', $company->id)
-            ->orderBy('id')
-            ->each(function (Invoice $invoice) use ($bridge, &$synced) {
-                if ($bridge->sync($invoice)) {
-                    $synced++;
-                }
-            });
-
-        Bilty::query()
-            ->where('company_id', $company->id)
-            ->whereRaw('LOWER(cartage_type) = ?', ['due'])
-            ->whereNotNull('cartage_account_id')
-            ->orderBy('id')
-            ->each(function (Bilty $bilty) use ($bridge, &$synced) {
-                if ($bridge->sync($bilty)) {
-                    $synced++;
-                }
-            });
-
-        InwardRegister::query()
-            ->where('company_id', $company->id)
-            ->with('details.agent')
-            ->orderBy('id')
-            ->each(function (InwardRegister $register) use ($bridge, &$synced) {
-                if ($bridge->sync($register)) {
-                    $synced++;
-                }
-            });
-
-        Challan::query()
-            ->where('company_id', $company->id)
-            ->whereNotNull('pay_by_agent_id')
-            ->orderBy('id')
-            ->each(function (Challan $challan) use ($bridge, &$synced) {
-                if ($bridge->sync($challan)) {
-                    $synced++;
-                }
-            });
-
-        return $synced;
+        return $reconciler->run($company->id, null, false, fn (string $message) => $this->error('  '.$message))['changed'];
     }
 }

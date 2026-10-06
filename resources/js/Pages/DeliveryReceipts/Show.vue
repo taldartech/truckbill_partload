@@ -82,6 +82,8 @@
                     <ShowSection title="GST Details">
                         <ShowFieldGrid :fields="gstFields" :columns="3" />
                     </ShowSection>
+
+                    <AccountingPanel v-if="accounting" :vouchers="accounting" />
                 </div>
 
                 <ShowSidebar>
@@ -121,6 +123,7 @@
 import { computed } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import AccountingPanel from '@/Components/Accounting/AccountingPanel.vue';
 import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
@@ -128,6 +131,7 @@ import { formatMoney, formatDate, formatDateTime, formatQty } from '@/utils/show
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
 const props = defineProps({
+    accounting: { type: Array, default: null },
     receipt: {
         type: Object,
         required: true,

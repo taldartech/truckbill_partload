@@ -45,6 +45,19 @@
                                     <option value="TBB">TBB</option>
                                     <option value="FOC">FOC</option>
                                 </select>
+                                <div v-if="isPaid" class="d-flex gap-1 mt-1">
+                                    <select class="form-select form-select-sm" v-model="form.payment_mode" @change="onPaymentModeChange" aria-label="Received in">
+                                        <option value="">Received in</option>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Bank">Bank</option>
+                                    </select>
+                                    <select v-if="form.payment_mode === 'Bank'" class="form-select form-select-sm" v-model="form.bank_account_id" aria-label="Bank account">
+                                        <option value="">Select bank</option>
+                                        <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">{{ bank.name }}</option>
+                                    </select>
+                                </div>
+                                <div v-if="form.errors.payment_mode" class="text-danger small">{{ form.errors.payment_mode }}</div>
+                                <div v-if="form.errors.bank_account_id" class="text-danger small">{{ form.errors.bank_account_id }}</div>
                             </div>
                             <div class="bilty-field">
                                 <label class="bilty-field__label">From Station<span class="bilty-field__req">*</span></label>
@@ -428,6 +441,11 @@
                                                 <option value="Bank">Bank</option>
                                             </select>
                                             <div v-if="form.errors.advance_payment_mode" class="text-danger small">{{ form.errors.advance_payment_mode }}</div>
+                                            <select v-if="form.advance_payment_mode === 'Bank'" class="form-select form-select-sm mt-1" v-model="form.advance_bank_account_id" aria-label="Advance bank account">
+                                                <option value="">Select bank</option>
+                                                <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">{{ bank.name }}</option>
+                                            </select>
+                                            <div v-if="form.errors.advance_bank_account_id" class="text-danger small">{{ form.errors.advance_bank_account_id }}</div>
                                         </div>
                                     </div>
                                     <div class="bilty-total">
@@ -597,6 +615,7 @@ const props = defineProps({
     bilty: Object,
     parties: Array,
     cartageAccounts: Array,
+    bankAccounts: { type: Array, default: () => [] },
     stations: Array,
     goods: Array,
     package_types: Array,
@@ -700,6 +719,8 @@ const form = useForm({
     bilty_number: props.bilty.bilty_number || '',
     date: props.bilty.date || new Date().toISOString().substr(0, 10),
     payment_type: props.bilty.payment_type || 'To Pay',
+    payment_mode: props.bilty.payment_mode || '',
+    bank_account_id: props.bilty.bank_account_id || '',
 
     // Details Grid
     details: initialDetails,
@@ -726,11 +747,33 @@ const form = useForm({
     addon_charges: initialAddonCharges,
     less_advance_received: props.bilty.less_advance_received || 0,
     advance_payment_mode: props.bilty.advance_payment_mode || '',
+    advance_bank_account_id: props.bilty.advance_bank_account_id || '',
     amount: props.bilty.amount || 0,
     status: props.bilty.status || 'Pending'
 });
 
+const bankAccounts = computed(() => props.bankAccounts || []);
 const isTbb = computed(() => form.payment_type === 'TBB');
+const isPaid = computed(() => form.payment_type === 'Paid');
+
+watch(() => form.payment_type, (type) => {
+    if (type !== 'Paid') {
+        form.payment_mode = '';
+        form.bank_account_id = '';
+    }
+});
+
+watch(() => form.advance_payment_mode, (mode) => {
+    if (mode !== 'Bank') {
+        form.advance_bank_account_id = '';
+    }
+});
+
+const onPaymentModeChange = () => {
+    if (form.payment_mode !== 'Bank') {
+        form.bank_account_id = '';
+    }
+};
 
 const filteredAgents = computed(() => {
     if (!form.to_station_id) {

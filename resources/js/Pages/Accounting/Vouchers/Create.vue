@@ -25,6 +25,20 @@
                         </div>
                     </div>
                     <div class="bilty-section__body">
+                        <div v-if="templates.length" class="mb-2 d-flex flex-wrap gap-1 align-items-center">
+                            <span class="bilty-field__label me-1 mb-0">Quick templates:</span>
+                            <button
+                                v-for="template in templates"
+                                :key="template.key"
+                                type="button"
+                                class="btn btn-sm py-0"
+                                :class="form.template === template.key ? 'btn-primary' : 'btn-outline-primary'"
+                                @click="applyTemplate(template)"
+                            >
+                                {{ template.label }}
+                            </button>
+                            <button v-if="form.template" type="button" class="btn btn-sm btn-link py-0" @click="clearTemplate">Clear</button>
+                        </div>
                         <div class="bilty-form-grid bilty-form-grid--4">
                             <div class="bilty-field">
                                 <label class="bilty-field__label">Voucher Type<span class="bilty-field__req">*</span></label>
@@ -73,7 +87,7 @@
                                     <tr v-for="(entry, index) in form.entries" :key="index" class="bg-white">
                                         <td class="text-center align-middle">{{ index + 1 }}</td>
                                         <td>
-                                            <AccountSelect v-model="entry.account_id" :accounts="accounts" />
+                                            <AccountSelect v-model="entry.account_id" :accounts="accounts" :placeholder="entry.hint || 'Select account'" />
                                         </td>
                                         <td>
                                             <input
@@ -164,6 +178,8 @@ const props = defineProps({
     voucherTypes: Array,
     accounts: Array,
     defaults: Object,
+    templates: { type: Array, default: () => [] },
+    activeTemplate: { type: String, default: null },
 });
 
 const emptyLine = () => ({ account_id: '', debit: '', credit: '', narration: '' });
@@ -173,8 +189,33 @@ const form = useForm({
     date: props.defaults?.date || new Date().toISOString().slice(0, 10),
     voucher_number: '',
     narration: '',
+    template: null,
     entries: [emptyLine(), emptyLine()],
 });
+
+function applyTemplate(template) {
+    const amount = form.entries.reduce((max, e) => Math.max(max, parseFloat(e.debit) || 0, parseFloat(e.credit) || 0), 0) || '';
+
+    form.template = template.key;
+    form.voucher_type = template.voucher_type;
+    form.narration = template.narration;
+    form.entries = template.lines.map((line) => ({
+        account_id: line.account_id || '',
+        debit: line.side === 'debit' ? amount : '',
+        credit: line.side === 'credit' ? amount : '',
+        narration: '',
+        hint: line.narration ? `Select ${line.narration}` : '',
+    }));
+}
+
+function clearTemplate() {
+    form.template = null;
+}
+
+const initialTemplate = props.templates.find((t) => t.key === props.activeTemplate);
+if (initialTemplate) {
+    applyTemplate(initialTemplate);
+}
 
 const totalDebit = computed(() => form.entries.reduce((s, e) => s + (parseFloat(e.debit) || 0), 0));
 const totalCredit = computed(() => form.entries.reduce((s, e) => s + (parseFloat(e.credit) || 0), 0));

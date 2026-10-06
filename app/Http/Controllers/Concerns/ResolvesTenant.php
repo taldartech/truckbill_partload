@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Concerns;
 
 use App\Models\Branch;
 use App\Services\TenantContext;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 
 trait ResolvesTenant
 {
@@ -32,5 +34,13 @@ trait ResolvesTenant
     protected function activeBranch(): ?Branch
     {
         return $this->tenant()->activeBranch();
+    }
+
+    /**
+     * An `exists` rule limited to rows of the active company.
+     */
+    protected function existsInCompany(string $table, string $column = 'id'): Exists
+    {
+        return Rule::exists($table, $column)->where('company_id', (int) ($this->tenant()->activeCompanyId() ?? 0));
     }
 }

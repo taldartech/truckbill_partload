@@ -5,14 +5,15 @@ namespace App\Services\Accounting;
 use App\Models\Company;
 use App\Models\FinancialYear;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
+use Illuminate\Validation\ValidationException;
 
 class FinancialYearService
 {
     /**
-     * Ensure the Indian FY covering $around exists, is marked current, and
-     * past years are closed by calendar date (ends_on before today).
+     * Ensure the Indian FY covering $around exists and is marked current.
+     * Closing a year is a manual action; dates never close a year on their own.
      */
     public function ensureCurrent(Company|int $company, ?Carbon $around = null): FinancialYear
     {
@@ -20,6 +21,7 @@ class FinancialYearService
         $around ??= now();
 
         $existing = FinancialYear::query()
+            ->withoutGlobalScopes()
             ->where('company_id', $companyId)
             ->whereDate('starts_on', '<=', $around->toDateString())
             ->whereDate('ends_on', '>=', $around->toDateString())
@@ -29,7 +31,7 @@ class FinancialYearService
             $existing = $this->createIndianFinancialYear($companyId, $around);
         }
 
-        $this->syncStatusByDate($companyId, $existing);
+        $this->syncCurrentFlag($companyId, $existing);
 
         return $existing->fresh();
     }
@@ -43,6 +45,7 @@ class FinancialYearService
         $carbon = Carbon::parse($date);
 
         $fy = FinancialYear::query()
+            ->withoutGlobalScopes()
             ->where('company_id', $companyId)
             ->whereDate('starts_on', '<=', $carbon->toDateString())
             ->whereDate('ends_on', '>=', $carbon->toDateString())
@@ -50,14 +53,8 @@ class FinancialYearService
 
         if (! $fy) {
             $fy = $this->createIndianFinancialYear($companyId, $carbon);
+            $this->syncCurrentFlag($companyId);
         }
-
-        $current = null;
-        if ($fy->containsDate(now())) {
-            $current = $fy;
-        }
-
-        $this->syncStatusByDate($companyId, $current);
 
         return $fy->fresh();
     }
@@ -66,7 +63,7 @@ class FinancialYearService
     {
         [$startsOn, $endsOn, $name] = $this->indianYearBounds($around);
 
-        return FinancialYear::query()->firstOrCreate(
+        return FinancialYear::query()->withoutGlobalScopes()->firstOrCreate(
             [
                 'company_id' => $companyId,
                 'starts_on' => $startsOn->toDateString(),
@@ -75,32 +72,55 @@ class FinancialYearService
             [
                 'name' => $name,
                 'is_current' => false,
-                'is_closed' => $endsOn->toDateString() < now()->toDateString(),
+                'is_closed' => false,
             ],
         );
     }
 
+    /**
+     * @throws ValidationException
+     */
     public function assertOpen(FinancialYear $financialYear): void
     {
-        if ($this->isClosedByDate($financialYear) || $financialYear->is_closed) {
-            throw new InvalidArgumentException('Financial year is closed.');
+        if ($financialYear->is_closed) {
+            throw ValidationException::withMessages([
+                'financial_year_id' => "Financial year {$financialYear->name} is closed. Reopen it before posting or changing entries.",
+            ]);
         }
     }
 
-    public function isClosedByDate(FinancialYear $financialYear): bool
+    public function close(FinancialYear $financialYear, ?int $userId = null): FinancialYear
     {
-        return $financialYear->ends_on->toDateString() < now()->toDateString();
+        $financialYear->update([
+            'is_closed' => true,
+            'closed_by' => $userId ?? Auth::id(),
+            'closed_at' => now(),
+        ]);
+
+        return $financialYear->fresh();
+    }
+
+    public function reopen(FinancialYear $financialYear): FinancialYear
+    {
+        $financialYear->update([
+            'is_closed' => false,
+            'closed_by' => null,
+            'closed_at' => null,
+        ]);
+
+        return $financialYear->fresh();
     }
 
     /**
-     * Mark past years closed and the active year (covering today) open + current.
+     * Mark the year covering today (or $preferredCurrent) as current; never touches is_closed.
      */
-    public function syncStatusByDate(int $companyId, ?FinancialYear $preferredCurrent = null): void
+    public function syncCurrentFlag(int $companyId, ?FinancialYear $preferredCurrent = null): void
     {
         $today = now()->toDateString();
 
         DB::transaction(function () use ($companyId, $preferredCurrent, $today) {
             $years = FinancialYear::query()
+                ->withoutGlobalScopes()
                 ->where('company_id', $companyId)
                 ->orderBy('starts_on')
                 ->get();
@@ -114,19 +134,10 @@ class FinancialYearService
             }
 
             foreach ($years as $fy) {
-                $shouldClose = $fy->ends_on->toDateString() < $today;
                 $shouldBeCurrent = $current && $fy->is($current);
 
-                $updates = [];
-                if ((bool) $fy->is_closed !== $shouldClose) {
-                    $updates['is_closed'] = $shouldClose;
-                }
                 if ((bool) $fy->is_current !== $shouldBeCurrent) {
-                    $updates['is_current'] = $shouldBeCurrent;
-                }
-
-                if ($updates !== []) {
-                    $fy->update($updates);
+                    $fy->update(['is_current' => $shouldBeCurrent]);
                 }
             }
         });

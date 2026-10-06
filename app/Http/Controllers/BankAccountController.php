@@ -95,12 +95,15 @@ class BankAccountController extends Controller implements HasMiddleware
         return redirect()->back()->with('success', 'Bank account updated successfully.');
     }
 
-    public function destroy(BankAccount $bankAccount)
+    public function destroy(BankAccount $bankAccount, EntityAccountLinker $linker)
     {
-        $bankAccount->update([
-            'delete_remark' => request('delete_remark'),
-            'deleted_by' => Auth::id(), ]);
-        $bankAccount->delete();
+        DB::transaction(function () use ($bankAccount, $linker) {
+            $bankAccount->update([
+                'delete_remark' => request('delete_remark'),
+                'deleted_by' => Auth::id(), ]);
+            $linker->deactivateBankAccount($bankAccount);
+            $bankAccount->delete();
+        });
 
         return redirect()->route('bank-accounts.index')->with('success', 'Bank account deleted successfully.');
     }

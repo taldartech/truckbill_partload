@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Services\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 
 class BiltyRequest extends FormRequest
 {
@@ -66,6 +67,13 @@ class BiltyRequest extends FormRequest
         if ($lessAdvanceReceived <= 0) {
             $advancePaymentMode = null;
         }
+        $advanceBankAccountId = $advancePaymentMode === 'Bank' ? $this->input('advance_bank_account_id') : null;
+
+        $paymentMode = $this->input('payment_type') === 'Paid' ? $this->input('payment_mode') : null;
+        if (in_array($paymentMode, ['cash', 'bank'], true)) {
+            $paymentMode = $paymentMode === 'cash' ? 'Cash' : 'Bank';
+        }
+        $bankAccountId = $paymentMode === 'Bank' ? $this->input('bank_account_id') : null;
 
         $context = app(TenantContext::class);
 
@@ -75,6 +83,9 @@ class BiltyRequest extends FormRequest
             'cartage_type' => $cartageType,
             'cartage_account_id' => $cartageAccountId,
             'advance_payment_mode' => $advancePaymentMode,
+            'advance_bank_account_id' => $advanceBankAccountId ?: null,
+            'payment_mode' => $paymentMode ?: null,
+            'bank_account_id' => $bankAccountId ?: null,
             'addon_charges' => empty($addonCharges) ? null : $addonCharges,
             'eway_bills' => empty($ewayBills) ? null : $ewayBills,
         ]);
@@ -119,12 +130,15 @@ class BiltyRequest extends FormRequest
             'risk_dd_charge' => 'nullable|numeric|min:0',
             'cartage' => 'nullable|numeric|min:0',
             'cartage_type' => 'nullable|string|in:Cash,Due,cash,due',
-            'cartage_account_id' => 'nullable|exists:accounts,id',
+            'cartage_account_id' => ['nullable', Rule::exists('accounts', 'id')->where('company_id', (int) $this->input('company_id'))],
             'addon_charges' => 'nullable|array',
             'addon_charges.*.particulars' => 'nullable|string|max:255|required_with:addon_charges.*.amount',
             'addon_charges.*.amount' => 'nullable|numeric|min:0',
             'less_advance_received' => 'nullable|numeric|min:0',
             'advance_payment_mode' => 'nullable|string|in:Cash,Bank,cash,bank',
+            'advance_bank_account_id' => ['nullable', 'required_if:advance_payment_mode,Bank', $this->companyBankAccountRule()],
+            'payment_mode' => 'nullable|required_if:payment_type,Paid|string|in:Cash,Bank',
+            'bank_account_id' => ['nullable', 'required_if:payment_mode,Bank', $this->companyBankAccountRule()],
             'gst' => 'nullable|numeric|min:0|max:100',
             'cgst' => 'nullable|numeric|min:0|max:100',
             'sgst' => 'nullable|numeric|min:0|max:100',
@@ -161,6 +175,13 @@ class BiltyRequest extends FormRequest
                 'min:0',
             ],
         ];
+    }
+
+    private function companyBankAccountRule(): Exists
+    {
+        return Rule::exists('bank_accounts', 'id')
+            ->where('company_id', (int) $this->input('company_id'))
+            ->whereNull('deleted_at');
     }
 
     public function withValidator($validator): void
@@ -213,6 +234,12 @@ class BiltyRequest extends FormRequest
             'addon_charges.*.amount.min' => 'Addon charge amount cannot be negative.',
             'less_advance_received.min' => 'Less advance received cannot be negative.',
             'advance_payment_mode.in' => 'Advance payment mode must be Cash or Bank.',
+            'advance_bank_account_id.required_if' => 'Please select the bank account the advance was received in.',
+            'advance_bank_account_id.exists' => 'Selected bank account is invalid.',
+            'payment_mode.required_if' => 'Please select whether the paid amount was received in Cash or Bank.',
+            'payment_mode.in' => 'Payment mode must be Cash or Bank.',
+            'bank_account_id.required_if' => 'Please select the bank account the payment was received in.',
+            'bank_account_id.exists' => 'Selected bank account is invalid.',
             'gst.min' => 'GST cannot be negative.',
             'gst.max' => 'GST cannot be more than 100%.',
             'cgst.max' => 'CGST cannot be more than 100%.',

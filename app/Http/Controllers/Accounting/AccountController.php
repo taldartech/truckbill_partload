@@ -68,7 +68,7 @@ class AccountController extends Controller implements HasMiddleware
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'code' => ['nullable', 'string', 'max:50'],
-            'account_group_id' => ['required', 'exists:account_groups,id'],
+            'account_group_id' => ['required', $this->existsInCompany('account_groups')],
             'is_active' => ['boolean'],
             'is_selectable' => ['boolean'],
         ]);
@@ -88,7 +88,7 @@ class AccountController extends Controller implements HasMiddleware
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'code' => ['nullable', 'string', 'max:50'],
-            'account_group_id' => ['required', 'exists:account_groups,id'],
+            'account_group_id' => ['required', $this->existsInCompany('account_groups')],
             'is_active' => ['boolean'],
             'is_selectable' => ['boolean'],
         ]);

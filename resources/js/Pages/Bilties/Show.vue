@@ -131,6 +131,8 @@
                             </div>
                         </div>
                     </ShowSection>
+
+                    <AccountingPanel v-if="accounting" :vouchers="accounting" />
                 </div>
 
                 <ShowSidebar>
@@ -171,11 +173,13 @@ import { computed } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import BiltyPrintButton from '@/Components/BiltyPrintButton.vue';
+import AccountingPanel from '@/Components/Accounting/AccountingPanel.vue';
 import ShowSection from '@/Components/Show/ShowSection.vue';
 import ShowFieldGrid from '@/Components/Show/ShowFieldGrid.vue';
 import ShowSidebar from '@/Components/Show/ShowSidebar.vue';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 const props = defineProps({
+    accounting: { type: Array, default: null },
     bilty: {
         type: Object,
         required: true,

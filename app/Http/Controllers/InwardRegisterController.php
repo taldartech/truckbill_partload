@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\SharesAccountingPanel;
 use App\Models\Agent;
 use App\Models\Good;
 use App\Models\InwardRegister;
@@ -20,6 +21,8 @@ use Inertia\Inertia;
 
 class InwardRegisterController extends Controller implements HasMiddleware
 {
+    use SharesAccountingPanel;
+
     public static function middleware(): array
     {
         return [
@@ -136,6 +139,7 @@ class InwardRegisterController extends Controller implements HasMiddleware
 
         return Inertia::render('InwardRegisters/Show', [
             'register' => $inwardRegister,
+            'accounting' => $this->accountingPanel($inwardRegister),
         ]);
     }
 

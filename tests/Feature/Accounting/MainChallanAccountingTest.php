@@ -4,6 +4,7 @@ namespace Tests\Feature\Accounting;
 
 use App\Models\AccountingVoucher;
 use App\Models\Agent;
+use App\Models\Bilty;
 use App\Models\Branch;
 use App\Models\Challan;
 use App\Models\City;
@@ -11,6 +12,7 @@ use App\Models\Company;
 use App\Models\CompanySubscription;
 use App\Models\Country;
 use App\Models\MainChallan;
+use App\Models\Party;
 use App\Models\State;
 use App\Models\Station;
 use App\Models\Truck;
@@ -26,12 +28,13 @@ class MainChallanAccountingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_store_saves_edited_charges_and_posts_payable_to_agent(): void
+    public function test_store_saves_edited_charges_and_posts_itemised_settlement(): void
     {
         $context = $this->context();
 
         $this->actingAs($context['user'])
             ->post(route('main-challans.store'), $this->payload($context, [
+                'to_pay_amount' => 5000,
                 'labour_charge' => 150,
                 'kat' => 25,
                 'home_delivery_charge' => 40,
@@ -54,24 +57,31 @@ class MainChallanAccountingTest extends TestCase
         $voucher = $this->postedVoucherFor($mainChallan);
         $this->assertNotNull($voucher);
         $this->assertSame('Main Challan MCH-ACC-1 agent settlement', $voucher->narration);
+        $this->assertSame('main_challan.agent_settlement', $voucher->event_key);
 
-        $expense = app(ChartOfAccountsService::class)->systemAccount($context['company']->id, 'agent_challan_expense');
-        $this->assertVoucherLine($voucher, $expense->id, 1685, 0);
-        $this->assertVoucherLine($voucher, $context['agentAccount']->id, 0, 1685);
+        $this->assertAccountNet($voucher, $context['agentAccount']->id, 1685);
+        $this->assertAccountNet($voucher, $this->systemAccountId($context, 'freight_income'), -5000);
+        $this->assertAccountNet($voucher, $this->systemAccountId($context, 'labour_expense'), 150);
+        $this->assertAccountNet($voucher, $this->systemAccountId($context, 'kat_expense'), 25);
+        $this->assertAccountNet($voucher, $this->systemAccountId($context, 'home_delivery_expense'), 40);
+        $this->assertAccountNet($voucher, $this->systemAccountId($context, 'truck_hire_expense'), 3000);
+        $this->assertAccountNet($voucher, $this->systemAccountId($context, 'cash'), 100);
     }
 
-    public function test_negative_total_posts_receivable_from_agent(): void
+    public function test_negative_total_leaves_agent_in_credit(): void
     {
         $context = $this->context();
 
         $this->actingAs($context['user'])
-            ->post(route('main-challans.store'), $this->payload($context, ['total_amount' => -500]));
+            ->post(route('main-challans.store'), $this->payload($context, [
+                'truck_freight' => 500,
+                'total_amount' => -500,
+            ]));
 
         $voucher = $this->postedVoucherFor(MainChallan::query()->latest('id')->firstOrFail());
-        $income = app(ChartOfAccountsService::class)->systemAccount($context['company']->id, 'agent_challan_income');
 
-        $this->assertVoucherLine($voucher, $context['agentAccount']->id, 500, 0);
-        $this->assertVoucherLine($voucher, $income->id, 0, 500);
+        $this->assertAccountNet($voucher, $context['agentAccount']->id, -500);
+        $this->assertAccountNet($voucher, $this->systemAccountId($context, 'truck_hire_expense'), 500);
     }
 
     public function test_no_voucher_without_agent(): void
@@ -81,6 +91,7 @@ class MainChallanAccountingTest extends TestCase
         $this->actingAs($context['user'])
             ->post(route('main-challans.store'), $this->payload($context, [
                 'pay_by_agent_id' => null,
+                'to_pay_amount' => 900,
                 'total_amount' => 900,
             ]));
 
@@ -89,44 +100,117 @@ class MainChallanAccountingTest extends TestCase
         $this->assertNull($this->postedVoucherFor($mainChallan));
     }
 
+    public function test_update_without_changes_keeps_existing_voucher(): void
+    {
+        $context = $this->context();
+        $payload = $this->payload($context, ['to_pay_amount' => 1000, 'total_amount' => 1000]);
+
+        $this->actingAs($context['user'])->post(route('main-challans.store'), $payload);
+        $mainChallan = MainChallan::query()->latest('id')->firstOrFail();
+        $voucher = $this->postedVoucherFor($mainChallan);
+
+        $this->actingAs($context['user'])
+            ->put(route('main-challans.update', $mainChallan), $payload)
+            ->assertRedirect(route('main-challans.index'));
+
+        $this->assertSame($voucher->id, $this->postedVoucherFor($mainChallan)->id);
+        $this->assertSame(1, AccountingVoucher::query()->where('source_type', MainChallan::class)->count());
+    }
+
     public function test_update_reverses_previous_voucher_and_posts_new_total(): void
     {
         $context = $this->context();
 
         $this->actingAs($context['user'])
-            ->post(route('main-challans.store'), $this->payload($context, ['total_amount' => 1000]));
+            ->post(route('main-challans.store'), $this->payload($context, ['to_pay_amount' => 1000, 'total_amount' => 1000]));
         $mainChallan = MainChallan::query()->latest('id')->firstOrFail();
         $firstVoucher = $this->postedVoucherFor($mainChallan);
 
         $this->actingAs($context['user'])
             ->put(route('main-challans.update', $mainChallan), $this->payload($context, [
+                'to_pay_amount' => 1000,
                 'truck_freight' => 400,
                 'total_amount' => 600,
             ]))
             ->assertRedirect(route('main-challans.index'));
 
         $this->assertTrue($firstVoucher->fresh()->reversals()->exists());
+        $this->assertNotNull($firstVoucher->fresh()->reversed_at);
 
         $newVoucher = $this->postedVoucherFor($mainChallan);
         $this->assertNotSame($firstVoucher->id, $newVoucher->id);
-        $this->assertVoucherLine($newVoucher, $context['agentAccount']->id, 0, 600);
+        $this->assertAccountNet($newVoucher, $context['agentAccount']->id, 600);
         $this->assertEquals(400, $mainChallan->fresh()->truck_freight);
     }
 
-    public function test_destroy_reverses_voucher(): void
+    public function test_destroy_soft_deletes_and_reverses_voucher(): void
     {
         $context = $this->context();
 
         $this->actingAs($context['user'])
-            ->post(route('main-challans.store'), $this->payload($context, ['total_amount' => 1000]));
+            ->post(route('main-challans.store'), $this->payload($context, ['to_pay_amount' => 1000, 'total_amount' => 1000]));
         $mainChallan = MainChallan::query()->latest('id')->firstOrFail();
         $voucher = $this->postedVoucherFor($mainChallan);
 
         $this->actingAs($context['user'])
-            ->delete(route('main-challans.destroy', $mainChallan))
+            ->delete(route('main-challans.destroy', $mainChallan), ['delete_remark' => 'Duplicate'])
             ->assertRedirect(route('main-challans.index'));
 
+        $this->assertSoftDeleted('main_challans', ['id' => $mainChallan->id, 'delete_remark' => 'Duplicate']);
         $this->assertTrue($voucher->fresh()->reversals()->exists());
+        $this->assertSame($voucher->date->toDateString(), $voucher->fresh()->reversals()->first()->date->toDateString());
+    }
+
+    public function test_main_challan_cannot_settle_challan_already_settled_with_agent(): void
+    {
+        $context = $this->context();
+        $context['challan']->update(['pay_by_agent_id' => $context['agent']->id]);
+
+        $this->actingAs($context['user'])
+            ->post(route('main-challans.store'), $this->payload($context, ['to_pay_amount' => 1000, 'total_amount' => 1000]))
+            ->assertSessionHasErrors('pay_by_agent_id');
+
+        $this->assertSame(0, MainChallan::query()->count());
+    }
+
+    public function test_challan_cannot_settle_with_agent_once_main_challan_settles_it(): void
+    {
+        $context = $this->context();
+
+        $this->actingAs($context['user'])
+            ->post(route('main-challans.store'), $this->payload($context, ['to_pay_amount' => 1000, 'total_amount' => 1000]))
+            ->assertSessionHasNoErrors();
+
+        $party = Party::create(['company_id' => $context['company']->id, 'name' => 'Challan Party']);
+        $bilty = Bilty::create([
+            'company_id' => $context['company']->id,
+            'branch_id' => $context['challan']->branch_id,
+            'consignor_id' => $party->id,
+            'consignee_id' => $party->id,
+            'bilty_number' => 'BLT-MC-1',
+            'date' => now()->toDateString(),
+            'from_station_id' => $context['fromStation']->id,
+            'to_station_id' => $context['toStation']->id,
+            'payment_type' => 'To Pay',
+            'freight' => 100,
+            'amount' => 100,
+            'status' => 'Pending',
+        ]);
+
+        $this->actingAs($context['user'])
+            ->put(route('challans.update', $context['challan']), [
+                'from_station_id' => $context['fromStation']->id,
+                'to_station_id' => $context['toStation']->id,
+                'driver_name' => 'Acc Driver',
+                'truck_id' => $context['truck']->id,
+                'pay_by_agent_id' => $context['agent']->id,
+                'to_pay_amount' => 100,
+                'total_amount' => 100,
+                'details' => [['bilty_id' => $bilty->id]],
+            ])
+            ->assertSessionHasErrors('pay_by_agent_id');
+
+        $this->assertNull($context['challan']->fresh()->pay_by_agent_id);
     }
 
     public function test_print_shows_total_with_account_name(): void
@@ -156,13 +240,23 @@ class MainChallanAccountingTest extends TestCase
             ->first();
     }
 
-    private function assertVoucherLine(AccountingVoucher $voucher, int $accountId, float $debit, float $credit): void
+    /**
+     * Asserts debit minus credit across all of the voucher's lines for one account.
+     */
+    private function assertAccountNet(AccountingVoucher $voucher, int $accountId, float $expectedNet): void
     {
-        $line = $voucher->entries->firstWhere('account_id', $accountId);
+        $lines = $voucher->entries->where('account_id', $accountId);
 
-        $this->assertNotNull($line, "Missing voucher line for account {$accountId}.");
-        $this->assertEquals($debit, (float) $line->debit);
-        $this->assertEquals($credit, (float) $line->credit);
+        $this->assertNotEmpty($lines, "Missing voucher line for account {$accountId}.");
+        $this->assertEquals($expectedNet, round((float) $lines->sum('debit') - (float) $lines->sum('credit'), 2));
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     */
+    private function systemAccountId(array $context, string $systemKey): int
+    {
+        return app(ChartOfAccountsService::class)->systemAccount($context['company']->id, $systemKey)->id;
     }
 
     /**

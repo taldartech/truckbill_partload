@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\SharesAccountingPanel;
 use App\Http\Requests\BiltyRequest;
 use App\Models\Account;
 use App\Models\Agent;
+use App\Models\BankAccount;
 use App\Models\Bilty;
 use App\Models\Branch;
 use App\Models\Company;
@@ -27,6 +29,7 @@ use Inertia\Inertia;
 class BiltyController extends Controller implements HasMiddleware
 {
     use RedirectsWithOptionalPrint;
+    use SharesAccountingPanel;
 
     public static function middleware(): array
     {
@@ -95,6 +98,7 @@ class BiltyController extends Controller implements HasMiddleware
         return Inertia::render('Bilties/Create', [
             'parties' => $this->partyOptions(),
             'cartageAccounts' => Account::query()->selectable()->with('accountGroup:id,name')->orderBy('name')->get()->map->toSelectOption(),
+            'bankAccounts' => BankAccount::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'stations' => $this->stationOptions(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
@@ -134,6 +138,7 @@ class BiltyController extends Controller implements HasMiddleware
             }
 
             $this->syncEwayBills($bilty, $ewayBills);
+            $this->storeGstBreakdown($bilty);
             $bridge->sync($bilty);
 
             return $bilty;
@@ -166,6 +171,7 @@ class BiltyController extends Controller implements HasMiddleware
 
         return Inertia::render('Bilties/Show', [
             'bilty' => $bilty,
+            'accounting' => $this->accountingPanel($bilty),
         ]);
     }
 
@@ -178,6 +184,7 @@ class BiltyController extends Controller implements HasMiddleware
             'bilty' => $bilty,
             'parties' => $this->partyOptions(),
             'cartageAccounts' => Account::query()->selectable()->with('accountGroup:id,name')->orderBy('name')->get()->map->toSelectOption(),
+            'bankAccounts' => BankAccount::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'stations' => $this->stationOptions(),
             'goods' => Good::all(),
             'package_types' => PackageType::all(),
@@ -214,6 +221,7 @@ class BiltyController extends Controller implements HasMiddleware
             }
 
             $this->syncEwayBills($bilty, $ewayBills);
+            $this->storeGstBreakdown($bilty);
             $bridge->sync($bilty->fresh());
         });
 
@@ -298,13 +306,10 @@ class BiltyController extends Controller implements HasMiddleware
         $lessAdvance = (float) ($bilty->less_advance_received ?? 0);
         $subtotal = $chargeBase - $lessAdvance;
 
-        $gstRate = $bilty->gst_liability_by === 'Exempted' ? 0 : (float) ($bilty->gst ?? 0);
-        $exemptionLimit = (float) ($bilty->branch?->gst_exemption_limit ?? 0);
-        if ($chargeBase <= $exemptionLimit) {
-            $gstRate = 0;
-        }
-        $gstAmount = $chargeBase * ($gstRate / 100);
-        $gstInTotal = $bilty->gst_liability_by === 'Transporter' ? $gstAmount : 0.0;
+        $breakdown = $bilty->gstBreakdown();
+        $gstRate = $breakdown['gst_rate'];
+        $gstAmount = $breakdown['gst_amount'];
+        $gstInTotal = $breakdown['gst_in_total'];
         $totalAmount = (float) ($bilty->amount ?? ($chargeBase + $gstInTotal - $lessAdvance));
 
         $charges = [];
@@ -571,6 +576,23 @@ class BiltyController extends Controller implements HasMiddleware
                 ];
             })
             ->values();
+    }
+
+    /**
+     * The server-side calculation is authoritative for the stored total and GST amounts.
+     */
+    private function storeGstBreakdown(Bilty $bilty): void
+    {
+        $breakdown = $bilty->gstBreakdown();
+
+        $bilty->forceFill([
+            'charges_total' => $breakdown['charges_total'],
+            'gst_amount' => $breakdown['gst_amount'],
+            'cgst_amount' => $breakdown['cgst_amount'],
+            'sgst_amount' => $breakdown['sgst_amount'],
+            'igst_amount' => $breakdown['igst_amount'],
+            'amount' => $breakdown['amount'],
+        ])->save();
     }
 
     private function defaultGstPercent(?Branch $branch): float

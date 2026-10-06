@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Accounting\ChartOfAccountsService;
 use App\Services\TenantContext;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -12,6 +13,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(TenantContext::class);
+        $this->app->scoped(ChartOfAccountsService::class);
     }
 
     public function boot(): void

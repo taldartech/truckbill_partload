@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Accounting;
 
-use App\Models\AccountingVoucher;
 use App\Models\Branch;
 use App\Models\City;
 use App\Models\Company;
@@ -13,6 +12,7 @@ use App\Models\Party;
 use App\Models\State;
 use App\Models\Station;
 use App\Models\User;
+use App\Services\Accounting\ChartOfAccountsService;
 use App\Services\Accounting\EnsureCompanyAccounting;
 use App\Services\Accounting\EntityAccountLinker;
 use App\Services\Accounting\OperationalAccountingBridge;
@@ -41,14 +41,15 @@ class OperationalBridgeTest extends TestCase
             'net_amount' => 1500,
         ]);
 
-        $voucher = app(OperationalAccountingBridge::class)->sync($invoice);
-        $this->assertNotNull($voucher);
+        $bridge = app(OperationalAccountingBridge::class);
+        $this->assertSame(1, $bridge->sync($invoice));
+        $voucher = $bridge->activeVouchers($invoice)->sole();
         $this->assertSame(2, $voucher->entries()->count());
         $this->assertEquals(1500.0, (float) $voucher->entries->sum('debit'));
         $this->assertEquals(1500.0, (float) $voucher->entries->sum('credit'));
     }
 
-    public function test_invoice_skips_when_party_accounting_disabled(): void
+    public function test_invoice_for_party_without_accounting_posts_to_unlinked_debtors(): void
     {
         [$company, $branch, $party] = $this->context();
         app(EnsureCompanyAccounting::class)->handle($company);
@@ -63,9 +64,14 @@ class OperationalBridgeTest extends TestCase
             'net_amount' => 1500,
         ]);
 
-        $voucher = app(OperationalAccountingBridge::class)->sync($invoice);
-        $this->assertNull($voucher);
-        $this->assertSame(0, AccountingVoucher::query()->count());
+        $this->assertSame(1, app(OperationalAccountingBridge::class)->sync($invoice));
+
+        $unlinked = app(ChartOfAccountsService::class)->systemAccount($company->id, 'sundry_debtors_unlinked');
+        $voucher = app(OperationalAccountingBridge::class)->activeVouchers($invoice)->sole();
+        $line = $voucher->entries->firstWhere('account_id', $unlinked->id);
+
+        $this->assertNotNull($line);
+        $this->assertEquals(1500, (float) $line->debit);
     }
 
     /**

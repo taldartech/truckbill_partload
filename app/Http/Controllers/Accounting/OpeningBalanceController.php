@@ -49,7 +49,7 @@ class OpeningBalanceController extends Controller implements HasMiddleware
             'date' => ['required', 'date'],
             'narration' => ['nullable', 'string', 'max:2000'],
             'entries' => ['required', 'array', 'min:2'],
-            'entries.*.account_id' => ['required', 'integer', 'exists:accounts,id'],
+            'entries.*.account_id' => ['required', 'integer', $this->existsInCompany('accounts')],
             'entries.*.debit' => ['nullable', 'numeric', 'min:0'],
             'entries.*.credit' => ['nullable', 'numeric', 'min:0'],
         ]);

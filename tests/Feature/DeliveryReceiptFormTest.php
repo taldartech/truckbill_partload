@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AccountingVoucherType;
 use App\Models\Branch;
 use App\Models\City;
 use App\Models\Company;
@@ -15,6 +16,9 @@ use App\Models\Party;
 use App\Models\State;
 use App\Models\Station;
 use App\Models\User;
+use App\Services\Accounting\ChartOfAccountsService;
+use App\Services\Accounting\FinancialYearService;
+use App\Services\Accounting\OperationalAccountingBridge;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -136,6 +140,82 @@ class DeliveryReceiptFormTest extends TestCase
         $this->assertFalse(array_key_exists('office_name', $receipt->getAttributes()));
     }
 
+    public function test_collection_voucher_follows_store_update_and_delete(): void
+    {
+        $context = $this->createContext();
+        $payload = [
+            'delivery_receipt_no' => 'DR/2001',
+            'date' => now()->toDateString(),
+            'gr_no_bilty_no' => $context['inward_detail']->gr_no,
+            'mode_of_payment' => 'Cash',
+            'consignee_id' => $context['consignee']->id,
+            'freight' => 1000,
+            'handling_charge' => 50,
+            'delivery_charge' => 100,
+            'demurrage' => 25,
+            'gst_on' => 'total_charge',
+            'gst_pay_by' => 'Transporter',
+            'less' => 10,
+            'final_amount' => 1,
+        ];
+
+        $this->actingAs($context['user'])->post(route('delivery-receipts.store'), $payload)
+            ->assertRedirect(route('delivery-receipts.index'));
+
+        $receipt = DeliveryReceipt::query()->where('delivery_receipt_no', 'DR/2001')->firstOrFail();
+        $bridge = app(OperationalAccountingBridge::class);
+        $voucher = $bridge->activeVouchers($receipt)->sole();
+        $chart = app(ChartOfAccountsService::class);
+        $companyId = $receipt->company_id;
+        $net = fn (string $key) => round((float) $voucher->entries->where('account_id', $chart->systemAccount($companyId, $key)->id)->sum(fn ($e) => $e->debit - $e->credit), 2);
+
+        $this->assertSame(AccountingVoucherType::Receipt, $voucher->voucher_type);
+        $this->assertEquals((float) $receipt->final_amount, $net('cash'));
+        $this->assertEquals(10, $net('discount_allowed'));
+        $this->assertEquals(-1000, $net('freight_income'));
+        $this->assertEquals(-150, $net('delivery_charges_income'));
+        $this->assertEquals(-25, $net('demurrage_income'));
+        $this->assertEquals(-(float) $receipt->gst, $net('gst_output_cgst') + $net('gst_output_sgst'));
+
+        $this->actingAs($context['user'])->put(route('delivery-receipts.update', $receipt), $payload);
+        $this->assertSame($voucher->id, $bridge->activeVouchers($receipt)->sole()->id);
+
+        $this->actingAs($context['user'])->put(route('delivery-receipts.update', $receipt), [...$payload, 'demurrage' => 75]);
+        $this->assertTrue($voucher->fresh()->reversals()->exists());
+        $replacement = $bridge->activeVouchers($receipt)->sole();
+        $this->assertNotSame($voucher->id, $replacement->id);
+
+        $this->actingAs($context['user'])->delete(route('delivery-receipts.destroy', $receipt), ['delete_remark' => 'Wrong GR'])
+            ->assertRedirect(route('delivery-receipts.index'));
+        $this->assertTrue($replacement->fresh()->reversals()->exists());
+        $this->assertCount(0, $bridge->activeVouchers($receipt));
+    }
+
+    public function test_update_in_closed_financial_year_is_rejected_with_validation_error(): void
+    {
+        $context = $this->createContext();
+        $payload = [
+            'delivery_receipt_no' => 'DR/2002',
+            'date' => now()->toDateString(),
+            'gr_no_bilty_no' => $context['inward_detail']->gr_no,
+            'mode_of_payment' => 'Cash',
+            'consignee_id' => $context['consignee']->id,
+            'freight' => 500,
+            'final_amount' => 500,
+        ];
+        $this->actingAs($context['user'])->post(route('delivery-receipts.store'), $payload);
+        $receipt = DeliveryReceipt::query()->where('delivery_receipt_no', 'DR/2002')->firstOrFail();
+
+        $year = app(FinancialYearService::class)->forDate($receipt->company_id, now());
+        app(FinancialYearService::class)->close($year);
+
+        $this->actingAs($context['user'])
+            ->put(route('delivery-receipts.update', $receipt), [...$payload, 'freight' => 900])
+            ->assertSessionHasErrors('financial_year_id');
+
+        $this->assertEquals(500, (float) $receipt->fresh()->freight);
+    }
+
     public function test_create_page_lists_gr_with_consignee_in_label(): void
     {
         $context = $this->createContext();
@@ -159,6 +239,7 @@ class DeliveryReceiptFormTest extends TestCase
         Permission::findOrCreate('view delivery_receipts');
         Permission::findOrCreate('create delivery_receipts');
         Permission::findOrCreate('edit delivery_receipts');
+        Permission::findOrCreate('delete delivery_receipts');
 
         $owner = User::factory()->create();
         $company = Company::create(['name' => 'DR Co', 'user_id' => $owner->id]);
@@ -201,11 +282,10 @@ class DeliveryReceiptFormTest extends TestCase
             'company_id' => $company->id,
             'branch_id' => $branch->id,
         ]);
-        $user->givePermissionTo(['view delivery_receipts', 'create delivery_receipts', 'edit delivery_receipts']);
+        $user->givePermissionTo(['view delivery_receipts', 'create delivery_receipts', 'edit delivery_receipts', 'delete delivery_receipts']);
 
         $consignee = Party::create([
             'company_id' => $company->id,
-            'branch_id' => $branch->id,
             'name' => 'Delivery Consignee',
         ]);
 

@@ -2,89 +2,82 @@
 
 namespace App\Services\Accounting\Reports;
 
-use App\Enums\AccountingVoucherStatus;
-use App\Models\Account;
-use App\Models\AccountingVoucherEntry;
 use Illuminate\Support\Carbon;
 
 class TrialBalanceReport
 {
-    /**
-     * @return array{rows: list<array<string, mixed>>, totals: array{debit: float, credit: float}}
-     */
-    public function build(int $companyId, Carbon|string $from, Carbon|string $to): array
-    {
-        $fromDate = Carbon::parse($from)->toDateString();
-        $toDate = Carbon::parse($to)->toDateString();
+    public function __construct(private AccountTotals $totals) {}
 
-        $accounts = Account::query()
-            ->where('company_id', $companyId)
-            ->with('accountGroup:id,name,nature,parent_id')
-            ->orderBy('name')
-            ->get();
+    /**
+     * @return array{rows: list<array<string, mixed>>, groups: list<array<string, mixed>>, totals: array{debit: float, credit: float, period_debit: float, period_credit: float}}
+     */
+    public function build(int $companyId, Carbon|string $from, Carbon|string $to, ?int $branchId = null): array
+    {
+        $accounts = $this->totals->accounts($companyId);
+        $sums = $this->totals->forPeriod($companyId, $from, $to, $branchId);
 
         $rows = [];
-        $totalDebit = 0.0;
-        $totalCredit = 0.0;
+        $groups = [];
+        $totals = ['debit' => 0.0, 'credit' => 0.0, 'period_debit' => 0.0, 'period_credit' => 0.0];
 
         foreach ($accounts as $account) {
-            $openingDebit = (float) $this->sumBefore($account->id, $fromDate, 'debit');
-            $openingCredit = (float) $this->sumBefore($account->id, $fromDate, 'credit');
-            $periodDebit = (float) $this->sumBetween($account->id, $fromDate, $toDate, 'debit');
-            $periodCredit = (float) $this->sumBetween($account->id, $fromDate, $toDate, 'credit');
+            $sum = $sums->get($account->id);
+            if ($sum === null) {
+                continue;
+            }
 
-            $opening = round($openingDebit - $openingCredit, 2);
-            $closing = round($opening + $periodDebit - $periodCredit, 2);
+            $opening = round($sum['opening_debit'] - $sum['opening_credit'], 2);
+            $closing = round($opening + $sum['debit'] - $sum['credit'], 2);
 
-            if ($opening == 0.0 && $periodDebit == 0.0 && $periodCredit == 0.0) {
+            if ($opening == 0.0 && $sum['debit'] == 0.0 && $sum['credit'] == 0.0) {
                 continue;
             }
 
             $closingDebit = $closing > 0 ? $closing : 0.0;
             $closingCredit = $closing < 0 ? abs($closing) : 0.0;
+            $groupId = $account->account_group_id;
 
             $rows[] = [
                 'account_id' => $account->id,
                 'account_name' => $account->name,
-                'group_id' => $account->account_group_id,
+                'group_id' => $groupId,
                 'group_name' => $account->accountGroup?->name,
                 'nature' => $account->accountGroup?->nature?->value,
                 'opening' => $opening,
-                'debit' => round($periodDebit, 2),
-                'credit' => round($periodCredit, 2),
+                'debit' => $sum['debit'],
+                'credit' => $sum['credit'],
                 'closing_debit' => $closingDebit,
                 'closing_credit' => $closingCredit,
             ];
 
-            $totalDebit += $closingDebit;
-            $totalCredit += $closingCredit;
+            $groups[$groupId] ??= [
+                'group_id' => $groupId,
+                'group_name' => $account->accountGroup?->name,
+                'nature' => $account->accountGroup?->nature?->value,
+                'debit' => 0.0,
+                'credit' => 0.0,
+                'closing_debit' => 0.0,
+                'closing_credit' => 0.0,
+            ];
+            $groups[$groupId]['debit'] = round($groups[$groupId]['debit'] + $sum['debit'], 2);
+            $groups[$groupId]['credit'] = round($groups[$groupId]['credit'] + $sum['credit'], 2);
+            $groups[$groupId]['closing_debit'] = round($groups[$groupId]['closing_debit'] + $closingDebit, 2);
+            $groups[$groupId]['closing_credit'] = round($groups[$groupId]['closing_credit'] + $closingCredit, 2);
+
+            $totals['debit'] += $closingDebit;
+            $totals['credit'] += $closingCredit;
+            $totals['period_debit'] += $sum['debit'];
+            $totals['period_credit'] += $sum['credit'];
         }
+
+        usort($rows, fn (array $a, array $b): int => [$a['group_name'], $a['account_name']] <=> [$b['group_name'], $b['account_name']]);
+        $groups = array_values($groups);
+        usort($groups, fn (array $a, array $b): int => $a['group_name'] <=> $b['group_name']);
 
         return [
             'rows' => $rows,
-            'totals' => [
-                'debit' => round($totalDebit, 2),
-                'credit' => round($totalCredit, 2),
-            ],
+            'groups' => $groups,
+            'totals' => array_map(fn (float $value): float => round($value, 2), $totals),
         ];
-    }
-
-    private function sumBefore(int $accountId, string $beforeDate, string $column): float
-    {
-        return (float) AccountingVoucherEntry::query()
-            ->where('account_id', $accountId)
-            ->whereHas('voucher', fn ($q) => $q->where('status', AccountingVoucherStatus::Posted)->whereDate('date', '<', $beforeDate))
-            ->sum($column);
-    }
-
-    private function sumBetween(int $accountId, string $from, string $to, string $column): float
-    {
-        return (float) AccountingVoucherEntry::query()
-            ->where('account_id', $accountId)
-            ->whereHas('voucher', fn ($q) => $q
-                ->where('status', AccountingVoucherStatus::Posted)
-                ->whereDate('date', '>=', $from)
-                ->whereDate('date', '<=', $to))
-            ->sum($column);
     }
 }

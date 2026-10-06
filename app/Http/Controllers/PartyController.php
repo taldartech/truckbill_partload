@@ -212,7 +212,7 @@ class PartyController extends Controller implements HasMiddleware
             'gst_number' => 'nullable|string|size:15|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
             ...$this->chargeRules($request),
             'consider_for_accounting' => 'sometimes|boolean',
-            'account_group_id' => 'nullable|exists:account_groups,id',
+            'account_group_id' => ['nullable', $this->existsInCompany('account_groups')],
         ];
     }
 

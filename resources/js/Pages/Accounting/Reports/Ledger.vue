@@ -20,6 +20,7 @@
                                 <label class="form-label">End Date</label>
                                 <input type="date" class="form-control form-control-sm" v-model="form.end_date">
                             </div>
+                            <ReportBranchFilter v-model="form.branch_id" :branches="branches" />
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-success btn-sm w-100" :disabled="!form.account_id">Get Ledger</button>
                             </div>
@@ -81,17 +82,18 @@
 
 <script setup>
 import AccountSelect from '@/Components/Accounting/AccountSelect.vue';
+import ReportBranchFilter from '@/Components/Accounting/ReportBranchFilter.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 
-const props = defineProps({
+const props = defineProps({ branches: { type: Array, default: null },
     accounts: Array,
     account: Object,
     ledger: Object,
     filters: Object,
 });
 
-const form = useForm({
+const form = useForm({ branch_id: props.filters?.branch_id || '',
     account_id: props.filters?.account_id || '',
     start_date: props.filters?.start_date,
     end_date: props.filters?.end_date,

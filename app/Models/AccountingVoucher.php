@@ -26,7 +26,24 @@ class AccountingVoucher extends Model
             'voucher_type' => AccountingVoucherType::class,
             'status' => AccountingVoucherStatus::class,
             'cancelled_at' => 'datetime',
+            'reversed_at' => 'datetime',
         ];
+    }
+
+    public function isSystemGenerated(): bool
+    {
+        return $this->source_type !== null;
+    }
+
+    /**
+     * Posted, not itself a reversal, and not yet reversed.
+     */
+    public function isOpenForReversal(): bool
+    {
+        return $this->status === AccountingVoucherStatus::Posted
+            && $this->reversed_voucher_id === null
+            && $this->reversed_at === null
+            && ! $this->reversals()->withoutGlobalScopes()->exists();
     }
 
     public function company(): BelongsTo
@@ -69,9 +86,19 @@ class AccountingVoucher extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
     public function cancelledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function reversedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reversed_by');
     }
 
     public function scopePosted(Builder $query): Builder

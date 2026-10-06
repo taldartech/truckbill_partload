@@ -22,6 +22,7 @@ class EntityAccountLinker
     public function linkedAccount(Model $entity): ?Account
     {
         return Account::query()
+            ->withoutGlobalScopes()
             ->where('company_id', $entity->company_id)
             ->where('reference_type', $entity::class)
             ->where('reference_id', $entity->getKey())
@@ -139,6 +140,40 @@ class EntityAccountLinker
             'reference_id' => $bankAccount->id,
             'bank_account_id' => $bankAccount->id,
         ])->load('accountGroup');
+    }
+
+    public function bankLedger(BankAccount|int|null $bankAccount, int $companyId): ?Account
+    {
+        $bankAccountId = $bankAccount instanceof BankAccount ? $bankAccount->id : $bankAccount;
+
+        if (! $bankAccountId) {
+            return null;
+        }
+
+        return Account::query()
+            ->withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->where('bank_account_id', $bankAccountId)
+            ->first();
+    }
+
+    /**
+     * Hides a deleted bank's ledger from selection; keeps it active when it carries history.
+     */
+    public function deactivateBankAccount(BankAccount $bankAccount): ?Account
+    {
+        $account = $this->bankLedger($bankAccount, (int) $bankAccount->company_id);
+
+        if (! $account) {
+            return null;
+        }
+
+        $account->update([
+            'is_selectable' => false,
+            'is_active' => $account->hasPostedHistory(),
+        ]);
+
+        return $account->fresh();
     }
 
     public function deleteAccountIfSafe(Account $account): bool

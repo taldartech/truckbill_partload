@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\SharesAccountingPanel;
 use App\Models\Agent;
 use App\Models\Challan;
 use App\Models\Company;
@@ -16,11 +17,13 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class MainChallanController extends Controller implements HasMiddleware
 {
     use RedirectsWithOptionalPrint;
+    use SharesAccountingPanel;
 
     public static function middleware(): array
     {
@@ -107,6 +110,7 @@ class MainChallanController extends Controller implements HasMiddleware
 
         return Inertia::render('MainChallans/Show', [
             'main_challan' => $main_challan,
+            'accounting' => $this->accountingPanel($main_challan),
         ]);
     }
 
@@ -162,15 +166,15 @@ class MainChallanController extends Controller implements HasMiddleware
         $details = $validated['details'] ?? [];
         unset($validated['details']);
         $validated['created_by'] = Auth::id();
+        $this->assertNoDoubleSettlement($validated['pay_by_agent_id'] ?? null, $details);
 
         $mainChallan = DB::transaction(function () use ($validated, $details) {
             $mainChallan = MainChallan::create($validated);
             $this->syncMainChallanDetails($mainChallan, $details);
+            app(OperationalAccountingBridge::class)->sync($mainChallan->fresh());
 
             return $mainChallan;
         });
-
-        app(OperationalAccountingBridge::class)->sync($mainChallan->fresh());
 
         return $this->indexRedirectWithOptionalPrint(
             $request,
@@ -231,13 +235,13 @@ class MainChallanController extends Controller implements HasMiddleware
 
         $details = $validated['details'] ?? [];
         unset($validated['details']);
+        $this->assertNoDoubleSettlement($validated['pay_by_agent_id'] ?? null, $details);
 
         DB::transaction(function () use ($validated, $details, $main_challan) {
             $main_challan->update($validated);
             $this->syncMainChallanDetails($main_challan, $details);
+            app(OperationalAccountingBridge::class)->sync($main_challan->fresh());
         });
-
-        app(OperationalAccountingBridge::class)->sync($main_challan->fresh());
 
         return $this->indexRedirectWithOptionalPrint(
             $request,
@@ -248,13 +252,17 @@ class MainChallanController extends Controller implements HasMiddleware
         );
     }
 
-    public function destroy(MainChallan $main_challan, OperationalAccountingBridge $bridge)
+    public function destroy(Request $request, MainChallan $main_challan, OperationalAccountingBridge $bridge)
     {
-        DB::transaction(function () use ($main_challan, $bridge) {
+        DB::transaction(function () use ($request, $main_challan, $bridge) {
             $challanIds = $main_challan->details()->pluck('challan_id');
 
             Challan::whereIn('id', $challanIds)->update(['status' => 'Created']);
             $bridge->clear($main_challan);
+            $main_challan->update([
+                'delete_remark' => $request->delete_remark,
+                'deleted_by' => Auth::id(),
+            ]);
             $main_challan->delete();
         });
 
@@ -295,6 +303,31 @@ class MainChallanController extends Controller implements HasMiddleware
                     ->orWhereNull('status');
             })
             ->get();
+    }
+
+    /**
+     * A challan's charges must be settled with an agent once: either on the challan or on its main challan.
+     *
+     * @param  list<array{challan_id?: int|string}>  $details
+     *
+     * @throws ValidationException
+     */
+    private function assertNoDoubleSettlement(int|string|null $payByAgentId, array $details): void
+    {
+        if (empty($payByAgentId)) {
+            return;
+        }
+
+        $settledNumbers = Challan::query()
+            ->whereIn('id', collect($details)->pluck('challan_id')->filter())
+            ->whereNotNull('pay_by_agent_id')
+            ->pluck('challan_number');
+
+        if ($settledNumbers->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'pay_by_agent_id' => 'Challan '.$settledNumbers->implode(', ').' already settles with an agent. Clear its To (Account) or leave this main challan\'s To (Account) blank.',
+            ]);
+        }
     }
 
     private function syncMainChallanDetails(MainChallan $mainChallan, array $details): void

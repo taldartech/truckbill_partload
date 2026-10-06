@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MainChallan extends Model
 {
     use \App\Traits\BelongsToBranch;
     use \App\Traits\BelongsToCompany;
+    use SoftDeletes;
 
     protected $guarded = [];
 

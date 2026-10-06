@@ -103,6 +103,18 @@
                             <p>Opening Balances</p>
                         </Link>
                     </li>
+                    <li class="nav-item" v-if="can('view accounting_settings')">
+                        <Link href="/accounting/financial-years" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/financial-years') }">
+                            <i class="nav-icon fas fa-calendar-alt"></i>
+                            <p>Financial Years</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_settings')">
+                        <Link href="/accounting/health" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/health') }">
+                            <i class="nav-icon fas fa-heartbeat"></i>
+                            <p>Accounting Health</p>
+                        </Link>
+                    </li>
 
                     <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small">MASTER DATA</li>
 
@@ -216,6 +228,36 @@
                         <Link href="/accounting/reports/payables" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/payables') }">
                             <i class="nav-icon fas fa-file-invoice-dollar"></i>
                             <p>Payables</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/party-ledger" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/party-ledger') }">
+                            <i class="nav-icon fas fa-address-book"></i>
+                            <p>Party Ledger</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/voucher-register" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/voucher-register') }">
+                            <i class="nav-icon fas fa-list-alt"></i>
+                            <p>Voucher Register</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/expenses" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/expenses') }">
+                            <i class="nav-icon fas fa-receipt"></i>
+                            <p>Expense Report</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/gst" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/gst') }">
+                            <i class="nav-icon fas fa-percent"></i>
+                            <p>GST Report</p>
+                        </Link>
+                    </li>
+                    <li class="nav-item" v-if="can('view accounting_reports')">
+                        <Link href="/accounting/reports/tds" class="nav-link" :class="{ active: $page.url.startsWith('/accounting/reports/tds') }">
+                            <i class="nav-icon fas fa-file-contract"></i>
+                            <p>TDS Report</p>
                         </Link>
                     </li>
                     </template>

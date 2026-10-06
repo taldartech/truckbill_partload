@@ -12,6 +12,7 @@
                                 <label class="form-label">As On</label>
                                 <input type="date" class="form-control form-control-sm" v-model="form.as_on">
                             </div>
+                            <ReportBranchFilter v-model="form.branch_id" :branches="branches" />
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-success btn-sm w-100">Refresh</button>
                             </div>
@@ -100,11 +101,12 @@
 </template>
 
 <script setup>
+import ReportBranchFilter from '@/Components/Accounting/ReportBranchFilter.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 
-const props = defineProps({ report: Object, filters: Object });
-const form = useForm({ as_on: props.filters?.as_on });
+const props = defineProps({ branches: { type: Array, default: null }, report: Object, filters: Object });
+const form = useForm({ branch_id: props.filters?.branch_id || '', as_on: props.filters?.as_on });
 function submit() {
     form.get('/accounting/reports/balance-sheet', { preserveState: true });
 }

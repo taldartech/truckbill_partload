@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\SharesAccountingPanel;
 use App\Models\Bilty;
 use App\Models\BiltyDetail;
 use App\Models\Company;
@@ -23,6 +24,7 @@ use Inertia\Inertia;
 class InvoiceController extends Controller implements HasMiddleware
 {
     use RedirectsWithOptionalPrint;
+    use SharesAccountingPanel;
 
     public static function middleware(): array
     {
@@ -327,6 +329,7 @@ class InvoiceController extends Controller implements HasMiddleware
 
         return Inertia::render('Invoices/Show', [
             'invoice' => $invoice,
+            'accounting' => $this->accountingPanel($invoice),
         ]);
     }
 

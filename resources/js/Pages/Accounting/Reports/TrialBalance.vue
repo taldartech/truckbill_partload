@@ -16,6 +16,7 @@
                                 <label class="form-label">End Date</label>
                                 <input type="date" class="form-control form-control-sm" v-model="form.end_date">
                             </div>
+                            <ReportBranchFilter v-model="form.branch_id" :branches="branches" />
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-success btn-sm w-100">Refresh</button>
                             </div>
@@ -78,15 +79,50 @@
                 </div>
             </div>
         </div>
+
+        <div class="row mt-3" v-if="(report?.groups || []).length">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h4 class="m-0 fw-bold">Group Totals</h4>
+                    </div>
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-bordered text-sm m-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Group</th>
+                                    <th>Nature</th>
+                                    <th class="text-end">Period Dr ₹</th>
+                                    <th class="text-end">Period Cr ₹</th>
+                                    <th class="text-end">Closing Dr ₹</th>
+                                    <th class="text-end">Closing Cr ₹</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="group in report.groups" :key="group.group_id">
+                                    <td class="fw-semibold">{{ group.group_name }}</td>
+                                    <td class="text-capitalize">{{ group.nature }}</td>
+                                    <td class="text-end">{{ Number(group.debit).toFixed(2) }}</td>
+                                    <td class="text-end">{{ Number(group.credit).toFixed(2) }}</td>
+                                    <td class="text-end text-danger">{{ Number(group.closing_debit) > 0 ? Number(group.closing_debit).toFixed(2) : '-' }}</td>
+                                    <td class="text-end text-success">{{ Number(group.closing_credit) > 0 ? Number(group.closing_credit).toFixed(2) : '-' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </AdminLayout>
 </template>
 
 <script setup>
+import ReportBranchFilter from '@/Components/Accounting/ReportBranchFilter.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 
-const props = defineProps({ report: Object, filters: Object });
-const form = useForm({
+const props = defineProps({ branches: { type: Array, default: null }, report: Object, filters: Object });
+const form = useForm({ branch_id: props.filters?.branch_id || '',
     start_date: props.filters?.start_date,
     end_date: props.filters?.end_date,
 });

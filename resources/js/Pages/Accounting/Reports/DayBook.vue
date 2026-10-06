@@ -16,6 +16,7 @@
                                 <label class="form-label">End Date</label>
                                 <input type="date" class="form-control form-control-sm" v-model="form.end_date">
                             </div>
+                            <ReportBranchFilter v-model="form.branch_id" :branches="branches" />
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-success btn-sm w-100">Refresh</button>
                             </div>
@@ -70,11 +71,12 @@
 </template>
 
 <script setup>
+import ReportBranchFilter from '@/Components/Accounting/ReportBranchFilter.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 
-const props = defineProps({ rows: Array, filters: Object });
-const form = useForm({
+const props = defineProps({ branches: { type: Array, default: null }, rows: Array, filters: Object });
+const form = useForm({ branch_id: props.filters?.branch_id || '',
     start_date: props.filters?.start_date,
     end_date: props.filters?.end_date,
 });

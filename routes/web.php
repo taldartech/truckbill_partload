@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Accounting\AccountController;
 use App\Http\Controllers\Accounting\AccountGroupController;
+use App\Http\Controllers\Accounting\AccountingHealthController;
 use App\Http\Controllers\Accounting\AccountingReportController;
 use App\Http\Controllers\Accounting\AccountingVoucherController;
 use App\Http\Controllers\Accounting\AccountOptionsController;
+use App\Http\Controllers\Accounting\FinancialYearController;
 use App\Http\Controllers\Accounting\OpeningBalanceController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\Api\OnboardingController as ApiOnboardingController;
@@ -134,6 +136,10 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('accounting/accounts', AccountController::class)->only(['index', 'show', 'store', 'update', 'destroy'])->names('accounting.accounts');
         Route::get('accounting/opening-balances/create', [OpeningBalanceController::class, 'create'])->name('accounting.opening-balances.create');
         Route::post('accounting/opening-balances', [OpeningBalanceController::class, 'store'])->name('accounting.opening-balances.store');
+        Route::get('accounting/financial-years', [FinancialYearController::class, 'index'])->name('accounting.financial-years.index');
+        Route::post('accounting/financial-years/{financialYear}/close', [FinancialYearController::class, 'close'])->name('accounting.financial-years.close');
+        Route::post('accounting/financial-years/{financialYear}/reopen', [FinancialYearController::class, 'reopen'])->name('accounting.financial-years.reopen');
+        Route::get('accounting/health', [AccountingHealthController::class, 'index'])->name('accounting.health');
         Route::get('accounting/vouchers', [AccountingVoucherController::class, 'index'])->name('accounting.vouchers.index');
         Route::get('accounting/vouchers/create', [AccountingVoucherController::class, 'create'])->name('accounting.vouchers.create');
         Route::post('accounting/vouchers', [AccountingVoucherController::class, 'store'])->name('accounting.vouchers.store');
@@ -149,6 +155,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('accounting/reports/balance-sheet', [AccountingReportController::class, 'balanceSheet'])->name('accounting.reports.balance-sheet');
         Route::get('accounting/reports/receivables', [AccountingReportController::class, 'receivables'])->name('accounting.reports.receivables');
         Route::get('accounting/reports/payables', [AccountingReportController::class, 'payables'])->name('accounting.reports.payables');
+        Route::get('accounting/reports/voucher-register', [AccountingReportController::class, 'voucherRegister'])->name('accounting.reports.voucher-register');
+        Route::get('accounting/reports/party-ledger', [AccountingReportController::class, 'partyLedger'])->name('accounting.reports.party-ledger');
+        Route::get('accounting/reports/expenses', [AccountingReportController::class, 'expenses'])->name('accounting.reports.expenses');
+        Route::get('accounting/reports/gst', [AccountingReportController::class, 'gst'])->name('accounting.reports.gst');
+        Route::get('accounting/reports/tds', [AccountingReportController::class, 'tds'])->name('accounting.reports.tds');
 
         // Administration
         Route::resource('users', UserController::class);

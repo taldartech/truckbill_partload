@@ -74,6 +74,14 @@
                                 <label class="bilty-field__label">Haste</label>
                                 <input type="text" class="form-control form-control-sm" v-model="form.haste">
                             </div>
+                            <div v-if="form.mode_of_payment === 'Bank'" class="bilty-field">
+                                <label class="bilty-field__label">Bank Account<span class="bilty-field__req">*</span></label>
+                                <select class="form-select form-select-sm" :class="{ 'is-invalid': form.errors.bank_account_id }" v-model="form.bank_account_id">
+                                    <option value="">Select bank</option>
+                                    <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">{{ bank.name }}</option>
+                                </select>
+                                <div v-if="form.errors.bank_account_id" class="text-danger small mt-1">{{ form.errors.bank_account_id }}</div>
+                            </div>
                             <div v-if="form.mode_of_payment === 'Due'" class="bilty-field">
                                 <label class="bilty-field__label">Payment Due From<span class="bilty-field__req">*</span></label>
                                 <SearchableSelect
@@ -244,6 +252,7 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 const props = defineProps({
     receipt: Object,
     parties: Array,
+    bankAccounts: { type: Array, default: () => [] },
     gr_sources: {
         type: Array,
         default: () => [],
@@ -279,6 +288,7 @@ const form = useForm({
     consignee_id: props.receipt.consignee_id || '',
     haste: props.receipt.haste || '',
     payment_due_from_id: props.receipt.payment_due_from_id || '',
+    bank_account_id: props.receipt.bank_account_id || '',
     freight: props.receipt.freight || 0,
     handling_charge: props.receipt.handling_charge || 0,
     delivery_charge: props.receipt.delivery_charge || 0,
@@ -314,6 +324,9 @@ const grOptions = computed(() => {
 });
 
 watch(() => form.mode_of_payment, (mode) => {
+    if (mode !== 'Bank') {
+        form.bank_account_id = '';
+    }
     if (mode !== 'Due') {
         form.payment_due_from_id = '';
     } else if (!form.payment_due_from_id && form.consignee_id) {
