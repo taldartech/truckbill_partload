@@ -41,7 +41,7 @@ class AgentController extends Controller implements HasMiddleware
                         ->orWhere('gst_no', 'like', '%'.$search.'%');
                 });
             })
-            ->latest()
+            ->orderBy('name', 'asc')
             ->paginate(10)
             ->withQueryString();
 

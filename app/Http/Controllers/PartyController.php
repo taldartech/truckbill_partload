@@ -42,7 +42,7 @@ class PartyController extends Controller implements HasMiddleware
                         ->orWhere('mobile', 'like', '%'.$search.'%');
                 });
             })
-            ->latest()
+            ->orderBy('name', 'asc')
             ->paginate(10)
             ->withQueryString();
 

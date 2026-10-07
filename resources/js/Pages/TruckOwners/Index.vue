@@ -42,7 +42,7 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Sr No.</th>
                                     <th>Name</th>
                                     <th>Mobile</th>
                                     <th>GST Number</th>
@@ -50,8 +50,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="owner in truckOwners.data" :key="owner.id">
-                                    <td>{{ owner.id }}</td>
+                                <tr v-for="(owner, index) in truckOwners.data" :key="owner.id">
+                                    <td>{{ (truckOwners.from ?? 1) + index }}</td>
                                     <td>
                                         <Link :href="`/truck-owners/${owner.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ owner.name }}
