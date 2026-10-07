@@ -140,7 +140,7 @@
                                             {{ detail.row_type === 'bilty' ? 'Booking' : detail.row_type === 'inward' ? 'Crossing' : '--' }}
                                         </td>
                                         <td class="align-middle">{{ detail.consignee_name || '--' }}</td>
-                                        <td class="align-middle">{{ detail.goods_name || '--' }}</td>
+                                        <td class="align-middle text-nowrap overflow-x-auto" style="max-width: 200px; scrollbar-width: thin;">{{ detail.goods_name || '--' }}</td>
                                         <td>
                                             <input type="number" class="form-control form-control-sm text-center bg-light" v-model="detail.no_of_packages" readonly>
                                         </td>
@@ -382,7 +382,10 @@ const populateBiltyRow = (detail, bilty) => {
         const first = bilty.bilty_details[0];
         goodId = first.good_id || '';
         packageTypeId = first.package_type_id || '';
-        goodsName = first.good?.name || '--';
+        goodsName = bilty.bilty_details
+            .map((d) => d.good?.name)
+            .filter(Boolean)
+            .join(', ') || '--';
 
         bilty.bilty_details.forEach((d) => {
             sumPkg += parseFloat(d.no_of_packages || 0);
