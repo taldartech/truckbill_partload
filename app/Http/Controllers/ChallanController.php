@@ -49,7 +49,7 @@ class ChallanController extends Controller implements HasMiddleware
         $search = trim((string) ($validated['search'] ?? ''));
 
         $challans = Challan::query()
-            ->with(['company', 'fromStation', 'toStation', 'truck'])
+            ->with(['company', 'fromStation', 'toStation', 'truck', 'mainChallans'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
                     $inner->where('challan_number', 'like', '%'.$search.'%')
@@ -107,6 +107,7 @@ class ChallanController extends Controller implements HasMiddleware
             'payByAgent',
             'deliveryAtAgent',
             'creator',
+            'mainChallans',
             'details.bilty.consignee',
             'details.bilty.toStation',
             'details.bilty.biltyDetails.good',

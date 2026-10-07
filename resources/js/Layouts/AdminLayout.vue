@@ -1,7 +1,5 @@
 <template>
-    <div
-        class="app-wrapper app-shell layout-fixed sidebar-expand-lg bg-body-tertiary"
-    >
+    <div class="app-wrapper app-shell layout-fixed sidebar-expand-lg bg-body-tertiary">
         <Navbar @quick-action="quickAction" />
         <Sidebar />
         <main class="app-main main-content pt-2 px-0">
@@ -9,7 +7,7 @@
                 <div class="container-fluid px-2">
 
                     <SubscriptionAccessBanner />
-                    <slot/>
+                    <slot />
                 </div>
             </div>
             <Footer />
@@ -17,11 +15,7 @@
 
         <!-- Global Shortcuts Modal (F1) -->
         <Transition name="fade">
-            <div
-                v-if="isShortcutModalOpen"
-                class="shortcut-modal-overlay"
-                @click.self="closeShortcutModal"
-            >
+            <div v-if="isShortcutModalOpen" class="shortcut-modal-overlay" @click.self="closeShortcutModal">
                 <div class="shortcut-modal-card">
                     <div class="shortcut-modal-header">
                         <div class="d-flex align-items-center gap-2">
@@ -30,11 +24,7 @@
                                 Quick Navigation Shortcuts
                             </h5>
                         </div>
-                        <button
-                            class="btn-close-custom"
-                            @click="closeShortcutModal"
-                            aria-label="Close"
-                        >
+                        <button class="btn-close-custom" @click="closeShortcutModal" aria-label="Close">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -44,132 +34,79 @@
                             option below to open the form.
                         </p>
                         <div class="shortcut-list">
-                         <template v-if="!showNormalShortcuts">
-                            <!-- Bilty -->
-                            <button
-                                v-if="canCreateBilty"
-                                class="shortcut-item"
-                                @click="navigateTo('/bilties/create')"
-                            >
-                                <span class="shortcut-item-info">
-                                    <i
-                                        class="fas fa-file-invoice text-success icon-frame"
-                                    ></i>
-                                    <span class="shortcut-item-name"
-                                        >Create Bilty (Booking)</span
-                                    >
-                                </span>
-                                <span class="shortcut-item-badge">F9</span>
-                            </button>
+                            <template v-if="!showNormalShortcuts">
+                                <!-- Bilty -->
+                                <button v-if="canCreateBilty" class="shortcut-item"
+                                    @click="navigateTo('/bilties/create')">
+                                    <span class="shortcut-item-info">
+                                        <i class="fas fa-file-invoice text-success icon-frame"></i>
+                                        <span class="shortcut-item-name">Create Bilty (Booking)</span>
+                                    </span>
+                                    <span class="shortcut-item-badge">F9</span>
+                                </button>
 
-                            <!-- Challan -->
-                            <button
-                                v-if="canCreateChallan"
-                                class="shortcut-item"
-                                @click="navigateTo('/challans/create')"
-                            >
-                                <span class="shortcut-item-info">
-                                    <i
-                                        class="fas fa-file-contract text-warning icon-frame"
-                                    ></i>
-                                    <span class="shortcut-item-name"
-                                        >Create Challan</span
-                                    >
-                                </span>
-                                <span class="shortcut-item-badge">F7</span>
-                            </button>
+                                <!-- Challan -->
+                                <button v-if="canCreateChallan" class="shortcut-item"
+                                    @click="navigateTo('/challans/create')">
+                                    <span class="shortcut-item-info">
+                                        <i class="fas fa-file-contract text-warning icon-frame"></i>
+                                        <span class="shortcut-item-name">Create Challan</span>
+                                    </span>
+                                    <span class="shortcut-item-badge">F7</span>
+                                </button>
 
-                            <!-- Main Challan -->
-                            <button
-                                v-if="canCreateChallan"
-                                class="shortcut-item"
-                                @click="navigateTo('/main-challans/create')"
-                            >
-                                <span class="shortcut-item-info">
-                                    <i
-                                        class="fas fa-file-alt text-info icon-frame"
-                                    ></i>
-                                    <span class="shortcut-item-name"
-                                        >Create Main Challan</span
-                                    >
-                                </span>
-                                <span class="shortcut-item-badge">F8</span>
-                            </button>
+                                <!-- Main Challan -->
+                                <button v-if="canCreateChallan" class="shortcut-item"
+                                    @click="navigateTo('/main-challans/create')">
+                                    <span class="shortcut-item-info">
+                                        <i class="fas fa-file-alt text-info icon-frame"></i>
+                                        <span class="shortcut-item-name">Create Main Challan</span>
+                                    </span>
+                                    <span class="shortcut-item-badge">F8</span>
+                                </button>
 
-                            <!-- Inward Register -->
-                            <button
-                                v-if="canCreateInward"
-                                class="shortcut-item"
-                                @click="navigateTo('/inward-registers/create')"
-                            >
-                                <span class="shortcut-item-info">
-                                    <i
-                                        class="fas fa-clipboard-list text-secondary icon-frame"
-                                    ></i>
-                                    <span class="shortcut-item-name"
-                                        >Create Inward Register</span
-                                    >
-                                </span>
-                                <span class="shortcut-item-badge">F5</span>
-                            </button>
+                                <!-- Inward Register -->
+                                <button v-if="canCreateInward" class="shortcut-item"
+                                    @click="navigateTo('/inward-registers/create')">
+                                    <span class="shortcut-item-info">
+                                        <i class="fas fa-clipboard-list text-secondary icon-frame"></i>
+                                        <span class="shortcut-item-name">Create Inward Register</span>
+                                    </span>
+                                    <span class="shortcut-item-badge">F5</span>
+                                </button>
 
-                            <!-- Delivery Receipt -->
-                            <button
-                                v-if="canCreateDelivery"
-                                class="shortcut-item"
-                                @click="navigateTo('/delivery-receipts/create')"
-                            >
-                                <span class="shortcut-item-info">
-                                    <i
-                                        class="fas fa-receipt text-danger icon-frame"
-                                    ></i>
-                                    <span class="shortcut-item-name"
-                                        >Create Delivery Receipt</span
-                                    >
-                                </span>
-                                <span class="shortcut-item-badge">F6</span>
-                            </button>
+                                <!-- Delivery Receipt -->
+                                <button v-if="canCreateDelivery" class="shortcut-item"
+                                    @click="navigateTo('/delivery-receipts/create')">
+                                    <span class="shortcut-item-info">
+                                        <i class="fas fa-receipt text-danger icon-frame"></i>
+                                        <span class="shortcut-item-name">Create Delivery Receipt</span>
+                                    </span>
+                                    <span class="shortcut-item-badge">F6</span>
+                                </button>
 
-                            <!-- Voucher -->
-                            <button
-                                v-if="canCreateVoucher"
-                                class="shortcut-item"
-                                @click="navigateTo('/vouchers/create')"
-                            >
+                                <!-- Voucher -->
+                                <button v-if="canCreateVoucher" class="shortcut-item"
+                                    @click="navigateTo('/vouchers/create')">
+                                    <span class="shortcut-item-info">
+                                        <i class="fas fa-file-invoice-dollar text-primary icon-frame"></i>
+                                        <span class="shortcut-item-name">Create Voucher</span>
+                                    </span>
+                                    <span class="shortcut-item-badge">F10</span>
+                                </button>
+                            </template>
+                            <button class="shortcut-item" @click="closeShortcutModal">
                                 <span class="shortcut-item-info">
-                                    <i
-                                        class="fas fa-file-invoice-dollar text-primary icon-frame"
-                                    ></i>
-                                    <span class="shortcut-item-name"
-                                        >Create Voucher</span
-                                    >
-                                </span>
-                                <span class="shortcut-item-badge">F10</span>
-                            </button>
-                         </template>
-                            <button
-                                class="shortcut-item"
-                                @click="closeShortcutModal"
-                            >
-                                <span class="shortcut-item-info">
-                                    <i
-                                        class="fas fa-plus-circle text-success icon-frame"
-                                    ></i>
-                                    <span class="shortcut-item-name"
-                                        >Quick add focused master</span
-                                    >
+                                    <i class="fas fa-plus-circle text-success icon-frame"></i>
+                                    <span class="shortcut-item-name">Quick add focused master</span>
                                 </span>
                                 <span class="shortcut-item-badge">F3</span>
                             </button>
                         </div>
                     </div>
                     <div class="shortcut-modal-footer">
-                        <span class="text-muted small"
-                            ><kbd class="bg-dark text-white px-2 py-1 rounded"
-                                >ESC</kbd
-                            >
-                            to close</span
-                        >
+                        <span class="text-muted small"><kbd class="bg-dark text-white px-2 py-1 rounded">ESC</kbd>
+                            to close</span>
                     </div>
                 </div>
             </div>
@@ -447,7 +384,7 @@ const showNormalShortcuts = computed(() => {
 });
 // toggle shortcut model
 const quickAction = () => {
-     isShortcutModalOpen.value = !isShortcutModalOpen.value;
+    isShortcutModalOpen.value = !isShortcutModalOpen.value;
 };
 const handleKeyDown = (event) => {
     if (isKeyboardConfirmOpen.value) return;
@@ -465,6 +402,13 @@ const handleKeyDown = (event) => {
     if (event.key === "F1") {
         event.preventDefault();
         isShortcutModalOpen.value = !isShortcutModalOpen.value;
+        return;
+    }
+
+    // F2 / Ctrl+K -> Quick Search
+    if (event.key === "F2" || (event.ctrlKey && event.key === "k")) {
+        event.preventDefault();
+        navigateTo('/quick-search');
         return;
     }
 
@@ -534,8 +478,8 @@ watch(
     (message) => {
         if (message) {
             toast.success(message, {
-    autoClose: 3000
-})
+                autoClose: 3000
+            })
         }
     },
     { immediate: true }
@@ -545,9 +489,9 @@ watch(
     () => page.props.flash?.error,
     (message) => {
         if (message) {
-            toast.error(message,{
-    autoClose: 3000
-})
+            toast.error(message, {
+                autoClose: 3000
+            })
         }
     },
     { immediate: true }
@@ -587,11 +531,11 @@ onUnmounted(() => {
     overflow-x: hidden;
 }
 
-.app-main > .app-content {
+.app-main>.app-content {
     flex: 1 0 auto;
 }
 
-.app-main > .app-footer {
+.app-main>.app-footer {
     flex: 0 0 auto;
     grid-area: auto;
     width: 100%;
@@ -606,13 +550,15 @@ onUnmounted(() => {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.45); /* Elegant dark slate backdrop */
+    background: rgba(15, 23, 42, 0.45);
+    /* Elegant dark slate backdrop */
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1060; /* Higher than sidebar / navbar */
+    z-index: 1060;
+    /* Higher than sidebar / navbar */
 }
 
 .shortcut-modal-card {
@@ -636,6 +582,7 @@ onUnmounted(() => {
         opacity: 0;
         transform: scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: scale(1);

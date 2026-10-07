@@ -31,6 +31,7 @@ use App\Http\Controllers\TruckOwnerController;
 use App\Http\Controllers\TruckTypeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\QuickSearchController;
 use App\Http\Controllers\VoucherController;
 use Illuminate\Support\Facades\Route;
 
@@ -81,6 +82,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('subscription.active')->group(function () {
         Route::resource('branches', BranchController::class);
+        Route::get('quick-search', [QuickSearchController::class, 'index'])->name('quick-search.index');
         Route::get('branches/{branch}/settings', [BranchSettingsController::class, 'edit'])->name('branches.settings.edit');
         Route::put('branches/{branch}/settings', [BranchSettingsController::class, 'update'])->name('branches.settings.update');
         Route::put('trucks/{truck}/complete-tour', [TruckController::class, 'completeTour'])->name('trucks.complete-tour');
