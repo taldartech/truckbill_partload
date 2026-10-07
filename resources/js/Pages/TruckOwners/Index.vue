@@ -51,7 +51,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(owner, index) in truckOwners.data" :key="owner.id">
-                                    <td>{{ (truckOwners.total ?? 0) - (truckOwners.from ?? 1) + 1 - index }}</td>
+                                    <td>{{ (truckOwners.from ?? 1) + index }}</td>
                                     <td>
                                         <Link :href="`/truck-owners/${owner.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ owner.name }}

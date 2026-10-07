@@ -22,7 +22,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(driver, index) in drivers.data" :key="driver.id">
-                                    <td>{{ (drivers.total ?? 0) - (drivers.from ?? 1) + 1 - index }}</td>
+                                    <td>{{ (drivers.from ?? 1) + index }}</td>
                                     <td>{{ driver.name || 'N/A' }}</td>
                                     <td>{{ driver.mobile || 'N/A' }}</td>
                                     <td>{{ driver.license_number || 'N/A' }}</td>

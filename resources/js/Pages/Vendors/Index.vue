@@ -51,7 +51,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(vendor, index) in vendors.data" :key="vendor.id">
-                                    <td>{{ (vendors.total ?? 0) - (vendors.from ?? 1) + 1 - index }}</td>
+                                    <td>{{ (vendors.from ?? 1) + index }}</td>
                                     <td>
                                         <Link :href="`/vendors/${vendor.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ vendor.name }}

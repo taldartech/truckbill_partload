@@ -44,7 +44,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(item, index) in items.data" :key="item.id">
-                                    <td>{{ (items.total ?? 0) - (items.from ?? 1) + 1 - index }}</td>
+                                    <td>{{ (items.from ?? 1) + index }}</td>
                                     <td>
                                         <Link :href="`/goods/${item.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ item.name }}

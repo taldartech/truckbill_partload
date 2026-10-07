@@ -51,7 +51,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(agent, index) in agents.data" :key="agent.id">
-                                    <td>{{ (agents.total ?? 0) - (agents.from ?? 1) + 1 - index }}</td>
+                                    <td>{{ (agents.from ?? 1) + index }}</td>
                                     <td>
                                         <Link :href="`/agents/${agent.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ agent.name }}

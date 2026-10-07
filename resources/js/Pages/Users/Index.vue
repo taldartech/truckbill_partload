@@ -26,7 +26,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(user, index) in users.data" :key="user.id">
-                                    <td>{{ (users.total ?? 0) - (users.from ?? 1) + 1 - index }}</td>
+                                    <td>{{ (users.from ?? 1) + index }}</td>
                                     <td>
                                         <Link :href="`/users/${user.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ user.name }}

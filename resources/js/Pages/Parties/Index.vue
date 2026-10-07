@@ -51,7 +51,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(party, index) in parties.data" :key="party.id">
-                                    <td>{{ (parties.total ?? 0) - (parties.from ?? 1) + 1 - index }}</td>
+                                    <td>{{ (parties.from ?? 1) + index }}</td>
                                     <td>
                                         <Link :href="`/parties/${party.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ party.name }}

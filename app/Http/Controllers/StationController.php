@@ -57,7 +57,7 @@ class StationController extends Controller implements HasMiddleware
                         ->orWhereHas('state', fn ($stateQuery) => $stateQuery->where('name', 'like', '%'.$search.'%'));
                 });
             })
-            ->latest()
+            ->orderBy('name', 'asc')
             ->paginate(10)
             ->withQueryString();
 

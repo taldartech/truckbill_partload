@@ -44,7 +44,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(type, index) in truckTypes.data" :key="type.id">
-                                    <td>{{ (truckTypes.total ?? 0) - (truckTypes.from ?? 1) + 1 - index }}</td>
+                                    <td>{{ (truckTypes.from ?? 1) + index }}</td>
                                     <td>
                                         <Link :href="`/truck-types/${type.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ type.name }}

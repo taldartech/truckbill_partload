@@ -41,7 +41,7 @@ class VendorController extends Controller implements HasMiddleware
                         ->orWhere('gst_number', 'like', '%'.$search.'%');
                 });
             })
-            ->latest()
+            ->orderBy('name', 'asc')
             ->paginate(10)
             ->withQueryString();
 
