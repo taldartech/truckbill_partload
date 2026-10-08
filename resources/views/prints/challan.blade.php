@@ -130,7 +130,7 @@
                             <td>{{ $detail->bilty->bilty_number ?? '—' }}</td>
                             <td>{{ $detail->bilty->private_marka ?? '—' }}</td>
                             <td class="text-right">{{ number_format($nugs, 0) }}</td>
-                            <td>{{ $detail->bilty->biltyDetails->first()?->good?->name ?? '—' }}</td>
+                            <td>{{ $detail->bilty->biltyDetails->map(fn($d) => $d->good?->name)->filter()->unique()->join(', ') ?: '—' }}</td>
                             <td>{{ $detail->bilty->toStation->name ?? '—' }}</td>
                             <td>{{ $detail->bilty->consignee->name ?? '—' }}</td>
                             <td class="text-right">{{ number_format($weight, 2) }}</td>

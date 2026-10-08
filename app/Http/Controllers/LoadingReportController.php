@@ -140,6 +140,7 @@ class LoadingReportController extends Controller implements HasMiddleware
             'toStation',
             'truck',
             'details.bilty.toStation',
+            'details.bilty.biltyDetails.good',
             'details.inwardRegisterDetail.toStation',
             'details.inwardRegisterDetail.good',
             'details.inwardRegisterDetail.consignee',
@@ -411,9 +412,9 @@ class LoadingReportController extends Controller implements HasMiddleware
         $rows = $report->details->map(function ($detail) {
             $bilty = $detail->bilty;
             $inward = $detail->inwardRegisterDetail;
-            $goodsName = $detail->good?->name;
+            $goodsName = null;
 
-            if (! $goodsName && $bilty?->biltyDetails) {
+            if ($bilty?->biltyDetails) {
                 $goodsName = $bilty->biltyDetails
                     ->map(fn ($bd) => $bd->good?->name)
                     ->filter()
@@ -422,7 +423,7 @@ class LoadingReportController extends Controller implements HasMiddleware
             }
 
             if (! $goodsName) {
-                $goodsName = $inward?->good?->name;
+                $goodsName = $detail->good?->name ?? $inward?->good?->name;
             }
 
             $toStation = $bilty?->toStation ?? $inward?->toStation;

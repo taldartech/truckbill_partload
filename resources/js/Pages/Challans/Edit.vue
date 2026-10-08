@@ -568,10 +568,7 @@ const populateBiltyRow = (detail, bilty) => {
     let goodName = '--';
 
     if (bilty.bilty_details && bilty.bilty_details.length > 0) {
-        goodName = bilty.bilty_details
-            .map((d) => d.good?.name)
-            .filter(Boolean)
-            .join(', ') || '--';
+        goodName = [...new Set(bilty.bilty_details.map((d) => d.good?.name).filter(Boolean))].join(', ') || '--';
 
         bilty.bilty_details.forEach((bd) => {
             totalNugs += parseFloat(bd.no_of_packages || 0);

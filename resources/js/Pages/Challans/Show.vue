@@ -183,7 +183,7 @@ const detailRows = computed(() => {
                 type: 'Bilty',
                 consignee: bilty.consignee?.name || '—',
                 to_station: detail.to_station?.name || bilty.to_station?.name || '—',
-                good_name: biltyDetails[0]?.good?.name || '—',
+                good_name: [...new Set(biltyDetails.map(item => item.good?.name).filter(Boolean))].join(', ') || '—',
                 packages: biltyDetails.reduce((sum, item) => sum + Number(item.no_of_packages ?? 0), 0),
                 weight: biltyDetails.reduce((sum, item) => sum + Number(item.gross_weight ?? 0), 0),
             };

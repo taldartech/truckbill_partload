@@ -383,10 +383,7 @@ const populateBiltyRow = (detail, bilty) => {
         const first = bilty.bilty_details[0];
         goodId = first.good_id || '';
         packageTypeId = first.package_type_id || '';
-        goodsName = bilty.bilty_details
-        .map((d) => d.good?.name)
-        .filter(Boolean)
-        .join(', ') || '--';
+        goodsName = [...new Set(bilty.bilty_details.map((d) => d.good?.name).filter(Boolean))].join(', ') || '--';
 
         bilty.bilty_details.forEach((d) => {
             sumPkg += parseFloat(d.no_of_packages || 0);

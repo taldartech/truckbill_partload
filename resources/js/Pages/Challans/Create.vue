@@ -534,10 +534,7 @@ const populateBiltyRow = (detail, bilty) => {
             totalNugs += parseFloat(bd.no_of_packages || 0);
             totalWeight += parseFloat(bd.gross_weight || 0);
         });
-        goodName = bilty.bilty_details
-            .map((d) => d.good?.name)
-            .filter(Boolean)
-            .join(', ') || '--';
+        goodName = [...new Set(bilty.bilty_details.map((d) => d.good?.name).filter(Boolean))].join(', ') || '--';
     }
 
     const toStation = stationOptions.value.find((s) => s.id === bilty.to_station_id);

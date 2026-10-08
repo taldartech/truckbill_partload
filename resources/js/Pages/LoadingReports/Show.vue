@@ -133,7 +133,7 @@ const detailRows = computed(() => (props.report.details || []).map((detail) => {
             || inward?.toStation?.name
             || '—',
         consignee_name: detail.consignee?.name || inward?.consignee?.name || '—',
-        good_name: detail.good?.name || inward?.good?.name || '—',
+        good_name: [...new Set((detail.bilty?.bilty_details || detail.bilty?.biltyDetails)?.map(d => d.good?.name).filter(Boolean) || [])].join(', ') || detail.good?.name || inward?.good?.name || '—',
         package_type_name: detail.package_type?.name || detail.packageType?.name || '—',
         no_of_packages: detail.no_of_packages,
         gross_weight: detail.gross_weight,
