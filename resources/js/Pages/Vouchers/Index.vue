@@ -10,19 +10,23 @@
                             href="/vouchers/create"
                             class="btn btn-sm app-index-header-btn"
                         >
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
-                            Create
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus ms-1 ms-sm-0" aria-hidden="true"></span>
+                            <span class="d-none d-sm-block">Create</span>
                         </Link>
+                        <button type="button" class="btn btn-sm btn-success d-block d-sm-none"
+                            :title="showFilters ? 'Hide Filters' : 'Show Filters'" @click="showFilters = !showFilters">
+                            <i class="fas fa-filter p-1"></i>
+                        </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters
+                <AppIndexCollapsibleFilters v-if="showFilters"
                     panel-id="vouchers-filters-panel"
                     :loading="searching"
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="vouchers_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -61,7 +65,57 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div
+                            v-for="voucher in vouchers.data"
+                            :key="voucher.id"
+                            class="px-3 py-2 border-bottom"
+                        >
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <Link
+                                        :href="`/vouchers/${voucher.id}`"
+                                        class="fw-bold text-decoration-none"
+                                    >
+                                        {{ voucher.voucher_number || '—' }}
+                                    </Link>
+                                    <span class="text-muted small text-nowrap">
+                                        {{ voucher.date }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                                    <span class="fw-bold small text-dark ms-1">
+                                        ₹ {{ voucher.amount }}
+                                    </span>
+                                    <span
+                                        class="badge"
+                                        :class="{
+                                            'bg-success': voucher.voucher_type === 'Receipt',
+                                            'bg-danger': voucher.voucher_type === 'Payment',
+                                        }"
+                                    >
+                                        {{ voucher.voucher_type }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <span class="text-dark fw-medium text-truncate">{{ entityLabel(voucher) }}</span>
+                                <span class="badge bg-light text-secondary border ms-2 text-nowrap">
+                                    {{ modeLabel(voucher) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="vouchers.data.length === 0"
+                            class="text-center text-muted py-4 small"
+                        >
+                            No vouchers found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
@@ -76,7 +130,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="voucher in vouchers.data" :key="voucher.id">
-                                    <td>{{ voucher.date }}</td>
+                                    <td class="text-nowrap ">{{ voucher.date }}</td>
                                     <td>
                                         <Link :href="`/vouchers/${voucher.id}`" class="fw-semibold text-decoration-none">
                                             {{ voucher.voucher_number || '—' }}
@@ -93,14 +147,16 @@
                                     </td>
                                     <td>{{ entityLabel(voucher) }}</td>
                                     <td>{{ modeLabel(voucher) }}</td>
-                                    <td>₹ {{ voucher.amount }}</td>
+                                    <td class="text-nowrap ">₹ {{ voucher.amount }}</td>
                                     <td class="text-end"  v-if="can('edit vouchers') || can('delete vouchers')">
-                                        <Link :href="`/vouchers/${voucher.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit vouchers')">
+                                        <div class="table-actions">
+                                        <Link :href="`/vouchers/${voucher.id}/edit`" class="btn btn-sm btn-info text-white" v-if="can('edit vouchers')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button type="button" class="btn btn-sm btn-danger" @click="deleteVoucher(voucher)" v-if="can('delete vouchers')">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="vouchers.data.length === 0">
@@ -126,6 +182,9 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
+import { useResponsiveIndexFilters } from '@/composables/useResponsiveIndexFilters';
+
+const { showFilters } = useResponsiveIndexFilters();
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
@@ -327,6 +386,15 @@ const modeLabel = (voucher) => {
         margin-left: 0 !important;
         width: 100%;
         justify-content: flex-end;
+    }
+}
+
+@media (max-width: 500.98px) {
+    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields > div {
+        flex: 0 0 100% !important;
+        width: 100% !important;
     }
 }
 </style>

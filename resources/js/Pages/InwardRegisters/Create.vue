@@ -204,7 +204,7 @@
                     </div>
                     <div class="bilty-section__body bilty-section__body--flush" @click="deselectRow">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-sm m-0 table-grid entries-table">
+                            <table class="table table-bordered table-sm m-0 table-grid entries-table" style="min-width: 1000px;">
                                 <thead class="bg-light">
                                     <tr>
                                         <th class="text-center" style="width: 5%;">Sr.</th>
@@ -279,10 +279,10 @@
 
                 <div class="bilty-form-actions">
                     <Link href="/inward-registers" class="btn btn-outline-secondary btn-sm px-3">
-                        <i class="fas fa-times me-1"></i> Cancel
+                        <i class="fas fa-times m-0 me-md-1"></i><span class="d-none d-sm-inline"> Cancel</span>
                     </Link>
                     <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
-                        <i class="fas fa-save me-1"></i> Save
+                        <i class="fas fa-save m-0 me-md-1"></i><span class="d-none d-sm-inline"> Save</span>
                     </button>
                 </div>
             </form>

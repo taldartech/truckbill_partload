@@ -150,14 +150,14 @@
 
                 <div class="bilty-form-actions">
                     <Link href="/invoices" class="btn btn-outline-secondary btn-sm px-3">
-                        <i class="fas fa-times me-1"></i> Cancel
+                        <i class="fas fa-times m-0 me-md-1"></i><span class="d-none d-sm-inline"> Cancel</span>
                     </Link>
                     <button
                         type="submit"
                         class="btn btn-success btn-sm px-4"
                         :disabled="form.processing || !form.party_id || form.bilty_ids.length === 0 || invoiceBreakdown.pending_freight > 0"
                     >
-                        <i class="fas fa-file-invoice me-1"></i> Generate Invoice
+                        <i class="fas fa-file-invoice me-0 me-sm-2"></i><span class="d-none d-sm-inline"> Generate Invoice</span>
                     </button>
                 </div>
             </form>

@@ -98,7 +98,7 @@
                     </div>
                     <div class="bilty-section__body bilty-section__body--flush">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-sm m-0 table-grid" data-dynamic-add-message="Do you want to add another line?">
+                            <table class="table table-bordered table-sm m-0 table-grid" style="min-width: 700px;" data-dynamic-add-message="Do you want to add another line?">
                                 <thead class="bg-light">
                                     <tr>
                                         <th width="5%" class="text-center">Sr.No.</th>
@@ -204,10 +204,10 @@
 
                 <div class="bilty-form-actions">
                     <Link href="/loading-reports" class="btn btn-outline-secondary btn-sm px-3">
-                        <i class="fas fa-times me-1"></i> Cancel
+                        <i class="fas fa-times m-0 me-md-1"></i><span class="d-none d-sm-inline"> Cancel</span>
                     </Link>
                     <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
-                        <i class="fas fa-save me-1"></i> Update
+                        <i class="fas fa-save m-0 me-md-1"></i><span class="d-none d-sm-inline"> Update</span>
                     </button>
                 </div>
             </form>

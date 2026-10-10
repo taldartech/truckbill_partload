@@ -443,7 +443,7 @@ const handleEnterAsTab = async (event) => {
     }
 };
 const showNormalShortcuts = computed(() => {
-    return !page.props.auth?.is_acting_as_admin;
+    return !page.props.auth?.is_acting_as_admin && !page.props.auth?.roles?.includes("admin") && !page.props.auth?.roles?.includes("moderator");
 });
 // toggle shortcut model
 const quickAction = () => {

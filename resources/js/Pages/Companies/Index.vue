@@ -9,8 +9,46 @@
                             <i class="fas fa-plus"></i> Add New Company
                         </Link>
                     </div>
-                    <div class="card-body p-0 table-responsive">
-                        <table class="table table-hover">
+                    <div class="card-body p-0">
+                    <div class="d-sm-none">
+                            <div v-for="company in companies.data" :key="company.id" class="px-3 py-2 border-bottom">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="text-truncate">
+                                        <Link :href="`/companies/${company.id}`" class="fw-bold text-decoration-none">
+                                            {{ company.name }}
+                                        </Link>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                                        <Link :href="`/companies/${company.id}/edit`"
+                                            class="btn btn-sm btn-outline-info py-0 px-2" title="Edit Company">
+                                            <i class="fas fa-edit small"></i>
+                                        </Link>
+                                        <button @click="deleteCompany(company)" class="btn btn-sm btn-danger py-0 px-2"
+                                            title="Delete Company">
+                                            <i class="fas fa-trash small"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                    <span class="text-truncate">
+                                        <i class="fas fa-user me-1 small"></i>{{ company.contact_person || '—' }}
+                                        <span v-if="company.contact_number">({{ company.contact_number }})</span>
+                                    </span>
+                                    <span v-if="company.city?.name" class="text-muted ms-2 text-nowrap">
+                                        <i class="fas fa-location-dot me-1 small"></i>{{ company.city?.name }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div v-if="companies.data.length === 0" class="text-center text-muted py-4 small">
+                                No companies found.
+                            </div>
+                        </div>
+
+                        <div class="table-responsive d-none d-sm-block">
+                            <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -33,12 +71,14 @@
                                     <td>{{ company.contact_person || 'N/A' }}</td>
                                     <td>{{ company.contact_number || 'N/A' }}</td>
                                     <td class="text-end">
-                                        <Link :href="`/companies/${company.id}/edit`" class="btn btn-edit btn-sm me-2">
+                                        <div class="table-actions">
+                                        <Link :href="`/companies/${company.id}/edit`" class="btn btn-edit btn-sm">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button @click="deleteCompany(company)" class="btn btn-sm btn-danger">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="companies.data.length === 0">
@@ -46,6 +86,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                     <PaginationLinks :pagination="companies" />
                 </div>

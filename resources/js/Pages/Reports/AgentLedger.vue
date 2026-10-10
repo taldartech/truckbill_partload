@@ -47,7 +47,7 @@
         <div class="row" v-if="agent">
             <div class="col-12">
                 <div class="card shadow-sm">
-                    <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="card-header d-flex flex-column flex-sm-row gap-2 justify-content-between align-items-start align-sm-items-start">
                         <h4 class="m-0 fw-bold">{{ agent.name }} - Ledger</h4>
                         <span class="badge bg-primary fs-6">Net Balance: ₹ {{ Math.abs(currentBalance).toFixed(2) }} {{ currentBalance >= 0 ? 'Dr' : 'Cr' }}</span>
                     </div>
@@ -66,13 +66,13 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(entry, index) in ledger" :key="index">
-                                    <td>{{ entry.date }}</td>
+                                    <td class="text-nowrap ">{{ entry.date }}</td>
                                     <td><span class="badge bg-secondary">{{ entry.type }}</span></td>
                                     <td>{{ entry.ref_no || '—' }}</td>
-                                    <td>{{ entry.description || '—' }}</td>
+                                    <td class="text-nowrap ">{{ entry.description || '—' }}</td>
                                     <td class="text-end text-danger">{{ entry.debit > 0 ? Number(entry.debit).toFixed(2) : '-' }}</td>
                                     <td class="text-end text-success">{{ entry.credit > 0 ? Number(entry.credit).toFixed(2) : '-' }}</td>
-                                    <td class="text-end fw-bold">{{ Number(entry.balance).toFixed(2) }} {{ entry.balance >= 0 ? 'Dr' : 'Cr' }}</td>
+                                    <td class="text-end fw-bold text-nowrap">{{ Number(entry.balance).toFixed(2) }} {{ entry.balance >= 0 ? 'Dr' : 'Cr' }}</td>
                                 </tr>
                                 <tr v-if="ledger.length === 0">
                                     <td colspan="7" class="text-center py-5 text-muted">No transactions found.</td>

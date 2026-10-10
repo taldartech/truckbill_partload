@@ -50,7 +50,7 @@
                                 <i class="fas fa-save me-1"></i> Update Station
                             </button>
                         </div>
-                    </form>
+                    </form> 
                 </div>
             </div>
         </div>

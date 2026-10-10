@@ -11,19 +11,23 @@
                             class="btn btn-sm app-index-header-btn"
                             @click="openModal()"
                         >
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
-                            Create
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus ms-1 ms-sm-0" aria-hidden="true"></span>
+                            <span class="d-none d-sm-block">Create</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success d-block d-sm-none"
+                            :title="showFilters ? 'Hide Filters' : 'Show Filters'" @click="showFilters = !showFilters">
+                            <i class="fas fa-filter p-1"></i>
                         </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters
+                <AppIndexCollapsibleFilters v-if="showFilters"
                     panel-id="bank-accounts-filters-panel"
                     :loading="searching"
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="bank_accounts_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -38,7 +42,53 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div v-for="(account, index) in bankAccounts.data" :key="account.id"
+                            class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <span class=" small flex-shrink-0">{{ (bankAccounts.total ??
+                                        bankAccounts.data.length) - ((bankAccounts.from ?? 1) - 1) - index }}</span>
+                                    <Link :href="`/bank-accounts/${account.id}`"
+                                        class="fw-bold text-decoration-none text-truncate">
+                                        {{ account.name }}
+                                    </Link>
+                                    <span class="badge" :class="account.is_active ? 'bg-success' : 'bg-secondary'">
+                                        {{ account.is_active ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2"
+                                    v-if="can('edit bank_accounts') || can('delete bank_accounts')">
+                                    <button v-if="can('edit bank_accounts')" type="button"
+                                        class="btn btn-sm btn-edit py-0 px-2" title="Edit Account"
+                                        @click="editItem(account)">
+                                        <i class="fas fa-edit small"></i>
+                                    </button>
+                                    <button v-if="can('delete bank_accounts')" type="button"
+                                        class="btn btn-sm btn-danger py-0 px-2" title="Delete Account"
+                                        @click="deleteItem(account.id)">
+                                        <i class="fas fa-trash small"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div
+                                class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <span class="text-truncate">
+                                    {{ account.bank_name || '—' }} ({{ account.account_number || '—' }})
+                                </span>
+                                <span v-if="account.ifsc_code" class="text-muted ms-2 text-nowrap">
+                                    IFSC: {{ account.ifsc_code }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-if="bankAccounts.data.length === 0" class="text-center text-muted py-4 small">
+                            No bank accounts found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
@@ -66,6 +116,7 @@
                                         </span>
                                     </td>
                                     <td class="text-end"  v-if="can('edit bank_accounts') || can('edit bank_accounts')">
+                                        <div class="table-actions">
                                         <button
                                             v-if="can('edit bank_accounts')"
                                             type="button"
@@ -82,6 +133,7 @@
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="bankAccounts.data.length === 0">
@@ -148,6 +200,7 @@ import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFi
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
+import { useResponsiveIndexFilters } from '@/composables/useResponsiveIndexFilters';
 
 const page = usePage();
 const can = (permission) => page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
@@ -156,6 +209,8 @@ const props = defineProps({
     bankAccounts: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
 });
+
+const { showFilters } = useResponsiveIndexFilters();
 
 const { searching, filters, applyFilters, resetFilters } = useMasterIndexSearch(props, '/bank-accounts');
 const editMode = ref(false);

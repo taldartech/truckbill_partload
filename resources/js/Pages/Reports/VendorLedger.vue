@@ -47,7 +47,7 @@
         <div class="row" v-if="vendor">
             <div class="col-12">
                 <div class="card shadow-sm">
-                    <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="card-header d-flex flex-column flex-sm-row gap-2 justify-content-between align-items-start align-sm-items-start">
                         <h4 class="m-0 fw-bold">{{ vendor.name }} - Ledger</h4>
                         <span class="badge bg-primary fs-6">Net Balance: ₹ {{ Math.abs(currentBalance).toFixed(2) }} {{ currentBalance >= 0 ? 'Dr' : 'Cr' }}</span>
                     </div>

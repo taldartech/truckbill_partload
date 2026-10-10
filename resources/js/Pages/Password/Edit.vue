@@ -52,7 +52,7 @@
                         <div class="card-footer d-flex justify-content-between">
                             <Link href="/" class="btn btn-default">Cancel</Link>
                             <button type="submit" class="btn btn-primary" :disabled="form.processing">
-                                <i class="fas fa-save me-1"></i> Update Password
+                                <i class="fas fa-save m-0 me-md-1"></i> Update Password
                             </button>
                         </div>
                     </form>

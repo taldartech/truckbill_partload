@@ -209,6 +209,19 @@
     height: 100%;
 }
 
+@media (max-width: 576.98px) {
+    .dash-stat-card {
+        align-items: center;
+        flex-direction: row;
+        text-align: center;
+        gap: 2rem;
+    }
+
+    .dash-stat-card > div:not(.dash-stat-card__icon) {
+        text-align: left;
+    }
+}
+
 .dash-stat-card:hover {
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
     transform: translateY(-1px);

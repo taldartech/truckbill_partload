@@ -10,13 +10,17 @@
                             href="/invoices/create"
                             class="btn btn-sm app-index-header-btn"
                         >
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
-                            Create
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus ms-1 ms-sm-0" aria-hidden="true"></span>
+                            <span class="d-none d-sm-block">Create</span>
                         </Link>
+                        <button type="button" class="btn btn-sm btn-success d-block d-sm-none"
+                            :title="showFilters ? 'Hide Filters' : 'Show Filters'" @click="showFilters = !showFilters">
+                            <i class="fas fa-filter p-1"></i>
+                        </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters
+                <AppIndexCollapsibleFilters v-if="showFilters"
                     panel-id="invoices-filters-panel"
                     :loading="searching"
                     @search="applyFilters"
@@ -73,7 +77,54 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div
+                            v-for="invoice in invoices.data"
+                            :key="invoice.id"
+                            class="px-3 py-2 border-bottom"
+                        >
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <Link
+                                        :href="`/invoices/${invoice.id}`"
+                                        class="fw-bold text-decoration-none"
+                                    >
+                                        {{ invoice.invoice_no }}
+                                    </Link>
+                                    <span class="text-muted small text-nowrap">
+                                        {{ invoice.date }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                                    <span class="badge" :class="statusBadgeClass(invoice.status)">
+                                        {{ displayStatus(invoice.status) }}
+                                    </span>
+                                    <a
+                                        :href="`/invoices/${invoice.id}/print`"
+                                        target="_blank"
+                                        class="btn btn-sm btn-outline-info py-0 px-2"
+                                        title="Print Invoice"
+                                    >
+                                        <i class="fas fa-print small"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <span class="text-dark fw-medium text-truncate">{{ invoice.party?.name || '—' }}</span>
+                                <span class="fw-bold text-dark ms-2 text-nowrap">₹ {{ formatAmount(invoice.net_amount) }}</span>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="invoices.data.length === 0"
+                            class="text-center text-muted py-4 small"
+                        >
+                            No invoices found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
@@ -92,7 +143,7 @@
                                             {{ invoice.invoice_no }}
                                         </Link>
                                     </td>
-                                    <td>{{ invoice.date }}</td>
+                                    <td class="text-nowrap ">{{ invoice.date }}</td>
                                     <td>{{ invoice.party?.name }}</td>
                                     <td class="fw-bold">₹ {{ formatAmount(invoice.net_amount) }}</td>
                                     <td>
@@ -101,10 +152,11 @@
                                         </span>
                                     </td>
                                     <td class="text-end">
+                                        <div class="table-actions">
                                         <a
                                             :href="`/invoices/${invoice.id}/print`"
                                             target="_blank"
-                                            class="btn btn-sm btn-outline-info me-2"
+                                            class="btn btn-sm btn-outline-info"
                                             title="Print Invoice"
                                         >
                                             <i class="fas fa-print"></i>
@@ -112,7 +164,7 @@
                                         <Link
                                             v-if="can('edit invoices') && invoice.can_edit"
                                             :href="`/invoices/${invoice.id}/edit`"
-                                            class="btn btn-sm btn-info text-white me-2"
+                                            class="btn btn-sm btn-info text-white"
                                             title="Edit Invoice"
                                         >
                                             <i class="fas fa-edit"></i>
@@ -126,6 +178,7 @@
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="invoices.data.length === 0">
@@ -155,6 +208,7 @@ import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
+import { useResponsiveIndexFilters } from '@/composables/useResponsiveIndexFilters';
 
 const page = usePage();
 const can = (permission) => {
@@ -166,6 +220,8 @@ const props = defineProps({
     parties: { type: Array, default: () => [] },
     filters: { type: Object, default: () => ({}) },
 });
+
+const { showFilters } = useResponsiveIndexFilters();
 
 const defaultRange = thisMonthDateRange();
 const searching = ref(false);
@@ -369,6 +425,14 @@ const statusBadgeClass = (status) => {
         margin-left: 0 !important;
         width: 100%;
         justify-content: flex-end;
+    }
+}
+@media (max-width: 500.98px) {
+    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields > div {
+        flex: 0 0 100% !important;
+        width: 100% !important;
     }
 }
 </style>

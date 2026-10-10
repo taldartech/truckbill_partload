@@ -102,7 +102,7 @@
                     </div>
                     <div class="bilty-section__body bilty-section__body--flush">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-sm m-0 table-grid">
+                            <table class="table table-bordered table-sm m-0 table-grid" style="min-width: 700px;">
                                 <thead class="bg-light">
                                     <tr>
                                         <th width="5%" class="text-center">Sr.No.</th>
@@ -162,23 +162,21 @@
                                             </button>
                                         </td>
                                     </tr>
-                                    <tr>
-                                        <td colspan="10" class="bg-light p-2 text-center">
-                                            <button
-                                                type="button"
-                                                class="btn btn-sm btn-outline-secondary py-0"
-                                                data-dynamic-add
-                                                data-dynamic-add-for="line"
-                                                data-dynamic-add-message="Do you want to add another line?"
-                                                @click="addLineRow"
-                                            >
-                                                <i class="fas fa-plus"></i> Add Line
-                                            </button>
-                                            <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="text-center bg-light p-1">
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary py-0"
+                                data-dynamic-add
+                                data-dynamic-add-for="line"
+                                data-dynamic-add-message="Do you want to add another line?"
+                                @click="addLineRow"
+                            >
+                                <i class="fas fa-plus"></i> Add Line
+                            </button>
+                            <div v-if="form.errors.details" class="text-danger small mt-1">{{ form.errors.details }}</div>
                         </div>
                     </div>
                 </section>
@@ -296,10 +294,10 @@
 
                 <div class="bilty-form-actions">
                     <Link href="/challans" class="btn btn-outline-secondary btn-sm px-3">
-                        <i class="fas fa-times me-1"></i> Cancel
+                        <i class="fas fa-times m-0 me-md-1"></i><span class="d-none d-sm-inline"> Cancel</span>
                     </Link>
                     <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
-                        <i class="fas fa-save me-1"></i> Save
+                        <i class="fas fa-save m-0 me-md-1"></i><span class="d-none d-sm-inline"> Save</span>
                     </button>
                 </div>
             </form>

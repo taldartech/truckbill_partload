@@ -322,7 +322,6 @@
 @media (max-width: 768px) {
     .app-index-page--standard .app-index-card-toolbar,
     .references-index-page .app-index-card-toolbar {
-        width: 100%;
         justify-content: flex-end;
     }
 
@@ -362,7 +361,12 @@
     align-self: flex-end !important;
     margin-left: auto !important;
 }
-
+@media (max-width: 550px) {
+    .app-index-collapsible-filters__actions,
+    .app-report-filters-panel__actions {
+    margin-right: 0 !important;
+}
+}
 /* Ensure uniform heights and sizes for all filter controls and buttons globally */
 .app-index-collapsible-filters__inner .form-control,
 .app-index-collapsible-filters__inner .form-select,
@@ -430,6 +434,16 @@
     color: #dc3545 !important;
 }
 
-
-
-
+@media (max-width: 575.98px) {
+    .app-index-list-card,
+    .app-index-list-card > .card-body {
+        overflow-x: hidden !important;
+    }
+    .app-index-card-toolbar .btn-sm{
+    padding: 0px 5px !important;
+    min-height: 1.5rem !important;
+    }
+    .bilty-form-actions .btn {
+    min-width: 0 !important;
+    }
+}

@@ -11,19 +11,23 @@
                             class="btn btn-sm app-index-header-btn"
                             @click="openModal()"
                         >
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
-                            Create
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus ms-1 ms-sm-0" aria-hidden="true"></span>
+                            <span class="d-none d-sm-block">Create</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success d-block d-sm-none"
+                            :title="showFilters ? 'Hide Filters' : 'Show Filters'" @click="showFilters = !showFilters">
+                            <i class="fas fa-filter p-1"></i>
                         </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters
+                <AppIndexCollapsibleFilters v-if="showFilters"
                     panel-id="agents-filters-panel"
                     :loading="searching"
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="agents_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -38,7 +42,50 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div v-for="(agent, index) in agents.data" :key="agent.id" class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="text-truncate d-flex align-items-center">
+                                    <span class="  me-2 flex-shrink-0">{{ (agents.total ??
+                                        agents.data.length) - ((agents.from ?? 1) - 1) - index }}</span>
+                                    <Link :href="`/agents/${agent.id}`"
+                                        class="fw-bold text-decoration-none text-truncate">
+                                        {{ agent.name }}
+                                    </Link>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2"
+                                    v-if="can('delete agents') || can('edit agents')">
+                                    <button v-if="can('edit agents')" type="button"
+                                        class="btn btn-sm btn-edit py-0 px-2" title="Edit Agent"
+                                        @click="editItem(agent)">
+                                        <i class="fas fa-edit small"></i>
+                                    </button>
+                                    <button v-if="can('delete agents')" type="button"
+                                        class="btn btn-sm btn-danger py-0 px-2" title="Delete Agent"
+                                        @click="deleteItem(agent)">
+                                        <i class="fas fa-trash small"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div
+                                class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <span v-if="agent.mobile">
+                                    <i class="fas fa-phone me-1 small"></i>{{ agent.mobile }}
+                                </span>
+                                <span v-else class="text-muted">—</span>
+                                <span v-if="agent.city?.name || agent.city" class="text-muted ms-2 text-nowrap">
+                                    <i class="fas fa-location-dot me-1 small"></i>{{ agent.city?.name || agent.city }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-if="agents.data.length === 0" class="text-center text-muted py-4 small">
+                            No agents found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
@@ -60,10 +107,11 @@
                                     <td>{{ agent.mobile || 'N/A' }}</td>
                                     <td>{{ agent.city?.name || agent.city || 'N/A' }}</td>
                                     <td class="text-end" v-if="can('delete agents')">
+                                        <div class="table-actions">
                                         <button
                                             v-if="can('edit agents')"
                                             type="button"
-                                            class="btn btn-edit btn-sm me-2"
+                                            class="btn btn-edit btn-sm"
                                             @click="editItem(agent)"
                                         >
                                             <i class="fas fa-edit"></i>
@@ -76,6 +124,7 @@
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="agents.data.length === 0">
@@ -186,6 +235,7 @@ import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
+import { useResponsiveIndexFilters } from '@/composables/useResponsiveIndexFilters';
 
 const props = defineProps({
     agents: Object,
@@ -202,6 +252,8 @@ const props = defineProps({
         default: () => ({}),
     },
 });
+
+const { showFilters } = useResponsiveIndexFilters();
 
 const { searching, filters, applyFilters, resetFilters } = useMasterIndexSearch(props, '/agents');
 

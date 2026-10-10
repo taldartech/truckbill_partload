@@ -7,15 +7,19 @@
                     <div class="app-index-card-toolbar d-flex flex-wrap gap-2 align-items-center">
                         <Link v-if="can('create bilties')" href="/bilties/create"
                             class="btn btn-sm app-index-header-btn">
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus"
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus ms-1 ms-sm-0"
                                 aria-hidden="true"></span>
-                            Create
+                            <span class="d-none d-sm-block">Create</span>
                         </Link>
+                        <button type="button" class="btn btn-sm btn-success d-block d-sm-none"
+                            :title="showFilters ? 'Hide Filters' : 'Show Filters'" @click="showFilters = !showFilters">
+                            <i class="fas fa-filter p-1"></i>
+                        </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters panel-id="bilties-filters-panel" :loading="searching" @search="applyFilters"
-                    @reset="resetFilters">
+                <AppIndexCollapsibleFilters v-if="showFilters" panel-id="bilties-filters-panel" :loading="searching"
+                    @search="applyFilters" @reset="resetFilters">
                     <div class="filter-search-col">
                         <label class="form-label" for="bilties_search">Search</label>
                         <AppIndexSearchInput v-model="filters.search" input-id="bilties_search"
@@ -42,8 +46,63 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
+                    <div class="d-sm-none">
+                        <div
+                            v-for="bilty in bilties.data"
+                            :key="bilty.id"
+                            class="px-3 py-2 border-bottom"
+                        >
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <Link
+                                        :href="`/bilties/${bilty.id}`"
+                                        class="fw-bold text-decoration-none "
+                                    >
+                                        {{ bilty.bilty_number || 'N/A' }}
+                                    </Link>
+                                    <span class="text-muted small text-nowrap">
+                                        {{ bilty.date || 'N/A' }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                                    <span
+                                        class="badge"
+                                        :class="{
+                                            'bg-warning text-dark': bilty.status === 'Pending',
+                                            'bg-info text-white': bilty.status === 'In Transit',
+                                            'bg-success': bilty.status === 'Delivered',
+                                            'bg-danger': bilty.status === 'Cancelled',
+                                            'bg-secondary': !bilty.status,
+                                        }"
+                                    >
+                                        {{ bilty.status || 'Pending' }}
+                                    </span>
+                                    <BiltyPrintButton
+                                        :bilty-id="bilty.id"
+                                        button-class="btn btn-sm btn-outline-info py-0 px-2"
+                                        title="Print Bilty"
+                                    >
+                                        <i class="fas fa-print small"></i>
+                                    </BiltyPrintButton>
+                                </div>
+                            </div>
+
+                            <div class="small text-muted mt-1 d-flex align-items-center text-truncate">
+                                <span class="text-dark fw-medium text-truncate">{{ bilty.from_station?.name || 'N/A' }}</span>
+                                <i class="fas fa-arrow-right mx-1 text-muted flex-shrink-0" style="font-size: 0.75rem;"></i>
+                                <span class="text-dark fw-medium text-truncate">{{ bilty.to_station?.name || 'N/A' }}</span>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="bilties.data.length === 0"
+                            class="text-center text-muted py-4 small"
+                        >
+                            No bilties found for selected filters.
+                        </div>
+                    </div>
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle mb-0 app-index-table">
+                        <table class="table table-striped table-hover align-middle mb-0 app-index-table d-none d-sm-table">
                             <thead class="table-light">
                                 <tr>
                                     <th>Number</th>
@@ -62,8 +121,8 @@
                                             {{ bilty.bilty_number || 'N/A' }}
                                         </Link>
                                     </td>
-                                    <td class="text-nowrap">{{ bilty.date || 'N/A' }}</td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap ">{{ bilty.date || 'N/A' }}</td>
+                                    <td class="text-nowrap ">
                                         <span class="text-bold">{{ bilty.from_station?.name }}</span>
                                         <i class="fas fa-arrow-right mx-2 text-muted small"></i>
                                         <span class="text-bold">{{ bilty.to_station?.name }}</span>
@@ -82,7 +141,7 @@
                                         }">{{ bilty.status }}</span>
                                     </td>
                                     <td class="text-end">
-                                        <div class="bilty-table-actions">
+                                        <div class="table-actions">
                                             <BiltyPrintButton :bilty-id="bilty.id"
                                                 button-class="btn btn-sm btn-outline-info" title="Print Bilty">
                                                 <i class="fas fa-print"></i>
@@ -128,7 +187,10 @@ import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
+import { useResponsiveIndexFilters } from '@/composables/useResponsiveIndexFilters';
 const page = usePage();
+const { showFilters } = useResponsiveIndexFilters();
+
 const can = (permission) => {
     return page.props.auth.is_admin || page.props.auth.permissions.includes(permission);
 };
@@ -212,7 +274,7 @@ const resetFilters = () => {
     applyFilters();
 };
 
-const deleteItem = async (id,bilty_number) => {
+const deleteItem = async (id, bilty_number) => {
     const remark = await askKeyboardConfirmWithRemark(
         `Are you sure you want to delete Bilty ${bilty_number}?`
     );
@@ -369,28 +431,11 @@ const deleteItem = async (id,bilty_number) => {
         height: 42px;
     }
 
-    .bilty-table-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.25rem;
-        justify-content: flex-end;
-    }
 
-    .bilty-table-actions .btn {
-        padding: 0.25rem 0.4rem;
-        min-width: 2.5rem;
-    }
 }
 
-.bilty-table-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    flex-wrap: nowrap;
-    gap: 0.5rem;
-}
 
-.bilty-table-actions .btn {
+.table-actions .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -430,10 +475,12 @@ const deleteItem = async (id,bilty_number) => {
     }
 
 }
+
 @media (max-width: 500.98px) {
-    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
-    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
-    .app-index-filters-fields > div {
+
+    .app-index-collapsible-filters__inner>div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner>div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields>div {
         flex: 0 0 100% !important;
         width: 100% !important;
     }

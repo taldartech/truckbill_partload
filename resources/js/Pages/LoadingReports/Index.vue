@@ -10,19 +10,23 @@
                             href="/loading-reports/create"
                             class="btn btn-sm app-index-header-btn"
                         >
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
-                            Create
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus ms-1 ms-sm-0" aria-hidden="true"></span>
+                            <span class="d-none d-sm-block">Create</span>
                         </Link>
+                        <button type="button" class="btn btn-sm btn-success d-block d-sm-none"
+                            :title="showFilters ? 'Hide Filters' : 'Show Filters'" @click="showFilters = !showFilters">
+                            <i class="fas fa-filter p-1"></i>
+                        </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters
+                <AppIndexCollapsibleFilters v-if="showFilters"
                     panel-id="loading-reports-filters-panel"
                     :loading="searching"
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-md-3">
                         <label class="form-label" for="loading_reports_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -69,7 +73,60 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div
+                            v-for="report in reports.data"
+                            :key="report.id"
+                            class="px-3 py-2 border-bottom"
+                        >
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <Link
+                                        :href="`/loading-reports/${report.id}`"
+                                        class="fw-bold text-decoration-none"
+                                    >
+                                        {{ report.date }}
+                                    </Link>
+                                    <span v-if="report.truck?.truck_number" class="badge bg-light text-secondary border text-nowrap">
+                                        {{ report.truck?.truck_number }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                                    <span class="small text-muted text-nowrap">
+                                        {{ report.no_of_packages || 0 }} Pkg
+                                    </span>
+                                    <a
+                                        :href="`/loading-reports/${report.id}/print`"
+                                        target="_blank"
+                                        class="btn btn-sm btn-outline-info py-0 px-2"
+                                        title="Print Loading Report"
+                                    >
+                                        <i class="fas fa-print small"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <div class="text-truncate">
+                                    <span class="text-dark fw-medium">{{ report.from_station?.name || 'N/A' }}</span>
+                                    <i class="fas fa-arrow-right mx-1 text-muted" style="font-size: 0.75rem;"></i>
+                                    <span class="text-dark fw-medium">{{ report.to_station?.name || 'N/A' }}</span>
+                                </div>
+                                <span v-if="report.driver_name" class="text-muted ms-2 text-nowrap">
+                                    {{ report.driver_name }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="reports.data.length === 0"
+                            class="text-center text-muted py-4 small"
+                        >
+                            No loading reports found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
@@ -85,7 +142,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="report in reports.data" :key="report.id">
-                                    <td>
+                                    <td class="text-nowrap ">
                                         <Link :href="`/loading-reports/${report.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ report.date }}
                                         </Link>
@@ -97,20 +154,22 @@
                                     <td>{{ report.gross_weight }}</td>
                                     <td>{{ report.no_of_packages }}</td>
                                     <td class="text-end">
+                                        <div class="table-actions">
                                         <a
                                             :href="`/loading-reports/${report.id}/print`"
                                             target="_blank"
-                                            class="btn btn-sm btn-outline-info me-2"
+                                            class="btn btn-sm btn-outline-info "
                                             title="Print Loading Report"
                                         >
                                             <i class="fas fa-print"></i>
                                         </a>
-                                        <Link :href="`/loading-reports/${report.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit loading_reports')" >
+                                        <Link :href="`/loading-reports/${report.id}/edit`" class="btn btn-sm btn-info text-white " v-if="can('edit loading_reports')" >
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button type="button" class="btn btn-sm btn-danger" @click="deleteReport(report.id,report.date,report.truck?.truck_number,report.from_station?.name,report.to_station?.name)" v-if="can('delete loading_reports')"  >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="reports.data.length === 0">
@@ -137,6 +196,9 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
+import { useResponsiveIndexFilters } from '@/composables/useResponsiveIndexFilters';
+
+const { showFilters } = useResponsiveIndexFilters();
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
@@ -354,6 +416,14 @@ To         : ${toStation}`
         margin-left: 0 !important;
         width: 100%;
         justify-content: flex-end;
+    }
+}
+@media (max-width: 500.98px) {
+    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields > div {
+        flex: 0 0 100% !important;
+        width: 100% !important;
     }
 }
 </style>

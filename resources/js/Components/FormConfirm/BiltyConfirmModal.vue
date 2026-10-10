@@ -493,6 +493,12 @@ const extraChargeLines = computed(() => {
     background: #fff;
 }
 
+@media (max-width: 520px) {
+    .bcm__charge-chips {
+    justify-content: center;
+}
+}
+
 .bcm__totals {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));

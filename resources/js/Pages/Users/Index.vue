@@ -11,8 +11,47 @@
                             </button>
                         </div>
                     </div>
-                    <div class="card-body table-responsive p-0">
-                        <table class="table table-hover text-nowrap">
+                    <div class="card-body p-0">
+                    <div class="d-sm-none">
+                            <div v-for="user in users.data" :key="user.id" class="px-3 py-2 border-bottom">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2 text-truncate">
+                                        <Link :href="`/users/${user.id}`" class="fw-bold text-decoration-none">
+                                            {{ user.name }}
+                                        </Link>
+                                        <span v-for="role in user.roles" :key="role.id" class="badge bg-info">
+                                            {{ role.name }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2"
+                                        v-if="user.can_manage">
+                                        <button v-if="can('edit users')" class="btn btn-sm btn-outline-info py-0 px-2"
+                                            title="Edit User" @click="editUser(user)">
+                                            <i class="fas fa-edit small"></i>
+                                        </button>
+                                        <button v-if="can('delete users')" class="btn btn-sm btn-danger py-0 px-2"
+                                            title="Delete User" @click="deleteUser(user)">
+                                            <i class="fas fa-trash small"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                    <span class="text-truncate">{{ user.email }}</span>
+                                    <span class="text-muted ms-2 text-nowrap" v-if="user.branch">
+                                        {{ user.branch.name }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div v-if="users.data.length === 0" class="text-center text-muted py-4 small">
+                                No users found.
+                            </div>
+                        </div>
+
+                        <div class="table-responsive d-none d-sm-block">
+                            <table class="table table-hover text-nowrap">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -51,6 +90,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                     <PaginationLinks :pagination="users" />
                 </div>

@@ -9,8 +9,45 @@
                             <i class="fas fa-plus"></i> Add New Driver
                         </Link>
                     </div>
-                    <div class="card-body p-0 table-responsive">
-                        <table class="table table-hover">
+                    <div class="card-body p-0">
+                    <div class="d-sm-none">
+                            <div v-for="(driver, index) in drivers.data" :key="driver.id"
+                                class="px-3 py-2 border-bottom">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="fw-bold text-truncate d-flex align-items-center">
+                                        <span class="  me-2 flex-shrink-0">{{ (drivers.total ??
+                                            drivers.data.length) - ((drivers.from ?? 1) - 1) - index }}</span>
+                                        <span class="text-truncate">{{ driver.name || 'N/A' }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1 ms-2">
+                                        <Link :href="`/drivers/${driver.id}/edit`" class="btn btn-sm btn-edit py-0 px-2"
+                                            title="Edit Driver">
+                                            <i class="fas fa-edit small"></i>
+                                        </Link>
+                                        <button @click="deleteItem(driver.id)" class="btn btn-sm btn-danger py-0 px-2"
+                                            title="Delete Driver">
+                                            <i class="fas fa-trash small"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div
+                                    class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                    <span v-if="driver.mobile">
+                                        <i class="fas fa-phone me-1 small"></i>{{ driver.mobile }}
+                                    </span>
+                                    <span v-else class="text-muted">—</span>
+                                    <span class="text-truncate ms-2" v-if="driver.license_number">
+                                        Lic: {{ driver.license_number }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div v-if="drivers.data.length === 0" class="text-center text-muted py-4 small">
+                                No records found.
+                            </div>
+                        </div>
+
+                        <div class="table-responsive d-none d-sm-block">
+                            <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -40,6 +77,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                     <PaginationLinks :pagination="drivers" />
                 </div>

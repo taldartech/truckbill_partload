@@ -6,19 +6,23 @@
                     <h3 class="card-title mb-0">Manage Trucks</h3>
                     <div class="app-index-card-toolbar d-flex flex-wrap gap-2 align-items-center">
                         <Link v-if="can('create trucks')" href="/trucks/create" class="btn btn-sm app-index-header-btn">
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
-                            Create
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus ms-1 ms-sm-0" aria-hidden="true"></span>
+                            <span class="d-none d-sm-block">Create</span>
                         </Link>
+                        <button type="button" class="btn btn-sm btn-success d-block d-sm-none"
+                            :title="showFilters ? 'Hide Filters' : 'Show Filters'" @click="showFilters = !showFilters">
+                            <i class="fas fa-filter p-1"></i>
+                        </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters
+                <AppIndexCollapsibleFilters v-if="showFilters"
                     panel-id="trucks-filters-panel"
                     :loading="searching"
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="trucks_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -33,7 +37,60 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div v-for="(truck, index) in trucks.data" :key="truck.id" class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <span class=" small flex-shrink-0">{{ (trucks.total ?? trucks.data.length)
+                                        - ((trucks.from ?? 1) - 1) - index }}</span>
+                                    <Link :href="`/trucks/${truck.id}`"
+                                        class="fw-bold text-decoration-none text-truncate">
+                                        {{ truck.truck_number }}
+                                    </Link>
+                                    <span class="badge" :class="{
+                                        'bg-warning text-dark': truck.status === 'Booked',
+                                        'bg-info text-white': truck.status === 'In Transit',
+                                        'bg-secondary': truck.status === 'Maintenance',
+                                        'bg-success': !truck.status || truck.status === 'Available',
+                                    }">{{ truck.status || 'Available' }}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2"
+                                    v-if="can('delete trucks') || can('edit trucks')">
+                                    <button v-if="can('edit trucks')" type="button"
+                                        class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                        title="Update Status & Location" @click="openTourModal(truck)">
+                                        <i class="fas fa-map-marker-alt small"></i>
+                                    </button>
+                                    <Link v-if="can('edit trucks')" :href="`/trucks/${truck.id}/edit`"
+                                        class="btn btn-sm btn-edit py-0 px-2" title="Edit Truck">
+                                        <i class="fas fa-edit small"></i>
+                                    </Link>
+                                    <button v-if="can('delete trucks')" type="button"
+                                        class="btn btn-sm btn-danger py-0 px-2" title="Delete Truck"
+                                        @click="deleteTruck(truck)">
+                                        <i class="fas fa-trash small"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div
+                                class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <span class="text-truncate">
+                                    <i class="fas fa-truck me-1 small"></i>{{ truck.truck_type?.name || 'N/A' }}
+                                </span>
+                                <span class="text-truncate ms-2 text-muted" v-if="truck.current_city">
+                                    {{ truck.current_city?.name }}<span
+                                        v-if="truck.current_station?.name">, {{ truck.current_station?.name }}</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-if="trucks.data.length === 0" class="text-center text-muted py-4 small">
+                            No trucks found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
@@ -64,17 +121,18 @@
                                     </td>
                                     <td>
                                         <span v-if="truck.current_city">
-                                            {{ truck.currentCity?.name }}<span v-if="truck.currentStation">, {{ truck.currentStation?.name }}</span>
+                                            {{ truck.current_city?.name }}<span v-if="truck.current_station?.name">, {{ truck.current_station?.name }}</span>
                                         </span>
                                         <span v-else class="text-muted">—</span>
                                     </td>
                                     <td>{{ truck.rc_expiry_date || '—' }}</td>
                                     <td>{{ truck.truck_owner?.name || truck.truckOwner?.name || '—' }}</td>
                                     <td class="text-start" v-if="can('delete trucks') || can('edit trucks')">
+                                        <div class="table-actions">
                                         <button
                                             v-if="can('edit trucks')"
                                             type="button"
-                                            class="btn btn-view btn-sm me-2"
+                                            class="btn btn-view btn-sm"
                                             title="Update Status & Location"
                                             @click="openTourModal(truck)"
                                         >
@@ -83,7 +141,7 @@
                                         <Link
                                             v-if="can('edit trucks')"
                                             :href="`/trucks/${truck.id}/edit`"
-                                            class="btn btn-edit btn-sm me-2 my-1"
+                                            class="btn btn-edit btn-sm "
                                         >
                                             <i class="fas fa-edit"></i>
                                         </Link>
@@ -95,6 +153,7 @@
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="trucks.data.length === 0">
@@ -164,6 +223,9 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
+import { useResponsiveIndexFilters } from '@/composables/useResponsiveIndexFilters';
+
+const { showFilters } = useResponsiveIndexFilters();
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
