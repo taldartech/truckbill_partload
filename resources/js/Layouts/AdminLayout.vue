@@ -44,7 +44,6 @@
                             option below to open the form.
                         </p>
                         <div class="shortcut-list">
-                         <template v-if="!showNormalShortcuts">
                             <!-- Bilty -->
                             <button
                                 v-if="canCreateBilty"
@@ -146,7 +145,6 @@
                                 </span>
                                 <span class="shortcut-item-badge">F10</span>
                             </button>
-                         </template>
                             <button
                                 class="shortcut-item"
                                 @click="closeShortcutModal"
@@ -191,6 +189,7 @@ import Footer from "@/Components/Footer.vue";
 import SubscriptionAccessBanner from "@/Components/Subscription/SubscriptionAccessBanner.vue";
 import KeyboardConfirmModal from "@/Components/KeyboardConfirmModal.vue";
 import MasterQuickAddHost from "@/Components/MasterQuickAdd/MasterQuickAddHost.vue";
+import { usePermissions } from "@/composables/usePermissions";
 import {
     askKeyboardConfirm,
     isKeyboardConfirmOpen,
@@ -225,46 +224,22 @@ watch(isShortcutModalOpen, (shortcutOpen) => {
 });
 
 const auth = computed(() => page.props.auth || {});
+const { can, isMasterAdmin } = usePermissions();
 
 const canCreateBilty = computed(
-    () =>
-        !!(
-            auth.value.is_admin ||
-            (auth.value.permissions &&
-                auth.value.permissions.includes("create bilties"))
-        ),
+    () => !isMasterAdmin.value && !!(auth.value.is_super_admin || auth.value.is_admin || can("create bilties")),
 );
 const canCreateChallan = computed(
-    () =>
-        !!(
-            auth.value.is_admin ||
-            (auth.value.permissions &&
-                auth.value.permissions.includes("create challans"))
-        ),
+    () => !isMasterAdmin.value && !!(auth.value.is_super_admin || auth.value.is_admin || can("create challans")),
 );
 const canCreateVoucher = computed(
-    () =>
-        !!(
-            auth.value.is_admin ||
-            (auth.value.permissions &&
-                auth.value.permissions.includes("create vouchers"))
-        ),
+    () => !isMasterAdmin.value && !!(auth.value.is_super_admin || auth.value.is_admin || can("create vouchers")),
 );
 const canCreateInward = computed(
-    () =>
-        !!(
-            auth.value.is_admin ||
-            (auth.value.permissions &&
-                auth.value.permissions.includes("create inward_registers"))
-        ),
+    () => !isMasterAdmin.value && !!(auth.value.is_super_admin || auth.value.is_admin || can("create inward_registers")),
 );
 const canCreateDelivery = computed(
-    () =>
-        !!(
-            auth.value.is_admin ||
-            (auth.value.permissions &&
-                auth.value.permissions.includes("create delivery_receipts"))
-        ),
+    () => !isMasterAdmin.value && !!(auth.value.is_super_admin || auth.value.is_admin || can("create delivery_receipts")),
 );
 
 const tryOpenMasterQuickAdd = () => {
@@ -442,15 +417,13 @@ const handleEnterAsTab = async (event) => {
         }
     }
 };
-const showNormalShortcuts = computed(() => {
-    return !page.props.auth?.is_acting_as_admin;
-});
 // toggle shortcut model
 const quickAction = () => {
-     isShortcutModalOpen.value = !isShortcutModalOpen.value;
+    if (isMasterAdmin.value) return;
+    isShortcutModalOpen.value = !isShortcutModalOpen.value;
 };
 const handleKeyDown = (event) => {
-    if (isKeyboardConfirmOpen.value) return;
+    if (isKeyboardConfirmOpen.value || isMasterAdmin.value) return;
 
     // ESC to close modal
     if (event.key === "Escape") {

@@ -27,8 +27,8 @@
             </ul>
 
             <ul class="navbar-nav app-header-end ms-auto align-items-center">
-                <li>
-                    <button type="button" class=" btn btn-primary btn-sm d-flex align-items-center gap-2 me-2"
+                <li v-if="!$page.props.auth?.is_master_admin" class="nav-item d-none d-md-block">
+                    <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-2 me-2"
                           @click="$emit('quick-action')">
                         <span><i class="fa-solid fa-bolt-lightning text-warning"></i> &nbsp; Shortcut</span>
                         <span class="badge top-0 d-inline-flex align-items-center justify-content-center"  style="background-color: var(--brand-accent-blue)">
