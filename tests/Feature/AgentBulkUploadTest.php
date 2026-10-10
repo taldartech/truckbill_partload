@@ -244,4 +244,69 @@ class AgentBulkUploadTest extends TestCase
             ->post(route('agents.bulk-upload'), ['file' => $file])
             ->assertForbidden();
     }
+
+    public function test_agent_bulk_upload_allows_duplicate_names_with_different_mobiles(): void
+    {
+        $context = $this->createAuthContext(['create agents']);
+
+        $country = Country::create(['name' => 'India', 'code' => 'IN']);
+        $state = State::create(['country_id' => $country->id, 'name' => 'Rajasthan', 'code' => 'RJ']);
+        $city = City::create(['country_id' => $country->id, 'state_id' => $state->id, 'name' => 'Udaipur']);
+
+        $csv = "Agent Name,Address,State,City,Mobile\n"
+            ."Same Agent,12 Transport Nagar,Rajasthan,Udaipur,9829012345\n"
+            ."Same Agent,15 Transport Nagar,Rajasthan,Udaipur,9829054321\n";
+
+        $file = UploadedFile::fake()->createWithContent('agents.csv', $csv);
+
+        $response = $this->actingAs($context['user'])
+            ->post(route('agents.bulk-upload'), ['file' => $file]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'summary' => [
+                'total' => 2,
+                'successful' => 2,
+                'failed' => 0,
+            ],
+        ]);
+
+        $this->assertEquals(2, Agent::where('name', 'Same Agent')->count());
+    }
+
+    public function test_agent_bulk_upload_detects_duplicate_mobile(): void
+    {
+        $context = $this->createAuthContext(['create agents']);
+
+        $country = Country::create(['name' => 'India', 'code' => 'IN']);
+        $state = State::create(['country_id' => $country->id, 'name' => 'Rajasthan', 'code' => 'RJ']);
+        $city = City::create(['country_id' => $country->id, 'state_id' => $state->id, 'name' => 'Udaipur']);
+
+        Agent::create([
+            'company_id' => $context['company']->id,
+            'name' => 'Existing Agent',
+            'address' => 'Old Address',
+            'state_id' => $state->id,
+            'city_id' => $city->id,
+            'mobile' => '9829012345',
+        ]);
+
+        $csv = "Agent Name,Address,State,City,Mobile\n"
+            ."Agent One,Address 1,Rajasthan,Udaipur,9829012345\n" // duplicate in DB
+            ."Agent Two,Address 2,Rajasthan,Udaipur,9829099999\n"
+            ."Agent Three,Address 3,Rajasthan,Udaipur,9829099999\n"; // duplicate within batch
+
+        $file = UploadedFile::fake()->createWithContent('agents.csv', $csv);
+
+        $response = $this->actingAs($context['user'])
+            ->post(route('agents.bulk-upload'), ['file' => $file]);
+
+        $response->assertOk();
+        $json = $response->json();
+        $this->assertFalse($json['success']);
+        $this->assertEquals(2, $json['summary']['failed']);
+        $this->assertEquals(1, $json['summary']['successful']);
+    }
 }
+

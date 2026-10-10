@@ -377,7 +377,6 @@ class PartyController extends Controller implements HasMiddleware
                     'required' => true,
                     'aliases' => ['name', 'party_name', 'party'],
                     'rules' => ['required', 'string', 'max:255'],
-                    'unique' => true,
                 ],
                 'address' => [
                     'label' => 'Address',
@@ -402,6 +401,7 @@ class PartyController extends Controller implements HasMiddleware
                     'required' => true,
                     'aliases' => ['mobile', 'mobile_no', 'phone', 'contact_no'],
                     'rules' => ['required', 'string', 'digits:10', 'regex:/^[6-9]\d{9}$/'],
+                    'unique' => true,
                 ],
                 'email' => [
                     'label' => 'Email',

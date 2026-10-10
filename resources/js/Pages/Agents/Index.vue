@@ -226,7 +226,7 @@ const bulkUploadColumns = [
         name: 'name',
         label: 'Agent Name',
         required: true,
-        description: 'Unique name of the agent / agency',
+        description: 'Name of the agent / agency',
     },
     {
         name: 'address',
@@ -250,7 +250,8 @@ const bulkUploadColumns = [
         name: 'mobile',
         label: 'Mobile',
         required: true,
-        description: '10-digit Indian mobile number starting with 6-9',
+        description: 'Unique 10-digit mobile number',
+        unique: true
     },
     {
         name: 'email',

@@ -305,7 +305,6 @@ class AgentController extends Controller implements HasMiddleware
                     'required' => true,
                     'aliases' => ['name', 'agent_name', 'agent'],
                     'rules' => ['required', 'string', 'max:255'],
-                    'unique' => true,
                 ],
                 'address' => [
                     'label' => 'Address',
@@ -330,6 +329,7 @@ class AgentController extends Controller implements HasMiddleware
                     'required' => true,
                     'aliases' => ['mobile', 'mobile_no', 'phone', 'contact_no'],
                     'rules' => ['required', 'string', 'digits:10', 'regex:/^[6-9]\d{9}$/'],
+                    'unique' => true,
                 ],
                 'email' => [
                     'label' => 'Email',

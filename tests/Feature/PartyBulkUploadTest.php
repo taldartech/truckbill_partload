@@ -300,4 +300,69 @@ class PartyBulkUploadTest extends TestCase
             ->post(route('parties.bulk-upload'), ['file' => $file])
             ->assertForbidden();
     }
+
+    public function test_party_bulk_upload_allows_duplicate_names_with_different_mobiles(): void
+    {
+        $context = $this->createAuthContext(['create parties']);
+
+        $country = Country::create(['name' => 'India', 'code' => 'IN']);
+        $state = State::create(['country_id' => $country->id, 'name' => 'Rajasthan', 'code' => 'RJ']);
+        $city = City::create(['country_id' => $country->id, 'state_id' => $state->id, 'name' => 'Udaipur']);
+
+        $csv = "Party Name,Address,State,City,Mobile\n"
+            ."Same Party,12 Industrial Area,Rajasthan,Udaipur,9829012345\n"
+            ."Same Party,15 Industrial Area,Rajasthan,Udaipur,9829054321\n";
+
+        $file = UploadedFile::fake()->createWithContent('parties.csv', $csv);
+
+        $response = $this->actingAs($context['user'])
+            ->post(route('parties.bulk-upload'), ['file' => $file]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'summary' => [
+                'total' => 2,
+                'successful' => 2,
+                'failed' => 0,
+            ],
+        ]);
+
+        $this->assertEquals(2, Party::where('name', 'Same Party')->count());
+    }
+
+    public function test_party_bulk_upload_detects_duplicate_mobile(): void
+    {
+        $context = $this->createAuthContext(['create parties']);
+
+        $country = Country::create(['name' => 'India', 'code' => 'IN']);
+        $state = State::create(['country_id' => $country->id, 'name' => 'Rajasthan', 'code' => 'RJ']);
+        $city = City::create(['country_id' => $country->id, 'state_id' => $state->id, 'name' => 'Udaipur']);
+
+        Party::create([
+            'company_id' => $context['company']->id,
+            'name' => 'Existing Party',
+            'address' => 'Old Address',
+            'state_id' => $state->id,
+            'city_id' => $city->id,
+            'mobile' => '9829012345',
+        ]);
+
+        $csv = "Party Name,Address,State,City,Mobile\n"
+            ."Party One,Address 1,Rajasthan,Udaipur,9829012345\n" // duplicate in DB
+            ."Party Two,Address 2,Rajasthan,Udaipur,9829099999\n"
+            ."Party Three,Address 3,Rajasthan,Udaipur,9829099999\n"; // duplicate within batch
+
+        $file = UploadedFile::fake()->createWithContent('parties.csv', $csv);
+
+        $response = $this->actingAs($context['user'])
+            ->post(route('parties.bulk-upload'), ['file' => $file]);
+
+        $response->assertOk();
+        $json = $response->json();
+        $this->assertFalse($json['success']);
+        $this->assertEquals(2, $json['summary']['failed']);
+        $this->assertEquals(1, $json['summary']['successful']);
+    }
 }
+
