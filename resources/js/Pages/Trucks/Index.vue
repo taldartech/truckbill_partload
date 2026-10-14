@@ -5,6 +5,10 @@
                 <div class="card-header">
                     <h3 class="card-title mb-0">Manage Trucks</h3>
                     <div class="app-index-card-toolbar d-flex flex-wrap gap-2 align-items-center">
+                        <button type="button" class="btn btn-sm app-index-header-btn" @click="showBulkUpload = true" v-if="can('create trucks')">
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--upload" aria-hidden="true"></span>
+                            Bulk Upload
+                        </button>
                         <Link v-if="can('create trucks')" href="/trucks/create" class="btn btn-sm app-index-header-btn">
                             <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
                             Create
@@ -153,6 +157,17 @@
                 </div>
             </div>
         </div>
+
+        <BulkUploadModal
+            v-model:show="showBulkUpload"
+            title="Bulk Upload Trucks"
+            upload-url="/trucks/bulk-upload"
+            template-download-url="/trucks/bulk-upload/template"
+            template-file-name="trucks_bulk_upload_template.csv"
+            :columns="bulkUploadColumns"
+            :sample-data="bulkUploadSampleData"
+            @success="onBulkUploadSuccess"
+        />
     </AdminLayout>
 </template>
 
@@ -164,6 +179,7 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
+import BulkUploadModal from '@/Components/BulkUploadModal.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
@@ -244,4 +260,29 @@ const submitTour = () => {
         },
     });
 };
+
+const showBulkUpload = ref(false);
+
+const bulkUploadColumns = [
+    { name: 'truck_number', label: 'Truck Number', required: true, description: 'Registration Number (e.g. MH04AB1234)' },
+    { name: 'truck_type', label: 'Truck Type', required: false, description: 'Type name (e.g. 14 Ft Open Body)' },
+    { name: 'capacity', label: 'Capacity', required: false, description: 'Capacity (e.g. 15 Tons)' },
+    { name: 'status', label: 'Status', required: false, description: 'Available / Booked / In Transit / Maintenance' },
+    { name: 'state', label: 'State', required: false, description: 'Current State' },
+    { name: 'city', label: 'City', required: false, description: 'Current City (must exist in master records)' },
+    { name: 'station', label: 'Station', required: false, description: 'Current Station' },
+    { name: 'truck_owner', label: 'Truck Owner', required: false, description: 'Truck Owner Name' },
+    { name: 'driver', label: 'Driver Name', required: false, description: 'Driver Name (optional, not stored)' },
+    { name: 'rc_no', label: 'RC Number', required: false, description: 'RC Number' },
+    { name: 'rc_expiry_date', label: 'RC Expiry Date', required: false, description: 'YYYY-MM-DD' },
+    { name: 'insurance_no', label: 'Insurance No', required: false, description: 'Insurance Policy Number' },
+    { name: 'insurance_expiry_date', label: 'Insurance Expiry Date', required: false, description: 'YYYY-MM-DD' },
+    { name: 'fitness_no', label: 'Fitness No', required: false, description: 'Fitness Certificate No' },
+    { name: 'fitness_expiry_date', label: 'Fitness Expiry Date', required: false, description: 'YYYY-MM-DD' },
+    { name: 'pollution_no', label: 'Pollution No', required: false, description: 'PUC Number' },
+    { name: 'pollution_expiry_date', label: 'Pollution Expiry Date', required: false, description: 'YYYY-MM-DD' },
+    { name: 'permit_no', label: 'Permit No', required: false, description: 'Permit Number' },
+    { name: 'permit_expiry_date', label: 'Permit Expiry Date', required: false, description: 'YYYY-MM-DD' },
+];
+
 </script>

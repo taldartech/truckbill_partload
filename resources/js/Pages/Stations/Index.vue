@@ -9,6 +9,15 @@
                             v-if="can('create stations')"
                             type="button"
                             class="btn btn-sm app-index-header-btn"
+                            @click="showBulkUpload = true"
+                        >
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--upload" aria-hidden="true"></span>
+                            Bulk Upload
+                        </button>
+                        <button
+                            v-if="can('create stations')"
+                            type="button"
+                            class="btn btn-sm app-index-header-btn"
                             @click="openModal()"
                         >
                             <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
@@ -165,6 +174,17 @@
                 </div>
             </div>
         </div>
+
+        <BulkUploadModal
+            v-model:show="showBulkUpload"
+            title="Bulk Upload Stations"
+            upload-url="/stations/bulk-upload"
+            template-download-url="/stations/bulk-upload/template"
+            template-file-name="stations_bulk_upload_template.csv"
+            :columns="bulkUploadColumns"
+            :sample-data="bulkUploadSampleData"
+            @success="onBulkUploadSuccess"
+        />
     </AdminLayout>
 </template>
 
@@ -176,6 +196,7 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
+import BulkUploadModal from '@/Components/BulkUploadModal.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
@@ -214,6 +235,35 @@ const form = useForm({
 });
 
 const editMode = ref(false);
+const showBulkUpload = ref(false);
+
+const bulkUploadColumns = [
+    {
+        name: 'name',
+        label: 'Station Name',
+        required: true,
+        description: 'Unique name of the station (e.g. Udaipur Transport Nagar)',
+    },
+    {
+        name: 'state',
+        label: 'State',
+        required: true,
+        description: 'State name or state code (e.g. Rajasthan or RJ)',
+    },
+    {
+        name: 'city',
+        label: 'City',
+        required: true,
+        description: 'Existing city name in master records (e.g. Udaipur)',
+    },
+    {
+        name: 'default_agent',
+        label: 'Default Agent',
+        required: false,
+        description: 'Optional default delivery agent name for the station',
+    },
+];
+
 let modal = null;
 
 const filteredCities = computed(() => {

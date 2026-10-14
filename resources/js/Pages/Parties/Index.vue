@@ -5,6 +5,10 @@
                 <div class="card-header">
                     <h3 class="card-title mb-0">Manage Parties (Consignees/Customers)</h3>
                     <div class="app-index-card-toolbar d-flex flex-wrap gap-2 align-items-center">
+                        <button v-if="can('create parties')" type="button" class="btn btn-sm app-index-header-btn" @click="showBulkUpload = true">
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--upload" aria-hidden="true"></span>
+                            Bulk Upload
+                        </button>
                         <button
                             v-if="can('create parties')"
                             type="button"
@@ -186,6 +190,15 @@
                 </div>
             </div>
         </div>
+
+        <BulkUploadModal
+            v-model:show="showBulkUpload"
+            title="Bulk Upload Parties"
+            upload-url="/parties/bulk-upload"
+            template-download-url="/parties/bulk-upload/template"
+            template-file-name="parties_bulk_upload_template.csv"
+            :columns="bulkUploadColumns"
+        />
     </AdminLayout>
 </template>
 
@@ -200,6 +213,7 @@ import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
+import BulkUploadModal from '@/Components/BulkUploadModal.vue';
 
 const props = defineProps({
     parties: Object,
@@ -249,6 +263,67 @@ const form = useForm({
 });
 
 const editMode = ref(false);
+const showBulkUpload = ref(false);
+
+const bulkUploadColumns = [
+    {
+        name: 'name',
+        label: 'Party Name',
+        required: true,
+        description: 'Name of the party / customer',
+    },
+    {
+        name: 'address',
+        label: 'Address',
+        required: true,
+        description: 'Full address of the party',
+    },
+    {
+        name: 'state',
+        label: 'State',
+        required: true,
+        description: 'State name or state code (e.g. Rajasthan or RJ)',
+    },
+    {
+        name: 'city',
+        label: 'City',
+        required: true,
+        description: 'Existing city name in master records (e.g. Udaipur)',
+    },
+    {
+        name: 'mobile',
+        label: 'Mobile',
+        required: true,
+        description: 'Unique 10-digit mobile number',
+        unique: true
+    },
+    {
+        name: 'email',
+        label: 'Email',
+        required: false,
+        description: 'Optional valid email address',
+    },
+    {
+        name: 'gst_number',
+        label: 'GST Number',
+        required: false,
+        description: 'Optional 15-character GSTIN',
+    },
+    {
+        name: 'group',
+        label: 'Group',
+        required: false,
+        description: 'Optional existing group name in master records (e.g. Corporate Clients)',
+    },
+    {
+        name: 'bilty_charge',
+        label: 'Bilty Charge',
+        required: false,
+        description: 'Optional fixed bilty charge amount (e.g. 50.00)',
+    },
+];
+
+
 let modal = null;
 
 const filteredCities = computed(() => {
