@@ -91,7 +91,7 @@ class LoadingReportController extends Controller implements HasMiddleware
     private function pendingBilties(): Collection
     {
         return Bilty::with(['biltyDetails.good', 'consignee', 'toStation'])
-            ->whereNotIn('status', ['Delivered', 'Cancelled'])
+            ->whereNotIn('status', ['In Transit', 'Delivered', 'Cancelled'])
             ->get();
     }
 
