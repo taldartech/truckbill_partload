@@ -166,8 +166,9 @@
                         :class="`dash-stat-card--${stat.tone}`"
                     >
                         <div class="dash-stat-card__icon"><i class="fas" :class="stat.icon"></i></div>
+                        <div class="dash-stat-card__value d-block d-sm-none">{{ stat.value }}</div>
                         <div>
-                            <div class="dash-stat-card__value">{{ stat.value }}</div>
+                            <div class="dash-stat-card__value d-sm-block d-none">{{ stat.value }}</div>
                             <div class="dash-stat-card__label">{{ stat.label }}</div>
                             <div v-if="stat.meta" class="dash-stat-card__meta">{{ stat.meta }}</div>
                             <Link v-if="stat.href" :href="stat.href" class="dash-stat-card__link">
@@ -187,7 +188,57 @@
                                 </Link>
                             </div>
                             <div class="card-body p-0">
-                                <div class="table-responsive">
+                                <div class="d-sm-none">
+                                    <div
+                                        v-for="bilty in dashboard.recent_bilties"
+                                        :key="bilty.id"
+                                        class="px-3 py-2 border-bottom"
+                                    >
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div class="d-flex align-items-center gap-2 text-truncate">
+                                                <Link
+                                                    v-if="can('edit bilties')"
+                                                    :href="`/bilties/${bilty.id}/edit`"
+                                                    class="fw-bold text-decoration-none text-truncate"
+                                                >
+                                                    {{ bilty.bilty_number || '—' }}
+                                                </Link>
+                                                <span v-else class="fw-bold text-truncate">{{ bilty.bilty_number || '—' }}</span>
+                                                <span class="text-muted small text-nowrap">
+                                                    {{ formatDate(bilty.date) }}
+                                                </span>
+                                            </div>
+
+                                            <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                                                <span
+                                                    class="badge"
+                                                    :class="statusBadgeClass(bilty.status)"
+                                                >
+                                                    {{ bilty.status || 'Booked' }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <span class="small text-muted text-truncate">
+                                                Consignee: {{ bilty.consignee?.name || '—' }}
+                                            </span>
+
+                                            <span class="small fw-semibold ms-2">
+                                                {{ formatCurrency(bilty.amount) }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        v-if="!dashboard.recent_bilties?.length"
+                                        class="text-center text-muted py-4 small"
+                                    >
+                                        No recent bilties.
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive d-none d-sm-block">
                                     <table class="table table-hover m-0 text-sm">
                                         <thead>
                                             <tr>
@@ -210,7 +261,7 @@
                                                     </Link>
                                                     <span v-else>{{ bilty.bilty_number || '—' }}</span>
                                                 </td>
-                                                <td>{{ formatDate(bilty.date) }}</td>
+                                                <td class="text-nowrap ">{{ formatDate(bilty.date) }}</td>
                                                 <td>{{ bilty.consignee?.name || '—' }}</td>
                                                 <td>
                                                     <span class="badge" :class="statusBadgeClass(bilty.status)">
@@ -260,7 +311,7 @@
                                                     </Link>
                                                     <span v-else>{{ challan.challan_number || '—' }}</span>
                                                 </td>
-                                                <td>{{ formatDate(challan.date) }}</td>
+                                                <td class="text-nowrap ">{{ formatDate(challan.date) }}</td>
                                                 <td>{{ challan.truck?.truck_number || '—' }}</td>
                                             </tr>
                                             <tr v-if="!dashboard.recent_challans?.length">
@@ -282,7 +333,7 @@
                                 <h3 class="card-title mb-0">Quick Actions</h3>
                             </div>
                             <div class="card-body">
-                                <div v-if="visibleQuickActions.length" class="dash-quick-grid" style="grid-template-columns: 1fr;">
+                                <div v-if="visibleQuickActions.length" class="dash-quick-grid">
                                     <Link
                                         v-for="action in visibleQuickActions"
                                         :key="action.href"

@@ -351,7 +351,7 @@
                                             <div class="bilty-addon-panel__head">
                                                 <p class="bilty-addon-panel__desc mb-0">Optional — add particulars and amount</p>
                                                 <button type="button" class="btn btn-sm btn-outline-secondary" data-dynamic-add @click="addAddonCharge">
-                                                    <i class="fas fa-plus me-1"></i> Add
+                                                    <i class="fas fa-plus m-0 me-md-1"></i><span class="d-none d-sm-inline"> Add</span>
                                                 </button>
                                             </div>
 
@@ -507,7 +507,7 @@
                                     <p class="bilty-eway-block__desc">Optional — add bill number and valid till date</p>
                                 </div>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" data-dynamic-add @click="addEwayBill">
-                                    <i class="fas fa-plus me-1"></i> Add
+                                    <i class="fas fa-plus m-0 me-md-1"></i><span class="d-none d-sm-inline"> Add</span>
                                 </button>
                             </div>
 
@@ -563,13 +563,13 @@
 
                 <div class="bilty-form-actions">
                     <Link href="/bilties" class="btn btn-outline-secondary btn-sm px-3">
-                        <i class="fas fa-times me-1"></i> Cancel
+                        <i class="fas fa-times m-0 me-md-1"></i><span class="d-none d-sm-inline"> Cancel</span>
                     </Link>
                     <button type="button" class="btn btn-outline-secondary btn-sm px-3" :disabled="form.processing" @click="clearForm">
-                        <i class="fas fa-eraser me-1"></i> Clear
+                        <i class="fas fa-eraser m-0 me-md-1"></i><span class="d-none d-sm-inline"> Clear</span>
                     </button>
                     <button type="submit" class="btn btn-success btn-sm px-4" :disabled="form.processing">
-                        <i class="fas fa-save me-1"></i> Save
+                        <i class="fas fa-save m-0 me-md-1"></i><span class="d-none d-sm-inline"> Save</span>
                     </button>
                 </div>
             </form>

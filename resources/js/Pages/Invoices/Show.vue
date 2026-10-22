@@ -73,7 +73,7 @@
                                     <tr v-for="(row, index) in detailRows" :key="row.id || index">
                                         <td>{{ index + 1 }}</td>
                                         <td>{{ row.bilty_number }}</td>
-                                        <td>{{ formatDate(row.date) }}</td>
+                                        <td class="text-nowrap ">{{ formatDate(row.date) }}</td>
                                         <td>{{ row.from_station }}</td>
                                         <td>{{ row.to_station }}</td>
                                         <td class="text-end">₹{{ formatMoney(row.amount) }}</td>

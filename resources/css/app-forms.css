@@ -893,12 +893,12 @@
     min-width: 6.5rem;
 }
 
-.bilty-table-actions {
+.table-actions {
     display: flex;
     align-items: center;
     justify-content: flex-end;
     flex-wrap: nowrap;
-    gap: 0.25rem;
+    gap: 1rem;  
 }
 
 @media (max-width: 767.98px) {
@@ -939,9 +939,12 @@
     .bilty-eway-row__action {
         justify-content: flex-start;
     }
-    .bilty-table-actions .btn {
-    padding: 0.3rem 0.3rem !important;
-}
+    .table-actions .btn {
+        padding: 0.5rem 0.5rem !important;
+    }
+    .table-actions{
+        gap: 0.5rem;
+    }
 
 }
 

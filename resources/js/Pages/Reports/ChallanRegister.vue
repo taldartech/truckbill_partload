@@ -45,7 +45,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="challan in challans" :key="challan.id">
-                                    <td>{{ challan.date }}</td>
+                                    <td class="text-nowrap ">{{ challan.date }}</td>
                                     <td>
                                         <a :href="`/challans/${challan.id}/print`" target="_blank" class="fw-bold">{{ challan.challan_no }}</a>
                                     </td>
@@ -55,7 +55,7 @@
                                     <td>{{ challan.to_station?.name }}</td>
                                     <td class="text-end">₹ {{ challan.truck_freight }}</td>
                                     <td class="text-end">₹ {{ challan.advance }}</td>
-                                    <td class="text-end fw-bold">₹ {{ challan.balance }}</td>
+                                    <td class="text-end fw-bold text-nowrap">₹ {{ challan.balance }}</td>
                                 </tr>
                                 <tr v-if="challans.length === 0">
                                     <td colspan="9" class="text-center py-4 text-muted">No challans found for selected filters.</td>

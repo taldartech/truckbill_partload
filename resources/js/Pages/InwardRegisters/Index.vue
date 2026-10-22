@@ -10,13 +10,17 @@
                             href="/inward-registers/create"
                             class="btn btn-sm app-index-header-btn"
                         >
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
-                            Create
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus ms-1 ms-sm-0" aria-hidden="true"></span>
+                            <span class="d-none d-sm-block">Create</span>
                         </Link>
+                        <button type="button" class="btn btn-sm btn-success d-block d-sm-none"
+                            :title="showFilters ? 'Hide Filters' : 'Show Filters'" @click="showFilters = !showFilters">
+                            <i class="fas fa-filter p-1"></i>
+                        </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters
+                <AppIndexCollapsibleFilters v-if="showFilters"
                     panel-id="inward-registers-filters-panel"
                     :loading="searching"
                     @search="applyFilters"
@@ -69,7 +73,52 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div v-for="register in registers.data" :key="register.id" class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <Link :href="`/inward-registers/${register.id}`"
+                                        class="fw-bold text-decoration-none">
+                                        {{ register.inward_register_no || '—' }}
+                                    </Link>
+                                    <span class="text-muted small text-nowrap">
+                                        {{ register.date }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                                    <Link v-if="can('edit inward_registers')"
+                                        :href="`/inward-registers/${register.id}/edit`"
+                                        class="btn btn-sm btn-outline-info py-0 px-2" title="Edit Register">
+                                        <i class="fas fa-edit small"></i>
+                                    </Link>
+                                    <button v-if="can('delete inward_registers')" type="button"
+                                        class="btn btn-sm btn-danger py-0 px-2" title="Delete Register"
+                                        @click="deleteRegister(register)">
+                                        <i class="fas fa-trash small"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div
+                                class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <div class="text-truncate">
+                                    <span class="text-dark fw-medium">{{ register.from_station?.name || 'N/A' }}</span>
+                                    <i class="fas fa-arrow-right mx-1 text-muted" style="font-size: 0.75rem;"></i>
+                                    <span class="text-dark fw-medium">{{ register.to_station?.name || 'N/A' }}</span>
+                                </div>
+                                <span v-if="register.truck?.truck_number"
+                                    class="badge bg-light text-secondary border ms-2 text-nowrap">
+                                    {{ register.truck?.truck_number }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-if="registers.data.length === 0" class="text-center text-muted py-4 small">
+                            No inward registers found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
@@ -91,24 +140,26 @@
                                             {{ register.inward_register_no || '—' }}
                                         </Link>
                                     </td>
-                                    <td>{{ register.date }}</td>
-                                    <td>
+                                    <td class="text-nowrap ">{{ register.date }}</td>
+                                    <td class="text-nowrap ">
                                         <span class="text-bold">{{ register.from_station?.name }}</span>
                                         <i class="fas fa-arrow-right mx-2 text-muted small"></i>
                                         <span class="text-bold">{{ register.to_station?.name }}</span>
                                     </td>
-                                    <td>{{ register.challan_number || '—' }} ({{ register.challan_date }})</td>
+                                    <td class="text-nowrap ">{{ register.challan_number || '—' }} ({{ register.challan_date }})</td>
                                     <td>{{ register.truck?.truck_number }}</td>
                                     <td>{{ register.total_packages ?? register.details?.length ?? 0 }}</td>
                                     <td>{{ register.total_delivery_freight ?? '0.00' }}</td>
                                     <td>{{ register.total_crossing_freight ?? '0.00' }}</td>
                                     <td class="text-end" v-if="can('edit inward_registers') || can('delete inward_registers')">
+                                        <div class="table-actions">
                                         <Link :href="`/inward-registers/${register.id}/edit`" class="btn btn-sm btn-info text-white me-2" v-if="can('edit inward_registers')">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button type="button" class="btn btn-sm btn-danger" @click="deleteRegister(register)" v-if="can('delete inward_registers')">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="registers.data.length === 0">
@@ -135,6 +186,9 @@ import PaginationLinks from '@/Components/PaginationLinks.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
+import { useResponsiveIndexFilters } from '@/composables/useResponsiveIndexFilters';
+
+const { showFilters } = useResponsiveIndexFilters();
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
@@ -338,6 +392,15 @@ To         : ${register.to_station?.name}`
         margin-left: 0 !important;
         width: 100%;
         justify-content: flex-end;
+    }
+}
+
+@media (max-width: 500.98px) {
+    .app-index-collapsible-filters__inner > div:not(.app-index-collapsible-filters__actions),
+    .app-report-filters-panel__inner > div:not(.app-report-filters-panel__actions),
+    .app-index-filters-fields > div {
+        flex: 0 0 100% !important;
+        width: 100% !important;
     }
 }
 </style>

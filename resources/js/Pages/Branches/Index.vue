@@ -14,8 +14,49 @@
                             <i class="fas fa-plus"></i> Add New Branch
                         </Link>
                     </div>
-                    <div class="card-body p-0 table-responsive">
-                        <table class="table table-hover">
+                    <div class="card-body p-0">
+                    <div class="d-sm-none">
+                            <div v-for="branch in branches.data" :key="branch.id" class="px-3 py-2 border-bottom">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2 text-truncate">
+                                        <Link :href="`/branches/${branch.id}`" class="fw-bold text-decoration-none">
+                                            {{ branch.name || 'N/A' }}
+                                        </Link>
+                                        <span v-if="branch.is_head_office" class="badge bg-primary">Head Office</span>
+                                        <span v-else class="badge bg-secondary">Branch</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                                        <Link v-if="can('edit branches')" :href="`/branches/${branch.id}/settings`"
+                                            class="btn btn-sm btn-outline-secondary py-0 px-2" title="Branch Settings">
+                                            <i class="fas fa-cog small"></i>
+                                        </Link>
+                                        <Link v-if="can('edit branches')" :href="`/branches/${branch.id}/edit`"
+                                            class="btn btn-sm btn-outline-info py-0 px-2" title="Edit Branch">
+                                            <i class="fas fa-edit small"></i>
+                                        </Link>
+                                        <button v-if="can('delete branches')" @click="deleteBranch(branch)"
+                                            class="btn btn-sm btn-danger py-0 px-2" title="Delete Branch">
+                                            <i class="fas fa-trash small"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="small text-muted mt-1 d-flex align-items-center text-truncate">
+                                    <span class="text-dark fw-medium text-truncate">{{ branch.station?.name || '—'
+                                        }}</span>
+                                    <span v-if="branch.city?.name" class="text-muted ms-1 text-truncate">
+                                        ({{ branch.city?.name }})
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div v-if="branches.data.length === 0" class="text-center text-muted py-4 small">
+                                No branches found.
+                            </div>
+                        </div>
+
+                        <div class="table-responsive d-none d-sm-block">
+                            <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -32,7 +73,7 @@
                                     :key="branch.id"
                                     :class="{ 'table-active': isActiveBranch(branch.id) }"
                                 >
-                                    <td>
+                                    <td class="text-nowrap ">
                                         <Link :href="`/branches/${branch.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ branch.name || 'N/A' }}
                                         </Link>
@@ -46,10 +87,11 @@
                                         <span v-else class="badge bg-secondary">Branch</span>
                                     </td>
                                     <td class="text-end">
+                                        <div class="table-actions">
                                         <button
                                             v-if="can_select_branch && !isActiveBranch(branch.id)"
                                             type="button"
-                                            class="btn btn-sm btn-primary me-2"
+                                            class="btn btn-sm btn-primary"
                                             title="Select this branch"
                                             @click="selectBranch(branch.id)"
                                         >
@@ -58,17 +100,18 @@
                                         <Link
                                             v-if="can('edit branches')"
                                             :href="`/branches/${branch.id}/settings`"
-                                            class="btn btn-outline-secondary btn-sm me-2"
+                                            class="btn btn-outline-secondary btn-sm"
                                             title="Branch Settings"
                                         >
                                             <i class="fas fa-cog"></i>
                                         </Link>
-                                        <Link :href="`/branches/${branch.id}/edit`" class="btn btn-edit btn-sm me-2">
+                                        <Link :href="`/branches/${branch.id}/edit`" class="btn btn-edit btn-sm">
                                             <i class="fas fa-edit"></i>
                                         </Link>
                                         <button @click="deleteBranch(branch)" class="btn btn-sm btn-danger">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="branches.data.length === 0">
@@ -76,6 +119,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                     <PaginationLinks :pagination="branches" />
                 </div>

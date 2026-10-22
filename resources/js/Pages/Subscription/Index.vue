@@ -41,8 +41,41 @@
             <div class="card-header">
                 <h3 class="card-title mb-0">Company subscriptions</h3>
             </div>
-            <div class="card-body p-0 table-responsive">
-                <table class="table table-hover mb-0">
+            <div class="card-body p-0">
+                <div class="d-sm-none">
+                    <div
+                        v-for="company in companies"
+                        :key="company.id"
+                        class="px-3 py-2 border-bottom"
+                    >
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="fw-bold text-truncate">{{ company.name }}</div>
+                            <div class="d-flex align-items-center gap-1 ms-2">
+                                <StatusBadge :status="company.subscription?.display_status ?? 'none'" />
+                                <Link
+                                    :href="`/subscription/manage?company_id=${company.id}`"
+                                    class="btn btn-sm btn-outline-primary py-0 px-2"
+                                    title="Manage Subscription"
+                                >
+                                    <i class="fas fa-cog small"></i>
+                                </Link>
+                            </div>
+                        </div>
+                        <div class="small text-muted mt-1" v-if="company.subscription?.ends_on">
+                            Valid until: <span class="text-dark">{{ formatDate(company.subscription?.ends_on) }}</span>
+                        </div>
+                    </div>
+
+                    <div
+                        v-if="companies.length === 0"
+                        class="text-center text-muted py-4 small"
+                    >
+                        No companies found.
+                    </div>
+                </div>
+
+                <div class="table-responsive d-none d-sm-block">
+                    <table class="table table-hover mb-0">
                     <thead>
                         <tr>
                             <th>Company</th>
@@ -74,6 +107,7 @@
                 </table>
             </div>
         </div>
+    </div>
     </AdminLayout>
 </template>
 

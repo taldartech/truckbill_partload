@@ -10,19 +10,23 @@
                             href="/accounting/vouchers/create"
                             class="btn btn-sm app-index-header-btn"
                         >
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
-                            Create
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus ms-1 ms-sm-0" aria-hidden="true"></span>
+                            <span class="d-none d-sm-block">Create</span>
                         </Link>
+                        <button type="button" class="btn btn-sm btn-success d-block d-sm-none"
+                            :title="showFilters ? 'Hide Filters' : 'Show Filters'" @click="showFilters = !showFilters">
+                            <i class="fas fa-filter p-1"></i>
+                        </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters
+                <AppIndexCollapsibleFilters v-if="showFilters"
                     panel-id="accounting-vouchers-filters-panel"
                     :loading="searching"
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="av_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -129,6 +133,9 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
+import { useResponsiveIndexFilters } from '@/composables/useResponsiveIndexFilters';
+
+const { showFilters } = useResponsiveIndexFilters();
 import IndexDateRangePicker from '@/Components/Index/IndexDateRangePicker.vue';
 import { thisMonthDateRange } from '@/utils/dateRangePresets';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';

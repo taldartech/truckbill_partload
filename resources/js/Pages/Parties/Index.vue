@@ -15,19 +15,23 @@
                             class="btn btn-sm app-index-header-btn"
                             @click="openModal()"
                         >
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
-                            Create
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus ms-1 ms-sm-0" aria-hidden="true"></span>
+                            <span class="d-none d-sm-block">Create</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success d-block d-sm-none"
+                            :title="showFilters ? 'Hide Filters' : 'Show Filters'" @click="showFilters = !showFilters">
+                            <i class="fas fa-filter p-1"></i>
                         </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters
+                <AppIndexCollapsibleFilters v-if="showFilters"
                     panel-id="parties-filters-panel"
                     :loading="searching"
                     @search="applyFilters"
                     @reset="resetFilters"
                 >
-                    <div class="filter-search-col">
+                    <div class="filter-search-col col-12 col-sm-auto">
                         <label class="form-label" for="parties_search">Search</label>
                         <AppIndexSearchInput
                             v-model="filters.search"
@@ -42,7 +46,51 @@
                 </AppIndexCollapsibleFilters>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="d-sm-none">
+                        <div v-for="(party, index) in parties.data" :key="party.id" class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="text-truncate d-flex align-items-center">
+                                    <span class="  me-2 flex-shrink-0">{{ (parties.total ??
+                                        parties.data.length) - ((parties.from ?? 1) - 1) - index }}</span>
+                                    <Link :href="`/parties/${party.id}`"
+                                        class="fw-bold text-decoration-none text-truncate">
+                                        {{ party.name }}
+                                    </Link>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2"
+                                    v-if="can('delete parties') || can('edit parties')">
+                                    <button v-if="can('edit parties')" type="button"
+                                        class="btn btn-sm btn-edit py-0 px-2" title="Edit Party"
+                                        @click="editItem(party)">
+                                        <i class="fas fa-edit small"></i>
+                                    </button>
+                                    <button v-if="can('delete parties')" type="button"
+                                        class="btn btn-sm btn-danger py-0 px-2" title="Delete Party"
+                                        @click="deleteParty(party)">
+                                        <i class="fas fa-trash small"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div
+                                class="small text-muted mt-1 d-flex align-items-center justify-content-between text-truncate">
+                                <span v-if="party.mobile">
+                                    <i class="fas fa-phone me-1 small"></i>{{ party.mobile }}
+                                </span>
+                                <span v-else class="text-muted">—</span>
+                                <span v-if="party.gst_number"
+                                    class="badge bg-light text-secondary border ms-2 text-nowrap">
+                                    GST: {{ party.gst_number }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-if="parties.data.length === 0" class="text-center text-muted py-4 small">
+                            No parties found for selected filters.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive d-none d-sm-block">
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
@@ -64,10 +112,11 @@
                                     <td>{{ party.gst_number || 'N/A' }}</td>
                                     <td>{{ party.mobile || 'N/A' }}</td>
                                     <td class="text-end"   v-if="can('delete parties') || can('edit parties')">
+                                        <div class="table-actions">
                                         <button
                                             v-if="can('edit parties')"
                                             type="button"
-                                            class="btn btn-edit btn-sm me-2"
+                                            class="btn btn-edit btn-sm"
                                             @click="editItem(party)"
                                         >
                                             <i class="fas fa-edit"></i>
@@ -80,6 +129,7 @@
                                         >
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="parties.data.length === 0">
@@ -220,6 +270,9 @@ import PartyChargeFields from '@/Components/Forms/PartyChargeFields.vue';
 import { emptyPartyCharges, partyChargesFrom } from '@/utils/partyCharges';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
+import { useResponsiveIndexFilters } from '@/composables/useResponsiveIndexFilters';
+
+const { showFilters } = useResponsiveIndexFilters();
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';

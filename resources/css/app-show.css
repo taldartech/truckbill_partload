@@ -329,7 +329,7 @@
     }
 }
 
-@media (max-width: 575.98px) {
+@media (max-width: 360px) {
     .app-show-field-grid {
         grid-template-columns: 1fr;
     }
