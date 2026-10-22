@@ -122,8 +122,9 @@ class InvoiceController extends Controller implements HasMiddleware
             ->where('payment_type', 'TBB')
             ->where('consignor_id', $validated['party_id'])
             ->where(function ($query) use ($currentBiltyIds) {
-                $query->where(function ($inner) {
-                    $inner->whereNull('invoice_number')->orWhere('invoice_number', '');
+                $query->whereNotIn('id', function ($subQuery) {
+                    $subQuery->select('bilty_id')
+                        ->from('invoice_details');
                 });
 
                 if (! empty($currentBiltyIds)) {
