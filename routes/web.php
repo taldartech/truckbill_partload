@@ -32,6 +32,7 @@ use App\Http\Controllers\MainChallanController;
 use App\Http\Controllers\PackageTypeController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\QuickSearchController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StateController;
@@ -90,6 +91,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('subscription.active')->group(function () {
         Route::resource('branches', BranchController::class);
+        Route::get('quick-search', [QuickSearchController::class, 'index'])->name('quick-search.index');
         Route::get('branches/{branch}/settings', [BranchSettingsController::class, 'edit'])->name('branches.settings.edit');
         Route::put('branches/{branch}/settings', [BranchSettingsController::class, 'update'])->name('branches.settings.update');
         Route::get('trucks/bulk-upload/template', [TruckController::class, 'bulkUploadTemplate'])->name('trucks.bulk-upload.template');

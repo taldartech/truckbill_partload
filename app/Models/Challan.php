@@ -52,4 +52,21 @@ class Challan extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function mainChallanDetails()
+    {
+        return $this->hasMany(MainChallanDetail::class);
+    }
+
+    public function mainChallans()
+    {
+        return $this->hasManyThrough(
+            MainChallan::class,
+            MainChallanDetail::class,
+            'challan_id',
+            'id',
+            'id',
+            'main_challan_id'
+        );
+    }
 }

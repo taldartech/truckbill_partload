@@ -1,7 +1,5 @@
 <template>
-    <div
-        class="app-wrapper app-shell layout-fixed sidebar-expand-lg bg-body-tertiary"
-    >
+    <div class="app-wrapper app-shell layout-fixed sidebar-expand-lg bg-body-tertiary">
         <Navbar @quick-action="quickAction" />
         <Sidebar />
         <main class="app-main main-content pt-2 px-0">
@@ -9,7 +7,7 @@
                 <div class="container-fluid px-2">
 
                     <SubscriptionAccessBanner />
-                    <slot/>
+                    <slot />
                 </div>
             </div>
             <Footer />
@@ -17,11 +15,7 @@
 
         <!-- Global Shortcuts Modal (F1) -->
         <Transition name="fade">
-            <div
-                v-if="isShortcutModalOpen"
-                class="shortcut-modal-overlay"
-                @click.self="closeShortcutModal"
-            >
+            <div v-if="isShortcutModalOpen" class="shortcut-modal-overlay" @click.self="closeShortcutModal">
                 <div class="shortcut-modal-card">
                     <div class="shortcut-modal-header">
                         <div class="d-flex align-items-center gap-2">
@@ -30,11 +24,7 @@
                                 Quick Navigation Shortcuts
                             </h5>
                         </div>
-                        <button
-                            class="btn-close-custom"
-                            @click="closeShortcutModal"
-                            aria-label="Close"
-                        >
+                        <button class="btn-close-custom" @click="closeShortcutModal" aria-label="Close">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -162,12 +152,8 @@
                         </div>
                     </div>
                     <div class="shortcut-modal-footer">
-                        <span class="text-muted small"
-                            ><kbd class="bg-dark text-white px-2 py-1 rounded"
-                                >ESC</kbd
-                            >
-                            to close</span
-                        >
+                        <span class="text-muted small"><kbd class="bg-dark text-white px-2 py-1 rounded">ESC</kbd>
+                            to close</span>
                     </div>
                 </div>
             </div>
@@ -446,6 +432,13 @@ const handleKeyDown = (event) => {
         return;
     }
 
+    // F2 / Ctrl+K -> Quick Search
+    if (event.key === "F2" || (event.ctrlKey && event.key === "k")) {
+        event.preventDefault();
+        navigateTo('/quick-search');
+        return;
+    }
+
     // F3 -> quick add for focused master select (supports nested F3 inside an open modal)
     if (event.key === "F3") {
         event.preventDefault();
@@ -512,8 +505,8 @@ watch(
     (message) => {
         if (message) {
             toast.success(message, {
-    autoClose: 3000
-})
+                autoClose: 3000
+            })
         }
     },
     { immediate: true }
@@ -523,9 +516,9 @@ watch(
     () => page.props.flash?.error,
     (message) => {
         if (message) {
-            toast.error(message,{
-    autoClose: 3000
-})
+            toast.error(message, {
+                autoClose: 3000
+            })
         }
     },
     { immediate: true }
@@ -565,11 +558,11 @@ onUnmounted(() => {
     overflow-x: hidden;
 }
 
-.app-main > .app-content {
+.app-main>.app-content {
     flex: 1 0 auto;
 }
 
-.app-main > .app-footer {
+.app-main>.app-footer {
     flex: 0 0 auto;
     grid-area: auto;
     width: 100%;
@@ -584,13 +577,15 @@ onUnmounted(() => {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.45); /* Elegant dark slate backdrop */
+    background: rgba(15, 23, 42, 0.45);
+    /* Elegant dark slate backdrop */
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1060; /* Higher than sidebar / navbar */
+    z-index: 1060;
+    /* Higher than sidebar / navbar */
 }
 
 .shortcut-modal-card {
@@ -614,6 +609,7 @@ onUnmounted(() => {
         opacity: 0;
         transform: scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: scale(1);

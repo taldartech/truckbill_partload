@@ -15,6 +15,13 @@
                         </Link>
                     </li>
 
+                    <li class="nav-item" v-if="can('view bilties')">
+                        <Link href="/quick-search" class="nav-link" :class="{ active: $page.url.startsWith('/quick-search') }">
+                            <i class="nav-icon fas fa-search"></i>
+                            <p>Quick Search</p>
+                        </Link>
+                    </li>
+
                     <template v-if="showOperationsMenu">
                     <li class="nav-header mt-2 px-2 py-2 text-muted fw-bold small">OPERATIONS</li>
 
