@@ -50,7 +50,7 @@
                             <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Sr No.</th>
                                     <th>Name</th>
                                     <th>Mobile</th>
                                     <th>License Number</th>
@@ -58,8 +58,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="driver in drivers.data" :key="driver.id">
-                                    <td>{{ driver.id }}</td>
+                                <tr v-for="(driver, index) in drivers.data" :key="driver.id">
+                                    <td>{{ (drivers.from ?? 1) + index }}</td>
                                     <td>{{ driver.name || 'N/A' }}</td>
                                     <td>{{ driver.mobile || 'N/A' }}</td>
                                     <td>{{ driver.license_number || 'N/A' }}</td>

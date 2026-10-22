@@ -54,7 +54,7 @@
                             <table class="table table-hover text-nowrap">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Sr No.</th>
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Company</th>
@@ -64,8 +64,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="user in users.data" :key="user.id">
-                                    <td>{{ user.id }}</td>
+                                <tr v-for="(user, index) in users.data" :key="user.id">
+                                    <td>{{ (users.from ?? 1) + index }}</td>
                                     <td>
                                         <Link :href="`/users/${user.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ user.name }}

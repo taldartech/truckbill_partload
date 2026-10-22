@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Driver;
 use App\Models\City;
+use App\Models\Driver;
 use App\Models\State;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -24,7 +24,7 @@ class DriverController extends Controller implements HasMiddleware
 
     public function index()
     {
-        $drivers = Driver::with('company')->latest()->paginate(10);
+        $drivers = Driver::with('company')->orderBy('name', 'asc')->paginate(10);
 
         return Inertia::render('Drivers/Index', [
             'drivers' => $drivers,

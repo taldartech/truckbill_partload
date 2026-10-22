@@ -86,7 +86,7 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Sr No.</th>
                                     <th>Name</th>
                                     <th>Mobile</th>
                                     <th>City</th>
@@ -94,8 +94,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="agent in agents.data" :key="agent.id">
-                                    <td>{{ agent.id }}</td>
+                                <tr v-for="(agent, index) in agents.data" :key="agent.id">
+                                    <td>{{ (agents.from ?? 1) + index }}</td>
                                     <td>
                                         <Link :href="`/agents/${agent.id}`"
                                             class="text-decoration-none fw-bold text-brand-primary">

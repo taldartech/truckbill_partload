@@ -34,7 +34,7 @@ class PackageTypeController extends Controller implements HasMiddleware
 
         $items = PackageType::query()
             ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
-            ->orderByDesc('id')
+            ->orderBy('name', 'asc')
             ->paginate(10)
             ->withQueryString();
 

@@ -43,12 +43,12 @@ class PartyController extends Controller implements HasMiddleware
             ->with('company')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
-                    $inner->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('gst_number', 'like', '%' . $search . '%')
-                        ->orWhere('mobile', 'like', '%' . $search . '%');
+                    $inner->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('gst_number', 'like', '%'.$search.'%')
+                        ->orWhere('mobile', 'like', '%'.$search.'%');
                 });
             })
-            ->latest()
+            ->orderBy('name', 'asc')
             ->paginate(10)
             ->withQueryString();
 

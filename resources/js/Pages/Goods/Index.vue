@@ -76,14 +76,14 @@
                         <table class="table table-striped table-hover align-middle mb-0 app-index-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Sr No.</th>
                                     <th>Name</th>
                                     <th class="text-end" v-if="can('edit goods') || can('delete goods')">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="item in items.data" :key="item.id">
-                                    <td>{{ item.id }}</td>
+                                <tr v-for="(item, index) in items.data" :key="item.id">
+                                    <td>{{ (items.from ?? 1) + index }}</td>
                                     <td>
                                         <Link :href="`/goods/${item.id}`" class="text-decoration-none fw-bold text-brand-primary">
                                             {{ item.name }}
