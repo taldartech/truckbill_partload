@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Good;
+use App\Services\BulkUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class GoodController extends Controller implements HasMiddleware
 {
@@ -16,7 +18,7 @@ class GoodController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:view goods', only: ['index', 'show']),
-            new Middleware('permission:create goods', only: ['create', 'store', 'quickStore']),
+            new Middleware('permission:create goods', only: ['create', 'store', 'quickStore', 'bulkUpload', 'bulkUploadTemplate']),
             new Middleware('permission:edit goods', only: ['edit', 'update']),
             new Middleware('permission:delete goods', only: ['destroy']),
         ];
@@ -31,7 +33,7 @@ class GoodController extends Controller implements HasMiddleware
         $search = trim((string) ($validated['search'] ?? ''));
 
         $items = Good::query()
-            ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
+            ->when($search !== '', fn($query) => $query->where('name', 'like', '%' . $search . '%'))
             ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
@@ -98,5 +100,39 @@ class GoodController extends Controller implements HasMiddleware
         $good->delete();
 
         return redirect()->route('goods.index')->with('success', 'Goods deleted successfully.');
+    }
+
+    public function bulkUploadTemplate(BulkUploadService $bulkUploadService): StreamedResponse
+    {
+        return $bulkUploadService->downloadTemplate(
+            headers: ['Name'],
+            fileName: 'goods_bulk_upload_template.csv'
+        );
+    }
+
+    public function bulkUpload(Request $request, BulkUploadService $bulkUploadService): JsonResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls', 'extensions:csv,xlsx,xls', 'max:5120'],
+        ], [
+            'file.mimes' => 'The uploaded file must be a CSV or Excel file (.csv, .xlsx, .xls).',
+            'file.extensions' => 'The uploaded file must be a CSV or Excel file (.csv, .xlsx, .xls).',
+        ]);
+
+        $result = $bulkUploadService->process(
+            file: $request->file('file'),
+            modelClass: Good::class,
+            columnSpecs: [
+                'name' => [
+                    'label' => 'Name',
+                    'required' => true,
+                    'aliases' => ['name', 'good_name', 'goods_name', 'item_name'],
+                    'rules' => ['required', 'string', 'max:255'],
+                    'unique' => true,
+                ],
+            ]
+        );
+
+        return response()->json($result);
     }
 }

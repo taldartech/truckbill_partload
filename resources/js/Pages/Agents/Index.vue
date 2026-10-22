@@ -5,35 +5,28 @@
                 <div class="card-header">
                     <h3 class="card-title mb-0">Manage Agents</h3>
                     <div class="app-index-card-toolbar d-flex flex-wrap gap-2 align-items-center">
-                        <button
-                            v-if="can('create agents')"
-                            type="button"
-                            class="btn btn-sm app-index-header-btn"
-                            @click="openModal()"
-                        >
-                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
+                        <button v-if="can('create agents')" type="button" class="btn btn-sm app-index-header-btn"
+                            @click="showBulkUpload = true">
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--upload"
+                                aria-hidden="true"></span>
+                            Bulk Upload
+                        </button>
+                        <button v-if="can('create agents')" type="button" class="btn btn-sm app-index-header-btn"
+                            @click="openModal()">
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--plus"
+                                aria-hidden="true"></span>
                             Create
                         </button>
                     </div>
                 </div>
 
-                <AppIndexCollapsibleFilters
-                    panel-id="agents-filters-panel"
-                    :loading="searching"
-                    @search="applyFilters"
-                    @reset="resetFilters"
-                >
+                <AppIndexCollapsibleFilters panel-id="agents-filters-panel" :loading="searching" @search="applyFilters"
+                    @reset="resetFilters">
                     <div class="filter-search-col">
                         <label class="form-label" for="agents_search">Search</label>
-                        <AppIndexSearchInput
-                            v-model="filters.search"
-                            input-id="agents_search"
-                            placeholder="Name, mobile, GST"
-                            max-width="100%"
-                            size="md"
-                            :disabled="searching"
-                            @keydown.enter="applyFilters"
-                        />
+                        <AppIndexSearchInput v-model="filters.search" input-id="agents_search"
+                            placeholder="Name, mobile, GST" max-width="100%" size="md" :disabled="searching"
+                            @keydown.enter="applyFilters" />
                     </div>
                 </AppIndexCollapsibleFilters>
 
@@ -53,33 +46,27 @@
                                 <tr v-for="agent in agents.data" :key="agent.id">
                                     <td>{{ agent.id }}</td>
                                     <td>
-                                        <Link :href="`/agents/${agent.id}`" class="text-decoration-none fw-bold text-brand-primary">
+                                        <Link :href="`/agents/${agent.id}`"
+                                            class="text-decoration-none fw-bold text-brand-primary">
                                             {{ agent.name }}
                                         </Link>
                                     </td>
                                     <td>{{ agent.mobile || 'N/A' }}</td>
                                     <td>{{ agent.city?.name || agent.city || 'N/A' }}</td>
                                     <td class="text-end" v-if="can('delete agents')">
-                                        <button
-                                            v-if="can('edit agents')"
-                                            type="button"
-                                            class="btn btn-edit btn-sm me-2"
-                                            @click="editItem(agent)"
-                                        >
+                                        <button v-if="can('edit agents')" type="button" class="btn btn-edit btn-sm me-2"
+                                            @click="editItem(agent)">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button
-                                            v-if="can('delete agents')"
-                                            type="button"
-                                            class="btn btn-sm btn-danger"
-                                            @click="deleteItem(agent)"
-                                        >
+                                        <button v-if="can('delete agents')" type="button" class="btn btn-sm btn-danger"
+                                            @click="deleteItem(agent)">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
                                 <tr v-if="agents.data.length === 0">
-                                    <td colspan="6" class="text-center text-muted py-4">No agents found for selected filters.</td>
+                                    <td colspan="6" class="text-center text-muted py-4">No agents found for selected
+                                        filters.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -106,59 +93,60 @@
 
                             <div class="form-group mb-3">
                                 <label for="agent_address">Address *</label>
-                                <input type="text" class="form-control" id="agent_address" v-model="form.address" required>
-                                <div v-if="form.errors.address" class="text-danger mt-1 small">{{ form.errors.address }}</div>
+                                <input type="text" class="form-control" id="agent_address" v-model="form.address"
+                                    required>
+                                <div v-if="form.errors.address" class="text-danger mt-1 small">{{ form.errors.address }}
+                                </div>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6 form-group mb-3">
                                     <label>State *</label>
-                                    <SearchableSelect
-                                        v-model="form.state_id"
-                                        :options="stateOptions"
-                                        master="state"
+                                    <SearchableSelect v-model="form.state_id" :options="stateOptions" master="state"
                                         placeholder="Select State"
-                                        @created="(record) => appendMasterOption(stateOptions, record)"
-                                    />
-                                    <div v-if="form.errors.state_id" class="text-danger mt-1 small">{{ form.errors.state_id }}</div>
+                                        @created="(record) => appendMasterOption(stateOptions, record)" />
+                                    <div v-if="form.errors.state_id" class="text-danger mt-1 small">{{
+                                        form.errors.state_id }}</div>
                                 </div>
                                 <div class="col-md-6 form-group mb-3">
                                     <label>City *</label>
-                                    <SearchableSelect
-                                        v-model="form.city_id"
-                                        :options="filteredCities"
-                                        master="city"
-                                        :quick-add-context="{ state_id: form.state_id }"
-                                        placeholder="Select City"
+                                    <SearchableSelect v-model="form.city_id" :options="filteredCities" master="city"
+                                        :quick-add-context="{ state_id: form.state_id }" placeholder="Select City"
                                         :disabled="!form.state_id"
-                                        @created="(record) => appendMasterOption(cityOptions, record)"
-                                    />
-                                    <div v-if="form.errors.city_id" class="text-danger mt-1 small">{{ form.errors.city_id }}</div>
+                                        @created="(record) => appendMasterOption(cityOptions, record)" />
+                                    <div v-if="form.errors.city_id" class="text-danger mt-1 small">{{
+                                        form.errors.city_id }}</div>
                                 </div>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6 form-group mb-3">
                                     <label for="agent_mobile">Mobile *</label>
-                                    <input type="text" class="form-control" id="agent_mobile" v-model="form.mobile" required maxlength="10">
-                                    <div v-if="form.errors.mobile" class="text-danger mt-1 small">{{ form.errors.mobile }}</div>
+                                    <input type="text" class="form-control" id="agent_mobile" v-model="form.mobile"
+                                        required maxlength="10">
+                                    <div v-if="form.errors.mobile" class="text-danger mt-1 small">{{ form.errors.mobile
+                                    }}</div>
                                 </div>
                                 <div class="col-md-6 form-group mb-3">
                                     <label for="agent_email">Email</label>
                                     <input type="email" class="form-control" id="agent_email" v-model="form.email">
-                                    <div v-if="form.errors.email" class="text-danger mt-1 small">{{ form.errors.email }}</div>
+                                    <div v-if="form.errors.email" class="text-danger mt-1 small">{{ form.errors.email }}
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 form-group mb-3">
                                     <label for="agent_gst_no">GST Number</label>
                                     <input type="text" class="form-control" id="agent_gst_no" v-model="form.gst_no">
-                                    <div v-if="form.errors.gst_no" class="text-danger mt-1 small">{{ form.errors.gst_no }}</div>
+                                    <div v-if="form.errors.gst_no" class="text-danger mt-1 small">{{ form.errors.gst_no }}
+                                    </div>
                                 </div>
                                 <div class="col-md-6 form-group mb-3">
                                     <label for="agent_transport_id">Transporter Id</label>
-                                    <input type="text" class="form-control" id="agent_transport_id" v-model="form.transport_id">
-                                    <div v-if="form.errors.transport_id" class="text-danger mt-1 small">{{ form.errors.transport_id }}</div>
+                                    <input type="text" class="form-control" id="agent_transport_id"
+                                        v-model="form.transport_id">
+                                    <div v-if="form.errors.transport_id" class="text-danger mt-1 small">{{
+                                        form.errors.transport_id }}</div>
                                 </div>
                             </div>
                         </div>
@@ -179,6 +167,10 @@
                 </div>
             </div>
         </div>
+
+        <BulkUploadModal v-model:show="showBulkUpload" title="Bulk Upload Agents" upload-url="/agents/bulk-upload"
+            template-download-url="/agents/bulk-upload/template" template-file-name="agents_bulk_upload_template.csv"
+            :columns="bulkUploadColumns" />
     </AdminLayout>
 </template>
 
@@ -193,6 +185,7 @@ import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
 import { appendMasterOption } from '@/composables/useMasterQuickAdd';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
+import BulkUploadModal from '@/Components/BulkUploadModal.vue';
 
 const props = defineProps({
     agents: Object,
@@ -234,6 +227,61 @@ const form = useForm({
 });
 
 const editMode = ref(false);
+const showBulkUpload = ref(false);
+
+const bulkUploadColumns = [
+    {
+        name: 'name',
+        label: 'Agent Name',
+        required: true,
+        description: 'Name of the agent / agency',
+    },
+    {
+        name: 'address',
+        label: 'Address',
+        required: true,
+        description: 'Full address of the agent',
+    },
+    {
+        name: 'state',
+        label: 'State',
+        required: true,
+        description: 'State name or state code (e.g. Rajasthan or RJ)',
+    },
+    {
+        name: 'city',
+        label: 'City',
+        required: true,
+        description: 'Existing city name in master records (e.g. Udaipur)',
+    },
+    {
+        name: 'mobile',
+        label: 'Mobile',
+        required: true,
+        description: 'Unique 10-digit mobile number',
+        unique: true
+    },
+    {
+        name: 'email',
+        label: 'Email',
+        required: false,
+        description: 'Optional valid email address',
+    },
+    {
+        name: 'gst_no',
+        label: 'GST Number',
+        required: false,
+        description: 'Optional 15-character GSTIN',
+    },
+    {
+        name: 'transport_id',
+        label: 'Transporter ID',
+        required: false,
+        description: 'Optional 15-character Transporter ID',
+    },
+];
+
+
 let modal = null;
 
 const filteredCities = computed(() => {

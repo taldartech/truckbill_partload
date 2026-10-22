@@ -89,6 +89,10 @@
     content: '\f00a';
 }
 
+.app-index-header-btn__icon--upload::before {
+    content: '\f093';
+}
+
 /* Collapsible filters panel */
 .app-index-collapsible-filters {
     border-bottom: 1px solid var(--bs-border-color, #dee2e6);

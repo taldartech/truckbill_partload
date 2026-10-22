@@ -5,7 +5,11 @@
                 <div class="card-header">
                     <h3 class="card-title mb-0">Goods List</h3>
                     <div class="app-index-card-toolbar d-flex flex-wrap gap-2 align-items-center">
-                        <button type="button" class="btn btn-sm app-index-header-btn" @click="openModal()">
+                        <button type="button" class="btn btn-sm app-index-header-btn" @click="showBulkUpload = true" v-if="can('create goods')">
+                            <span class="app-index-header-btn__icon app-index-header-btn__icon--upload" aria-hidden="true"></span>
+                            Bulk Upload
+                        </button>
+                        <button type="button" class="btn btn-sm app-index-header-btn" @click="openModal()" v-if="can('create goods')">
                             <span class="app-index-header-btn__icon app-index-header-btn__icon--plus" aria-hidden="true"></span>
                             Create
                         </button>
@@ -95,6 +99,17 @@
                 </div>
             </div>
         </div>
+
+        <BulkUploadModal
+            v-model:show="showBulkUpload"
+            title="Bulk Upload Goods"
+            upload-url="/goods/bulk-upload"
+            template-download-url="/goods/bulk-upload/template"
+            template-file-name="goods_bulk_upload_template.csv"
+            :columns="bulkUploadColumns"
+            :sample-data="bulkUploadSampleData"
+            @success="onBulkUploadSuccess"
+        />
     </AdminLayout>
 </template>
 
@@ -105,6 +120,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PaginationLinks from '@/Components/PaginationLinks.vue';
 import AppIndexCollapsibleFilters from '@/Components/Index/AppIndexCollapsibleFilters.vue';
 import AppIndexSearchInput from '@/Components/Index/AppIndexSearchInput.vue';
+import BulkUploadModal from '@/Components/BulkUploadModal.vue';
 import { useMasterIndexSearch } from '@/composables/useMasterIndexSearch';
 import { askKeyboardConfirmWithRemark } from '@/composables/useKeyboardConfirm';
 
@@ -129,6 +145,19 @@ const form = useForm({
 });
 
 const editMode = ref(false);
+const showBulkUpload = ref(false);
+
+const bulkUploadColumns = [
+    {
+        name: 'name',
+        label: 'Name',
+        required: true,
+        description: 'Goods Name',
+    },
+];
+
+
+
 let modal = null;
 
 onMounted(() => {

@@ -24,12 +24,15 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryReceiptController;
 use App\Http\Controllers\GoodController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InwardRegisterController;
+use App\Http\Controllers\LedgerReportController;
 use App\Http\Controllers\LoadingReportController;
 use App\Http\Controllers\MainChallanController;
 use App\Http\Controllers\PackageTypeController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StateController;
 use App\Http\Controllers\StationController;
@@ -89,6 +92,8 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('branches', BranchController::class);
         Route::get('branches/{branch}/settings', [BranchSettingsController::class, 'edit'])->name('branches.settings.edit');
         Route::put('branches/{branch}/settings', [BranchSettingsController::class, 'update'])->name('branches.settings.update');
+        Route::get('trucks/bulk-upload/template', [TruckController::class, 'bulkUploadTemplate'])->name('trucks.bulk-upload.template');
+        Route::post('trucks/bulk-upload', [TruckController::class, 'bulkUpload'])->name('trucks.bulk-upload');
         Route::put('trucks/{truck}/complete-tour', [TruckController::class, 'completeTour'])->name('trucks.complete-tour');
         Route::get('trucks/quick/form-data', [TruckController::class, 'quickFormData'])->name('trucks.quick-form-data');
         Route::post('trucks/quick', [TruckController::class, 'quickStore'])->name('trucks.quick-store');
@@ -99,10 +104,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('countries/quick', [CountryController::class, 'quickStore'])->name('countries.quick-store');
         Route::get('states/quick/form-data', [StateController::class, 'quickFormData'])->name('states.quick-form-data');
         Route::post('states/quick', [StateController::class, 'quickStore'])->name('states.quick-store');
+        Route::get('parties/bulk-upload/template', [PartyController::class, 'bulkUploadTemplate'])->name('parties.bulk-upload.template');
+        Route::post('parties/bulk-upload', [PartyController::class, 'bulkUpload'])->name('parties.bulk-upload');
         Route::get('parties/quick/form-data', [PartyController::class, 'quickFormData'])->name('parties.quick-form-data');
         Route::get('parties/{party}/quick', [PartyController::class, 'quickShow'])->name('parties.quick');
         Route::post('parties/quick', [PartyController::class, 'quickStore'])->name('parties.quick-store');
         Route::resource('parties', PartyController::class);
+        Route::get('stations/bulk-upload/template', [StationController::class, 'bulkUploadTemplate'])->name('stations.bulk-upload.template');
+        Route::post('stations/bulk-upload', [StationController::class, 'bulkUpload'])->name('stations.bulk-upload');
         Route::get('stations/quick/form-data', [StationController::class, 'quickFormData'])->name('stations.quick-form-data');
         Route::get('stations/{station}/quick', [StationController::class, 'quickShow'])->name('stations.quick');
         Route::post('stations/quick', [StationController::class, 'quickStore'])->name('stations.quick-store');
@@ -117,14 +126,22 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('main-challans', MainChallanController::class);
 
         // Master Configuration
+        Route::get('truck-types/bulk-upload/template', [TruckTypeController::class, 'bulkUploadTemplate'])->name('truck-types.bulk-upload.template');
+        Route::post('truck-types/bulk-upload', [TruckTypeController::class, 'bulkUpload'])->name('truck-types.bulk-upload');
         Route::post('truck-types/quick', [TruckTypeController::class, 'quickStore'])->name('truck-types.quick-store');
         Route::resource('truck-types', TruckTypeController::class);
         Route::post('groups/quick', [GroupController::class, 'quickStore'])->name('groups.quick-store');
         Route::resource('groups', GroupController::class);
+        Route::get('goods/bulk-upload/template', [GoodController::class, 'bulkUploadTemplate'])->name('goods.bulk-upload.template');
+        Route::post('goods/bulk-upload', [GoodController::class, 'bulkUpload'])->name('goods.bulk-upload');
         Route::post('goods/quick', [GoodController::class, 'quickStore'])->name('goods.quick-store');
         Route::resource('goods', GoodController::class);
+        Route::get('package-types/bulk-upload/template', [PackageTypeController::class, 'bulkUploadTemplate'])->name('package-types.bulk-upload.template');
+        Route::post('package-types/bulk-upload', [PackageTypeController::class, 'bulkUpload'])->name('package-types.bulk-upload');
         Route::post('package-types/quick', [PackageTypeController::class, 'quickStore'])->name('package-types.quick-store');
         Route::resource('package-types', PackageTypeController::class);
+        Route::get('agents/bulk-upload/template', [AgentController::class, 'bulkUploadTemplate'])->name('agents.bulk-upload.template');
+        Route::post('agents/bulk-upload', [AgentController::class, 'bulkUpload'])->name('agents.bulk-upload');
         Route::get('agents/quick/form-data', [AgentController::class, 'quickFormData'])->name('agents.quick-form-data');
         Route::post('agents/quick', [AgentController::class, 'quickStore'])->name('agents.quick-store');
         Route::resource('agents', AgentController::class);
@@ -173,16 +190,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('delivery-receipts/{delivery_receipt}/print', [DeliveryReceiptController::class, 'print'])->name('delivery-receipts.print');
         Route::resource('delivery-receipts', DeliveryReceiptController::class);
 
-        Route::get('invoices/pending-bilties', [\App\Http\Controllers\InvoiceController::class, 'pendingBilties'])->name('invoices.pending-bilties');
-        Route::get('invoices/{invoice}/print', [\App\Http\Controllers\InvoiceController::class, 'print'])->name('invoices.print');
-        Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
+        Route::get('invoices/pending-bilties', [InvoiceController::class, 'pendingBilties'])->name('invoices.pending-bilties');
+        Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+        Route::resource('invoices', InvoiceController::class);
 
         // Reports
-        Route::get('reports/bilty-register', [\App\Http\Controllers\ReportController::class, 'biltyRegister'])->name('reports.bilty-register');
-        Route::get('reports/challan-register', [\App\Http\Controllers\ReportController::class, 'challanRegister'])->name('reports.challan-register');
-        Route::get('reports/party-ledger', [\App\Http\Controllers\LedgerReportController::class, 'partyLedger'])->name('reports.party-ledger');
-        Route::get('reports/agent-ledger', [\App\Http\Controllers\LedgerReportController::class, 'agentLedger'])->name('reports.agent-ledger');
-        Route::get('reports/cash-bank-book', [\App\Http\Controllers\LedgerReportController::class, 'cashBankBook'])->name('reports.cash-bank-book');
+        Route::get('reports/bilty-register', [ReportController::class, 'biltyRegister'])->name('reports.bilty-register');
+        Route::get('reports/challan-register', [ReportController::class, 'challanRegister'])->name('reports.challan-register');
+        Route::get('reports/party-ledger', [LedgerReportController::class, 'partyLedger'])->name('reports.party-ledger');
+        Route::get('reports/vendor-ledger', [LedgerReportController::class, 'vendorLedger'])->name('reports.vendor-ledger');
+        Route::get('reports/agent-ledger', [LedgerReportController::class, 'agentLedger'])->name('reports.agent-ledger');
+        Route::get('reports/cash-bank-book', [LedgerReportController::class, 'cashBankBook'])->name('reports.cash-bank-book');
 
         Route::resource('roles', RoleController::class);
     });
