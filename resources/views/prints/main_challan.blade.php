@@ -31,6 +31,12 @@
         .signature { text-align: center; border-top: 1px solid #000; padding-top: 5px; }
         .summary-table td { border: none; padding: 2px 5px; }
         .summary-table tr td:first-child { font-weight: bold; }
+        .outer-layout {
+            padding: 3px 4px 3px;
+            border: 1px solid black;
+            max-width: 820px;
+            margin: 0 auto;
+        }
 
         @media print {
             @page { margin: 10mm; }
@@ -126,6 +132,7 @@
         $totalBookingFreight = $challanRows->sum('booking_freight');
         $totalCrossingFreight = $challanRows->sum('crossing');
     @endphp
+    <div class="outer-layout">
     <div class="print-container">
         <div class="header">
             <div class="header-top">
@@ -286,7 +293,8 @@
             <div class="signature" style="width: 27%">Prepared By: {{ $main_challan->creator->name ?? '—' }}</div>
         </div>
 
-        @include('partials.print-brand-footer')
+    </div>
+    @include('partials.print-brand-footer')
     </div>
 </body>
 </html>

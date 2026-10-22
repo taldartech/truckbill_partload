@@ -254,5 +254,6 @@
                 <div class="bi-footer-meta text-right">Digitally managed by TruckBill (<a href="https://www.truckbill.in" target="_blank">www.truckbill.in</a>)</div>
             </div>
         </div>
+        <span class="bi-footer-meta text-right" style="font-size:10px">Digitally managed by TruckBill (<a href="https://www.truckbill.in" target="_blank">www.truckbill.in</a>)</span>
     </div>
 </div>

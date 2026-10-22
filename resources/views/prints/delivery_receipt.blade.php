@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     @include('partials.favicon')
     <title>Delivery Receipt - {{ $receipt->delivery_receipt_no }}</title>
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, Helvetica, sans-serif;
             font-size: 11px;
             margin: 0;
             padding: 8px;
         }
+
         .sheet {
             display: flex;
             flex-direction: column;
@@ -20,6 +25,7 @@
             margin: 0 auto;
             /* border: 1px solid #000; */
         }
+
         .panel {
             width: 100%;
             padding: 8px 10px 10px;
@@ -27,9 +33,8 @@
             flex-direction: column;
             border: 1px solid #000;
         }
-        .panel + .panel {
-            /* border-top: 1px solid #000; */
-        }
+
+
         .header {
             display: flex;
             align-items: flex-start;
@@ -38,12 +43,18 @@
             padding-bottom: 6px;
             margin-bottom: 6px;
         }
+
         .header-logo img {
             max-height: 52px;
             max-width: 58px;
             display: block;
         }
-        .header-company { flex: 1; text-align: center; }
+
+        .header-company {
+            flex: 1;
+            text-align: center;
+        }
+
         .header-company .name {
             font-size: 16px;
             font-weight: 700;
@@ -51,12 +62,14 @@
             line-height: 1.15;
             color: #000;
         }
+
         .header-company .meta {
             font-size: 10px;
             margin-top: 2px;
             line-height: 1.35;
             color: #000;
         }
+
         .doc-title {
             text-align: center;
             font-size: 20px;
@@ -67,6 +80,7 @@
             -webkit-text-stroke: 0.5px #000;
             text-transform: uppercase;
         }
+
         .meta-row {
             display: flex;
             justify-content: space-between;
@@ -74,55 +88,70 @@
             margin-bottom: 6px;
             font-weight: 700;
         }
+
         .info-grid {
             display: grid;
             grid-template-columns: 1.35fr 0.9fr;
             gap: 4px 10px;
             margin-bottom: 8px;
         }
+
         .field {
             display: flex;
             gap: 4px;
             line-height: 1.35;
         }
+
         .field .label {
             font-weight: 700;
             white-space: nowrap;
         }
+
         .field .value {
             flex: 1;
             min-height: 14px;
         }
+
         .charges {
             width: 100%;
             border-collapse: collapse;
             margin-top: 4px;
         }
+
         .charges th,
         .charges td {
             border: 1px solid #000;
             padding: 3px 6px;
         }
+
         .charges th {
             text-align: center;
             font-size: 10px;
             letter-spacing: 0.3px;
         }
-        .charges td.amt { text-align: right; width: 38%; }
+
+        .charges td.amt {
+            text-align: right;
+            width: 38%;
+        }
+
         .charges tr.total td {
             font-weight: 700;
             border-top-width: 2px;
         }
+
         .mode-tag {
             float: left;
             font-weight: 700;
             text-transform: uppercase;
         }
+
         .gate-totals {
             margin-top: 18px;
             border-top: 1px solid #000;
             padding-top: 8px;
         }
+
         .gate-totals .line {
             display: flex;
             justify-content: space-between;
@@ -131,9 +160,9 @@
             font-weight: 700;
             font-size: 12px;
         }
+
         .gate-totals .sum {
             border-top: 1px solid #000;
-            border-bottom: 3px double #000;
             padding: 4px 0;
             margin-top: 10px;
             display: flex;
@@ -141,7 +170,11 @@
             font-size: 13px;
             font-weight: 700;
         }
-        .panel-body { flex: 1; }
+
+        .panel-body {
+                        max-width: 820px;flex: 1;
+        }
+
         .panel-footer {
             margin-top: 12px;
             border-top: 1px solid #000;
@@ -151,27 +184,55 @@
             gap: 10px;
             align-items: flex-end;
         }
+
         .bankers {
             font-size: 9px;
             line-height: 1.35;
             max-width: 68%;
         }
+
         .prepared {
             text-align: right;
             font-size: 10px;
             min-width: 90px;
         }
+
         .prepared .name {
             font-weight: 700;
             margin-bottom: 2px;
         }
-        .muted { color: #000; }
 
+        .muted {
+            color: #000;
+        }
+
+        .outer-layout{
+            padding: 3px 4px 3px;
+            border: 1px solid black;
+        }
+        .outer-layout + .outer-layout{
+            margin-top: 4px;
+        }
         @media print {
-            @page { size: A4 portrait; margin: 8mm; }
-            body { padding: 0; color: #000; }
-            .sheet { max-width: none; border-color: #000; }
-            .panel + .panel { border-top-color: #000; }
+            @page {
+                size: A4 portrait;
+                margin: 8mm;
+            }
+
+            body {
+                padding: 0;
+                color: #000;
+            }
+
+            .sheet {
+                max-width: none;
+                border-color: #000;
+            }
+
+            .panel+.panel {
+                border-top-color: #000;
+            }
+
             .header,
             .charges th,
             .charges td,
@@ -184,27 +245,27 @@
                 color: #000;
                 border-color: #000;
             }
-            .print-brand-footer { display: none; }
         }
     </style>
 </head>
+
 <body onload="window.print()">
-@php
+    @php
     $logoPath = $branch?->resolvedLogo();
     $logoUrl = null;
     if ($logoPath) {
-        $logoUrl = str_starts_with($logoPath, 'http://') || str_starts_with($logoPath, 'https://')
-            ? $logoPath
-            : url($logoPath);
+    $logoUrl = str_starts_with($logoPath, 'http://') || str_starts_with($logoPath, 'https://')
+    ? $logoPath
+    : url($logoPath);
     }
 
     $branchAddress = trim(
-        collect([
-            $branch?->address,
-            $branch?->city?->name,
-            $branch?->state?->name,
-            $branch?->pin_code,
-        ])->filter()->implode(', ')
+    collect([
+    $branch?->address,
+    $branch?->city?->name,
+    $branch?->state?->name,
+    $branch?->pin_code,
+    ])->filter()->implode(', ')
     );
 
     $phone = $branch?->contact_number ?: ($company?->contact_number ?? '');
@@ -214,9 +275,9 @@
     $accountNo = $branch?->account_number ?: ($company?->account_number ?? '');
     $ifsc = $branch?->ifsc_code ?: ($company?->ifsc_code ?? '');
     $bankers = collect([
-        $bankName ? $bankName : null,
-        $accountNo ? '<strong>A/c No.:</strong> '.$accountNo : null,
-        $ifsc ? '<strong>IFSC:</strong> '.$ifsc : null,
+    $bankName ? $bankName : null,
+    $accountNo ? '<strong>A/c No.:</strong> '.$accountNo : null,
+    $ifsc ? '<strong>IFSC:</strong> '.$ifsc : null,
     ])->filter()->implode(', ');
 
     $receiptDate = $receipt->date ? date('d/m/Y', strtotime((string) $receipt->date)) : '—';
@@ -229,10 +290,10 @@
     $packages = $grSource['packages'];
     $weight = $grSource['weight'];
     $basis = $grSource['basis_of_booking'] ?: match ($receipt->mode_of_payment) {
-        'Due' => 'TO PAY',
-        'Cash' => 'PAID',
-        'Bank' => 'PAID',
-        default => $receipt->mode_of_payment,
+    'Due' => 'TO PAY',
+    'Cash' => 'PAID',
+    'Bank' => 'PAID',
+    default => $receipt->mode_of_payment,
     };
 
     $thella = (float) ($receipt->carriage_charge ?? 0);
@@ -242,227 +303,231 @@
 
     $fmt = fn ($n) => number_format((float) ($n ?? 0), 2);
     $fmtQty = function ($value) {
-        if ($value === null || $value === '') {
-            return '—';
-        }
-        $number = (float) $value;
+    if ($value === null || $value === '') {
+    return '—';
+    }
+    $number = (float) $value;
 
-        return fmod($number, 1.0) === 0.0
-            ? (string) (int) $number
-            : rtrim(rtrim(number_format($number, 2, '.', ''), '0'), '.');
+    return fmod($number, 1.0) === 0.0
+    ? (string) (int) $number
+    : rtrim(rtrim(number_format($number, 2, '.', ''), '0'), '.');
     };
-@endphp
+    @endphp
 
-<div class="sheet">
-    {{-- Delivery Receipt --}}
-    <div class="panel">
-        <div class="header">
-            @if ($logoUrl)
+    <div class="sheet">
+        {{-- Delivery Receipt --}}
+        <div class="outer-layout">
+        <div class="panel">
+            <div class="header">
+                @if ($logoUrl)
                 <div class="header-logo">
                     <img src="{{ $logoUrl }}" alt="Logo">
                 </div>
-            @endif
-            <div class="header-company">
-                <div class="name">{{ $company->name ?? '—' }}</div>
-                @if ($branchAddress)
-                    <div class="meta">{{ $branchAddress }}</div>
                 @endif
-                <div class="meta">
-                    @if ($pan) PAN : {{ $pan }} @endif
-                    @if ($pan && $phone) &nbsp; @endif
-                    @if ($phone) Mob. : {{ $phone }} @endif
+                <div class="header-company">
+                    <div class="name">{{ $company->name ?? '—' }}</div>
+                    @if ($branchAddress)
+                    <div class="meta">{{ $branchAddress }}</div>
+                    @endif
+                    <div class="meta">
+                        @if ($pan) PAN : {{ $pan }} @endif
+                        @if ($pan && $phone) &nbsp; @endif
+                        @if ($phone) Mob. : {{ $phone }} @endif
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="doc-title">DELIVERY RECEIPT</div>
+            <div class="doc-title">DELIVERY RECEIPT</div>
 
-        <div class="meta-row">
-            <div>Delivery No. : {{ $receipt->delivery_receipt_no }}</div>
-            <div>Date : {{ $receiptDate }}</div>
-        </div>
-
-        <div class="panel-body">
-            <div class="info-grid">
-                <div class="field"><span class="label">Consignee :</span><span class="value">{{ $consignee?->name ?? '—' }}</span></div>
-                <div class="field"><span class="label">Office Name :</span><span class="value"></span></div>
-
-                <div class="field"><span class="label">Consignor :</span><span class="value">{{ $grSource['consignor'] ?? '—' }}</span></div>
-                <div class="field"><span class="label">Date :</span><span class="value">{{ $grSource['gr_date'] ?? '—' }}</span></div>
-
-                <div class="field"><span class="label">Haste Name :</span><span class="value">{{ $haste ?: '—' }}</span></div>
-                <div class="field"><span class="label">Rec. Date :</span><span class="value">{{ $grSource['received_date'] ?? '—' }}</span></div>
-
-                <div class="field"><span class="label">G.R. No :</span><span class="value">{{ $receipt->gr_no_bilty_no }}</span></div>
-                <div class="field"><span class="label">Nugs :</span><span class="value">{{ $fmtQty($packages) }}</span></div>
-
-                <div class="field"><span class="label">From :</span><span class="value">{{ $grSource['from_station'] ?? '—' }}</span></div>
-                <div class="field"><span class="label">Weight :</span><span class="value">{{ $fmtQty($weight) }}</span></div>
-
-                <div class="field"><span class="label">Goods Name :</span><span class="value">{{ $grSource['goods_name'] ?? '—' }}</span></div>
-                <div></div>
-
-                <div class="field"><span class="label">Pvt. Mark :</span><span class="value">{{ $privateMark ?: '—' }}</span></div>
-                <div></div>
+            <div class="meta-row">
+                <div>Delivery No. : {{ $receipt->delivery_receipt_no }}</div>
+                <div>Date : {{ $receiptDate }}</div>
             </div>
 
-            <table class="charges">
-                <thead>
-                    <tr>
-                        <th>PARTICULARS</th>
-                        <th>AMOUNT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Basis of Booking</td>
-                        <td class="amt">{{ strtoupper((string) $basis) }}</td>
-                    </tr>
-                    <tr>
-                        <td>Freight</td>
-                        <td class="amt">{{ $fmt($receipt->freight) }}</td>
-                    </tr>
-                    <tr>
-                        <td>Handling Charge</td>
-                        <td class="amt">{{ $fmt($receipt->handling_charge) }}</td>
-                    </tr>
-                    <tr>
-                        <td>Delivery Charge</td>
-                        <td class="amt">{{ $fmt($receipt->delivery_charge) }}</td>
-                    </tr>
-                    <tr>
-                        <td>Stationery Charge</td>
-                        <td class="amt">{{ $fmt($receipt->stationery_charge) }}</td>
-                    </tr>
-                    <tr>
-                        <td>Demurrage</td>
-                        <td class="amt">{{ $fmt($receipt->demurrage) }}</td>
-                    </tr>
-                    <tr>
-                        <td>Other Charge</td>
-                        <td class="amt">{{ $fmt($receipt->other_charge) }}</td>
-                    </tr>
-                    <tr>
-                        <td>Less</td>
-                        <td class="amt">{{ $fmt($receipt->less) }}</td>
-                    </tr>
-                    @if ((float) ($receipt->gst ?? 0) > 0)
+            <div class="panel-body">
+                <div class="info-grid">
+                    <div class="field"><span class="label">Consignee :</span><span class="value">{{ $consignee?->name ?? '—' }}</span></div>
+                    <div class="field"><span class="label">Office Name :</span><span class="value"></span></div>
+
+                    <div class="field"><span class="label">Consignor :</span><span class="value">{{ $grSource['consignor'] ?? '—' }}</span></div>
+                    <div class="field"><span class="label">Date :</span><span class="value">{{ $grSource['gr_date'] ?? '—' }}</span></div>
+
+                    <div class="field"><span class="label">Haste Name :</span><span class="value">{{ $haste ?: '—' }}</span></div>
+                    <div class="field"><span class="label">Rec. Date :</span><span class="value">{{ $grSource['received_date'] ?? '—' }}</span></div>
+
+                    <div class="field"><span class="label">G.R. No :</span><span class="value">{{ $receipt->gr_no_bilty_no }}</span></div>
+                    <div class="field"><span class="label">Nugs :</span><span class="value">{{ $fmtQty($packages) }}</span></div>
+
+                    <div class="field"><span class="label">From :</span><span class="value">{{ $grSource['from_station'] ?? '—' }}</span></div>
+                    <div class="field"><span class="label">Weight :</span><span class="value">{{ $fmtQty($weight) }}</span></div>
+
+                    <div class="field"><span class="label">Goods Name :</span><span class="value">{{ $grSource['goods_name'] ?? '—' }}</span></div>
+                    <div></div>
+
+                    <div class="field"><span class="label">Pvt. Mark :</span><span class="value">{{ $privateMark ?: '—' }}</span></div>
+                    <div></div>
+                </div>
+
+                <table class="charges">
+                    <thead>
+                        <tr>
+                            <th>PARTICULARS</th>
+                            <th>AMOUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Basis of Booking</td>
+                            <td class="amt">{{ strtoupper((string) $basis) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Freight</td>
+                            <td class="amt">{{ $fmt($receipt->freight) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Handling Charge</td>
+                            <td class="amt">{{ $fmt($receipt->handling_charge) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Delivery Charge</td>
+                            <td class="amt">{{ $fmt($receipt->delivery_charge) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Stationery Charge</td>
+                            <td class="amt">{{ $fmt($receipt->stationery_charge) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Demurrage</td>
+                            <td class="amt">{{ $fmt($receipt->demurrage) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Other Charge</td>
+                            <td class="amt">{{ $fmt($receipt->other_charge) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Less</td>
+                            <td class="amt">{{ $fmt($receipt->less) }}</td>
+                        </tr>
+                        @if ((float) ($receipt->gst ?? 0) > 0)
                         <tr>
                             <td>GST ({{ $fmt($receipt->gst_rate) }}%)</td>
                             <td class="amt">{{ $fmt($receipt->gst) }}</td>
                         </tr>
-                    @endif
-                    <tr class="total">
-                        <td>
-                            TOTAL
-                        </td>
-                        <td class="amt">{{ $fmt($freightTotal) }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                        @endif
+                        <tr class="total">
+                            <td>
+                                TOTAL
+                            </td>
+                            <td class="amt">{{ $fmt($freightTotal) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="panel-footer">
-            <div class="bankers">
-                @if ($bankers)
+            <div class="panel-footer">
+                <div class="bankers">
+                    @if ($bankers)
                     <strong>Our Banker's :</strong> {!! $bankers !!}
-                @endif
-            </div>
-            <div class="prepared">
-                @if ($preparedBy)
+                    @endif
+                </div>
+                <div class="prepared">
+                    @if ($preparedBy)
                     <div class="name">{{ strtoupper($preparedBy) }}</div>
-                @endif
-                <div>Prepared By</div>
+                    @endif
+                    <div>Prepared By</div>
+                </div>
             </div>
         </div>
-    </div>
-
-    {{-- Gate Pass --}}
-    <div class="panel">
-        <div class="header">
-            @if ($logoUrl)
+        @include('partials.print-brand-footer')
+        </div>
+        {{-- Gate Pass --}}
+        <div class="outer-layout">
+        <div class="panel">
+            <div class="header">
+                @if ($logoUrl)
                 <div class="header-logo">
                     <img src="{{ $logoUrl }}" alt="Logo">
                 </div>
-            @endif
-            <div class="header-company">
-                <div class="name">{{ $company->name ?? '—' }}</div>
-                @if ($branchAddress)
+                @endif
+                <div class="header-company">
+                    <div class="name">{{ $company->name ?? '—' }}</div>
+                    @if ($branchAddress)
                     <div class="meta">{{ $branchAddress }}</div>
-                @endif
-                <div class="meta">
-                    @if ($pan) PAN : {{ $pan }} @endif
-                    @if ($pan && $phone) &nbsp; @endif
-                    @if ($phone) Mob. : {{ $phone }} @endif
+                    @endif
+                    <div class="meta">
+                        @if ($pan) PAN : {{ $pan }} @endif
+                        @if ($pan && $phone) &nbsp; @endif
+                        @if ($phone) Mob. : {{ $phone }} @endif
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="doc-title">GATE PASS</div>
+            <div class="doc-title">GATE PASS</div>
 
-        <div class="meta-row">
-            <div>Gate Pass No. : {{ $receipt->delivery_receipt_no }}</div>
-            <div>Date : {{ $receiptDate }}</div>
-        </div>
-
-        <div class="panel-body">
-            <div class="info-grid">
-                <div class="field" style="grid-column: 1 / -1;"><span class="label">Consignee :</span><span class="value">{{ $consignee?->name ?? '—' }}</span></div>
-
-                <div class="field"><span class="label">Address :</span><span class="value">{{ $consigneeAddress ?: '—' }}</span></div>
-                <div class="field"><span class="label">Date :</span><span class="value">{{ $grSource['gr_date'] ?? '—' }}</span></div>
-
-                <div class="field"><span class="label">City :</span><span class="value">{{ $consigneeCity ?: '—' }}</span></div>
-                <div></div>
-
-                <div class="field"><span class="label">Haste Name :</span><span class="value">{{ $haste ?: '—' }}</span></div>
-                <div class="field"><span class="label">Nugs :</span><span class="value">{{ $fmtQty($packages) }}</span></div>
-
-                <div class="field"><span class="label">G.R. No :</span><span class="value">{{ $receipt->gr_no_bilty_no }}</span></div>
-                <div class="field"><span class="label">Weight :</span><span class="value">{{ $fmtQty($weight) }}</span></div>
-
-                <div class="field"><span class="label">From :</span><span class="value">{{ $grSource['from_station'] ?? '—' }}</span></div>
-                <div></div>
-
-                <div class="field"><span class="label">Goods Name :</span><span class="value">{{ $grSource['goods_name'] ?? '—' }}</span></div>
-                <div></div>
-
-                <div class="field"><span class="label">Pvt. Mark :</span><span class="value">{{ $privateMark ?: '—' }}</span></div>
-                <div></div>
+            <div class="meta-row">
+                <div>Gate Pass No. : {{ $receipt->delivery_receipt_no }}</div>
+                <div>Date : {{ $receiptDate }}</div>
             </div>
 
-            <div class="gate-totals">
-                <div class="line">
-                    <span>Freight Amount:</span>
-                    <span>{{ $fmt($freightTotal) }}</span>
+            <div class="panel-body">
+                <div class="info-grid">
+                    <div class="field" style="grid-column: 1 / -1;"><span class="label">Consignee :</span><span class="value">{{ $consignee?->name ?? '—' }}</span></div>
+
+                    <div class="field"><span class="label">Address :</span><span class="value">{{ $consigneeAddress ?: '—' }}</span></div>
+                    <div class="field"><span class="label">Date :</span><span class="value">{{ $grSource['gr_date'] ?? '—' }}</span></div>
+
+                    <div class="field"><span class="label">City :</span><span class="value">{{ $consigneeCity ?: '—' }}</span></div>
+                    <div></div>
+
+                    <div class="field"><span class="label">Haste Name :</span><span class="value">{{ $haste ?: '—' }}</span></div>
+                    <div class="field"><span class="label">Nugs :</span><span class="value">{{ $fmtQty($packages) }}</span></div>
+
+                    <div class="field"><span class="label">G.R. No :</span><span class="value">{{ $receipt->gr_no_bilty_no }}</span></div>
+                    <div class="field"><span class="label">Weight :</span><span class="value">{{ $fmtQty($weight) }}</span></div>
+
+                    <div class="field"><span class="label">From :</span><span class="value">{{ $grSource['from_station'] ?? '—' }}</span></div>
+                    <div></div>
+
+                    <div class="field"><span class="label">Goods Name :</span><span class="value">{{ $grSource['goods_name'] ?? '—' }}</span></div>
+                    <div></div>
+
+                    <div class="field"><span class="label">Pvt. Mark :</span><span class="value">{{ $privateMark ?: '—' }}</span></div>
+                    <div></div>
                 </div>
-                <div class="line">
-                    <span>Carriage Charge :</span>
-                    <span>{{ $fmt($receipt->carriage_charge) }}</span>
-                </div>
-                <div class="sum">
-                    <span>Grand Total :</span>
-                    <span>{{ $fmt($receipt->final_amount) }}</span>
+
+                <div class="gate-totals">
+                    <div class="line">
+                        <span>Freight Amount:</span>
+                        <span>{{ $fmt($freightTotal) }}</span>
+                    </div>
+                    <div class="line">
+                        <span>Carriage Charge :</span>
+                        <span>{{ $fmt($receipt->carriage_charge) }}</span>
+                    </div>
+                    <div class="sum">
+                        <span>Grand Total :</span>
+                        <span>{{ $fmt($receipt->final_amount) }}</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="panel-footer">
-            <div class="bankers">
-                @if ($bankers)
+            <div class="panel-footer">
+                <div class="bankers">
+                    @if ($bankers)
                     <strong>Our Banker's :</strong> {!! $bankers !!}
-                @endif
-            </div>
-            <div class="prepared">
-                @if ($preparedBy)
+                    @endif
+                </div>
+                <div class="prepared">
+                    @if ($preparedBy)
                     <div class="name">{{ strtoupper($preparedBy) }}</div>
-                @endif
-                <div>Prepared By</div>
+                    @endif
+                    <div>Prepared By</div>
+                </div>
             </div>
+        </div>
+        @include('partials.print-brand-footer')
         </div>
     </div>
-</div>
-
-@include('partials.print-brand-footer')
 </body>
+
 </html>
