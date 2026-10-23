@@ -59,14 +59,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_sqlite, sqlite3, gd, zip
+          coverage: none
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
 
-      - name: Install npm dependencies
-        run: npm ci
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+          touch database/database.sqlite
+          php artisan migrate --force --no-interaction
+
+      - name: Install npm dependencies and build assets
+        run: |
+          npm ci
+          npm run build
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
@@ -74,5 +93,5 @@ jobs:
       - name: Playwright smoke (login page)
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
+          APP_URL: http://127.0.0.1:8000
         run: npx playwright test --project=chromium
-        continue-on-error: true

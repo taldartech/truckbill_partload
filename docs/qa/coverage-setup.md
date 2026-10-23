@@ -24,12 +24,13 @@ Install Xdebug or PCOV for the same PHP CLI used by Artisan. Coverage mode is se
 
 ```bash
 npm ci
-npx playwright install chromium
+npm run build
+npx playwright install
 npx playwright test
-npx playwright show-report
+npx playwright show-report   # needs a prior test run (writes playwright-report/)
 ```
 
-Set `PLAYWRIGHT_BASE_URL` (default `http://127.0.0.1:8000`). Use dedicated test users only.
+`playwright.config.ts` starts `php artisan serve` on `http://127.0.0.1:8000` when needed (`reuseExistingServer` outside CI). Build frontend assets first (or run `composer run dev`) so Inertia/Vite pages load. Override with `PLAYWRIGHT_BASE_URL` if the app is already on another host (e.g. Valet).
 
 ## CI
 
