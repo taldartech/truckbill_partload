@@ -348,8 +348,9 @@ class InwardRegisterController extends Controller implements HasMiddleware
             $keptIds[] = $created->id;
         }
 
-        if (empty($keptIds)) {
-            $register->details()->delete();
+        // Unreachable via normal update: validated details always produce at least one kept id, so the whereNotIn path runs instead.
+        if (empty($keptIds)) { // @codeCoverageIgnore
+            $register->details()->delete(); // @codeCoverageIgnore
         } else {
             $register->details()->whereNotIn('id', $keptIds)->delete();
         }

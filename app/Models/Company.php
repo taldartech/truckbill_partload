@@ -3,12 +3,17 @@
 namespace App\Models;
 
 use App\Services\SubscriptionAccessService;
+use Database\Factories\CompanyFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 class Company extends Model
 {
+    /** @use HasFactory<CompanyFactory> */
+    use HasFactory;
+
     use SoftDeletes;
 
     protected $guarded = [];

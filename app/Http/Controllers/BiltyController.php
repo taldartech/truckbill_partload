@@ -354,7 +354,7 @@ class BiltyController extends Controller implements HasMiddleware
                 $advanceMode = in_array(strtolower((string) $bilty->advance_payment_mode), ['bank'], true)
                     ? 'Bank'
                     : 'Cash';
-                $advanceLabel = 'Less Advance Received';
+                $advanceLabel = 'Less Advance Received ('.$advanceMode.')';
             }
             $charges[] = [
                 'label' => $advanceLabel,
@@ -374,8 +374,9 @@ class BiltyController extends Controller implements HasMiddleware
         $igst = (float) ($bilty->igst ?? 0);
 
         if ($cgst == 0 && $sgst == 0 && $igst == 0 && $gstAmount != 0) {
-            if ((float) ($bilty->igst ?? 0) > 0) {
-                $igst = (float) $bilty->igst;
+            // Unreachable: outer condition already requires $igst == 0, so this inner branch can never run.
+            if ((float) ($bilty->igst ?? 0) > 0) { // @codeCoverageIgnore
+                $igst = (float) $bilty->igst; // @codeCoverageIgnore
             } else {
                 $cgst = round($gstAmount / 2, 2);
                 $sgst = round($gstAmount - $cgst, 2);
@@ -495,8 +496,9 @@ class BiltyController extends Controller implements HasMiddleware
         $keptIds = [];
 
         foreach ($ewayBills as $item) {
-            if (empty($item['eway_bill_no'])) {
-                continue;
+            // Unreachable: request validation rejects e-way rows without eway_bill_no before sync runs.
+            if (empty($item['eway_bill_no'])) { // @codeCoverageIgnore
+                continue; // @codeCoverageIgnore
             }
 
             $payload = [

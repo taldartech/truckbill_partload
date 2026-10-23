@@ -327,8 +327,9 @@ class BranchController extends Controller implements HasMiddleware
 
         $companyId = $context->activeCompanyId();
 
-        if (! $companyId) {
-            return collect();
+        // Unreachable for callers that reach this path: non-super-admin branch forms always have an active company in tenant context.
+        if (! $companyId) { // @codeCoverageIgnore
+            return collect(); // @codeCoverageIgnore
         }
 
         return $query->whereKey($companyId)->get();

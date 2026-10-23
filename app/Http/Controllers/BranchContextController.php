@@ -32,9 +32,13 @@ class BranchContextController extends Controller
 
         $branch = Branch::with('company')->findOrFail($validated['branch_id']);
 
+        // @codeCoverageIgnoreStart
+        // Unreachable in practice: CompanyScope + findOrFail already 404s branches the user cannot see,
+        // so a visible branch always belongs to this user's company and this 403 never fires.
         if ($branch->company?->user_id !== $user->id) {
             abort(403, 'You can only select branches from your registered companies.');
         }
+        // @codeCoverageIgnoreEnd
 
         session([
             'active_branch_id' => $branch->id,

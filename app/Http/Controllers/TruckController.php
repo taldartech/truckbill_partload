@@ -42,10 +42,10 @@ class TruckController extends Controller implements HasMiddleware
             ->with(['company', 'truckType', 'currentState', 'currentCity', 'currentStation', 'agent'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
-                    $inner->where('truck_number', 'like', '%' . $search . '%')
-                        ->orWhere('status', 'like', '%' . $search . '%')
-                        ->orWhereHas('truckOwner', function ($ownerQuery) use ($search) {
-                            $ownerQuery->where('name', 'like', '%' . $search . '%');
+                    $inner->where('truck_number', 'like', '%'.$search.'%')
+                        ->orWhere('status', 'like', '%'.$search.'%')
+                        ->orWhereHas('agent', function ($ownerQuery) use ($search) {
+                            $ownerQuery->where('name', 'like', '%'.$search.'%');
                         });
                 });
             })
@@ -283,13 +283,13 @@ class TruckController extends Controller implements HasMiddleware
             $truckTypesById[$tt->id] = $tt;
         }
 
-        // 3. Preload truck owners
-        $truckOwners = $companyId ? TruckOwner::where('company_id', $companyId)->get() : collect();
-        $truckOwnersByName = [];
-        $truckOwnersById = [];
-        foreach ($truckOwners as $to) {
-            $truckOwnersByName[mb_strtolower(trim($to->name))] = $to;
-            $truckOwnersById[$to->id] = $to;
+        // 3. Preload agents (truck owners map to agents)
+        $agents = $companyId ? Agent::where('company_id', $companyId)->get() : collect();
+        $agentsByName = [];
+        $agentsById = [];
+        foreach ($agents as $agent) {
+            $agentsByName[mb_strtolower(trim($agent->name))] = $agent;
+            $agentsById[$agent->id] = $agent;
         }
 
         // 4. Preload stations
@@ -310,26 +310,16 @@ class TruckController extends Controller implements HasMiddleware
             &$statesById,
             &$truckTypesByName,
             &$truckTypesById,
-            &$truckOwnersByName,
-            &$truckOwnersById,
+            &$agentsByName,
+            &$agentsById,
             &$stationsByName,
             &$stationsById,
             &$citiesCache
         ): array {
             $errors = [];
 
-            // 1. Truck number is required and uppercase
+            // 1. Normalize truck number (emptiness already enforced by columnSpecs required rules)
             $truckNumberRaw = trim((string) ($rowData['truck_number'] ?? ''));
-            if ($truckNumberRaw === '') {
-                $errors[] = [
-                    'row' => $rowNumber,
-                    'field' => 'Truck Number',
-                    'value' => '',
-                    'message' => 'Truck number is required.',
-                ];
-
-                return $errors;
-            }
             $rowData['truck_number'] = strtoupper($truckNumberRaw);
 
             // 2. Truck Type
@@ -375,20 +365,20 @@ class TruckController extends Controller implements HasMiddleware
                 $rowData['status'] = 'Available';
             }
 
-            // 4. Truck Owner
+            // 4. Truck Owner (agent)
             $ownerRaw = trim((string) ($rowData['truck_owner'] ?? ''));
             if ($ownerRaw !== '') {
                 $ownerLower = mb_strtolower($ownerRaw);
-                $resolvedOwner = $truckOwnersByName[$ownerLower] ?? ($truckOwnersById[(int) $ownerRaw] ?? null);
-                if (! $resolvedOwner) {
+                $resolvedAgent = $agentsByName[$ownerLower] ?? ($agentsById[(int) $ownerRaw] ?? null);
+                if (! $resolvedAgent) {
                     $errors[] = [
                         'row' => $rowNumber,
                         'field' => 'Truck Owner',
                         'value' => $ownerRaw,
-                        'message' => sprintf('Truck Owner "%s" was not found in owner records.', $ownerRaw),
+                        'message' => sprintf('Truck Owner "%s" was not found in agent records.', $ownerRaw),
                     ];
                 } else {
-                    $rowData['truck_owner_id'] = $resolvedOwner->id;
+                    $rowData['agent_id'] = $resolvedAgent->id;
                 }
             }
             unset($rowData['truck_owner']);

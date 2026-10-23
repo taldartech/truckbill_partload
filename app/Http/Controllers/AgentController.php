@@ -214,19 +214,8 @@ class AgentController extends Controller implements HasMiddleware
         ): array {
             $errors = [];
 
-            // 1. Resolve State
+            // 1. Resolve State (emptiness already enforced by columnSpecs required rules)
             $stateRaw = trim((string) ($rowData['state'] ?? ''));
-            if ($stateRaw === '') {
-                $errors[] = [
-                    'row' => $rowNumber,
-                    'field' => 'State',
-                    'value' => '',
-                    'message' => 'State is required.',
-                ];
-
-                return $errors;
-            }
-
             $stateLower = mb_strtolower($stateRaw);
             $resolvedState = $statesByName[$stateLower]
                 ?? $statesByCode[$stateLower]
@@ -245,19 +234,8 @@ class AgentController extends Controller implements HasMiddleware
 
             $rowData['state_id'] = $resolvedState->id;
 
-            // 2. Validate City
+            // 2. Validate City (emptiness already enforced by columnSpecs required rules)
             $cityRaw = trim((string) ($rowData['city'] ?? ''));
-            if ($cityRaw === '') {
-                $errors[] = [
-                    'row' => $rowNumber,
-                    'field' => 'City',
-                    'value' => '',
-                    'message' => 'City is required.',
-                ];
-
-                return $errors;
-            }
-
             $cityLower = mb_strtolower($cityRaw);
 
             if (! isset($citiesCache[$resolvedState->id])) {

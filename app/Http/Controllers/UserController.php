@@ -218,7 +218,7 @@ class UserController extends Controller implements HasMiddleware
                 ]);
             }
 
-            $branch = Branch::find($validated['branch_id']);
+            $branch = Branch::withoutGlobalScopes()->find($validated['branch_id']);
 
             if (! $branch || (int) $branch->company_id !== (int) $validated['company_id']) {
                 throw ValidationException::withMessages([

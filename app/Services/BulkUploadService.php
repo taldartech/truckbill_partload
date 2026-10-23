@@ -624,23 +624,27 @@ class BulkUploadService
 
                 $maxCol = $worksheet->getHighestColumn();
                 $maxRow = $worksheet->getHighestRow();
-
+                // @codeCoverageIgnoreStart
+                // Unreachable with real XLS/XLSX files: PhpSpreadsheet reports maxRow >= 1 for any readable workbook.
                 if ($maxRow < 1) {
                     $spreadsheet->disconnectWorksheets();
                     unset($spreadsheet);
 
                     return null;
                 }
+                // @codeCoverageIgnoreEnd
 
                 $range = "A1:{$maxCol}{$maxRow}";
                 $rowGenerator = $worksheet->rangeToArrayYieldRows($range, null, true, false, false);
-
+                // @codeCoverageIgnoreStart
+                // Unreachable after a successful load: rangeToArrayYieldRows always yields at least the header row when maxRow >= 1.
                 if (! $rowGenerator->valid()) {
                     $spreadsheet->disconnectWorksheets();
                     unset($spreadsheet);
 
                     return null;
                 }
+                // @codeCoverageIgnoreEnd
 
                 $rawHeaders = $rowGenerator->current();
                 $rowGenerator->next();

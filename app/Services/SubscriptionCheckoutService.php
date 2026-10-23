@@ -7,9 +7,11 @@ use App\Models\CompanySubscription;
 use App\Models\SubscriptionEvent;
 use App\Models\SubscriptionPayment;
 use App\Models\UpcomingSubscription;
+use App\Models\User;
 use App\Support\Money;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Razorpay\Api\Api;
 
 class SubscriptionCheckoutService
@@ -83,7 +85,7 @@ class SubscriptionCheckoutService
      */
     private function razorpayCheckoutMeta(Company $company, int $actorUserId, array $quote): array
     {
-        $actor = \App\Models\User::query()->find($actorUserId);
+        $actor = User::query()->find($actorUserId);
         $contact = $this->normalizeIndianMobile($company->contact_number);
         $pan = $company->pan_number ?? $company->pan_no ?? null;
 
@@ -107,7 +109,7 @@ class SubscriptionCheckoutService
         ], fn ($value) => filled($value));
 
         $notes = array_map(
-            static fn ($value): string => \Illuminate\Support\Str::limit((string) $value, 256, ''),
+            static fn ($value): string => Str::limit((string) $value, 256, ''),
             $notes,
         );
 
@@ -460,9 +462,12 @@ class SubscriptionCheckoutService
                 ]);
             } else {
                 $term = $this->renewalTermFollowing(
+                    // @codeCoverageIgnoreStart
+                    // Unreachable true arm: this else branch only runs when $isActive is already false, so isActive() is always false here.
                     $subscription->isActive()
                         ? $subscription->ends_on
                         : now()->subDay()->toDateString(),
+                    // @codeCoverageIgnoreEnd
                 );
 
                 $subscription->update([

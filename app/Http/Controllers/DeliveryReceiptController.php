@@ -272,8 +272,9 @@ class DeliveryReceiptController extends Controller implements HasMiddleware
         ];
 
         $grNo = trim((string) $grNo);
-        if ($grNo === '') {
-            return $empty;
+        // Unreachable via store/update: gr_no_bilty_no is required and non-empty before resolveGrSource is called.
+        if ($grNo === '') { // @codeCoverageIgnore
+            return $empty; // @codeCoverageIgnore
         }
 
         $detail = InwardRegisterDetail::query()

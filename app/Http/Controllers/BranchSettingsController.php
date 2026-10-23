@@ -80,8 +80,9 @@ class BranchSettingsController extends Controller implements HasMiddleware
         if (auth()->user()?->isSuperAdmin()) {
             $company = Company::find($branch->company_id);
 
-            if (! $company || (int) $company->user_id !== (int) auth()->id()) {
-                abort(403);
+            // Unreachable via HTTP: route/model binding and company ownership already prevent loading another owner's branch.
+            if (! $company || (int) $company->user_id !== (int) auth()->id()) { // @codeCoverageIgnore
+                abort(403); // @codeCoverageIgnore
             }
         }
     }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Agent;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\CompanySubscription;
@@ -9,7 +10,6 @@ use App\Models\Country;
 use App\Models\State;
 use App\Models\Station;
 use App\Models\Truck;
-use App\Models\TruckOwner;
 use App\Models\TruckType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -91,7 +91,7 @@ class TruckBulkUploadTest extends TestCase
             'owner_id' => $context['owner']->id,
             'name' => '14 Ft Open Body',
         ]);
-        $truckOwner = TruckOwner::create([
+        $agent = Agent::create([
             'company_id' => $context['company']->id,
             'name' => 'Sharma Transport',
         ]);
@@ -120,7 +120,7 @@ class TruckBulkUploadTest extends TestCase
             'company_id' => $context['company']->id,
             'truck_number' => 'MH04AB1234',
             'truck_type_id' => $truckType->id,
-            'truck_owner_id' => $truckOwner->id,
+            'agent_id' => $agent->id,
             'current_state_id' => $state->id,
             'current_city_id' => $city->id,
             'current_station_id' => $station->id,
@@ -136,7 +136,7 @@ class TruckBulkUploadTest extends TestCase
         $context = $this->createAuthContext(['create trucks']);
 
         $country = Country::create(['name' => 'India', 'code' => 'IN']);
-        $state = State::create(['country_id' => $country->id, 'name' => 'Rajasthan', 'code' => 'RJ']);
+        State::create(['country_id' => $country->id, 'name' => 'Rajasthan', 'code' => 'RJ']);
 
         $csv = "Truck Number,State,City\n"
             ."RJ14XX9999,Rajasthan,NonExistentCityXYZ\n";
@@ -160,9 +160,7 @@ class TruckBulkUploadTest extends TestCase
         $this->assertCount(1, $json['errors']);
         $this->assertStringContainsString('was not found in city records', $json['errors'][0]['message']);
 
-        // Assert that the city was NOT created
         $this->assertDatabaseMissing('cities', ['name' => 'NonExistentCityXYZ']);
-        // Assert that the truck was NOT created
         $this->assertDatabaseMissing('trucks', ['truck_number' => 'RJ14XX9999']);
     }
 
@@ -192,7 +190,6 @@ class TruckBulkUploadTest extends TestCase
             'company_id' => $context['company']->id,
         ]);
 
-        // Verify no drivers table exists or is populated
         if (Schema::hasTable('drivers')) {
             $this->assertDatabaseMissing('drivers', ['name' => 'Mahesh Kumar Driver']);
         }
@@ -202,16 +199,15 @@ class TruckBulkUploadTest extends TestCase
     {
         $context = $this->createAuthContext(['create trucks']);
 
-        // Pre-create truck in company
         Truck::create([
             'company_id' => $context['company']->id,
             'truck_number' => 'MH04AB9999',
         ]);
 
         $csv = "Truck Number\n"
-            ."MH04AB9999\n" // duplicate in DB
-            ."RJ14CD2222\n" // valid row
-            ."rj14cd2222\n"; // duplicate within batch
+            ."MH04AB9999\n"
+            ."RJ14CD2222\n"
+            ."rj14cd2222\n";
 
         $file = UploadedFile::fake()->createWithContent('trucks.csv', $csv);
 
@@ -236,7 +232,7 @@ class TruckBulkUploadTest extends TestCase
 
     public function test_truck_bulk_upload_requires_create_trucks_permission(): void
     {
-        $context = $this->createAuthContext([]); // no permission
+        $context = $this->createAuthContext([]);
 
         $file = UploadedFile::fake()->createWithContent('trucks.csv', "Truck Number\nMH04AB1234");
 

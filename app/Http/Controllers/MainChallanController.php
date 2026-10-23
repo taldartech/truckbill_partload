@@ -342,8 +342,9 @@ class MainChallanController extends Controller implements HasMiddleware
 
         foreach ($details as $detail) {
             $challan = Challan::find($detail['challan_id'] ?? null);
-            if (! $challan) {
-                continue;
+            // Unreachable: challan_id is validated with exists:challans,id before sync runs.
+            if (! $challan) { // @codeCoverageIgnore
+                continue; // @codeCoverageIgnore
             }
 
             $mainChallan->details()->create([

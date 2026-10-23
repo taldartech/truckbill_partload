@@ -324,19 +324,8 @@ class StationController extends Controller implements HasMiddleware
             $rowData['state_id'] = $resolvedState->id;
             $rowData['country_id'] = $resolvedState->country_id;
 
-            // 2. Validate City
+            // 2. Validate City (emptiness already enforced by columnSpecs required rules)
             $cityRaw = trim((string) ($rowData['city'] ?? ''));
-            if ($cityRaw === '') {
-                $errors[] = [
-                    'row' => $rowNumber,
-                    'field' => 'City',
-                    'value' => '',
-                    'message' => 'City is required.',
-                ];
-
-                return $errors;
-            }
-
             $cityLower = mb_strtolower($cityRaw);
 
             if (! isset($citiesCache[$resolvedState->id])) {

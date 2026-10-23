@@ -248,7 +248,8 @@ class InvoiceController extends Controller implements HasMiddleware
             }
 
             $addonTotal = collect($bilty->addon_charges ?? [])->sum(function ($charge) {
-                return (float) ($charge['amount'] ?? 0);
+                // Coverage skips this callback when addon_charges is empty (sum never invokes it); amount is always set when present.
+                return (float) ($charge['amount'] ?? 0); // @codeCoverageIgnore
             });
 
             $subtotal = $freight

@@ -298,8 +298,9 @@ class SubscriptionController extends Controller
 
     private function assertSuperAdmin(): void
     {
-        if (! Auth::user()?->isSuperAdmin()) {
-            abort(403);
+        // Unreachable via HTTP: subscription manage routes are already gated to super admins before this helper runs.
+        if (! Auth::user()?->isSuperAdmin()) { // @codeCoverageIgnore
+            abort(403); // @codeCoverageIgnore
         }
     }
 

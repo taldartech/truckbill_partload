@@ -23,7 +23,7 @@ class ReportController extends Controller implements HasMiddleware
 
     public function biltyRegister(Request $request)
     {
-        $query = Bilty::with(['fromStation', 'toStation', 'consignor', 'consignee', 'truck']);
+        $query = Bilty::with(['fromStation', 'toStation', 'consignor', 'consignee']);
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $query->whereBetween('date', [$request->start_date, $request->end_date]);
