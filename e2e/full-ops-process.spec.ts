@@ -23,7 +23,10 @@ import {
 test.describe('Full operational process @uat @process', () => {
   test.describe.configure({ mode: 'serial' });
   test.setTimeout(90_000);
-  test.skip(({ browserName }) => browserName !== 'chromium', 'Process journey runs on Chromium only');
+  // mobile-chrome also reports browserName=chromium; pin to desktop Chromium project only.
+  test.beforeEach(({}, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'Process journey runs on Chromium only');
+  });
 
   const suffix = uniqueSuffix();
   const consignor = `E2E Consignor ${suffix}`;

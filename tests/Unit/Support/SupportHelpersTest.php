@@ -58,8 +58,13 @@ class SupportHelpersTest extends TestCase
 
     public function test_single_device_login_clears_other_database_sessions_and_remember_token(): void
     {
-        config(['session.driver' => 'database', 'session.table' => 'sessions']);
+        config([
+            'session.driver' => 'database',
+            'session.table' => 'sessions',
+            'session.allow_multi_device_login' => false,
+        ]);
         DB::statement('CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, user_id INTEGER NULL, payload TEXT, last_activity INTEGER)');
+        DB::table('sessions')->delete();
 
         $user = User::factory()->create(['remember_token' => 'abc']);
         DB::table('sessions')->insert([
@@ -69,12 +74,22 @@ class SupportHelpersTest extends TestCase
 
         (new SingleDeviceLoginService)->enforce($user, 'keep', false);
 
-        $this->assertSame(['keep'], DB::table('sessions')->pluck('id')->all());
+        $this->assertSame(['keep'], DB::table('sessions')->orderBy('id')->pluck('id')->all());
         $this->assertNull($user->fresh()->remember_token);
 
         $user->forceFill(['remember_token' => 'xyz'])->save();
         (new SingleDeviceLoginService)->enforce($user, 'keep', true);
         $this->assertSame('xyz', $user->fresh()->remember_token);
+
+        DB::table('sessions')->insert([
+            ['id' => 'drop-again', 'user_id' => $user->id, 'payload' => '', 'last_activity' => time()],
+        ]);
+        config(['session.allow_multi_device_login' => true]);
+        (new SingleDeviceLoginService)->enforce($user, 'keep', false);
+        $this->assertEqualsCanonicalizing(
+            ['keep', 'drop-again'],
+            DB::table('sessions')->pluck('id')->all()
+        );
     }
 
     public function test_document_number_mysql_expressions_are_generated_for_non_sqlite_drivers(): void

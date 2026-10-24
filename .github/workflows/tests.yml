@@ -18,8 +18,19 @@ jobs:
           extensions: mbstring, pdo_sqlite, sqlite3, gd, zip
           coverage: none
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install NPM dependencies and build assets
+        run: |
+          npm ci
+          npm run build
 
       - name: Prepare environment
         run: |
@@ -76,8 +87,19 @@ jobs:
           extensions: mbstring, pdo_sqlite, sqlite3, gd, zip
           coverage: xdebug
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install NPM dependencies and build assets
+        run: |
+          npm ci
+          npm run build
 
       - name: Prepare environment
         run: |
@@ -172,6 +194,7 @@ jobs:
           E2E_EMAIL: e2e@truckbill.test
           E2E_PASSWORD: password
           E2E_SKIP_SEED: '0'
+          E2E_ALLOW_MULTI_DEVICE: '1'
           DB_CONNECTION: sqlite
           DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
         run: |

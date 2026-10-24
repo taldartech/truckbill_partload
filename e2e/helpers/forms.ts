@@ -77,6 +77,20 @@ export async function dismissAddAnotherPrompt(page: Page): Promise<void> {
 }
 
 export async function expectFlashOrListContains(page: Page, text: string | RegExp): Promise<void> {
+  const needle = typeof text === 'string' ? text : text.source;
+  // Index pages paginate (10) and sort by name — newly created rows often are not on page 1.
+  const search = page.locator('input[placeholder*="Name"], input[placeholder*="name"], .app-index-search input').first();
+  if (await search.count()) {
+    await search.fill(needle);
+    const searchBtn = page.getByRole('button', { name: /search/i }).first();
+    if (await searchBtn.count()) {
+      await searchBtn.click();
+    } else {
+      await search.press('Enter');
+    }
+    await page.waitForLoadState('domcontentloaded');
+  }
+
   // Prefer a visible match — index pages duplicate rows in mobile + desktop panes.
   await expect(page.getByText(text).locator('visible=true').first()).toBeVisible({ timeout: 20_000 });
 }

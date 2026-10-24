@@ -22,6 +22,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Allow Multi-Device Login
+    |--------------------------------------------------------------------------
+    |
+    | When true, SingleDeviceLoginService will not delete other sessions for
+    | the same user. Enable for Playwright / parallel browser e2e runs.
+    |
+    */
+
+    'allow_multi_device_login' => filter_var(env('E2E_ALLOW_MULTI_DEVICE', false), FILTER_VALIDATE_BOOLEAN),
+
+    /*
+    |--------------------------------------------------------------------------
     | Session Lifetime
     |--------------------------------------------------------------------------
     |

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAsE2eUser } from './helpers/auth';
+import { ensureLoggedIn, loginAsE2eUser } from './helpers/auth';
 
 /**
  * Full portal surface walk (sidebar map). Each path must load without a server error.
@@ -60,7 +60,15 @@ test.describe('Portal page coverage @uat', () => {
     test(`loads ${pageDef.name} (${pageDef.path})`, async ({ page }) => {
       const response = await page.goto(pageDef.path, { waitUntil: 'domcontentloaded' });
       expect(response, `No response for ${pageDef.path}`).not.toBeNull();
-      expect(response!.status(), `${pageDef.path} returned ${response!.status()}`).toBeLessThan(500);
+      await ensureLoggedIn(page);
+      if (/\/login/.test(page.url())) {
+        await page.goto(pageDef.path, { waitUntil: 'domcontentloaded' });
+      }
+      expect(page.url(), `${pageDef.path} redirected to login`).not.toMatch(/\/login/);
+      const status = response?.status() ?? 0;
+      if (status > 0) {
+        expect(status, `${pageDef.path} returned ${status}`).toBeLessThan(500);
+      }
       await expect(page.locator('body')).toBeVisible();
       await expect(page).not.toHaveURL(/\/login/);
       if (pageDef.heading) {

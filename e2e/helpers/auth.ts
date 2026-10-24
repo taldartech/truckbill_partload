@@ -16,6 +16,13 @@ export async function loginAsE2eUser(page: Page): Promise<void> {
   await expect(page.getByRole('link', { name: /dashboard/i }).first()).toBeVisible();
 }
 
+/** Re-login if a navigation landed on /login (session lost / single-device wipe). */
+export async function ensureLoggedIn(page: Page): Promise<void> {
+  if (/\/login/.test(page.url())) {
+    await loginAsE2eUser(page);
+  }
+}
+
 export async function logout(page: Page): Promise<void> {
   await page.locator('.dropdown-toggle').filter({ hasText: /.+/ }).first().click();
   await page.getByRole('button', { name: /sign out/i }).click();
