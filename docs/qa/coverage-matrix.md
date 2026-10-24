@@ -8,7 +8,7 @@
 | 4 | Negative | Validation, forbidden, invalid state tests | Complete |
 | 5 | API | `tests/Feature/Api/OnboardingApiTest.php` | Complete |
 | 6 | Integration | Accounting bridge, bulk upload, subscription + DB | Complete |
-| 7 | End-to-end | `e2e/login.spec.ts` (+ Playwright projects) | Complete |
+| 7 | End-to-end | PHP `tests/Feature/E2E/**` + Playwright portal + `full-ops-process` form submits | Complete |
 | 8 | Database | `tests/Feature/Database/**`, CompanyMasterBranchId | Complete |
 | 9 | Security | `tests/Feature/Security/**`, Auth | Complete |
 | 10 | Multi-tenant | `tests/Feature/Tenant/**`, SuperAdminOwnerIsolation | Complete |
@@ -19,10 +19,10 @@
 | 15 | Regression | Full PHPUnit + GitHub Actions | Complete |
 | 16 | Performance | `tests/Performance/**` (`@group performance`) | Complete |
 | 17 | Reliability | `tests/Feature/Reliability/**` | Complete |
-| 18 | UI/UX / compatibility | Playwright chromium/firefox/webkit/mobile | Complete |
+| 18 | UI/UX / compatibility | Playwright chromium/firefox/webkit/mobile + portal page walk | Complete |
 | 19 | Backup / recovery | `tests/Feature/Backup/**`, `docs/qa/backup-recovery.md` | Complete |
 | 20 | Audit / logging | `tests/Feature/Audit/**`, AccountingAuditTrail | Complete |
-| 21 | UAT | `docs/qa/uat-checklist.md`, e2e `@uat` | Complete |
+| 21 | UAT | `docs/qa/uat-checklist.md`, Playwright `@uat` portal journeys | Complete |
 | 22 | Deployment | CI migrate smoke, `docs/qa/deployment-rollback.md` | Complete |
 
 Orphan / excluded from PHPUnit `<source>`: unrouted `DriverController` and `Driver` model (drivers table dropped).

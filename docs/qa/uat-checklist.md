@@ -17,7 +17,7 @@ Seed recipe: `php artisan db:seed --class=OperationalFlowSeeder` (non-production
 
 ## Automated UAT tags
 
-Playwright specs tagged `@uat` under `e2e/` cover login smoke. Expand journeys as environments stabilize.
+Playwright specs tagged `@uat` under `e2e/` cover auth, full portal page walk, mobile nav, create-screen smoke, and `@process` form submits (masters → bilty → challan). PHP mirror: `tests/Feature/E2E` (including invoice and delivery journeys).
 
 ## Exit criteria
 

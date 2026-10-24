@@ -76,11 +76,15 @@ jobs:
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Prepare environment
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
         run: |
           cp .env.example .env
           php artisan key:generate --no-interaction
           touch database/database.sqlite
           php artisan migrate --force --no-interaction
+          php artisan e2e:seed --no-interaction
 
       - name: Install npm dependencies and build assets
         run: |
@@ -90,8 +94,13 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Playwright smoke (login page)
+      - name: Playwright portal e2e
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
           APP_URL: http://127.0.0.1:8000
+          E2E_EMAIL: e2e@truckbill.test
+          E2E_PASSWORD: password
+          E2E_SKIP_SEED: '0'
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
         run: npx playwright test --project=chromium
